@@ -13,16 +13,15 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ### Validated
 
 - [x] Application runs fully Dockerized (app + Postgres via docker-compose) — Validated in Phase 1: Infrastructure and Schema
+- [x] User can upload CSV and TXT files containing sales/revenue data — Validated in Phase 2: File Ingestion Pipeline
+- [x] Uploaded file data is parsed and stored in a PostgreSQL database — Validated in Phase 2: File Ingestion Pipeline
+- [x] File schema is consistent (known columns) — no dynamic schema detection needed — Validated in Phase 2: File Ingestion Pipeline (38-column ERP export)
+- [x] Upload history is visible (what was uploaded, when) — Validated in Phase 2: File Ingestion Pipeline
 
 ### Active
 
-- [ ] User can upload CSV, TXT, or Excel files containing sales/revenue data
-- [ ] Uploaded file data is parsed and stored in a PostgreSQL database
-- [ ] File schema is consistent (known columns) — no dynamic schema detection needed
 - [ ] Dashboard displays summary cards (total revenue, avg order value, key metrics)
 - [ ] Dashboard displays charts showing KPI trends over time (line/bar charts)
-- [x] Application runs fully Dockerized (app + Postgres via docker-compose) → Validated
-- [ ] Upload history is visible (what was uploaded, when)
 
 ### Out of Scope
 
@@ -77,4 +76,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after Phase 1 completion*
+*Last updated: 2026-04-10 after Phase 2 completion*
