@@ -33,15 +33,21 @@ Plans:
 - [x] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
 
 ### Phase 2: File Ingestion Pipeline
-**Goal**: Users can upload CSV, TXT, and Excel files and see them parsed, stored, and listed in upload history
+**Goal**: Users can upload CSV and TXT tab-delimited ERP export files and see them parsed, validated, stored, and listed in upload history with a bilingual (DE/EN) React frontend
 **Depends on**: Phase 1
 **Requirements**: UPLD-01, UPLD-02, UPLD-03, UPLD-04, UPLD-05, MGMT-01
 **Success Criteria** (what must be TRUE):
-  1. User can drag-and-drop or browse to select a CSV, TXT, or Excel file and see a progress indicator during upload
-  2. A valid file is parsed and its rows appear in the database; the upload history list shows filename, timestamp, row count, and status
+  1. User can drag-and-drop or browse to select a CSV or TXT file and see an indeterminate spinner during upload
+  2. A valid file is parsed and its rows appear in the database; the upload history list shows filename, timestamp, row count, status, and error count
   3. An invalid file type is immediately rejected with a clear error message naming the unsupported format
-  4. A file with malformed data produces an actionable error message identifying the specific row and column that failed
-**Plans**: TBD
+  4. A file with malformed data produces actionable error messages identifying the specific row and column that failed
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Backend data layer: column mapping, ERP parser, models (38-col schema), Pydantic schemas
+- [ ] 02-02-PLAN.md — API endpoints: POST /api/upload, GET /api/uploads, DELETE /api/uploads/{id}, Alembic migration
+- [ ] 02-03-PLAN.md — Frontend scaffold: Vite + React + Tailwind + shadcn + i18n + Docker container
+- [ ] 02-04-PLAN.md — Frontend UI: DropZone, ErrorList, UploadHistory, DeleteConfirmDialog, LanguageToggle
 
 ### Phase 3: Dashboard Frontend
 **Goal**: Users can view interactive KPI visualizations of all uploaded data and filter by date range
@@ -63,5 +69,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure and Schema | 2/2 | Complete | 2026-04-10 |
-| 2. File Ingestion Pipeline | 0/? | Not started | - |
+| 2. File Ingestion Pipeline | 0/4 | Not started | - |
 | 3. Dashboard Frontend | 0/? | Not started | - |
