@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-10T18:39:28.769Z"
+stopped_at: Completed 02-file-ingestion-pipeline-03-PLAN.md
+last_updated: "2026-04-10T19:32:00.589Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State: ACM KPI Light
@@ -38,11 +39,10 @@ Plan: 2 of 2 (all plans complete)
 
 **Progress:**
 
-```
+[█████░░░░░] 50%
 [Phase 1] Infrastructure and Schema  [X] Complete (2/2 plans)
-[Phase 2] File Ingestion Pipeline    [ ] Not started
+[Phase 2] File Ingestion Pipeline    [ ] In Progress (1/4 plans)
 [Phase 3] Dashboard Frontend         [ ] Not started
-```
 
 Overall: 1/3 phases complete
 
@@ -58,6 +58,7 @@ Overall: 1/3 phases complete
 |-------|------|----------|-------|-------|
 | 01 | 01 | 108s | 2 | 16 |
 | 01 | 02 | 291s | 2 | 2 |
+| 02 | 03 | 5min | 2 | 34 |
 
 ---
 
@@ -76,6 +77,9 @@ Overall: 1/3 phases complete
 | Synchronous in-memory file parsing | < 50MB files; no background workers needed; simpler and sufficient | Phase 2 |
 | INSERT ... ON CONFLICT DO NOTHING | Idempotent re-uploads; requires UNIQUE constraint on business key | Phase 2 |
 | TanStack Query invalidateQueries after upload | Prevents stale dashboard data after upload; must be designed as a single flow | Phase 3 |
+| shadcn init requires path alias in root tsconfig.json | shadcn CLI reads tsconfig.json root, not tsconfig.app.json — paths must be in both | Phase 2 |
+| Vite Docker proxy pattern with no env var | server.host 0.0.0.0 + /api proxy to http://api:8000; no VITE_API_URL switching needed | Phase 2 |
+| Tailwind v4 CSS-first config | @import tailwindcss + @theme in index.css; no tailwind.config.js or postcss.config.js | Phase 2 |
 
 ### Research Flags
 
@@ -95,8 +99,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-10T18:39:28.766Z
-**Stopped at:** Phase 2 context gathered
+**Last session:** 2026-04-10T19:32:00.586Z
+**Stopped at:** Completed 02-file-ingestion-pipeline-03-PLAN.md
 
 **To resume:** Run `/gsd:execute-phase 2` to begin Phase 2 (File Ingestion Pipeline). Phase research required first (sample data needed).
 
