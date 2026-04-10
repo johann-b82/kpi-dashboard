@@ -2,8 +2,11 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 
 from app.database import engine
+from app.routers.uploads import router as uploads_router
 
 app = FastAPI(title="ACM KPI Light")
+
+app.include_router(uploads_router)
 
 
 @app.get("/health")
