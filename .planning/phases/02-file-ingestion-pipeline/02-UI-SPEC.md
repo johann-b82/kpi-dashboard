@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-04-10
+revised: 2026-04-10
 ---
 
 # Phase 2 — UI Design Contract
@@ -54,20 +55,22 @@ Exceptions:
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Body | 14px | 400 (regular) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
-| Heading | 20px | 600 (semibold) | 1.2 |
-| Display | 28px | 700 (bold) | 1.15 |
+| Role | Size | Weight | Line Height | Treatment |
+|------|------|--------|-------------|-----------|
+| Body | 14px | 400 (regular) | 1.5 | — |
+| Label | 14px | 400 (regular) | 1.4 | uppercase, letter-spacing 0.05em |
+| Heading | 20px | 600 (semibold) | 1.2 | — |
+
+**Active weight set: 400 (regular) and 600 (semibold). No other weights used in Phase 2.**
 
 **Applied mapping:**
 - Body (14px/400): Table cell content, error list items, toast body text
-- Label (14px/500): Table column headers, form field labels, badge text, language toggle label
+- Label (14px/400/uppercase+tracking): Table column headers, form field labels, badge text, language toggle label. Uppercase and letter-spacing distinguish Label from Body without a separate weight.
 - Heading (20px/600): Page title ("Datei hochladen" / "Upload File"), upload history section title
-- Display (28px/700): Not used in Phase 2 — reserved for Phase 3 dashboard metric cards
 
-**Source:** Tailwind CSS v4 defaults; internal tool context (compact information density preferred).
+**Display (28px) is not used in Phase 2 — reserved for Phase 3 dashboard metric cards. No weight declaration is made for it in this phase.**
+
+**Source:** Tailwind CSS v4 defaults; internal tool context (compact information density preferred). Revised: 4-weight set reduced to 2-weight set per checker constraint.
 
 ---
 
@@ -222,10 +225,12 @@ All copy is bilingual. Format: German / English (language toggle controls which 
 | Delete confirmation dialog title | Upload löschen | Delete upload |
 | Delete confirmation body | "{filename}" und {n} zugehörige Datensätze werden dauerhaft gelöscht. | "{filename}" and {n} associated records will be permanently deleted. |
 | Delete confirmation CTA | Löschen | Delete |
-| Delete cancel button | Abbrechen | Cancel |
+| Delete cancel button | Upload behalten | Keep upload |
 | Language toggle label | DE / EN | DE / EN |
 
-**Source:** CONTEXT.md D-13, D-14, D-17, D-18, D-19, D-20; REQUIREMENTS.md UPLD-02, UPLD-04, MGMT-01.
+**Copywriting note:** The delete cancel button uses "Upload behalten" (DE) / "Keep upload" (EN) — a noun-verb label that names the retained object and clarifies the outcome. Generic "Abbrechen" / "Cancel" is not used.
+
+**Source:** CONTEXT.md D-13, D-14, D-17, D-18, D-19, D-20; REQUIREMENTS.md UPLD-02, UPLD-04, MGMT-01. Revised: delete cancel button label updated per checker Dimension 1 finding.
 
 ---
 
