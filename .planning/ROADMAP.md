@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Infrastructure and Schema** - Running Docker Compose stack with correct schema, migrations, and startup ordering
+- [x] **Phase 1: Infrastructure and Schema** - Running Docker Compose stack with correct schema, migrations, and startup ordering
 - [ ] **Phase 2: File Ingestion Pipeline** - End-to-end file upload, parsing, validation, and database storage with history
 - [ ] **Phase 3: Dashboard Frontend** - KPI query API and interactive React dashboard with all visualizations
 
@@ -30,7 +30,7 @@
 
 Plans:
 - [x] 01-01-PLAN.md — Create project scaffold, Docker infrastructure, FastAPI app, models, and Alembic setup
-- [ ] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
+- [x] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
 
 ### Phase 2: File Ingestion Pipeline
 **Goal**: Users can upload CSV, TXT, and Excel files and see them parsed, stored, and listed in upload history
@@ -62,6 +62,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure and Schema | 0/2 | Planning complete | - |
+| 1. Infrastructure and Schema | 2/2 | Complete | 2026-04-10 |
 | 2. File Ingestion Pipeline | 0/? | Not started | - |
 | 3. Dashboard Frontend | 0/? | Not started | - |
