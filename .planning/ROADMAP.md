@@ -29,7 +29,7 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create project scaffold, Docker infrastructure, FastAPI app, models, and Alembic setup
+- [x] 01-01-PLAN.md — Create project scaffold, Docker infrastructure, FastAPI app, models, and Alembic setup
 - [ ] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
 
 ### Phase 2: File Ingestion Pipeline

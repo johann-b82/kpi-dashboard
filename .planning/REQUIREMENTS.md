@@ -28,8 +28,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFR-01**: Application runs via Docker Compose (app container + PostgreSQL container)
-- [ ] **INFR-02**: Database schema managed via migrations
+- [x] **INFR-01**: Application runs via Docker Compose (app container + PostgreSQL container)
+- [x] **INFR-02**: Database schema managed via migrations
 - [ ] **INFR-03**: Layout is responsive and usable on 1080p+ desktop screens
 
 ## v2 Requirements
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-02 | Phase 3 | Pending |
 | DASH-03 | Phase 3 | Pending |
 | DASH-04 | Phase 3 | Pending |
-| INFR-01 | Phase 1 | Pending |
-| INFR-02 | Phase 1 | Pending |
+| INFR-01 | Phase 1 | Complete |
+| INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 3 | Pending |
 
 **Coverage:**
