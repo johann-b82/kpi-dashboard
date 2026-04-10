@@ -10,10 +10,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### File Upload
 
 - [x] **UPLD-01**: User can upload files via drag-and-drop zone or browse button
-- [ ] **UPLD-02**: System rejects non-supported file types (only CSV, TXT, Excel accepted) with clear error message
+- [x] **UPLD-02**: System rejects non-supported file types (only CSV, TXT, Excel accepted) with clear error message
 - [x] **UPLD-03**: Upload shows progress indicator during file processing
-- [ ] **UPLD-04**: System displays actionable parse error messages identifying the specific row/column that failed validation
-- [ ] **UPLD-05**: Uploaded file data is parsed and stored in PostgreSQL with known fixed schema
+- [x] **UPLD-04**: System displays actionable parse error messages identifying the specific row/column that failed validation
+- [x] **UPLD-05**: Uploaded file data is parsed and stored in PostgreSQL with known fixed schema
 
 ### Upload Management
 
@@ -81,10 +81,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | UPLD-01 | Phase 2 | Complete |
-| UPLD-02 | Phase 2 | Pending |
+| UPLD-02 | Phase 2 | Complete |
 | UPLD-03 | Phase 2 | Complete |
-| UPLD-04 | Phase 2 | Pending |
-| UPLD-05 | Phase 2 | Pending |
+| UPLD-04 | Phase 2 | Complete |
+| UPLD-05 | Phase 2 | Complete |
 | MGMT-01 | Phase 2 | Complete |
 | DASH-01 | Phase 3 | Pending |
 | DASH-02 | Phase 3 | Pending |

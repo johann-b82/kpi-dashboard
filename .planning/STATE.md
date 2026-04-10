@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-file-ingestion-pipeline-03-PLAN.md
-last_updated: "2026-04-10T19:32:00.589Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-10T19:45:18.191Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State: ACM KPI Light
@@ -39,7 +39,7 @@ Plan: 1 of 4
 
 **Progress:**
 
-[█████░░░░░] 50%
+[███████░░░] 67%
 [Phase 1] Infrastructure and Schema  [X] Complete (2/2 plans)
 [Phase 2] File Ingestion Pipeline    [ ] In Progress (1/4 plans)
 [Phase 3] Dashboard Frontend         [ ] Not started
@@ -61,6 +61,7 @@ Overall: 1/3 phases complete
 | 02 | 03 | 5min | 2 | 34 |
 
 ---
+| Phase 02 P01 | 297 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Overall: 1/3 phases complete
 | shadcn init requires path alias in root tsconfig.json | shadcn CLI reads tsconfig.json root, not tsconfig.app.json — paths must be in both | Phase 2 |
 | Vite Docker proxy pattern with no env var | server.host 0.0.0.0 + /api proxy to http://api:8000; no VITE_API_URL switching needed | Phase 2 |
 | Tailwind v4 CSS-first config | @import tailwindcss + @theme in index.css; no tailwind.config.js or postcss.config.js | Phase 2 |
+| GERMAN_TO_ENGLISH empty string key for column 2 | ERP export column 2 has no German header; empty string key maps it to erp_status_flag | Phase 2 |
+| df.map not df.applymap for pandas 3.x | df.applymap removed in pandas 3.x; df.map is the correct API for element-wise cell transforms | Phase 2 |
 
 ### Research Flags
 
@@ -99,8 +102,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-10T19:32:00.586Z
-**Stopped at:** Completed 02-file-ingestion-pipeline-03-PLAN.md
+**Last session:** 2026-04-10T19:45:18.188Z
+**Stopped at:** Completed 02-01-PLAN.md
 
 **To resume:** Run `/gsd:execute-phase 2` to begin Phase 2 (File Ingestion Pipeline). Phase research required first (sample data needed).
 
