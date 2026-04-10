@@ -57,6 +57,14 @@ DECIMAL_COLUMNS: set[str] = {
     "total_value",
 }
 
+# English column names that map to Integer DB columns
+INTEGER_COLUMNS: set[str] = {
+    "business_area",
+    "manual_status",
+    "customer_lock",
+    "status_code",
+}
+
 # English column names that must be non-empty per D-12 check 4
 REQUIRED_COLUMNS: set[str] = {
     "order_number",

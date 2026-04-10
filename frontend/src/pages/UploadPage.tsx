@@ -5,7 +5,7 @@ import { DropZone } from "@/components/DropZone";
 import { ErrorList } from "@/components/ErrorList";
 import { UploadHistory } from "@/components/UploadHistory";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ValidationErrorDetail } from "@/lib/api";
+import type { ValidationErrorDetail } from "@/lib/api";
 
 export function UploadPage() {
   const { t } = useTranslation();

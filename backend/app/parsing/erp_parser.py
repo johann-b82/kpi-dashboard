@@ -21,6 +21,7 @@ from app.parsing.column_mapping import (
     DATE_COLUMNS,
     DECIMAL_COLUMNS,
     GERMAN_TO_ENGLISH,
+    INTEGER_COLUMNS,
     REQUIRED_COLUMNS,
 )
 
@@ -137,6 +138,12 @@ def row_to_dict(row: dict[str, str]) -> dict:
             result[col] = parse_german_date(raw)
         elif col in DECIMAL_COLUMNS:
             result[col] = parse_german_decimal(raw)
+        elif col in INTEGER_COLUMNS:
+            stripped = raw.strip() if isinstance(raw, str) else raw
+            try:
+                result[col] = int(stripped) if stripped else None
+            except (ValueError, TypeError):
+                result[col] = None
         else:
             result[col] = raw.strip() if isinstance(raw, str) else raw
 
@@ -165,13 +172,22 @@ def parse_erp_file(
         - errors: List of error dicts with row, column, message keys
     """
     # Step 1: Read tab-delimited, all strings, no NA inference
-    df = pd.read_csv(
-        io.BytesIO(contents),
-        sep="\t",
-        dtype=str,
-        keep_default_na=False,
-        encoding="utf-8",
-    )
+    # ERP exports use Latin-1 encoding (German umlauts like ü = 0xFC)
+    # Try utf-8 first, fall back to latin-1
+    for encoding in ("utf-8", "latin-1"):
+        try:
+            df = pd.read_csv(
+                io.BytesIO(contents),
+                sep="\t",
+                dtype=str,
+                keep_default_na=False,
+                encoding=encoding,
+            )
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        return ([], [{"row": 0, "column": "", "message": "Unable to decode file (tried utf-8, latin-1)"}])
 
     # Step 2: Strip ="..." quoting wrapper from all cells (pandas 3.x: use .map)
     df = df.map(strip_eq_quotes)

@@ -2,11 +2,8 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
-import {
-  getUploads,
-  deleteUpload,
-  UploadBatchSummary,
-} from "@/lib/api";
+import { getUploads, deleteUpload } from "@/lib/api";
+import type { UploadBatchSummary } from "@/lib/api";
 import {
   Table,
   TableBody,

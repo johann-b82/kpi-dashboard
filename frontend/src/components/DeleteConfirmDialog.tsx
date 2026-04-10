@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { UploadBatchSummary } from "@/lib/api";
+import type { UploadBatchSummary } from "@/lib/api";
 
 interface DeleteConfirmDialogProps {
   open: boolean;

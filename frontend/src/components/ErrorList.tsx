@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ValidationErrorDetail } from "@/lib/api";
+import type { ValidationErrorDetail } from "@/lib/api";
 
 interface ErrorListProps {
   errors: ValidationErrorDetail[];
