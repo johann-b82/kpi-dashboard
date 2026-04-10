@@ -26,7 +26,11 @@
   2. The database is accessible from the API container and persists data across restarts
   3. Alembic migrations run cleanly and produce the upload_batches and sales_records tables with TIMESTAMPTZ date columns and the UNIQUE constraint on the natural business key
   4. Stopping and restarting the stack does not destroy data (named volume confirmed working)
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create project scaffold, Docker infrastructure, FastAPI app, models, and Alembic setup
+- [ ] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
 
 ### Phase 2: File Ingestion Pipeline
 **Goal**: Users can upload CSV, TXT, and Excel files and see them parsed, stored, and listed in upload history
@@ -58,6 +62,6 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure and Schema | 0/? | Not started | - |
+| 1. Infrastructure and Schema | 0/2 | Planning complete | - |
 | 2. File Ingestion Pipeline | 0/? | Not started | - |
 | 3. Dashboard Frontend | 0/? | Not started | - |
