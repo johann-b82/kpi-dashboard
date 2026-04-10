@@ -24,7 +24,7 @@
 **Success Criteria** (what must be TRUE):
   1. Running `docker compose up` starts both containers (db + api) without error, in the correct order
   2. The database is accessible from the API container and persists data across restarts
-  3. Alembic migrations run cleanly and produce the upload_batches and sales_records tables with TIMESTAMPTZ date columns and the UNIQUE constraint on the natural business key
+  3. Alembic migrations run cleanly and produce the upload_batches and sales_records tables with TIMESTAMPTZ date columns (UNIQUE constraint on natural business key deferred to Phase 2 per D-03 — placeholder columns)
   4. Stopping and restarting the stack does not destroy data (named volume confirmed working)
 **Plans:** 2 plans
 
