@@ -11,6 +11,7 @@
   "invalid_file_type": "Unsupported format: {{ext}}. Only .csv and .txt allowed.",
   "error_heading": "Import errors ({{count}} rows skipped)",
   "error_row_format": "Row {{row}}, {{column}}: {{message}}",
+  "error_row_no_col_format": "Row {{row}}: {{message}}",
   "history_title": "Upload History",
   "col_filename": "Filename",
   "col_uploaded_at": "Uploaded at",

@@ -18,7 +18,7 @@ interface DropZoneProps {
 export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
+  const [rejectedExt, setRejectedExt] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: uploadFile,
@@ -56,11 +56,10 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop: (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      setRejectionMessage(null);
+      setRejectedExt(null);
       if (fileRejections.length > 0) {
         const name = fileRejections[0].file.name;
-        const ext = name.split(".").pop() ?? name;
-        setRejectionMessage(t("invalid_file_type", { ext }));
+        setRejectedExt(name.split(".").pop() ?? name);
         return;
       }
       if (acceptedFiles.length > 0) {
@@ -121,8 +120,10 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
           )}
         </div>
 
-        {rejectionMessage && (
-          <p className="px-4 py-2 text-sm text-red-600">{rejectionMessage}</p>
+        {rejectedExt && (
+          <p className="px-4 py-2 text-sm text-red-600">
+            {t("invalid_file_type", { ext: rejectedExt })}
+          </p>
         )}
       </CardContent>
     </Card>

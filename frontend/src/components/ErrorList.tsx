@@ -23,11 +23,9 @@ export function ErrorList({ errors }: ErrorListProps) {
       >
         {errors.map((e, idx) => (
           <li key={idx} className="text-sm text-slate-700">
-            {t("error_row_format", {
-              row: e.row,
-              column: e.column,
-              message: e.message,
-            })}
+            {e.column
+              ? t("error_row_format", { row: e.row, column: e.column, message: e.message })
+              : t("error_row_no_col_format", { row: e.row, message: e.message })}
           </li>
         ))}
       </ul>

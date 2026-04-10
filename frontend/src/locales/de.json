@@ -11,6 +11,7 @@
   "invalid_file_type": "Nicht unterst\u00fctztes Format: {{ext}}. Nur .csv und .txt erlaubt.",
   "error_heading": "Importfehler ({{count}} Zeilen \u00fcbersprungen)",
   "error_row_format": "Zeile {{row}}, {{column}}: {{message}}",
+  "error_row_no_col_format": "Zeile {{row}}: {{message}}",
   "history_title": "Upload-Verlauf",
   "col_filename": "Dateiname",
   "col_uploaded_at": "Hochgeladen am",
