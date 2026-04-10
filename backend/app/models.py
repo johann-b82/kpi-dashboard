@@ -1,7 +1,16 @@
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import (
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -15,17 +24,77 @@ class UploadBatch(Base):
         DateTime(timezone=True), nullable=False
     )
     row_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    error_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False
     )  # "success" | "failed" | "partial"
+
+    records: Mapped[list["SalesRecord"]] = relationship(
+        "SalesRecord",
+        back_populates="batch",
+        cascade="all, delete-orphan",
+    )
 
 
 class SalesRecord(Base):
     __tablename__ = "sales_records"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    upload_batch_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    # Placeholder columns per D-01 -- replaced in Phase 2 migration after sample file review
-    col_a: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    col_b: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    col_c: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    upload_batch_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("upload_batches.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # --- Business key ---
+    order_number: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+
+    # --- String columns ---
+    erp_status_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    order_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    order_subtype: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    complexity_group: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    vv_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    business_area: Mapped[str | None] = mapped_column(Integer, nullable=True)
+    project_reference: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivery_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    delivery_city: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    manual_lock: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    responsible_person: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    free_field_1: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    free_field_2: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    remark: Mapped[str | None] = mapped_column(Text, nullable=True)
+    project_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    project_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    manual_status: Mapped[str | None] = mapped_column(Integer, nullable=True)
+    customer_lock: Mapped[str | None] = mapped_column(Integer, nullable=True)
+    material_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    end_customer_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    internal_processor_1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    internal_processor_2: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    approval_comment_1: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status_code: Mapped[str | None] = mapped_column(Integer, nullable=True)
+    technical_check: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    purchase_check: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    approval_comment_2: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # --- Date columns (per D-10: nullable, DD.MM.YYYY) ---
+    order_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    delivery_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    requested_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    arrival_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
+    # --- Decimal columns (per D-04: NUMERIC exact, nullable) ---
+    remaining_value: Mapped[Decimal | None] = mapped_column(
+        Numeric(15, 2), nullable=True
+    )
+    total_value: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
+
+    batch: Mapped["UploadBatch"] = relationship(
+        "UploadBatch",
+        back_populates="records",
+    )
