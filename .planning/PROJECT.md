@@ -12,7 +12,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Application runs fully Dockerized (app + Postgres via docker-compose) — Validated in Phase 1: Infrastructure and Schema
 
 ### Active
 
@@ -21,7 +21,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 - [ ] File schema is consistent (known columns) — no dynamic schema detection needed
 - [ ] Dashboard displays summary cards (total revenue, avg order value, key metrics)
 - [ ] Dashboard displays charts showing KPI trends over time (line/bar charts)
-- [ ] Application runs fully Dockerized (app + Postgres via docker-compose)
+- [x] Application runs fully Dockerized (app + Postgres via docker-compose) → Validated
 - [ ] Upload history is visible (what was uploaded, when)
 
 ### Out of Scope
@@ -57,7 +57,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 | Authentik for identity (v2) | Self-hosted, Docker-native, supports AD/LDAP/OIDC, reusable across apps | — Pending |
 | Auth deferred to v2 | v1 focus is core data pipeline + dashboard; internal-only use doesn't need auth yet | — Pending |
 | Fixed file schema | Simplifies parsing significantly; user confirmed columns are consistent | — Pending |
-| Docker Compose deployment | Entire stack containerized for portability and reproducibility | — Pending |
+| Docker Compose deployment | Entire stack containerized for portability and reproducibility | ✓ Phase 1 |
 
 ## Evolution
 
@@ -77,4 +77,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after initialization*
+*Last updated: 2026-04-10 after Phase 1 completion*
