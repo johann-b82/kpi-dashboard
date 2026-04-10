@@ -41,11 +41,11 @@ Plans:
   2. A valid file is parsed and its rows appear in the database; the upload history list shows filename, timestamp, row count, status, and error count
   3. An invalid file type is immediately rejected with a clear error message naming the unsupported format
   4. A file with malformed data produces actionable error messages identifying the specific row and column that failed
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Backend data layer: column mapping, ERP parser, models (38-col schema), Pydantic schemas
-- [ ] 02-02-PLAN.md — API endpoints: POST /api/upload, GET /api/uploads, DELETE /api/uploads/{id}, Alembic migration
+- [x] 02-02-PLAN.md — API endpoints: POST /api/upload, GET /api/uploads, DELETE /api/uploads/{id}, Alembic migration
 - [x] 02-03-PLAN.md — Frontend scaffold: Vite + React + Tailwind + shadcn + i18n + Docker container
 - [ ] 02-04-PLAN.md — Frontend UI: DropZone, ErrorList, UploadHistory, DeleteConfirmDialog, LanguageToggle
 
@@ -69,5 +69,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure and Schema | 2/2 | Complete | 2026-04-10 |
-| 2. File Ingestion Pipeline | 2/4 | In Progress|  |
+| 2. File Ingestion Pipeline | 3/4 | In Progress|  |
 | 3. Dashboard Frontend | 0/? | Not started | - |
