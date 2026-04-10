@@ -10,7 +10,7 @@
 ## Phases
 
 - [x] **Phase 1: Infrastructure and Schema** - Running Docker Compose stack with correct schema, migrations, and startup ordering
-- [ ] **Phase 2: File Ingestion Pipeline** - End-to-end file upload, parsing, validation, and database storage with history
+- [x] **Phase 2: File Ingestion Pipeline** - End-to-end file upload, parsing, validation, and database storage with history (completed 2026-04-10)
 - [ ] **Phase 3: Dashboard Frontend** - KPI query API and interactive React dashboard with all visualizations
 
 ---
@@ -41,13 +41,13 @@ Plans:
   2. A valid file is parsed and its rows appear in the database; the upload history list shows filename, timestamp, row count, status, and error count
   3. An invalid file type is immediately rejected with a clear error message naming the unsupported format
   4. A file with malformed data produces actionable error messages identifying the specific row and column that failed
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 02-01-PLAN.md — Backend data layer: column mapping, ERP parser, models (38-col schema), Pydantic schemas
 - [x] 02-02-PLAN.md — API endpoints: POST /api/upload, GET /api/uploads, DELETE /api/uploads/{id}, Alembic migration
 - [x] 02-03-PLAN.md — Frontend scaffold: Vite + React + Tailwind + shadcn + i18n + Docker container
-- [ ] 02-04-PLAN.md — Frontend UI: DropZone, ErrorList, UploadHistory, DeleteConfirmDialog, LanguageToggle
+- [x] 02-04-PLAN.md — Frontend UI: DropZone, ErrorList, UploadHistory, DeleteConfirmDialog, LanguageToggle
 
 ### Phase 3: Dashboard Frontend
 **Goal**: Users can view interactive KPI visualizations of all uploaded data and filter by date range
@@ -69,5 +69,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure and Schema | 2/2 | Complete | 2026-04-10 |
-| 2. File Ingestion Pipeline | 3/4 | In Progress|  |
+| 2. File Ingestion Pipeline | 4/4 | Complete   | 2026-04-10 |
 | 3. Dashboard Frontend | 0/? | Not started | - |
