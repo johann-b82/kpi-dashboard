@@ -90,3 +90,22 @@ export async function fetchLatestUpload(): Promise<LatestUploadResponse> {
   if (!res.ok) throw new Error("Failed to fetch latest upload");
   return res.json();
 }
+
+export interface Settings {
+  color_primary: string;
+  color_accent: string;
+  color_background: string;
+  color_foreground: string;
+  color_muted: string;
+  color_destructive: string;
+  app_name: string;
+  default_language: "DE" | "EN";
+  logo_url: string | null;
+  logo_updated_at: string | null;
+}
+
+export async function fetchSettings(): Promise<Settings> {
+  const res = await fetch("/api/settings");
+  if (!res.ok) throw new Error("Failed to fetch settings");
+  return res.json();
+}
