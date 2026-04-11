@@ -32,10 +32,25 @@ class UploadBatchSummary(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class KpiSummaryComparison(BaseModel):
+    """Sibling shape for previous_period / previous_year in KpiSummary.
+
+    Separated from KpiSummary so nested comparisons cannot themselves carry
+    further nested comparisons. Null when the caller did not request the
+    comparison or when the prior window had zero matching rows (DELTA-05).
+    """
+
+    total_revenue: Decimal
+    avg_order_value: Decimal
+    total_orders: int
+
+
 class KpiSummary(BaseModel):
     total_revenue: Decimal
     avg_order_value: Decimal
     total_orders: int
+    previous_period: KpiSummaryComparison | None = None
+    previous_year: KpiSummaryComparison | None = None
 
 
 class ChartPoint(BaseModel):
