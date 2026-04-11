@@ -23,7 +23,7 @@
 - [x] **BRAND-04**: Logo URL includes a cache-busting query param derived from `logo_updated_at` so browser caches never show a stale logo after upload
 - [x] **BRAND-05**: User can edit all 6 semantic color tokens (primary, accent, background, foreground, muted, destructive) via hex color inputs; values are converted to oklch before API submission
 - [x] **BRAND-06**: User can edit the app name; the new name replaces "KPI Light" in the top-nav header AND in the browser tab title (`document.title`)
-- [ ] **BRAND-07**: While editing, theme changes (colors, logo, app name) reflect instantly as a live preview via CSS variable injection on `:root`; changes only persist after explicit Save
+- [x] **BRAND-07**: While editing, theme changes (colors, logo, app name) reflect instantly as a live preview via CSS variable injection on `:root`; changes only persist after explicit Save
 - [ ] **BRAND-08**: Color inputs show a WCAG AA contrast badge (warn, do not block) for the 3 critical pairs: primary/primary-foreground, background/foreground, destructive/white
 - [x] **BRAND-09**: Backend validates color strings against a strict oklch/hex regex (rejecting `;`, `}`, `{`, `url(`, `expression(`, quotes) to prevent CSS injection
 
@@ -34,7 +34,7 @@
 
 ### UX Safety & Polish
 
-- [ ] **UX-01**: Attempting to navigate away from the Settings page with unsaved changes shows a confirmation dialog (existing shadcn Dialog); `beforeunload` handler covers browser tab close
+- [x] **UX-01**: Attempting to navigate away from the Settings page with unsaved changes shows a confirmation dialog (existing shadcn Dialog); `beforeunload` handler covers browser tab close
 - [x] **UX-02**: Save action shows a success or error toast using the v1.0 toast infrastructure; failed saves preserve the draft state
 
 ---

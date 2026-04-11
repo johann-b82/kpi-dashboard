@@ -76,7 +76,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   5. Navigating away from Settings with unsaved changes shows a confirmation dialog; closing the browser tab triggers the `beforeunload` warning
 **Plans:** 1/4 plans executed
   - [x] 06-01-PLAN.md — Foundation: deps (react-colorful, culori, @types/culori), shadcn input/label, api.ts fetchers (updateSettings, uploadLogo), lib/color.ts (hex↔oklch + wcagContrast)
-  - [ ] 06-02-PLAN.md — Hooks: useSettingsDraft (draft/snapshot/save/discard/reset with live preview via setQueryData) + useUnsavedGuard (beforeunload + document-capture click + popstate)
+  - [x] 06-02-PLAN.md — Hooks: useSettingsDraft (draft/snapshot/save/discard/reset with live preview via setQueryData) + useUnsavedGuard (beforeunload + document-capture click + popstate)
   - [ ] 06-03-PLAN.md — Presentational sub-components: ColorPicker, ContrastBadge, LogoUpload + EN locale keys
   - [ ] 06-04-PLAN.md — Assembly: ActionBar, ResetDialog, UnsavedChangesDialog, SettingsPage.tsx rewrite + human verification checkpoint
 **UI hint**: yes
