@@ -53,10 +53,7 @@ export function DateRangeFilter({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("dashboard.filter.label")}
-      </span>
+    <div className="flex flex-wrap items-center justify-end">
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((p) => (
           <Button
