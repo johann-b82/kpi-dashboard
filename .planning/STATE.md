@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
 status: executing
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-04-11T21:52:21.945Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-04-11T21:58:42.155Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 100
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 09 (frontend-kpi-card-dual-deltas) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 **Milestone:** v1.1 Branding & Settings — COMPLETE
 **Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
 **Plan:** — (all 6 plans in Phase 7 complete)
@@ -88,6 +88,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 08-backend-comparison-aggregation-and-chart-overlay-api P02 | 8min | 3 tasks | 3 files |
 | Phase 08 P03 | 14min | 4 tasks | 5 files |
 | Phase 09-frontend-kpi-card-dual-deltas P01 | 15min | 3 tasks | 7 files |
+| Phase 09-frontend-kpi-card-dual-deltas P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,9 @@ Recent decisions affecting current work:
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: getPresetRange migrated to to-date (MTD/QTD/YTD) semantics with optional today override; endOfMonth/Quarter/Year imports removed from dateUtils.ts per 09-CONTEXT decision A
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: formatPrevPeriodLabel signature gained rangeLengthDays?: number hint to cleanly distinguish custom short (<7d) vs generic branches without re-importing differenceInDays
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: Intra-frontend lib/*.ts imports touched by Phase 9 use explicit .ts extensions so Node --experimental-strip-types ESM loader resolves the graph; tsc allowImportingTsExtensions=true already permits this
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: Factored formatDeltaText/deltaClassName into deltaFormat.ts sibling module so node --experimental-strip-types verify script can assert the text contract without needing a JSX-capable loader or a new vitest dep
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: Native HTML title attribute for em-dash tooltip (no shadcn Tooltip dep — not installed, 'no new deps' wins); matches existing LanguageToggle convention
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: DE percent format uses NBSP (U+00A0) between number and % — verified via Intl probe and encoded explicitly in verify-phase-09-02.mts assertions
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -158,6 +162,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T21:52:04.048Z
-**Stopped at:** Completed 09-01-PLAN.md
+**Last session:** 2026-04-11T21:58:23.490Z
+**Stopped at:** Completed 09-02-PLAN.md
 **Resume file:** None

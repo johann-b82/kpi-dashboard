@@ -72,7 +72,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   5. Cards still update live on date filter change and on new upload (existing TanStack Query invalidation path) — delta badges re-render with the new baselines without full page reload
 **Plans:** 3 plans
   - [x] 09-01-PLAN.md — Foundation layer: computeDelta + computePrevBounds + periodLabels pure utils, to-date preset semantics migration, extended KpiSummary type / fetchKpiSummary / kpiKeys.summary for Phase 8 contract
-  - [ ] 09-02-PLAN.md — Presentational components: DeltaBadge + DeltaBadgeStack + KpiCard `delta?` slot prop + 6 new EN locale keys (DE parity deferred to Phase 11)
+  - [x] 09-02-PLAN.md — Presentational components: DeltaBadge + DeltaBadgeStack + KpiCard `delta?` slot prop + 6 new EN locale keys (DE parity deferred to Phase 11)
   - [ ] 09-03-PLAN.md — Dashboard integration: lift activePreset state to DashboardPage, wire KpiCardGrid with prev bounds + delta math + labels + DeltaBadgeStack, human verification at 1080p + 1440p across DE/EN and all 4 presets
 **UI hint**: yes
 
