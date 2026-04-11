@@ -18,9 +18,13 @@ Run this runbook once before marking Phase 4 complete.
 
 1. Upload a known SVG and capture its bytes hash:
    ```bash
-   cat > /tmp/phase4-logo.svg <<'EOF'
-   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>
-   EOF
+   # NOTE: the SVG must match what nh3 html5ever produces byte-for-byte, or
+   # sanitize_svg's reject-on-mutation guard will 422 the upload. Use printf
+   # (no trailing newline) and the explicit close-tag form for <circle> —
+   # self-closing <circle .../> is rewritten to <circle ...></circle> and
+   # fails the mutation check. This matches MINIMAL_SVG in
+   # backend/tests/test_logo_validation.py.
+   printf '%s' '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"></circle></svg>' > /tmp/phase4-logo.svg
    curl -sS -X POST -F "file=@/tmp/phase4-logo.svg;type=image/svg+xml" \
      http://localhost:8000/api/settings/logo
    LOGO_SHA_BEFORE="$(curl -sS http://localhost:8000/api/settings/logo | sha256sum)"
