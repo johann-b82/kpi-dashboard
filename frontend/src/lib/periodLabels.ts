@@ -15,6 +15,8 @@
  * TODO(Phase 11): extract `vsPrefix`, `vsCustomPeriod`, `vsShortPeriod`
  * strings to i18n keys (see CONTEXT section D for proposed key names).
  */
+import { subMonths } from "date-fns";
+import type { DateRangeValue } from "../components/dashboard/DateRangeFilter.tsx";
 import type { Preset } from "./dateUtils.ts";
 
 const EM_DASH = "—";
@@ -97,4 +99,83 @@ export function formatPrevYearLabel(
     year: "numeric",
   }).format(prevYearStart);
   return `vs. ${formatted}`;
+}
+
+type ChartLabelT = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;
+
+export interface ChartSeriesLabels {
+  current: string;
+  prior: string;
+}
+
+/**
+ * Phase 10 — contextual legend labels for RevenueChart's two series.
+ *
+ * Returns `{ current, prior }` strings resolved via the injected
+ * `t()` function (keeps this file i18next-free — caller passes
+ * `t` from its own useTranslation() hook). Locale is needed for
+ * month-name formatting via Intl.DateTimeFormat.
+ *
+ * Decision table (CONTEXT §C D-10):
+ *   thisMonth   → "Revenue April" / "Revenue March"
+ *   thisQuarter → "Revenue Q2"    / "Revenue Q1"    (Q1 rolls to Q4)
+ *   thisYear    → "Revenue 2026"  / "Revenue 2025"
+ *   allTime     → "Revenue"       / ""  (prior empty — overlay suppressed)
+ */
+export function formatChartSeriesLabel(
+  preset: Preset,
+  range: DateRangeValue,
+  locale: SupportedLocale,
+  t: ChartLabelT,
+): ChartSeriesLabels {
+  const anchor = range.to ?? new Date();
+
+  if (preset === "thisMonth") {
+    const fmt = new Intl.DateTimeFormat(LOCALE_TAG[locale], {
+      month: "long",
+    });
+    return {
+      current: t("dashboard.chart.series.revenueMonth", {
+        month: fmt.format(anchor),
+      }),
+      prior: t("dashboard.chart.series.revenueMonth", {
+        month: fmt.format(subMonths(anchor, 1)),
+      }),
+    };
+  }
+
+  if (preset === "thisQuarter") {
+    const currentQ = Math.floor(anchor.getMonth() / 3) + 1;
+    const priorQ = currentQ === 1 ? 4 : currentQ - 1;
+    return {
+      current: t("dashboard.chart.series.revenueQuarter", {
+        quarter: currentQ,
+      }),
+      prior: t("dashboard.chart.series.revenueQuarter", {
+        quarter: priorQ,
+      }),
+    };
+  }
+
+  if (preset === "thisYear") {
+    const currentYear = anchor.getFullYear();
+    const priorYear = currentYear - 1;
+    return {
+      current: t("dashboard.chart.series.revenueYear", {
+        year: currentYear,
+      }),
+      prior: t("dashboard.chart.series.revenueYear", {
+        year: priorYear,
+      }),
+    };
+  }
+
+  // preset === "allTime"
+  return {
+    current: t("dashboard.chart.series.revenue"),
+    prior: "",
+  };
 }
