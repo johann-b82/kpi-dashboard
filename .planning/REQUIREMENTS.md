@@ -21,9 +21,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: Dashboard displays summary metric cards (total revenue, avg order value, total orders)
-- [ ] **DASH-02**: Dashboard displays time-series chart showing revenue over time
-- [ ] **DASH-03**: User can filter dashboard by date range
+- [x] **DASH-01**: Dashboard displays summary metric cards (total revenue, avg order value, total orders)
+- [x] **DASH-02**: Dashboard displays time-series chart showing revenue over time
+- [x] **DASH-03**: User can filter dashboard by date range
 - [x] **DASH-04**: Dashboard shows data freshness indicator ("Last updated: [timestamp]")
 
 ### Infrastructure
@@ -86,9 +86,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UPLD-04 | Phase 2 | Complete |
 | UPLD-05 | Phase 2 | Complete |
 | MGMT-01 | Phase 2 | Complete |
-| DASH-01 | Phase 3 | Pending |
-| DASH-02 | Phase 3 | Pending |
-| DASH-03 | Phase 3 | Pending |
+| DASH-01 | Phase 3 | Complete |
+| DASH-02 | Phase 3 | Complete |
+| DASH-03 | Phase 3 | Complete |
 | DASH-04 | Phase 3 | Complete |
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |

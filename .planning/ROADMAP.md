@@ -63,7 +63,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 03-01-PLAN.md — Backend KPI API: three aggregation endpoints (/api/kpis, /chart, /latest-upload) + order_date index migration
+- [x] 03-01-PLAN.md — Backend KPI API: three aggregation endpoints (/api/kpis, /chart, /latest-upload) + order_date index migration
 - [x] 03-02-PLAN.md — Frontend routing shell: wouter router, NavBar, FreshnessIndicator, KPI fetch helpers, queryKeys factory, UploadPage cleanup
 - [ ] 03-03-PLAN.md — KPI cards + date range filter: KpiCard/KpiCardGrid, DateRangeFilter with presets and shadcn calendar popover, DashboardPage composition
 - [ ] 03-04-PLAN.md — Revenue chart + toggles + auto-refresh: RevenueChart (line/bar), granularity toggle, chart type toggle, DropZone kpi invalidation
