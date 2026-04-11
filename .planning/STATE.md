@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
-status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-04-11T21:58:42.155Z"
+status: phase-complete
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-04-11T22:25:50.436Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 100
 ---
 
@@ -33,13 +33,11 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 ## Current Position
 
-Phase: 09 (frontend-kpi-card-dual-deltas) — EXECUTING
-Plan: 3 of 3
-**Milestone:** v1.1 Branding & Settings — COMPLETE
-**Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
-**Plan:** — (all 6 plans in Phase 7 complete)
-**Status:** Executing Phase 09
-**Last activity:** 2026-04-11
+Phase: 09 (frontend-kpi-card-dual-deltas) — COMPLETE (3/3 plans)
+**Milestone:** v1.2 Period-over-Period Deltas — IN PROGRESS (Phases 8 + 9 of 11 complete)
+**Next phase:** 10 — Frontend Chart Prior-Period Overlay
+**Status:** Phase 09 complete, ready for Phase 10
+**Last activity:** 2026-04-12
 
 Progress: [██████████] 100% (19/19 plans in current scope)
 
@@ -89,6 +87,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 08 P03 | 14min | 4 tasks | 5 files |
 | Phase 09-frontend-kpi-card-dual-deltas P01 | 15min | 3 tasks | 7 files |
 | Phase 09-frontend-kpi-card-dual-deltas P02 | 3min | 2 tasks | 6 files |
+| Phase 09-frontend-kpi-card-dual-deltas P03 | 21 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -142,6 +141,10 @@ Recent decisions affecting current work:
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: Factored formatDeltaText/deltaClassName into deltaFormat.ts sibling module so node --experimental-strip-types verify script can assert the text contract without needing a JSX-capable loader or a new vitest dep
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: Native HTML title attribute for em-dash tooltip (no shadcn Tooltip dep — not installed, 'no new deps' wins); matches existing LanguageToggle convention
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-02: DE percent format uses NBSP (U+00A0) between number and % — verified via Intl probe and encoded explicitly in verify-phase-09-02.mts assertions
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: custom date range picker removed entirely from v1.2; Preset is non-nullable in DashboardPage/DateRangeFilter/KpiCardGrid props (foundation layer keeps Preset|null). 6 dashboard.filter.* locale keys are now dead in en.json — Phase 11 must drop them, not translate to DE.
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: delta badges render to the right of the KPI value (flex items-center justify-between, vertically centered against value baseline) instead of stacked below — keeps card heights uniform at 1920×1080.
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: ZEITRAUM filter label dropped, preset bar right-aligned (flex justify-end) — visual whitespace cleaner against new right-side delta layout.
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03: hardcoded period strings (vs. März, vs. Q1, vs. previous period) still inline in frontend/src/lib/periodLabels.ts — Phase 11 must extract via Intl.DateTimeFormat per I18N-DELTA-02.
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -162,6 +165,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T21:58:23.490Z
-**Stopped at:** Completed 09-02-PLAN.md
+**Last session:** 2026-04-11T22:25:47.847Z
+**Stopped at:** Completed 09-03-PLAN.md
 **Resume file:** None

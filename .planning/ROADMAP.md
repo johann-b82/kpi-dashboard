@@ -39,7 +39,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 **Milestone Goal:** Show at-a-glance growth signals on the dashboard — each summary card gains two delta badges (vs. previous period + vs. prior year), and the chart gains a ghosted prior-period overlay. All null-safe for "Gesamter Zeitraum" and fresh installs.
 
 - [ ] **Phase 8: Backend — Comparison Aggregation and Chart Overlay API** - Dual-baseline aggregation: summary endpoint returns `previous_period` + `previous_year` objects, chart endpoint gains `comparison` query param with aligned `previous_series`
-- [ ] **Phase 9: Frontend — KPI Card Dual Deltas** - Summary cards render two compact delta badges (vs. Vorperiode + vs. Vorjahr) with up/down arrows, locale-aware percentages, and null-baseline em-dash fallbacks
+- [x] **Phase 9: Frontend — KPI Card Dual Deltas** - Summary cards render two compact delta badges (vs. Vorperiode + vs. Vorjahr) with up/down arrows, locale-aware percentages, and null-baseline em-dash fallbacks
 - [ ] **Phase 10: Frontend — Chart Prior-Period Overlay** - `RevenueChart` renders a ghosted second series at reduced opacity with updated legend; default mode driven by selected date filter scope
 - [ ] **Phase 11: i18n, Contextual Labels, and Polish** - Full DE/EN parity for new delta strings in informal "du" tone; contextual period labels ("vs. März", "vs. Q1", "vs. Vorwoche") locale-formatted; end-to-end human verification
 
@@ -73,7 +73,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 **Plans:** 3 plans
   - [x] 09-01-PLAN.md — Foundation layer: computeDelta + computePrevBounds + periodLabels pure utils, to-date preset semantics migration, extended KpiSummary type / fetchKpiSummary / kpiKeys.summary for Phase 8 contract
   - [x] 09-02-PLAN.md — Presentational components: DeltaBadge + DeltaBadgeStack + KpiCard `delta?` slot prop + 6 new EN locale keys (DE parity deferred to Phase 11)
-  - [ ] 09-03-PLAN.md — Dashboard integration: lift activePreset state to DashboardPage, wire KpiCardGrid with prev bounds + delta math + labels + DeltaBadgeStack, human verification at 1080p + 1440p across DE/EN and all 4 presets
+  - [x] 09-03-PLAN.md — Dashboard integration: lift activePreset state to DashboardPage, wire KpiCardGrid with prev bounds + delta math + labels + DeltaBadgeStack, human verification at 1080p + 1440p across DE/EN and all 4 presets
 **UI hint**: yes
 
 ### Phase 10: Frontend — Chart Prior-Period Overlay
@@ -119,6 +119,6 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 | 6. Settings Page and Sub-components | v1.1 | 4/4 | Complete | 2026-04-11 |
 | 7. i18n Integration and Polish | v1.1 | 6/6 | Complete | 2026-04-11 |
 | 8. Backend — Comparison Aggregation and Chart Overlay API | v1.2 | 0/3 | Not started | - |
-| 9. Frontend — KPI Card Dual Deltas | v1.2 | 0/3 | Not started | - |
+| 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 0/2 | Not started | - |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 0/3 | Not started | - |
