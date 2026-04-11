@@ -132,7 +132,7 @@ Phase 3 has no form-submit primary CTAs. The interactive controls are toggles an
 
 | Element | EN | DE | Key |
 |---------|----|----|----|
-| Brand | `ACM KPI` | `ACM KPI` | `nav.brand` |
+| Brand | `KPI Light` | `KPI Light` | `nav.brand` |
 | Dashboard link | `Dashboard` | `Dashboard` | `nav.dashboard` |
 | Upload link | `Upload` | `Upload` | `nav.upload` |
 | Freshness prefix | `Last updated:` | `Zuletzt aktualisiert:` | `nav.lastUpdated` |

@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Project:** ACM KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
+**Project:** KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
 **Researched:** 2026-04-10
 **Overall confidence:** HIGH (all versions verified against PyPI and npm registries)
 

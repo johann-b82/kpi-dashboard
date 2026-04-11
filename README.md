@@ -1,4 +1,4 @@
-# ACM KPI Light
+# KPI Light
 
 A Dockerized web application for uploading sales/revenue data files into PostgreSQL and visualizing KPIs on an interactive dashboard. Built for internal team use.
 
@@ -80,7 +80,7 @@ docker compose down -v
 ## Project Structure
 
 ```
-acm-kpi-light/
+kpi-light/
 ├── backend/                 # FastAPI + SQLAlchemy + Alembic
 │   ├── app/
 │   │   ├── main.py          # FastAPI app entry
@@ -145,7 +145,7 @@ To run a one-off command inside a container:
 ```bash
 docker compose exec api python -c "..."           # backend shell commands
 docker compose exec frontend npx tsc --noEmit      # type-check frontend
-docker compose exec db psql -U acm_user -d acm_kpi # database shell
+docker compose exec db psql -U kpi_user -d kpi_db # database shell
 ```
 
 ---

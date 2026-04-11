@@ -105,7 +105,7 @@ ruff==0.15.10
 ### Recommended Project Structure
 
 ```
-acm-kpi-light/
+kpi-light/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
@@ -287,7 +287,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from app.database import engine
 
-app = FastAPI(title="ACM KPI Light")
+app = FastAPI(title="KPI Light")
 
 
 @app.get("/health")
@@ -435,9 +435,9 @@ ruff format .
 ### Complete `.env.example`
 ```bash
 # Source: Docker Compose best practices — never hardcode credentials
-POSTGRES_USER=acm_user
+POSTGRES_USER=kpi_user
 POSTGRES_PASSWORD=changeme
-POSTGRES_DB=acm_kpi
+POSTGRES_DB=kpi_db
 ```
 
 ### Alembic Init Command (from inside backend container)

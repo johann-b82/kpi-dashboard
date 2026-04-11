@@ -117,10 +117,10 @@ $ curl -s http://localhost:8000/api/kpis/latest-upload
 Database index check:
 
 ```
-$ docker compose exec db psql -U acm_user -d acm_kpi -c "\di ix_sales_records_order_date"
+$ docker compose exec db psql -U kpi_user -d kpi_db -c "\di ix_sales_records_order_date"
  Schema |            Name             | Type  |  Owner   |     Table
 --------+-----------------------------+-------+----------+---------------
- public | ix_sales_records_order_date | index | acm_user | sales_records
+ public | ix_sales_records_order_date | index | kpi_user | sales_records
 ```
 
 Alembic upgrade log:

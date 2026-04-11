@@ -1,7 +1,7 @@
 # Domain Pitfalls
 
 **Domain:** Dockerized KPI Dashboard with File Upload to PostgreSQL
-**Project:** ACM KPI Light
+**Project:** KPI Light
 **Researched:** 2026-04-10
 **Confidence:** HIGH (architecture/infra pitfalls verified via official docs and community; file parsing pitfalls verified via GitHub issues and official pandas/PostgreSQL docs)
 

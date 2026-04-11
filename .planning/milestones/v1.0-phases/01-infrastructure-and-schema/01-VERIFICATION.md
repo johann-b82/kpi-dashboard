@@ -52,7 +52,7 @@ resolution_note: "UNIQUE constraint gap resolved by updating ROADMAP success cri
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `.env` | Runtime credentials | VERIFIED | Exists, gitignored, contains POSTGRES_USER=acm_user |
+| `.env` | Runtime credentials | VERIFIED | Exists, gitignored, contains POSTGRES_USER=kpi_user |
 | `backend/alembic/versions/be7013446181_initial_schema.py` | Initial migration | VERIFIED | Creates upload_batches and sales_records with correct columns |
 
 ### Key Link Verification
@@ -98,7 +98,7 @@ No TODO/FIXME/HACK comments found. No `Base.metadata.create_all()`. No `datetime
 
 ### 1. Data Persistence Across Restarts
 
-**Test:** Run `docker compose exec db psql -U acm_user -d acm_kpi -c "INSERT INTO upload_batches (filename, uploaded_at, row_count, status) VALUES ('test.csv', NOW(), 10, 'success');"` then `docker compose down` then `docker compose up -d` then query `SELECT * FROM upload_batches;`
+**Test:** Run `docker compose exec db psql -U kpi_user -d kpi_db -c "INSERT INTO upload_batches (filename, uploaded_at, row_count, status) VALUES ('test.csv', NOW(), 10, 'success');"` then `docker compose down` then `docker compose up -d` then query `SELECT * FROM upload_batches;`
 **Expected:** The inserted row survives the restart cycle.
 **Why human:** Requires interactive Docker lifecycle operations that cannot be safely run during automated verification without side effects.
 

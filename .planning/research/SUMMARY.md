@@ -1,13 +1,13 @@
 # Project Research Summary
 
-**Project:** ACM KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
+**Project:** KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
 **Domain:** Internal sales/revenue KPI dashboard with CSV/Excel ingestion
 **Researched:** 2026-04-10
 **Confidence:** HIGH
 
 ## Executive Summary
 
-ACM KPI Light is a fixed-schema internal dashboard for visualizing sales/revenue KPIs from uploaded CSV, TXT, and Excel files. Research across all four areas (stack, features, architecture, pitfalls) converges on a well-established pattern: a three-tier architecture (React SPA → FastAPI → PostgreSQL), all running in a single Docker Compose stack with no background workers, message queues, or external storage. The correct build order — infrastructure first, file parser second, API third, frontend last — is dictated by hard component dependencies and is reinforced by where the highest-risk logic lives (the file parser, which must handle Excel quirks, encoding edge cases, and date corruption).
+KPI Light is a fixed-schema internal dashboard for visualizing sales/revenue KPIs from uploaded CSV, TXT, and Excel files. Research across all four areas (stack, features, architecture, pitfalls) converges on a well-established pattern: a three-tier architecture (React SPA → FastAPI → PostgreSQL), all running in a single Docker Compose stack with no background workers, message queues, or external storage. The correct build order — infrastructure first, file parser second, API third, frontend last — is dictated by hard component dependencies and is reinforced by where the highest-risk logic lives (the file parser, which must handle Excel quirks, encoding edge cases, and date corruption).
 
 The recommended approach is synchronous in-memory file parsing (pandas + openpyxl), bulk insert into PostgreSQL, and SQL-side aggregation for KPI queries. The frontend does no computation — it consumes structured JSON from the API and renders with Recharts. This keeps each layer testable in isolation. The fixed schema (known columns) is a significant simplifier: it eliminates column-mapping UI, reduces validation complexity to checking column presence and type, and makes error messages actionable. Do not introduce dynamic schema detection; it undermines every simplification the fixed schema provides.
 
@@ -179,7 +179,7 @@ Standard patterns (skip research-phase):
 
 ### Gaps to Address
 
-- **Exact sales data schema (column names and types):** Research assumes order_date, revenue, order_id — but the actual file format from the ACM system is unknown. Must be confirmed with real sample data before Phase 2 begins. The UNIQUE constraint design and date parsing configuration both depend on this.
+- **Exact sales data schema (column names and types):** Research assumes order_date, revenue, order_id — but the actual file format from the upstream ERP system is unknown. Must be confirmed with real sample data before Phase 2 begins. The UNIQUE constraint design and date parsing configuration both depend on this.
 - **Expected file sizes and upload frequency:** Research assumes < 50MB, low frequency (manual on-demand upload). If files are larger or more frequent, bulk insert strategy and size limits need revisiting.
 - **Recharts vs Tremor:** MEDIUM confidence — no single authoritative benchmark. Recommendation stands but can be revisited if Recharts styling proves cumbersome at this project size.
 - **XLS support scope:** If the team only produces .xlsx files, xlrd and .xls handling can be dropped, simplifying Phase 2. Confirm with stakeholders before building .xls support.

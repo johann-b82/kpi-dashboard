@@ -13,7 +13,7 @@ progress:
   percent: 100
 ---
 
-# Project State: ACM KPI Light
+# Project State: KPI Light
 
 **Last updated:** 2026-04-11
 **Session:** v1.0 MVP shipped — awaiting v1.1 scoping
