@@ -58,7 +58,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 **Plans:** TBD
   - [x] 08-01-PLAN.md — SQL window helpers (`previous_period`, `previous_year` interval math; leap-year safe) + unit tests
   - [x] 08-02-PLAN.md — Summary endpoint: extend response schema, wire comparison aggregation, null-safety branches, integration tests for SC 1–3
-  - [ ] 08-03-PLAN.md — Chart endpoint: `comparison` query param, `previous_series` alignment with null-gap buckets, integration tests for SC 4–5
+  - [x] 08-03-PLAN.md — Chart endpoint: `comparison` query param, `previous_series` alignment with null-gap buckets, integration tests for SC 4–5
 
 ### Phase 9: Frontend — KPI Card Dual Deltas
 **Goal**: Users see at-a-glance growth signals on every summary card — two compact delta badges (vs. Vorperiode, vs. Vorjahr) render below each value with up/down arrows, semantic colors, locale-correct percentage formatting, and an em-dash fallback (plus tooltip) whenever no baseline exists

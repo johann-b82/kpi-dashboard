@@ -18,9 +18,9 @@
 
 ### Backend — Chart Overlay
 
-- [ ] **CHART-01**: `GET /api/dashboard/chart` gains a `comparison=previous_period|previous_year|none` query parameter (default `none` for backwards compatibility). When not `none`, the response includes a second series `previous_series` with the same bucket keys as the current series, time-shifted to align visually with the current range.
+- [x] **CHART-01**: `GET /api/dashboard/chart` gains a `comparison=previous_period|previous_year|none` query parameter (default `none` for backwards compatibility). When not `none`, the response includes a second series `previous_series` with the same bucket keys as the current series, time-shifted to align visually with the current range.
 - [x] **CHART-02**: The comparison series in CHART-01 reuses the same aggregation SQL as DELTA-02/DELTA-03 for consistency — no drift between card deltas and chart overlays.
-- [ ] **CHART-03**: When `previous_series` has fewer buckets than the current range (partial prior data), missing buckets are emitted as `null` values so Recharts renders gaps instead of fabricating zeros.
+- [x] **CHART-03**: When `previous_series` has fewer buckets than the current range (partial prior data), missing buckets are emitted as `null` values so Recharts renders gaps instead of fabricating zeros.
 
 ### Frontend — KPI Card Deltas
 
