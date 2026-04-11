@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-11T19:04:38.762Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-04-11T19:05:04.054Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
@@ -77,6 +77,7 @@ Progress: [██████████] 100% (9/9 plans in current scope)
 | Phase 07-i18n-integration-and-polish P02 | 3min | 3 tasks | 4 files |
 | Phase 07-i18n-integration-and-polish P01 | 8min | 2 tasks | 4 files |
 | Phase 07-i18n-integration-and-polish P02 | 5min | 3 tasks | 6 files |
+| Phase 07-i18n-integration-and-polish P01 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,7 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-02: Extracted shared queryClient singleton into frontend/src/queryClient.ts — App.tsx previously constructed QueryClient inline so bootstrap could not reach it (Rule 3 blocking fix)
 - [Phase 07-i18n-integration-and-polish]: Plan 07-02: bootstrap.ts does NOT seed DEFAULT_SETTINGS on fetchSettings error (D-04) — falling back to changeLanguage('en') only, so useSettings() surfaces the real backend error via existing toast path
 - [Phase 07-i18n-integration-and-polish]: Plan 07-02: Splash is text-free pulsing dots inside #root — React's first commit atomically replaces it; no localized text avoids mis-language flash during bootstrap fetch
+- [Phase 07-i18n-integration-and-polish]: Plan 07-01: single-stage Dockerfile installs requirements-dev.txt (Pitfall 2 option A); Playwright from host with chromium at OS-default cache path (macOS: ~/Library/Caches/ms-playwright)
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -128,6 +130,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:04:38.760Z
-**Stopped at:** Completed 07-02-PLAN.md
+**Last session:** 2026-04-11T19:05:04.052Z
+**Stopped at:** Completed 07-01-PLAN.md
 **Resume file:** None
