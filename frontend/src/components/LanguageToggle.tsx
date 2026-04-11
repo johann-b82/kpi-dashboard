@@ -59,7 +59,6 @@ export function LanguageToggle() {
     onSuccess: async (response, nextLang) => {
       queryClient.setQueryData(["settings"], response);
       await i18n.changeLanguage(nextLang.toLowerCase());
-      toast.success(t("settings.toasts.saved"));
     },
     onError: (err) => {
       const detail = err instanceof Error ? err.message : "Unknown error";
