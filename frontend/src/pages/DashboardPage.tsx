@@ -9,16 +9,13 @@ import { getPresetRange, toApiDate, type Preset } from "@/lib/dateUtils";
 
 export function DashboardPage() {
   // D-13: default preset = thisYear (YTD semantics per Phase 9 decision A)
-  const [preset, setPreset] = useState<Preset | null>("thisYear");
+  const [preset, setPreset] = useState<Preset>("thisYear");
   const [range, setRange] = useState<DateRangeValue>(() => {
     const initial = getPresetRange("thisYear");
     return { from: initial.from, to: initial.to };
   });
 
-  const handleFilterChange = (
-    next: DateRangeValue,
-    nextPreset: Preset | null,
-  ) => {
+  const handleFilterChange = (next: DateRangeValue, nextPreset: Preset) => {
     setRange(next);
     setPreset(nextPreset);
   };
