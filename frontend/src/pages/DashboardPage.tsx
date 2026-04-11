@@ -36,7 +36,12 @@ export function DashboardPage() {
         preset={preset}
         range={range}
       />
-      <RevenueChart startDate={startDate} endDate={endDate} />
+      <RevenueChart
+          startDate={startDate}
+          endDate={endDate}
+          preset={preset}
+          range={range}
+        />
     </div>
   );
 }
