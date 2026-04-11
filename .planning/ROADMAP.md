@@ -120,5 +120,5 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 | 7. i18n Integration and Polish | v1.1 | 6/6 | Complete | 2026-04-11 |
 | 8. Backend — Comparison Aggregation and Chart Overlay API | v1.2 | 0/3 | Not started | - |
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
-| 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete   | 2026-04-11 |
+| 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete    | 2026-04-11 |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 0/3 | Not started | - |
