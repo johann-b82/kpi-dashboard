@@ -15,10 +15,18 @@ from app.main import app
 
 @pytest_asyncio.fixture
 async def client():
+    # Dispose the shared async engine's pool so this test's event loop gets
+    # fresh connections. Without this, asyncpg raises "another operation is in
+    # progress" / "attached to a different loop" when the module-level engine
+    # (created during earlier tests with different loops) is reused.
+    from app.database import engine
+
+    await engine.dispose()
     async with LifespanManager(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
             yield ac
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -33,12 +41,20 @@ async def reset_settings():
         from sqlalchemy import update
         from sqlalchemy.exc import SQLAlchemyError
 
-        from app.database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal, engine
         from app.defaults import DEFAULT_SETTINGS
         from app.models import AppSettings
     except ImportError:
         yield
         return
+
+    # Dispose the pool so this event loop gets fresh connections — avoids
+    # asyncpg "another operation is in progress" when module-level engine
+    # is reused across tests with different loops.
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
 
     try:
         async with AsyncSessionLocal() as db:
