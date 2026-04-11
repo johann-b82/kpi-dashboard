@@ -55,7 +55,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. `GET /api/dashboard/summary` for a window that has a valid prior-year offset but zero rows in `sales_records` returns `previous_year: null` (not a zero-value object) — null distinguishes "no data" from "legitimate zero"
   4. `GET /api/dashboard/chart?comparison=previous_period` returns a response with a `previous_series` array whose bucket keys align with the current series; partial prior data emits `null` values for missing buckets (not fabricated zeros)
   5. Integration test asserts that the aggregate values returned in `summary.previous_period` equal the sum of bucket values in `chart?comparison=previous_period.previous_series` for the same filter — proving SQL reuse, no drift
-**Plans:** TBD
+**Plans:** 3 plans
   - [x] 08-01-PLAN.md — SQL window helpers (`previous_period`, `previous_year` interval math; leap-year safe) + unit tests
   - [x] 08-02-PLAN.md — Summary endpoint: extend response schema, wire comparison aggregation, null-safety branches, integration tests for SC 1–3
   - [x] 08-03-PLAN.md — Chart endpoint: `comparison` query param, `previous_series` alignment with null-gap buckets, integration tests for SC 4–5
@@ -70,10 +70,10 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. When the backend returns a `null` comparison (Gesamter Zeitraum, fresh install, first-month, divide-by-zero), the badge renders as a grayscale em-dash `—`; hovering the badge shows a tooltip reading "keine Vergleichsperiode verfügbar" in DE or "no comparison period available" in EN
   4. Each delta badge shows a muted secondary label contextual to the selected date filter — e.g., "vs. März" for "Dieses Jahr", "vs. Q1" for "Dieses Quartal", "vs. Vorwoche" for a 1-week custom range — sourced from the filter scope, not hard-coded
   5. Cards still update live on date filter change and on new upload (existing TanStack Query invalidation path) — delta badges re-render with the new baselines without full page reload
-**Plans:** TBD
-  - [ ] 09-01-PLAN.md — API types + `fetchSummary` extension for `previous_period`/`previous_year`; delta calculation util (`computeDelta`, null-safe, divide-by-zero branch) with unit tests
-  - [ ] 09-02-PLAN.md — `DeltaBadge` sub-component: arrow glyph, semantic color, locale-aware `formatPercent`, em-dash fallback, tooltip wiring
-  - [ ] 09-03-PLAN.md — `SummaryCard` integration: mount two `DeltaBadge` instances per card, contextual secondary labels from filter scope, human verification checkpoint at 1080p + 1440p
+**Plans:** 3 plans
+  - [ ] 09-01-PLAN.md — Foundation layer: computeDelta + computePrevBounds + periodLabels pure utils, to-date preset semantics migration, extended KpiSummary type / fetchKpiSummary / kpiKeys.summary for Phase 8 contract
+  - [ ] 09-02-PLAN.md — Presentational components: DeltaBadge + DeltaBadgeStack + KpiCard `delta?` slot prop + 6 new EN locale keys (DE parity deferred to Phase 11)
+  - [ ] 09-03-PLAN.md — Dashboard integration: lift activePreset state to DashboardPage, wire KpiCardGrid with prev bounds + delta math + labels + DeltaBadgeStack, human verification at 1080p + 1440p across DE/EN and all 4 presets
 **UI hint**: yes
 
 ### Phase 10: Frontend — Chart Prior-Period Overlay
@@ -86,7 +86,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. The default chart comparison mode is `previous_period` for short ranges (≤3 months) and `previous_year` for year-scale ranges — driven by the selected filter, with no manual UI toggle
   4. When the backend returns `previous_series` containing `null` buckets (partial prior data), Recharts renders visual gaps — no fabricated zero line/bar is drawn across the missing range
   5. Switching date filters re-fetches the chart with the correct `comparison` query param and both series update in lock-step with the summary cards — no stale overlay from the previous filter
-**Plans:** TBD
+**Plans:** 2 plans
   - [ ] 10-01-PLAN.md — API types + `fetchChart` extension for `comparison` param; filter-scope → comparison-mode selector util with unit tests
   - [ ] 10-02-PLAN.md — `RevenueChart` Recharts composition: second Line/Bar at reduced opacity, null-gap handling, updated legend with contextual labels, human verification checkpoint
 **UI hint**: yes
@@ -101,7 +101,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. Period labels ("März" / "March", "Q1", "Vorwoche" / "previous week") are generated via `Intl.DateTimeFormat` with the active i18n language — no new date library added, no hard-coded strings in component source
   4. Switching language via the NavBar `LanguageToggle` re-renders all card delta badges, tooltips, and chart legend entries in the new locale without a hard refresh
   5. Human verification checkpoint passes end-to-end: upload `sample_export.csv`, cycle through all 4 preset date filters ("Dieses Jahr", "Dieses Quartal", "Diesen Monat", "Gesamter Zeitraum"), confirm card deltas + chart overlay + contextual labels behave correctly in both DE and EN, and "Gesamter Zeitraum" shows em-dashes everywhere
-**Plans:** TBD
+**Plans:** 3 plans
   - [ ] 11-01-PLAN.md — EN locale keys pass: enumerate every new string from Phases 9–10, add to `en.json`, update components to use `t()` calls
   - [ ] 11-02-PLAN.md — DE locale keys pass: full informal "du" translation, loanword audit, period label `Intl.DateTimeFormat` util with unit tests
   - [ ] 11-03-PLAN.md — End-to-end human verification checkpoint: all 4 date filters × 2 languages × dual delta badges + chart overlay; milestone sign-off
