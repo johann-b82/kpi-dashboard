@@ -54,8 +54,27 @@ class KpiSummary(BaseModel):
 
 
 class ChartPoint(BaseModel):
-    date: str  # ISO date string "YYYY-MM-DD" truncated by granularity
-    revenue: Decimal
+    date: str  # ISO date string "YYYY-MM-DD" (bucket-truncated by granularity)
+    # `revenue` is None only in the `previous` series of ChartResponse for
+    # missing trailing buckets (CHART-03 null gap). The `current` series
+    # always carries concrete Decimal revenues.
+    revenue: Decimal | None = None
+
+
+class ChartResponse(BaseModel):
+    """Wrapped chart response (Phase 8 breaking change vs. bare list[ChartPoint]).
+
+    `current` is always a concrete bucket list (possibly empty).
+    `previous` is null unless the caller requested a comparison via
+    ``comparison=previous_period|previous_year`` with ``prev_start`` +
+    ``prev_end`` present. Buckets in `previous` are positionally aligned to
+    `current` — their ``date`` strings are rewritten to the current X-axis
+    dates so Recharts can share a single date domain across both series.
+    Missing trailing prior buckets are emitted as ``revenue=None`` (CHART-03).
+    """
+
+    current: list[ChartPoint]
+    previous: list[ChartPoint] | None = None
 
 
 class LatestUploadResponse(BaseModel):
