@@ -42,7 +42,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   4. `PUT /api/settings` with default values resets the singleton row and returns canonical defaults from `defaults.py`
   5. Logo survives `docker compose up --build` (stored as bytea in Postgres, not in container filesystem)
 **Plans:** 6 plans
-  - [ ] 04-01-PLAN.md — Wave 0 deps + test harness scaffold (nh3, pytest stack, conftest)
+  - [x] 04-01-PLAN.md — Wave 0 deps + test harness scaffold (nh3, pytest stack, conftest)
   - [ ] 04-02-PLAN.md — AppSettings model + defaults.py + Alembic migration with singleton seed
   - [ ] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
   - [ ] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
