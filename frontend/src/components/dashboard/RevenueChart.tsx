@@ -84,10 +84,13 @@ export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
     );
   }
 
+  // Phase 8: backend now returns a wrapped ChartResponse { current, previous }.
+  // Read `.current` here; `data.previous` is intentionally ignored until
+  // Phase 10 wires the ghosted overlay series against the same X domain.
   // Backend returns Decimal as JSON string; coerce to number for Recharts.
-  const rows = (data ?? []).map((p) => ({
+  const rows = (data?.current ?? []).map((p) => ({
     date: p.date,
-    revenue: Number(p.revenue),
+    revenue: p.revenue === null ? null : Number(p.revenue),
   }));
 
   return (
