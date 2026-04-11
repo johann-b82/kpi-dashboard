@@ -30,7 +30,7 @@
 ### i18n Default Language
 
 - [ ] **I18N-01**: User can set the app-wide default language (DE or EN) from the Settings page
-- [ ] **I18N-02**: On app boot, the ThemeProvider fetches settings and calls `i18n.changeLanguage(default_language)` before the first render (no `i18next-browser-languageDetector`); server-persisted value is the single source of truth
+- [x] **I18N-02**: On app boot, the ThemeProvider fetches settings and calls `i18n.changeLanguage(default_language)` before the first render (no `i18next-browser-languageDetector`); server-persisted value is the single source of truth
 
 ### UX Safety & Polish
 

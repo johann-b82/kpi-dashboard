@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
-status: planning
-stopped_at: Completed 06-04-PLAN.md — Phase 06 complete
-last_updated: "2026-04-11T18:21:04.465Z"
+status: executing
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-11T19:04:14.174Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 19
+  completed_plans: 14
   percent: 100
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 06 — settings-page-and-sub-components
+**Current focus:** Phase 07 — i18n-integration-and-polish
 
 ---
 
 ## Current Position
 
-Phase: 06 (settings-page-and-sub-components) — EXECUTING
-Plan: 1 of 4
+Phase: 07 (i18n-integration-and-polish) — EXECUTING
+Plan: 1 of 6
 **Milestone:** v1.1 Branding & Settings
 **Phase:** 7 of 7 (i18n integration and polish)
 **Plan:** Not started
-**Status:** Ready to plan
+**Status:** Executing Phase 07
 **Last activity:** 2026-04-11
 
 Progress: [██████████] 100% (9/9 plans in current scope)
@@ -74,6 +74,7 @@ Progress: [██████████] 100% (9/9 plans in current scope)
 | Phase 06-settings-page-and-sub-components P06-02 | 2min | 2 tasks | 2 files |
 | Phase 06-settings-page-and-sub-components P06-03 | 2min | 3 tasks | 4 files |
 | Phase 06-settings-page-and-sub-components P06-04 | 30min | 3 tasks | 6 files |
+| Phase 07-i18n-integration-and-polish P02 | 3min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,7 @@ Recent decisions affecting current work:
 - [Phase 06-settings-page-and-sub-components]: Plan 06-03: LogoUpload uses setQueryData (not invalidateQueries) on upload success; D-13 staleTime Infinity avoids redundant refetch
 - [Phase 06-settings-page-and-sub-components]: hexToOklch clamps L to [0,1] and coerces non-finite hue to 0 — culori formatCss emits overflow/none values that the backend regex rejects
 - [Phase 06-settings-page-and-sub-components]: formatDetail() helper added to api.ts to unwrap FastAPI 422 array-shaped detail into readable error strings for toasts
+- [Phase 07-i18n-integration-and-polish]: Plan 07-02: bootstrap.ts is single cold-start i18n writer; reuses fetchSettings; seeds ['settings'] cache; falls back to EN without rethrow or DEFAULT_SETTINGS seed; splash placed INSIDE #root for atomic React replacement
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -120,6 +122,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T18:16:31.953Z
-**Stopped at:** Completed 06-04-PLAN.md — Phase 06 complete
+**Last session:** 2026-04-11T19:04:14.172Z
+**Stopped at:** Completed 07-02-PLAN.md
 **Resume file:** None
