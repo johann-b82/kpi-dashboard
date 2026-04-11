@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-04-11T08:33:06.015Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-04-11T10:10:16.446Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -34,14 +34,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 04 (backend-schema-api-and-security) — EXECUTING
-Plan: 3 of 6
+Plan: 6 of 6
 **Milestone:** v1.1 Branding & Settings
 **Phase:** 4 of 7 (Backend — Schema, API, and Security)
-**Plan:** 04-02 complete — next: 04-03
+**Plan:** 04-05 complete — next: 04-06
 **Status:** Executing Phase 04
 **Last activity:** 2026-04-11
 
-Progress: [███░░░░░░░] 33%
+Progress: [████████░░] 83%
 
 ---
 
@@ -65,6 +65,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 04-backend-schema-api-and-security P01 | 3min | 2 tasks | 5 files |
 | Phase 04-backend-schema-api-and-security P02 | 3min | 2 tasks | 3 files |
 | Phase 04-backend-schema-api-and-security P03 | 5min | 2 tasks | 2 files |
+| Phase 04-backend-schema-api-and-security P05 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,7 @@ Recent decisions affecting current work:
 - [Phase 04-backend-schema-api-and-security]: Plan 04-01: nh3 upgraded to 0.3.4 (from STATE.md's 0.3.3); test harness uses lazy-import guard so collection survives partial tree across Wave 1 plans
 - [Phase 04-backend-schema-api-and-security]: Plan 04-02: AppSettings singleton via CheckConstraint(id=1); migration duplicates defaults literally (no import of app.defaults) per D-18
 - [Phase 04-backend-schema-api-and-security]: Plan 04-03: Pydantic belt-and-braces validator (blacklist before regex) for BRAND-09; local reset_settings override in test_color_validator.py isolates pure unit tests from parallel Wave 2 DB work
+- [Phase 04-backend-schema-api-and-security]: Plan 04-05: /api/settings/* router wired (GET/PUT + logo POST/GET with weak ETag/304); engine.dispose() per-test fixture override unblocks shared asyncpg pool across test event loops
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -99,6 +101,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T08:33:06.012Z
-**Stopped at:** Completed 04-03-PLAN.md
+**Last session:** 2026-04-11T10:10:16.443Z
+**Stopped at:** Completed 04-05-PLAN.md
 **Resume file:** None

@@ -46,7 +46,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   - [x] 04-02-PLAN.md — AppSettings model + defaults.py + Alembic migration with singleton seed
   - [x] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
   - [x] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
-  - [ ] 04-05-PLAN.md — Settings router (4 handlers) + integration tests for success criteria 1–4
+  - [x] 04-05-PLAN.md — Settings router (4 handlers) + integration tests for success criteria 1–4
   - [ ] 04-06-PLAN.md — Docker rebuild verification (criterion 5) + human checkpoint
 
 ### Phase 5: Frontend Plumbing — ThemeProvider and NavBar
