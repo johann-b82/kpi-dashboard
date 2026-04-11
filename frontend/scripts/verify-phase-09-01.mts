@@ -10,6 +10,10 @@
 
 import { computeDelta } from "../src/lib/delta.ts";
 import { computePrevBounds } from "../src/lib/prevBounds.ts";
+import {
+  formatPrevPeriodLabel,
+  formatPrevYearLabel,
+} from "../src/lib/periodLabels.ts";
 
 function assertEq<T>(actual: T, expected: T, label: string): void {
   const a = JSON.stringify(actual);
@@ -94,3 +98,112 @@ assertEq(
 );
 
 console.log("09-01 Task 1 assertions passed");
+
+// ────────────────────────────────────────────────────────────────
+// Task 2: formatPrevPeriodLabel
+// ────────────────────────────────────────────────────────────────
+const PREV_MONTH = new Date("2026-03-01T12:00:00");
+const PREV_QUARTER = new Date("2026-01-01T12:00:00");
+const PREV_CUSTOM = new Date("2026-04-04T12:00:00");
+const PREV_CUSTOM_GENERIC = new Date("2026-01-01T12:00:00");
+
+assertEq(
+  formatPrevPeriodLabel("thisMonth", PREV_MONTH, "de"),
+  "vs. März",
+  "formatPrevPeriodLabel thisMonth de",
+);
+assertEq(
+  formatPrevPeriodLabel("thisMonth", PREV_MONTH, "en"),
+  "vs. March",
+  "formatPrevPeriodLabel thisMonth en",
+);
+assertEq(
+  formatPrevPeriodLabel("thisQuarter", PREV_QUARTER, "de"),
+  "vs. Q1",
+  "formatPrevPeriodLabel thisQuarter de",
+);
+assertEq(
+  formatPrevPeriodLabel("thisQuarter", PREV_QUARTER, "en"),
+  "vs. Q1",
+  "formatPrevPeriodLabel thisQuarter en",
+);
+assertEq(
+  formatPrevPeriodLabel("thisYear", null, "de"),
+  "—",
+  "formatPrevPeriodLabel thisYear de → em-dash",
+);
+assertEq(
+  formatPrevPeriodLabel("thisYear", null, "en"),
+  "—",
+  "formatPrevPeriodLabel thisYear en → em-dash",
+);
+assertEq(
+  formatPrevPeriodLabel("allTime", null, "de"),
+  "—",
+  "formatPrevPeriodLabel allTime de → em-dash",
+);
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM, "de", 7),
+  "vs. Vorperiode",
+  "formatPrevPeriodLabel custom N=7 de → generic (N is not < 7)",
+);
+// Short range (< 7 days) branch
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM, "de", 3),
+  "vs. 3 Tage zuvor",
+  "formatPrevPeriodLabel custom N=3 de",
+);
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM, "en", 3),
+  "vs. 3 days earlier",
+  "formatPrevPeriodLabel custom N=3 en",
+);
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM, "en", 1),
+  "vs. 1 day earlier",
+  "formatPrevPeriodLabel custom N=1 en",
+);
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM_GENERIC, "de", 60),
+  "vs. Vorperiode",
+  "formatPrevPeriodLabel custom N=60 de → generic fallback",
+);
+assertEq(
+  formatPrevPeriodLabel(null, PREV_CUSTOM_GENERIC, "en", 60),
+  "vs. previous period",
+  "formatPrevPeriodLabel custom N=60 en → generic fallback",
+);
+
+// ────────────────────────────────────────────────────────────────
+// Task 2: formatPrevYearLabel
+// ────────────────────────────────────────────────────────────────
+const PREV_YEAR_APR = new Date("2025-04-01T12:00:00");
+const PREV_YEAR_JAN = new Date("2025-01-01T12:00:00");
+
+assertEq(
+  formatPrevYearLabel(PREV_YEAR_APR, "de"),
+  "vs. Apr. 2025",
+  "formatPrevYearLabel Apr de",
+);
+assertEq(
+  formatPrevYearLabel(PREV_YEAR_APR, "en"),
+  "vs. Apr 2025",
+  "formatPrevYearLabel Apr en",
+);
+assertEq(
+  formatPrevYearLabel(PREV_YEAR_JAN, "de"),
+  "vs. Jan. 2025",
+  "formatPrevYearLabel Jan de",
+);
+assertEq(
+  formatPrevYearLabel(null, "de"),
+  "—",
+  "formatPrevYearLabel null de",
+);
+assertEq(
+  formatPrevYearLabel(null, "en"),
+  "—",
+  "formatPrevYearLabel null en",
+);
+
+console.log("09-01 Task 2 assertions passed");
