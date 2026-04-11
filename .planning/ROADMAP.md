@@ -59,7 +59,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   3. The stored app name replaces "KPI Light" in the NavBar and in the browser tab title on every page
   4. A "Settings" link appears in the NavBar and routes to `/settings`
 **Plans:** 3 plans
-  - [ ] 05-01-PLAN.md — Data layer: defaults.ts, Settings type + fetchSettings, useSettings hook, locale keys
+  - [x] 05-01-PLAN.md — Data layer: defaults.ts, Settings type + fetchSettings, useSettings hook, locale keys
   - [ ] 05-02-PLAN.md — ThemeProvider (skeleton + CSS var injection + document.title + error fallback), SettingsPage stub, App.tsx wiring
   - [ ] 05-03-PLAN.md — NavBar brand slot (logo-or-text) + Settings gear icon + human verification checkpoint
 **UI hint**: yes
