@@ -11,6 +11,17 @@ This file is invoked by `scripts/smoke-rebuild.sh` via
 import base64
 
 import pytest
+import pytest_asyncio
+
+
+# Module-local override of the conftest autouse `reset_settings` fixture.
+# Without this, the autouse fixture runs BEFORE each test and would wipe
+# the payload set by test_seed_all_fields before test_seed_logo uploads,
+# leaving the post-seed state as defaults-plus-logo instead of seed-plus-logo.
+# We ARE seeding the state intentionally; the rebuild assert stage verifies it.
+@pytest_asyncio.fixture(autouse=True)
+async def reset_settings():
+    yield
 
 # 1x1 opaque red PNG, base64-encoded then frozen here.
 # Deterministic known-good PNG so the assert stage can compare bytes exactly.
