@@ -51,8 +51,24 @@ export interface KpiSummary {
 }
 
 export interface ChartPoint {
-  date: string; // ISO date string "YYYY-MM-DD"
-  revenue: number;
+  date: string; // ISO date string "YYYY-MM-DD" (bucket-truncated by granularity)
+  // `revenue` is null only in the `previous` series of ChartResponse for
+  // missing trailing buckets (CHART-03). The `current` series always
+  // carries concrete numeric revenues.
+  revenue: number | null;
+}
+
+/**
+ * Phase 8 wrapped chart response. The bare `ChartPoint[]` shape shipped in
+ * v1.0/v1.1 has been replaced with `{ current, previous }` so the endpoint
+ * can optionally carry an overlay series aligned positionally to `current`.
+ * `previous` is null unless the caller requests a comparison via the
+ * `comparison` + `prev_start` + `prev_end` query params (not yet wired in
+ * this adapter — that's Phase 10's concern).
+ */
+export interface ChartResponse {
+  current: ChartPoint[];
+  previous: ChartPoint[] | null;
 }
 
 export interface LatestUploadResponse {
@@ -76,7 +92,7 @@ export async function fetchChartData(
   start: string | undefined,
   end: string | undefined,
   granularity: "daily" | "weekly" | "monthly" = "monthly",
-): Promise<ChartPoint[]> {
+): Promise<ChartResponse> {
   const params = new URLSearchParams({ granularity });
   if (start) params.set("start_date", start);
   if (end) params.set("end_date", end);
