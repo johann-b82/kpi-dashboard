@@ -53,11 +53,6 @@
   "dashboard.error.body": "The server did not respond. Check that the backend is running, then retry.",
   "dashboard.error.retry": "Retry",
   "dashboard.chart.title": "Revenue over time",
-  "dashboard.chart.granularity.daily": "Daily",
-  "dashboard.chart.granularity.weekly": "Weekly",
-  "dashboard.chart.granularity.monthly": "Monthly",
-  "dashboard.chart.type.line": "Line",
-  "dashboard.chart.type.bar": "Bar",
   "dashboard.chart.yAxis": "Revenue (€)",
   "dashboard.chart.xAxis": "Date"
 }

@@ -2,9 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
-  LineChart,
   BarChart,
-  Line,
   Bar,
   XAxis,
   YAxis,
@@ -14,28 +12,21 @@ import {
 import { Card } from "@/components/ui/card";
 import { fetchChartData } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
-import type { Granularity } from "./GranularityToggle";
-import type { ChartType } from "./ChartTypeToggle";
 
 interface RevenueChartProps {
   startDate?: string;
   endDate?: string;
-  granularity: Granularity;
-  chartType: ChartType;
 }
 
-export function RevenueChart({
-  startDate,
-  endDate,
-  granularity,
-  chartType,
-}: RevenueChartProps) {
+const GRANULARITY = "monthly" as const;
+
+export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: kpiKeys.chart(startDate, endDate, granularity),
-    queryFn: () => fetchChartData(startDate, endDate, granularity),
+    queryKey: kpiKeys.chart(startDate, endDate, GRANULARITY),
+    queryFn: () => fetchChartData(startDate, endDate, GRANULARITY),
   });
 
   const formatCurrency = (n: number) =>
@@ -78,71 +69,31 @@ export function RevenueChart({
       </p>
       <div className="min-h-[400px] w-full">
         <ResponsiveContainer width="100%" height={400}>
-          {chartType === "line" ? (
-            <LineChart
-              data={rows}
-              margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-              />
-              <XAxis
-                dataKey="date"
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v: number) => formatCurrency(v)}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "6px",
-                }}
-                formatter={(v: number) => formatCurrency(v)}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="var(--color-success)"
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          ) : (
-            <BarChart
-              data={rows}
-              margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-              />
-              <XAxis
-                dataKey="date"
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v: number) => formatCurrency(v)}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "6px",
-                }}
-                formatter={(v: number) => formatCurrency(v)}
-              />
-              <Bar dataKey="revenue" fill="var(--color-success)" />
-            </BarChart>
-          )}
+          <BarChart
+            data={rows}
+            margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <XAxis
+              dataKey="date"
+              stroke="var(--color-muted-foreground)"
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis
+              stroke="var(--color-muted-foreground)"
+              tick={{ fontSize: 12 }}
+              tickFormatter={(v: number) => formatCurrency(v)}
+            />
+            <Tooltip
+              contentStyle={{
+                background: "var(--color-popover)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "6px",
+              }}
+              formatter={(v) => formatCurrency(Number(v))}
+            />
+            <Bar dataKey="revenue" fill="var(--color-success)" />
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </Card>
