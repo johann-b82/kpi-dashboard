@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { uploadFile } from "@/lib/api";
 import type { UploadResponse } from "@/lib/api";
+import { kpiKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -41,6 +42,7 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
         });
       }
       queryClient.invalidateQueries({ queryKey: ["uploads"] });
+      queryClient.invalidateQueries({ queryKey: kpiKeys.all });
 
       if (data.status === "success") {
         onUploadSuccess(data);
