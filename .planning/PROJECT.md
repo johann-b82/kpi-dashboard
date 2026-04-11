@@ -15,9 +15,24 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Scale:** ~2,575 LOC across Python and TypeScript.
 **Audit:** 13/13 requirements satisfied, no blockers, minor tech debt logged in `milestones/v1.0-MILESTONE-AUDIT.md`.
 
-## Next Milestone Goals
+## Current Milestone: v1.1 Branding & Settings
 
-v1.1 candidates (no decisions yet — revisit via `/gsd:new-milestone`):
+**Goal:** Make the app's corporate identity (logo, colors, app name, default language) editable via a new Settings page so teams can brand KPI Light without touching code.
+
+**Target features:**
+- Settings page reachable from top-nav
+- Full semantic color palette editable (primary, accent, background, foreground, muted, destructive) — maps to existing shadcn/Tailwind CSS variables
+- Logo upload (PNG/SVG only, max 1 MB) — displayed 60×60 top-left, CSS-constrained
+- Live preview + Save (theme applied instantly while editing; explicit Save persists)
+- Editable app name/title (replaces "KPI Light" in header)
+- Default UI language (DE/EN) — app-wide override of browser detection
+- Postgres-backed settings (new table via Alembic; logo stored as bytea or file path)
+
+**Key context:**
+- Global single CI for the whole instance (no per-user scoping; matches v1.0 pre-auth model)
+- Any user can edit (no admin gating — would pull forward Authentik work)
+
+## Deferred to Later Milestones
 
 - Authentik integration (AUTH-01, OIDC/OAuth2) — unblocks multi-app identity reuse
 - Period-over-period deltas on KPI cards (DASH-06)
@@ -40,9 +55,9 @@ v1.1 candidates (no decisions yet — revisit via `/gsd:new-milestone`):
 - ✓ Freshness indicator shows timestamp of latest upload — Phase 3
 - ✓ Auto-refresh after upload via TanStack Query invalidation — Phase 3
 
-### Active
+### Active (v1.1)
 
-_(none — awaiting v1.1 scoping)_
+_(to be populated by REQUIREMENTS.md during this milestone)_
 
 ### Out of Scope
 
@@ -108,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after v1.0 milestone shipped*
+*Last updated: 2026-04-11 — v1.1 Branding & Settings milestone started*
