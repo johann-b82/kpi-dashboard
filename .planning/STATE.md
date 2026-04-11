@@ -34,14 +34,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 07 (i18n-integration-and-polish) — EXECUTING
-Plan: 4 of 6 (07-03 complete)
+Plan: 5 of 6 (07-04 complete)
 **Milestone:** v1.1 Branding & Settings
 **Phase:** 7 of 7 (i18n integration and polish)
-**Plan:** 07-04 next
+**Plan:** 07-05 next
 **Status:** Executing Phase 07
 **Last activity:** 2026-04-11
 
-Progress: [████████░░] 84% (16/19 plans in current scope)
+Progress: [██████████] 95% (18/19 plans in current scope)
 
 ---
 
