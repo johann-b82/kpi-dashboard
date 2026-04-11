@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-04-11T16:24:58.284Z"
+stopped_at: Completed 06-04-PLAN.md — Phase 06 complete
+last_updated: "2026-04-11T18:16:31.956Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 100
 ---
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100% (9/9 plans in current scope)
 | Phase 06-settings-page-and-sub-components P06-01 | 2min | 3 tasks | 6 files |
 | Phase 06-settings-page-and-sub-components P06-02 | 2min | 2 tasks | 2 files |
 | Phase 06-settings-page-and-sub-components P06-03 | 2min | 3 tasks | 4 files |
+| Phase 06-settings-page-and-sub-components P06-04 | 30min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [Phase 06-settings-page-and-sub-components]: Plan 06-02: Removed COLOR_KEYS/ColorKey from useSettingsDraft — unused by hook logic, caused tsc noUnusedLocals errors; plan code snippet was illustrative, not functional
 - [Phase 06-settings-page-and-sub-components]: Plan 06-03: ContrastBadge copy hardcoded EN in Phase 6; locale key settings.contrast.badge added to en.json for Phase 7 wiring
 - [Phase 06-settings-page-and-sub-components]: Plan 06-03: LogoUpload uses setQueryData (not invalidateQueries) on upload success; D-13 staleTime Infinity avoids redundant refetch
+- [Phase 06-settings-page-and-sub-components]: hexToOklch clamps L to [0,1] and coerces non-finite hue to 0 — culori formatCss emits overflow/none values that the backend regex rejects
+- [Phase 06-settings-page-and-sub-components]: formatDetail() helper added to api.ts to unwrap FastAPI 422 array-shaped detail into readable error strings for toasts
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -117,6 +120,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T16:24:58.282Z
-**Stopped at:** Completed 06-03-PLAN.md
+**Last session:** 2026-04-11T18:16:31.953Z
+**Stopped at:** Completed 06-04-PLAN.md — Phase 06 complete
 **Resume file:** None
