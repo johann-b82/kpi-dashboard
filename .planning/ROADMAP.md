@@ -90,7 +90,13 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   2. On app boot, `i18n.changeLanguage()` is called with the server-persisted language before any translated content renders — no language flash on hard refresh
   3. The Settings page UI (all labels, buttons, toasts, and dialog text) is fully translated in both DE and EN locale files
   4. After `docker compose up --build`, all persisted settings (logo, colors, app name, language) are intact — no data loss from image rebuild
-**Plans**: TBD
+**Plans:** 6 plans
+  - [ ] 07-01-PLAN.md — Wave 0 infra: install requirements-dev.txt in api Dockerfile + @playwright/test + chromium
+  - [ ] 07-02-PLAN.md — i18n bootstrap: bootstrap.ts, main.tsx top-level await, i18n.ts lng fix, index.html splash
+  - [ ] 07-03-PLAN.md — PreferencesCard + useSettingsDraft i18n extension + SettingsDraftContext + 4 new EN keys
+  - [ ] 07-04-PLAN.md — NavBar LanguageToggle rewrite (useMutation, dirty-aware disable, full PUT payload)
+  - [ ] 07-05-PLAN.md — Full DE translation pass (111 keys, informal du, loanwords, fix 2 pre-existing Sie strings)
+  - [ ] 07-06-PLAN.md — Rebuild persistence harness (pytest seed/assert/cleanup + Playwright + smoke-rebuild.sh + human verify)
 
 ## Progress
 
@@ -102,4 +108,4 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 | 4. Backend — Schema, API, and Security | v1.1 | 0/6 | Not started | - |
 | 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/3 | Not started | - |
 | 6. Settings Page and Sub-components | v1.1 | 4/4 | Complete   | 2026-04-11 |
-| 7. i18n Integration and Polish | v1.1 | 0/? | Not started | - |
+| 7. i18n Integration and Polish | v1.1 | 0/6 | Not started | - |
