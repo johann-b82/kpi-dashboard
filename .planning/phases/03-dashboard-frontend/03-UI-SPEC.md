@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: dashboard-frontend
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova
 created: 2026-04-11
+reviewed_at: 2026-04-11
 ---
 
 # Phase 3 — UI Design Contract
