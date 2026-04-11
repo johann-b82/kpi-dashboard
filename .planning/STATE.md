@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-11T11:30:34.265Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-04-11T11:44:46.472Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
-  completed_plans: 8
-  percent: 78
+  completed_plans: 9
+  percent: 89
 ---
 
 # Project State: KPI Light
@@ -33,15 +33,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 ## Current Position
 
-Phase: 05 (frontend-plumbing-themeprovider-and-navbar) — EXECUTING
+Phase: 05 (frontend-plumbing-themeprovider-and-navbar) — COMPLETE
 Plan: 3 of 3
 **Milestone:** v1.1 Branding & Settings
-**Phase:** 5 of 7 (frontend plumbing — themeprovider and navbar)
-**Plan:** 05-03 (NavBar logo + brand) — next
-**Status:** Executing Phase 05
+**Phase:** 6 of 7 (settings-page-ui) — next
+**Plan:** 06-01 — not yet planned
+**Status:** Phase 05 complete — ready to start Phase 06
 **Last activity:** 2026-04-11
 
-Progress: [█████████░] 89% (8/9 plans)
+Progress: [██████████] 100% (9/9 plans in current scope)
 
 ---
 
@@ -69,6 +69,7 @@ Progress: [█████████░] 89% (8/9 plans)
 | Phase 04-backend-schema-api-and-security P06 | 10min | 2 tasks | 2 files |
 | Phase 05-frontend-plumbing-themeprovider-and-navbar P01 | 5min | 2 tasks | 5 files |
 | Phase 05-frontend-plumbing-themeprovider-and-navbar P02 | 2min | 2 tasks | 4 files |
+| Phase 05-frontend-plumbing-themeprovider-and-navbar P03 | 8min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,7 @@ Recent decisions affecting current work:
 - [Phase 04-backend-schema-api-and-security]: Plan 04-06: Phase 4 smoke script + docker rebuild runbook landed; human verification approved (PASSED 16 / FAILED 0, rebuild SHAs matched). Runbook SVG bug fixed during verification: self-closing `<circle/>` is rewritten by nh3 html5ever and hits reject-on-mutation; explicit close-tag form required.
 - [Phase 05-frontend-plumbing-themeprovider-and-navbar]: Plan 05-01: Settings type, fetcher, defaults, and useSettings hook plumbed; queryKey literal ['settings'] + staleTime Infinity per D-13; defaults duplicated verbatim from backend (D-16)
 - [Phase 05-frontend-plumbing-themeprovider-and-navbar]: Plan 05-02: ThemeProvider gates children during isLoading with text-free skeleton (D-02); applyTheme iterates THEME_TOKEN_MAP to write 6 oklch CSS vars + document.title; Toaster kept outside provider per D-03; tsconfig.app.json gained ignoreDeprecations to unblock tsc -b on pre-existing baseUrl directive
+- [Phase 05-frontend-plumbing-themeprovider-and-navbar]: Plan 05-03: NavBar brand slot reads from useSettings() with DEFAULT_SETTINGS fallback; logo/text mutually exclusive; Settings gear rendered as styled wouter Link directly (no nested Button) to avoid invalid <a><button>; Phase 5 human verification of all 4 success criteria PASSED
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -107,6 +109,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T11:30:34.262Z
-**Stopped at:** Completed 05-02-PLAN.md
+**Last session:** 2026-04-11T11:44:46.469Z
+**Stopped at:** Completed 05-03-PLAN.md
 **Resume file:** None

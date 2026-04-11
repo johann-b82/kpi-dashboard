@@ -19,7 +19,7 @@
 
 - [x] **BRAND-01**: User can upload a logo (PNG or SVG only, max 1 MB) from the Settings page
 - [x] **BRAND-02**: Uploaded SVG logos are sanitized server-side via `nh3` before persistence (no `<script>`, no `on*` handlers, strict element/attribute allowlist)
-- [ ] **BRAND-03**: The logo is displayed in the top-left of every page at 60×60 px (CSS-constrained; original preserved); fallback to app name text if no logo set
+- [x] **BRAND-03**: The logo is displayed in the top-left of every page at 60×60 px (CSS-constrained; original preserved); fallback to app name text if no logo set
 - [x] **BRAND-04**: Logo URL includes a cache-busting query param derived from `logo_updated_at` so browser caches never show a stale logo after upload
 - [ ] **BRAND-05**: User can edit all 6 semantic color tokens (primary, accent, background, foreground, muted, destructive) via hex color inputs; values are converted to oklch before API submission
 - [x] **BRAND-06**: User can edit the app name; the new name replaces "KPI Light" in the top-nav header AND in the browser tab title (`document.title`)
