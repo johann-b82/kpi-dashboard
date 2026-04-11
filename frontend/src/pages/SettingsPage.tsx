@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -12,9 +12,11 @@ import { hexToOklch, WHITE_OKLCH } from "@/lib/color";
 import { ColorPicker } from "@/components/settings/ColorPicker";
 import { ContrastBadge } from "@/components/settings/ContrastBadge";
 import { LogoUpload } from "@/components/settings/LogoUpload";
+import { PreferencesCard } from "@/components/settings/PreferencesCard";
 import { ActionBar } from "@/components/settings/ActionBar";
 import { ResetDialog } from "@/components/settings/ResetDialog";
 import { UnsavedChangesDialog } from "@/components/settings/UnsavedChangesDialog";
+import { useSettingsDraftStatus } from "@/contexts/SettingsDraftContext";
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -45,6 +47,17 @@ export function SettingsPage() {
   }, []);
 
   useUnsavedGuard(isDirty, handleShowUnsavedDialog);
+
+  // Sync draft dirty-state into the App-level context so NavBar can read it
+  // (D-13, D-14). Cleanup sets dirty=false on unmount so navigating off
+  // /settings immediately clears the NavBar's disabled state.
+  const draftStatus = useSettingsDraftStatus();
+  useEffect(() => {
+    draftStatus?.setDirty(isDirty);
+    return () => {
+      draftStatus?.setDirty(false);
+    };
+  }, [isDirty, draftStatus]);
 
   // ----- Error and loading states -----
   if (isLoading) {
@@ -244,6 +257,12 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Preferences Card — General / Language picker (I18N-01, D-07) */}
+      <PreferencesCard
+        value={draft.default_language}
+        onChange={(v) => setField("default_language", v)}
+      />
 
       <ActionBar
         isDirty={isDirty}
