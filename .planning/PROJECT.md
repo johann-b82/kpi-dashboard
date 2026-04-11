@@ -17,11 +17,12 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 - [x] Uploaded file data is parsed and stored in a PostgreSQL database — Validated in Phase 2: File Ingestion Pipeline
 - [x] File schema is consistent (known columns) — no dynamic schema detection needed — Validated in Phase 2: File Ingestion Pipeline (38-column ERP export)
 - [x] Upload history is visible (what was uploaded, when) — Validated in Phase 2: File Ingestion Pipeline
+- [x] Dashboard displays summary cards (total revenue, avg order value, key metrics) — Validated in Phase 3: Dashboard Frontend
+- [x] Dashboard displays charts showing KPI trends over time (line/bar charts) — Validated in Phase 3: Dashboard Frontend
 
 ### Active
 
-- [ ] Dashboard displays summary cards (total revenue, avg order value, key metrics)
-- [ ] Dashboard displays charts showing KPI trends over time (line/bar charts)
+_(none — all v1 requirements validated)_
 
 ### Out of Scope
 
@@ -57,6 +58,8 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 | Auth deferred to v2 | v1 focus is core data pipeline + dashboard; internal-only use doesn't need auth yet | — Pending |
 | Fixed file schema | Simplifies parsing significantly; user confirmed columns are consistent | — Pending |
 | Docker Compose deployment | Entire stack containerized for portability and reproducibility | ✓ Phase 1 |
+| wouter over react-router | Smaller footprint, simpler API; only two routes in v1 | ✓ Phase 3 |
+| shadcn wraps @base-ui/react | This project's shadcn registry uses base-ui primitives, not Radix — use `render` prop, not `asChild` | ✓ Phase 3 |
 
 ## Evolution
 
@@ -76,4 +79,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after Phase 2 completion*
+*Last updated: 2026-04-11 after Phase 3 completion — v1 milestone feature-complete*
