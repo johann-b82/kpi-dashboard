@@ -41,7 +41,13 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   3. `POST /api/settings/logo` with a malicious SVG containing `<script>` stores a sanitized version (no script in retrieved bytes)
   4. `PUT /api/settings` with default values resets the singleton row and returns canonical defaults from `defaults.py`
   5. Logo survives `docker compose up --build` (stored as bytea in Postgres, not in container filesystem)
-**Plans**: TBD
+**Plans:** 6 plans
+  - [ ] 04-01-PLAN.md — Wave 0 deps + test harness scaffold (nh3, pytest stack, conftest)
+  - [ ] 04-02-PLAN.md — AppSettings model + defaults.py + Alembic migration with singleton seed
+  - [ ] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
+  - [ ] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
+  - [ ] 04-05-PLAN.md — Settings router (4 handlers) + integration tests for success criteria 1–4
+  - [ ] 04-06-PLAN.md — Docker rebuild verification (criterion 5) + human checkpoint
 
 ### Phase 5: Frontend Plumbing — ThemeProvider and NavBar
 **Goal**: The running app applies persisted settings on every load — NavBar shows the stored logo and app name, CSS variables reflect stored colors, and no default-brand flash occurs during the settings fetch
@@ -86,7 +92,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 | 1. Infrastructure and Schema | v1.0 | 2/2 | Complete | 2026-04-10 |
 | 2. File Ingestion Pipeline | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 3. Dashboard Frontend | v1.0 | 4/4 | Complete | 2026-04-11 |
-| 4. Backend — Schema, API, and Security | v1.1 | 0/? | Not started | - |
+| 4. Backend — Schema, API, and Security | v1.1 | 0/6 | Not started | - |
 | 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/? | Not started | - |
 | 6. Settings Page and Sub-components | v1.1 | 0/? | Not started | - |
 | 7. i18n Integration and Polish | v1.1 | 0/? | Not started | - |
