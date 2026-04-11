@@ -58,7 +58,10 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   2. The NavBar displays the stored logo (60×60 px, CSS-constrained) when one is set, and falls back to the stored app name text when no logo exists
   3. The stored app name replaces "KPI Light" in the NavBar and in the browser tab title on every page
   4. A "Settings" link appears in the NavBar and routes to `/settings`
-**Plans**: TBD
+**Plans:** 3 plans
+  - [ ] 05-01-PLAN.md — Data layer: defaults.ts, Settings type + fetchSettings, useSettings hook, locale keys
+  - [ ] 05-02-PLAN.md — ThemeProvider (skeleton + CSS var injection + document.title + error fallback), SettingsPage stub, App.tsx wiring
+  - [ ] 05-03-PLAN.md — NavBar brand slot (logo-or-text) + Settings gear icon + human verification checkpoint
 **UI hint**: yes
 
 ### Phase 6: Settings Page and Sub-components
@@ -93,6 +96,6 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 | 2. File Ingestion Pipeline | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 3. Dashboard Frontend | v1.0 | 4/4 | Complete | 2026-04-11 |
 | 4. Backend — Schema, API, and Security | v1.1 | 0/6 | Not started | - |
-| 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/? | Not started | - |
+| 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/3 | Not started | - |
 | 6. Settings Page and Sub-components | v1.1 | 0/? | Not started | - |
 | 7. i18n Integration and Polish | v1.1 | 0/? | Not started | - |
