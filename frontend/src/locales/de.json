@@ -51,5 +51,13 @@
   "dashboard.emptyFiltered.body": "Wählen Sie einen größeren Zeitraum oder einen der voreingestellten Bereiche.",
   "dashboard.error.heading": "KPIs konnten nicht geladen werden",
   "dashboard.error.body": "Der Server hat nicht geantwortet. Bitte prüfen, ob das Backend läuft, und erneut versuchen.",
-  "dashboard.error.retry": "Erneut versuchen"
+  "dashboard.error.retry": "Erneut versuchen",
+  "dashboard.chart.title": "Umsatzverlauf",
+  "dashboard.chart.granularity.daily": "Täglich",
+  "dashboard.chart.granularity.weekly": "Wöchentlich",
+  "dashboard.chart.granularity.monthly": "Monatlich",
+  "dashboard.chart.type.line": "Linie",
+  "dashboard.chart.type.bar": "Balken",
+  "dashboard.chart.yAxis": "Umsatz (€)",
+  "dashboard.chart.xAxis": "Datum"
 }
