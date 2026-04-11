@@ -10,24 +10,14 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.0 MVP — 2026-04-11
-**In progress:** v1.1 Branding & Settings — Phase 06 complete (Settings page: color pickers, logo upload, live preview, save flow, unsaved-changes guard, WCAG contrast badges)
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service.
-**Scale:** ~2,575 LOC across Python and TypeScript.
-**Audit:** 13/13 v1.0 requirements satisfied; v1.1 backend SET-02/03/04 and BRAND-01/02/04/09 validated in Phase 4.
+**Shipped:** v1.1 Branding & Settings — 2026-04-11 (v1.0 MVP shipped same day)
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. v1.1 added `nh3` SVG sanitization, `culori` hex↔oklch conversion, `react-colorful` pickers, and Playwright E2E harness.
+**Scope delivered in v1.1:** full branding Settings page (6 semantic color tokens, logo upload, app name, DE/EN default), ThemeProvider live-preview, persisting NavBar LanguageToggle, async i18n bootstrap (no language flash), WCAG contrast badges, unsaved-changes guard, full de.json parity in informal "du" tone, and a rebuild-persistence smoke harness (`scripts/smoke-rebuild.sh`) proving settings survive `docker compose up --build`.
+**Audit status:** 13/13 v1.0 + 17/17 v1.1 requirements satisfied (SET, BRAND, I18N, UX). v1.1 was archived without a formal `/gsd:audit-milestone` pass — any post-ship findings carry forward as v1.2 tech debt.
 
-## Current Milestone: v1.1 Branding & Settings
+## Next Milestone
 
-**Goal:** Make the app's corporate identity (logo, colors, app name, default language) editable via a new Settings page so teams can brand KPI Light without touching code.
-
-**Target features:**
-- Settings page reachable from top-nav
-- Full semantic color palette editable (primary, accent, background, foreground, muted, destructive) — maps to existing shadcn/Tailwind CSS variables
-- Logo upload (PNG/SVG only, max 1 MB) — displayed 60×60 top-left, CSS-constrained
-- Live preview + Save (theme applied instantly while editing; explicit Save persists)
-- Editable app name/title (replaces "KPI Light" in header)
-- Default UI language (DE/EN) — app-wide override of browser detection
-- Postgres-backed settings (new table via Alembic; logo stored as bytea or file path)
+**TBD.** Run `/gsd:new-milestone` to scope v1.2. Likely candidates: Authentik integration (AUTH-01), period-over-period deltas (DASH-06), export filtered data as CSV (DASH-07), duplicate upload detection (UPLD-07), or per-upload drill-down (DASH-08).
 
 **Key context:**
 - Global single CI for the whole instance (no per-user scoping; matches v1.0 pre-auth model)
