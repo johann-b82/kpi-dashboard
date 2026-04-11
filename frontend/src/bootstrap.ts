@@ -20,10 +20,29 @@ let bootstrapPromise: Promise<void> | null = null;
  *
  * Bootstrap runs BEFORE React mounts, so it must not use react-i18next hooks.
  */
+// Mirror i18n language onto the <html lang="..."> attribute for
+// accessibility (screen readers) and Playwright assertion (Phase 7 Plan 06).
+// i18next does NOT do this automatically — we wire it once here so both the
+// cold-start `changeLanguage` and every later `LanguageToggle` click update
+// the document's lang attribute.
+let htmlLangHookWired = false;
+function wireHtmlLangSync() {
+  if (htmlLangHookWired) return;
+  htmlLangHookWired = true;
+  const apply = (lng: string) => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lng;
+    }
+  };
+  apply(i18n.language);
+  i18n.on("languageChanged", apply);
+}
+
 export function bootstrap(): Promise<void> {
   if (bootstrapPromise) return bootstrapPromise;
   bootstrapPromise = (async () => {
     await i18nInitPromise;
+    wireHtmlLangSync();
     try {
       const settings = await fetchSettings();
       await i18n.changeLanguage(settings.default_language.toLowerCase());
