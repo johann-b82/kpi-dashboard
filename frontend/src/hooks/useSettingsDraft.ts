@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import i18n from "@/i18n";
 import { useSettings } from "@/hooks/useSettings";
 import { updateSettings, type Settings, type SettingsUpdatePayload } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
@@ -160,6 +161,13 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
         }
         return next;
       });
+      // D-10: sync i18n runtime for live preview when language changes.
+      // Fire-and-forget — react-i18next re-renders via `languageChanged`
+      // event, not via Promise resolution. Keeping setField sync preserves
+      // all existing call-site signatures.
+      if (field === "default_language") {
+        void i18n.changeLanguage(String(value).toLowerCase());
+      }
     },
     [queryClient],
   );
@@ -197,6 +205,9 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
         draftToCacheSettings(snapshot, prevCache),
       );
     }
+    // D-10: sync i18n runtime back to the snapshot language so the
+    // live-previewed language reverts alongside the colors.
+    void i18n.changeLanguage(snapshot.default_language.toLowerCase());
   }, [snapshot, queryClient]);
 
   const resetToDefaults = useCallback(async () => {
@@ -219,6 +230,9 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
       setSnapshot(nextSnapshot);
       setDraft(nextSnapshot);
       queryClient.setQueryData<Settings>(["settings"], response);
+      // D-10: sync i18n runtime to the post-reset default language
+      // (canonical default is "EN" from backend/app/defaults.py).
+      void i18n.changeLanguage(nextSnapshot.default_language.toLowerCase());
     } finally {
       setIsSaving(false);
     }
