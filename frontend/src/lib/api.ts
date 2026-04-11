@@ -143,9 +143,30 @@ export async function updateSettings(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Failed to save settings" }));
-    throw new Error(err.detail || "Failed to save settings");
+    throw new Error(formatDetail(err.detail) || "Failed to save settings");
   }
   return res.json();
+}
+
+function formatDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d) => {
+        if (typeof d === "string") return d;
+        if (d && typeof d === "object") {
+          const loc = Array.isArray((d as { loc?: unknown }).loc)
+            ? ((d as { loc: unknown[] }).loc.slice(1).join(".") as string)
+            : "";
+          const msg = (d as { msg?: string }).msg ?? JSON.stringify(d);
+          return loc ? `${loc}: ${msg}` : msg;
+        }
+        return String(d);
+      })
+      .join("; ");
+  }
+  if (detail && typeof detail === "object") return JSON.stringify(detail);
+  return "";
 }
 
 /**
@@ -162,7 +183,7 @@ export async function uploadLogo(file: File): Promise<Settings> {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Failed to upload logo" }));
-    throw new Error(err.detail || "Failed to upload logo");
+    throw new Error(formatDetail(err.detail) || "Failed to upload logo");
   }
   return res.json();
 }

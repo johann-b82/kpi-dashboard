@@ -1,4 +1,4 @@
-import { parse, formatCss, formatHex, converter, wcagContrast as _wcagContrast } from "culori";
+import { parse, formatHex, converter, wcagContrast as _wcagContrast } from "culori";
 
 const toOklch = converter("oklch");
 
@@ -14,7 +14,10 @@ export function hexToOklch(hex: string): string {
   if (!color) throw new Error(`Invalid hex color: ${hex}`);
   const oklch = toOklch(color);
   if (!oklch) throw new Error(`Could not convert to oklch: ${hex}`);
-  return formatCss(oklch);
+  const L = Math.min(1, Math.max(0, oklch.l ?? 0));
+  const C = Math.max(0, oklch.c ?? 0);
+  const H = Number.isFinite(oklch.h) ? (oklch.h as number) : 0;
+  return `oklch(${L.toFixed(4)} ${C.toFixed(4)} ${H.toFixed(2)})`;
 }
 
 /**
