@@ -11,7 +11,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ## Current State
 
 **Shipped:** v1.0 MVP — 2026-04-11
-**In progress:** v1.1 Branding & Settings — Phase 04 complete (backend schema, API, security)
+**In progress:** v1.1 Branding & Settings — Phase 05 complete (frontend plumbing: ThemeProvider, NavBar brand slot, /settings route)
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service.
 **Scale:** ~2,575 LOC across Python and TypeScript.
 **Audit:** 13/13 v1.0 requirements satisfied; v1.1 backend SET-02/03/04 and BRAND-01/02/04/09 validated in Phase 4.
