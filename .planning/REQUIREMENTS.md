@@ -32,8 +32,8 @@
 
 ### Frontend — Chart Overlay
 
-- [ ] **CHART-04**: `RevenueChart` renders the `previous_series` from CHART-01 as a second line/bar at reduced opacity (≤40%) below the primary series. Both series share the same X axis; the prior series is visually subordinated.
-- [ ] **CHART-05**: The chart legend updates to show both series with their contextual labels (e.g., "Umsatz 2026" and "Umsatz 2025" for year-over-year).
+- [x] **CHART-04**: `RevenueChart` renders the `previous_series` from CHART-01 as a second line/bar at reduced opacity (≤40%) below the primary series. Both series share the same X axis; the prior series is visually subordinated.
+- [x] **CHART-05**: The chart legend updates to show both series with their contextual labels (e.g., "Umsatz 2026" and "Umsatz 2025" for year-over-year).
 - [x] **CHART-06**: The default chart comparison mode is `previous_period`. No explicit UI toggle in v1.2 — the mode is driven by the selected date filter scope (short ranges → previous period, year-scale ranges → previous year). A future milestone can expose a manual toggle.
 
 ### Frontend — i18n
