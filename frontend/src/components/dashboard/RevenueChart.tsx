@@ -191,13 +191,13 @@ export function RevenueChart({
               <Legend />
               <Bar
                 dataKey="revenue"
-                fill="var(--color-success)"
+                fill="var(--color-chart-current)"
                 name={labels.current}
               />
               {showPrior && (
                 <Bar
                   dataKey="revenuePrior"
-                  fill="var(--color-success-light)"
+                  fill="var(--color-chart-prior)"
                   name={labels.prior}
                 />
               )}
@@ -233,7 +233,7 @@ export function RevenueChart({
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="var(--color-success)"
+                stroke="var(--color-chart-current)"
                 strokeWidth={2}
                 dot={false}
                 name={labels.current}
@@ -242,7 +242,7 @@ export function RevenueChart({
                 <Line
                   type="monotone"
                   dataKey="revenuePrior"
-                  stroke="var(--color-success-light)"
+                  stroke="var(--color-chart-prior)"
                   strokeWidth={2}
                   dot={false}
                   name={labels.prior}
