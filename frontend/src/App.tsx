@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { Route, Switch } from "wouter";
 import { UploadPage } from "./pages/UploadPage";
@@ -6,8 +6,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 import { ThemeProvider } from "./components/ThemeProvider";
-
-const queryClient = new QueryClient();
+import { queryClient } from "./queryClient";
 
 function App() {
   return (
