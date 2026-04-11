@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { KpiCard } from "./KpiCard";
+import type { DateRangeValue } from "./DateRangeFilter";
 import { fetchKpiSummary } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
+import type { Preset } from "@/lib/dateUtils";
 
 interface KpiCardGridProps {
   startDate?: string;
   endDate?: string;
+  preset: Preset | null;
+  range: DateRangeValue;
 }
 
-export function KpiCardGrid({ startDate, endDate }: KpiCardGridProps) {
+// Task 1 shim: preset/range accepted but unused until Task 2 wires deltas.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function KpiCardGrid({ startDate, endDate, preset: _preset, range: _range }: KpiCardGridProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
 

@@ -17,14 +17,18 @@ export interface DateRangeValue {
 
 interface DateRangeFilterProps {
   value: DateRangeValue;
-  onChange: (next: DateRangeValue) => void;
+  preset: Preset | null;
+  onChange: (value: DateRangeValue, preset: Preset | null) => void;
 }
 
 const PRESETS: Preset[] = ["thisMonth", "thisQuarter", "thisYear", "allTime"];
 
-export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  value,
+  preset,
+  onChange,
+}: DateRangeFilterProps) {
   const { t } = useTranslation();
-  const [activePreset, setActivePreset] = useState<Preset | null>("thisYear");
   const [pendingRange, setPendingRange] = useState<DateRange | undefined>({
     from: value.from,
     to: value.to,
@@ -32,20 +36,19 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const selectPreset = (p: Preset) => {
-    setActivePreset(p);
     const range = getPresetRange(p);
-    onChange({ from: range.from, to: range.to });
+    onChange({ from: range.from, to: range.to }, p);
   };
 
   const applyCustom = () => {
-    setActivePreset(null);
-    onChange({ from: pendingRange?.from, to: pendingRange?.to });
+    onChange({ from: pendingRange?.from, to: pendingRange?.to }, null);
     setPopoverOpen(false);
   };
 
   const resetToDefault = () => {
     setPendingRange(undefined);
-    selectPreset("thisYear");
+    const range = getPresetRange("thisYear");
+    onChange({ from: range.from, to: range.to }, "thisYear");
     setPopoverOpen(false);
   };
 
@@ -59,7 +62,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
           <Button
             key={p}
             type="button"
-            variant={activePreset === p ? "default" : "outline"}
+            variant={preset === p ? "default" : "outline"}
             size="sm"
             onClick={() => selectPreset(p)}
           >
