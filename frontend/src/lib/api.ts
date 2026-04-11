@@ -109,3 +109,60 @@ export async function fetchSettings(): Promise<Settings> {
   if (!res.ok) throw new Error("Failed to fetch settings");
   return res.json();
 }
+
+/**
+ * Payload for PUT /api/settings. Exactly 8 fields — logo bytes have their
+ * own endpoint (Phase 4 D-05). All color_* fields must be in canonical
+ * `oklch(L C H)` format; the backend's _OKLCH_RE regex rejects hex and
+ * any string containing `;`, `}`, `{`, `url(`, `expression(`, or quotes.
+ */
+export interface SettingsUpdatePayload {
+  color_primary: string;
+  color_accent: string;
+  color_background: string;
+  color_foreground: string;
+  color_muted: string;
+  color_destructive: string;
+  app_name: string;
+  default_language: "DE" | "EN";
+}
+
+/**
+ * PUT /api/settings — persists all 8 editable fields atomically.
+ * Returns the full Settings (10 fields including logo_url, logo_updated_at).
+ * On non-2xx, throws Error with the backend-provided `detail` string so
+ * the caller can surface it in a toast without extra parsing.
+ */
+export async function updateSettings(
+  payload: SettingsUpdatePayload,
+): Promise<Settings> {
+  const res = await fetch("/api/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to save settings" }));
+    throw new Error(err.detail || "Failed to save settings");
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/settings/logo — uploads a PNG or SVG (max 1 MB client-side,
+ * backend re-validates with nh3 SVG sanitization + magic-byte check).
+ * Returns the full Settings with updated logo_url and logo_updated_at.
+ */
+export async function uploadLogo(file: File): Promise<Settings> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch("/api/settings/logo", {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to upload logo" }));
+    throw new Error(err.detail || "Failed to upload logo");
+  }
+  return res.json();
+}
