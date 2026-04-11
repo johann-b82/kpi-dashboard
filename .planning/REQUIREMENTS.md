@@ -55,11 +55,11 @@
 | CHART-01 | Chart endpoint `comparison` param + `previous_series` | Phase 8 | Complete |
 | CHART-02 | Chart aggregation reuses card SQL | Phase 8 | Complete |
 | CHART-03 | Null buckets for partial prior data | Phase 8 | Complete |
-| CARD-01 | Dual delta badges on all 3 cards | Phase 9 | Not started |
-| CARD-02 | Up/down arrow + positive/negative color | Phase 9 | Not started |
-| CARD-03 | Locale-aware percentage formatting | Phase 9 | Not started |
-| CARD-04 | Em-dash + tooltip for null baselines | Phase 9 | Not started |
-| CARD-05 | Contextual secondary labels (vs. März, vs. Q1) | Phase 9 | Not started |
+| CARD-01 | Dual delta badges on all 3 cards | Phase 9 | Complete |
+| CARD-02 | Up/down arrow + positive/negative color | Phase 9 | Complete |
+| CARD-03 | Locale-aware percentage formatting | Phase 9 | Complete |
+| CARD-04 | Em-dash + tooltip for null baselines | Phase 9 | Complete |
+| CARD-05 | Contextual secondary labels (vs. März, vs. Q1) | Phase 9 | Complete |
 | CHART-04 | Ghosted prior-period series on RevenueChart | Phase 10 | Not started |
 | CHART-05 | Legend shows both series | Phase 10 | Not started |
 | CHART-06 | Default mode = previous_period | Phase 10 | Not started |
