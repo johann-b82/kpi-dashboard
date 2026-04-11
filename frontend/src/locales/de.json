@@ -24,5 +24,10 @@
   "delete_body": "\"{{filename}}\" und {{count}} zugeh\u00f6rige Datens\u00e4tze werden dauerhaft gel\u00f6scht.",
   "delete_confirm": "L\u00f6schen",
   "delete_cancel": "Upload behalten",
-  "lang_toggle": "DE / EN"
+  "lang_toggle": "DE / EN",
+  "nav.brand": "ACM KPI",
+  "nav.dashboard": "Dashboard",
+  "nav.upload": "Upload",
+  "nav.lastUpdated": "Zuletzt aktualisiert:",
+  "nav.lastUpdated.never": "Noch keine Daten"
 }

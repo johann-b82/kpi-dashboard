@@ -10,6 +10,7 @@ i18n.use(initReactI18next).init({
   },
   lng: "de",
   fallbackLng: "en",
+  keySeparator: false,
   interpolation: { escapeValue: false },
 });
 

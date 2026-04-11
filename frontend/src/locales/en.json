@@ -24,5 +24,10 @@
   "delete_body": "\"{{filename}}\" and {{count}} associated records will be permanently deleted.",
   "delete_confirm": "Delete",
   "delete_cancel": "Keep upload",
-  "lang_toggle": "DE / EN"
+  "lang_toggle": "DE / EN",
+  "nav.brand": "ACM KPI",
+  "nav.dashboard": "Dashboard",
+  "nav.upload": "Upload",
+  "nav.lastUpdated": "Last updated:",
+  "nav.lastUpdated.never": "No data yet"
 }

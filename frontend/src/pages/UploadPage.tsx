@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { DropZone } from "@/components/DropZone";
 import { ErrorList } from "@/components/ErrorList";
 import { UploadHistory } from "@/components/UploadHistory";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import type { ValidationErrorDetail } from "@/lib/api";
 
 export function UploadPage() {
@@ -13,10 +12,6 @@ export function UploadPage() {
 
   return (
     <div className="max-w-[800px] mx-auto px-4 py-12">
-      <div className="flex justify-end mb-6">
-        <LanguageToggle />
-      </div>
-
       <h1 className="text-xl font-semibold mb-6">{t("page_title")}</h1>
 
       <DropZone
