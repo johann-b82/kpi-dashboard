@@ -56,7 +56,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   4. `GET /api/dashboard/chart?comparison=previous_period` returns a response with a `previous_series` array whose bucket keys align with the current series; partial prior data emits `null` values for missing buckets (not fabricated zeros)
   5. Integration test asserts that the aggregate values returned in `summary.previous_period` equal the sum of bucket values in `chart?comparison=previous_period.previous_series` for the same filter — proving SQL reuse, no drift
 **Plans:** TBD
-  - [ ] 08-01-PLAN.md — SQL window helpers (`previous_period`, `previous_year` interval math; leap-year safe) + unit tests
+  - [x] 08-01-PLAN.md — SQL window helpers (`previous_period`, `previous_year` interval math; leap-year safe) + unit tests
   - [ ] 08-02-PLAN.md — Summary endpoint: extend response schema, wire comparison aggregation, null-safety branches, integration tests for SC 1–3
   - [ ] 08-03-PLAN.md — Chart endpoint: `comparison` query param, `previous_series` alignment with null-gap buckets, integration tests for SC 4–5
 

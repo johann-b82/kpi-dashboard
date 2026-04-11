@@ -11,15 +11,15 @@
 ### Backend — Comparison Aggregation
 
 - [ ] **DELTA-01**: `GET /api/dashboard/summary` returns — in addition to the existing current-period fields — two parallel comparison objects `previous_period` and `previous_year`, each with the same schema (`total_revenue`, `avg_order_value`, `total_orders`) or `null` when no comparable window exists.
-- [ ] **DELTA-02**: The backend derives `previous_period` as the same-length window immediately preceding the current `[from, to]` filter (e.g., `[Mar 1, Mar 31]` for a current filter of `[Apr 1, Apr 30]`). Computed via SQL `date_trunc` / interval math, not Python date arithmetic, to stay time-zone safe against the app's UTC Postgres instance.
-- [ ] **DELTA-03**: The backend derives `previous_year` as the calendar-matched window exactly one year before the current `[from, to]` filter (e.g., `[Apr 1 2025, Apr 30 2025]`). Leap-year edge cases (Feb 29 → Feb 28) are handled without throwing.
+- [x] **DELTA-02**: The backend derives `previous_period` as the same-length window immediately preceding the current `[from, to]` filter (e.g., `[Mar 1, Mar 31]` for a current filter of `[Apr 1, Apr 30]`). Computed via SQL `date_trunc` / interval math, not Python date arithmetic, to stay time-zone safe against the app's UTC Postgres instance.
+- [x] **DELTA-03**: The backend derives `previous_year` as the calendar-matched window exactly one year before the current `[from, to]` filter (e.g., `[Apr 1 2025, Apr 30 2025]`). Leap-year edge cases (Feb 29 → Feb 28) are handled without throwing.
 - [ ] **DELTA-04**: When the current filter is "Gesamter Zeitraum" (no explicit bounds), `previous_period` and `previous_year` are both `null` — no implicit baseline computed.
-- [ ] **DELTA-05**: When the computed prior window contains no rows in `sales_records`, the corresponding comparison object is `null` (not a zero-value object). Frontend distinguishes "no data" from "legitimate zero".
+- [x] **DELTA-05**: When the computed prior window contains no rows in `sales_records`, the corresponding comparison object is `null` (not a zero-value object). Frontend distinguishes "no data" from "legitimate zero".
 
 ### Backend — Chart Overlay
 
 - [ ] **CHART-01**: `GET /api/dashboard/chart` gains a `comparison=previous_period|previous_year|none` query parameter (default `none` for backwards compatibility). When not `none`, the response includes a second series `previous_series` with the same bucket keys as the current series, time-shifted to align visually with the current range.
-- [ ] **CHART-02**: The comparison series in CHART-01 reuses the same aggregation SQL as DELTA-02/DELTA-03 for consistency — no drift between card deltas and chart overlays.
+- [x] **CHART-02**: The comparison series in CHART-01 reuses the same aggregation SQL as DELTA-02/DELTA-03 for consistency — no drift between card deltas and chart overlays.
 - [ ] **CHART-03**: When `previous_series` has fewer buckets than the current range (partial prior data), missing buckets are emitted as `null` values so Recharts renders gaps instead of fabricating zeros.
 
 ### Frontend — KPI Card Deltas

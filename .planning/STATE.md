@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: v1.2 started — defining requirements
-stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-04-11T20:03:27.090Z"
+milestone: v1.2
+milestone_name: Period-over-Period Deltas
+status: executing
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-11T21:08:40.048Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 100
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.2 Period-over-Period Deltas
+**Current focus:** Phase 08 — backend-comparison-aggregation-and-chart-overlay-api
 
 ---
 
 ## Current Position
 
-Phase: 07 (i18n-integration-and-polish) — COMPLETE
-Plan: 6 of 6 (07-06 complete)
+Phase: 08 (backend-comparison-aggregation-and-chart-overlay-api) — EXECUTING
+Plan: 2 of 3
 **Milestone:** v1.1 Branding & Settings — COMPLETE
 **Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
 **Plan:** — (all 6 plans in Phase 7 complete)
-**Status:** v1.2 started — defining requirements
+**Status:** Executing Phase 08
 **Last activity:** 2026-04-11
 
 Progress: [██████████] 100% (19/19 plans in current scope)
@@ -84,6 +84,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 07-i18n-integration-and-polish P05 | 1min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P06 | 45min | 4 tasks | 9 files |
+| Phase 08-backend-comparison-aggregation-and-chart-overlay-api P01 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,7 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-06: Rebuild-persistence harness (scripts/smoke-rebuild.sh) seeds via pytest, rebuilds stack with docker compose up --build, asserts via fresh pytest session, visually asserts via Playwright, runs host-side locale parity, and traps EXIT for singleton cleanup. SC4 verified green; user approved D-27.
 - [Phase 07-i18n-integration-and-polish]: Plan 07-06: bootstrap.ts mirrors i18n.language onto document.documentElement.lang on init AND on every languageChanged event (Rule 2 deviation) — fixes a11y contract and unblocks Playwright html[lang=de] assertion; preserves single-writer invariant.
 - [Phase 07-i18n-integration-and-polish]: Plan 07-06 post-approval: NavBar LanguageToggle no longer fires success toast (5d7917b) — the visible language flip is self-confirming; reduces post-07-04 UX noise.
+- [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-01: aggregate_kpi_summary returns dict|None (not typed dataclass) so summary and chart endpoints project to different Pydantic shapes; unit tests use year 2099 dates to isolate from real 2026 seed data in shared dev db
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -146,6 +148,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:43:25.838Z
-**Stopped at:** Completed 07-06-PLAN.md
+**Last session:** 2026-04-11T21:08:40.045Z
+**Stopped at:** Completed 08-01-PLAN.md
 **Resume file:** None
