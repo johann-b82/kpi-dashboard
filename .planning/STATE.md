@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Branding & Settings
-status: completed
+milestone: v1.0
+milestone_name: milestone
+status: v1.2 started — defining requirements
 stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-04-11T19:51:41.911Z"
+last_updated: "2026-04-11T20:03:27.090Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 07 — i18n-integration-and-polish
+**Current focus:** v1.2 Period-over-Period Deltas
 
 ---
 
@@ -38,7 +38,7 @@ Plan: 6 of 6 (07-06 complete)
 **Milestone:** v1.1 Branding & Settings — COMPLETE
 **Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
 **Plan:** — (all 6 plans in Phase 7 complete)
-**Status:** v1.1 milestone complete
+**Status:** v1.2 started — defining requirements
 **Last activity:** 2026-04-11
 
 Progress: [██████████] 100% (19/19 plans in current scope)

@@ -15,18 +15,29 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Scope delivered in v1.1:** full branding Settings page (6 semantic color tokens, logo upload, app name, DE/EN default), ThemeProvider live-preview, persisting NavBar LanguageToggle, async i18n bootstrap (no language flash), WCAG contrast badges, unsaved-changes guard, full de.json parity in informal "du" tone, and a rebuild-persistence smoke harness (`scripts/smoke-rebuild.sh`) proving settings survive `docker compose up --build`.
 **Audit status:** 13/13 v1.0 + 17/17 v1.1 requirements satisfied (SET, BRAND, I18N, UX). v1.1 was archived without a formal `/gsd:audit-milestone` pass — any post-ship findings carry forward as v1.2 tech debt.
 
-## Next Milestone
+## Current Milestone: v1.2 Period-over-Period Deltas
 
-**TBD.** Run `/gsd:new-milestone` to scope v1.2. Likely candidates: Authentik integration (AUTH-01), period-over-period deltas (DASH-06), export filtered data as CSV (DASH-07), duplicate upload detection (UPLD-07), or per-upload drill-down (DASH-08).
+**Goal:** Show at-a-glance growth signals on the dashboard — each summary card gains two delta badges (vs. previous period + vs. prior year), and the chart gains a ghosted prior-period overlay.
+
+**Target features:**
+- Backend `summary` + `chart` endpoints return current values plus *two* baselines: same-length window immediately before + calendar-matched prior year. Null-safe.
+- All 3 summary cards (revenue, AOV, orders) render dual delta badges — `▲ +12,4 %` (vs. Vorperiode) and `▲ +8,1 %` (vs. Vorjahr) below the value, colored via existing semantic tokens (green positive, destructive negative, grayscale em-dash for no-baseline).
+- Delta labels are contextual to the selected date range: "vs. März" for "Dieses Jahr", "vs. Q1" for "Dieses Quartal", etc.
+- Chart gains a ghosted (low-opacity) prior-period series — second `Line`/`Bar` layer, legend updates, default baseline is "vs. Vorperiode".
+- Zero-baseline / first-month-of-data / "Gesamter Zeitraum" all show `—` (no bogus ∞% or +100%).
+- Full DE/EN i18n for new strings, informal "du" tone continued.
 
 **Key context:**
-- Global single CI for the whole instance (no per-user scoping; matches v1.0 pre-auth model)
-- Any user can edit (no admin gating — would pull forward Authentik work)
+- Extends v1.0 dashboard (Phases 2–3) — existing async aggregation endpoints (`summary`, `chart`, `latest-upload`) expand in-place; not a rewrite.
+- "Gesamter Zeitraum" is a graceful-degradation case: no prior window exists, so deltas render `—`.
+- Two deltas per card adds ~1 vertical line — card layout needs absorb spacing without breaking responsive grid.
+- "vs. Vorjahr" needs ≥12 months of data; fresh installs display `—` until data ages in. Expected, not a bug.
+- Chart overlay is a second data series, not a recolor — TanStack Query response shape changes, Recharts composition updates.
+- Still pre-auth — deltas are global, matching v1.0/v1.1 model.
 
 ## Deferred to Later Milestones
 
-- Authentik integration (AUTH-01, OIDC/OAuth2) — unblocks multi-app identity reuse
-- Period-over-period deltas on KPI cards (DASH-06)
+- Authentik integration (AUTH-01, OIDC/OAuth2) — unblocks multi-app identity reuse and per-user scoping
 - Export filtered data as CSV (DASH-07)
 - Duplicate upload detection (UPLD-07)
 - Per-upload drill-down view (DASH-08)
