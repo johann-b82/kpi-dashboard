@@ -74,7 +74,11 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   3. Clicking Save persists all draft changes and shows a success toast; a failed save shows an error toast and preserves the draft
   4. Each color picker shows a WCAG AA contrast badge warning for the 3 critical pairs (primary/primary-foreground, background/foreground, destructive/white) when contrast falls below 4.5:1
   5. Navigating away from Settings with unsaved changes shows a confirmation dialog; closing the browser tab triggers the `beforeunload` warning
-**Plans**: TBD
+**Plans:** 4 plans
+  - [ ] 06-01-PLAN.md — Foundation: deps (react-colorful, culori, @types/culori), shadcn input/label, api.ts fetchers (updateSettings, uploadLogo), lib/color.ts (hex↔oklch + wcagContrast)
+  - [ ] 06-02-PLAN.md — Hooks: useSettingsDraft (draft/snapshot/save/discard/reset with live preview via setQueryData) + useUnsavedGuard (beforeunload + document-capture click + popstate)
+  - [ ] 06-03-PLAN.md — Presentational sub-components: ColorPicker, ContrastBadge, LogoUpload + EN locale keys
+  - [ ] 06-04-PLAN.md — Assembly: ActionBar, ResetDialog, UnsavedChangesDialog, SettingsPage.tsx rewrite + human verification checkpoint
 **UI hint**: yes
 
 ### Phase 7: i18n Integration and Polish
@@ -97,5 +101,5 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 | 3. Dashboard Frontend | v1.0 | 4/4 | Complete | 2026-04-11 |
 | 4. Backend — Schema, API, and Security | v1.1 | 0/6 | Not started | - |
 | 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/3 | Not started | - |
-| 6. Settings Page and Sub-components | v1.1 | 0/? | Not started | - |
+| 6. Settings Page and Sub-components | v1.1 | 0/4 | Not started | - |
 | 7. i18n Integration and Polish | v1.1 | 0/? | Not started | - |
