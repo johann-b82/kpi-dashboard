@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-11T08:28:24.576Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-11T08:31:23.128Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 17
 ---
 
 # Project State: KPI Light
@@ -34,14 +34,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 04 (backend-schema-api-and-security) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 **Milestone:** v1.1 Branding & Settings
 **Phase:** 4 of 7 (Backend — Schema, API, and Security)
-**Plan:** 04-01 complete — next: 04-02
+**Plan:** 04-02 complete — next: 04-03
 **Status:** Executing Phase 04
 **Last activity:** 2026-04-11
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33%
 
 ---
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 17%
 
 ---
 | Phase 04-backend-schema-api-and-security P01 | 3min | 2 tasks | 5 files |
+| Phase 04-backend-schema-api-and-security P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Recent decisions affecting current work:
 - **v1.1 scoping:** `nh3==0.3.3` chosen for SVG sanitization (Rust-backed, pre-built wheels, no compiler in Docker)
 - **v1.1 scoping:** No `i18next-browser-languageDetector` — server setting is the single source of truth; `changeLanguage()` called before first render
 - [Phase 04-backend-schema-api-and-security]: Plan 04-01: nh3 upgraded to 0.3.4 (from STATE.md's 0.3.3); test harness uses lazy-import guard so collection survives partial tree across Wave 1 plans
+- [Phase 04-backend-schema-api-and-security]: Plan 04-02: AppSettings singleton via CheckConstraint(id=1); migration duplicates defaults literally (no import of app.defaults) per D-18
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -95,6 +97,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T08:28:24.574Z
-**Stopped at:** Completed 04-01-PLAN.md
+**Last session:** 2026-04-11T08:31:23.126Z
+**Stopped at:** Completed 04-02-PLAN.md
 **Resume file:** None
