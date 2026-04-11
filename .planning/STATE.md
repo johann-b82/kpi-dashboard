@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-04-11T11:26:20.117Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-11T11:30:34.265Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
-  percent: 100
+  completed_plans: 8
+  percent: 78
 ---
 
 # Project State: KPI Light
@@ -34,14 +34,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 05 (frontend-plumbing-themeprovider-and-navbar) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 **Milestone:** v1.1 Branding & Settings
 **Phase:** 5 of 7 (frontend plumbing — themeprovider and navbar)
-**Plan:** 05-02 (ThemeProvider) — next
+**Plan:** 05-03 (NavBar logo + brand) — next
 **Status:** Executing Phase 05
 **Last activity:** 2026-04-11
 
-Progress: [███████░░░] 78% (7/9 plans)
+Progress: [█████████░] 89% (8/9 plans)
 
 ---
 
@@ -68,6 +68,7 @@ Progress: [███████░░░] 78% (7/9 plans)
 | Phase 04-backend-schema-api-and-security P05 | 4min | 2 tasks | 4 files |
 | Phase 04-backend-schema-api-and-security P06 | 10min | 2 tasks | 2 files |
 | Phase 05-frontend-plumbing-themeprovider-and-navbar P01 | 5min | 2 tasks | 5 files |
+| Phase 05-frontend-plumbing-themeprovider-and-navbar P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 04-backend-schema-api-and-security]: Plan 04-05: /api/settings/* router wired (GET/PUT + logo POST/GET with weak ETag/304); engine.dispose() per-test fixture override unblocks shared asyncpg pool across test event loops
 - [Phase 04-backend-schema-api-and-security]: Plan 04-06: Phase 4 smoke script + docker rebuild runbook landed; human verification approved (PASSED 16 / FAILED 0, rebuild SHAs matched). Runbook SVG bug fixed during verification: self-closing `<circle/>` is rewritten by nh3 html5ever and hits reject-on-mutation; explicit close-tag form required.
 - [Phase 05-frontend-plumbing-themeprovider-and-navbar]: Plan 05-01: Settings type, fetcher, defaults, and useSettings hook plumbed; queryKey literal ['settings'] + staleTime Infinity per D-13; defaults duplicated verbatim from backend (D-16)
+- [Phase 05-frontend-plumbing-themeprovider-and-navbar]: Plan 05-02: ThemeProvider gates children during isLoading with text-free skeleton (D-02); applyTheme iterates THEME_TOKEN_MAP to write 6 oklch CSS vars + document.title; Toaster kept outside provider per D-03; tsconfig.app.json gained ignoreDeprecations to unblock tsc -b on pre-existing baseUrl directive
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -105,6 +107,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T11:26:20.115Z
-**Stopped at:** Completed 05-01-PLAN.md
+**Last session:** 2026-04-11T11:30:34.262Z
+**Stopped at:** Completed 05-02-PLAN.md
 **Resume file:** None
