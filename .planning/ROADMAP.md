@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1–3 (shipped 2026-04-11) — [archive](milestones/v1.0-ROADMAP.md)
+- 🚧 **v1.1 Branding & Settings** — Phases 4–7 (in progress)
 
 ## Phases
 
@@ -19,9 +20,64 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 
 </details>
 
-### 📋 Next Milestone
+### 🚧 v1.1 Branding & Settings (In Progress)
 
-Not yet scoped. Run `/gsd:new-milestone` to define requirements and roadmap for v1.1.
+**Milestone Goal:** Make the app's corporate identity (logo, colors, app name, default language) editable via a new Settings page so teams can brand KPI Light without touching code.
+
+- [ ] **Phase 4: Backend — Schema, API, and Security** - Security-gated backend foundation: settings table, API endpoints, SVG sanitization, and color validation
+- [ ] **Phase 5: Frontend Plumbing — ThemeProvider and NavBar** - Settings consumed by the app: CSS var injection, NavBar brand slot, and FOUC mitigation
+- [ ] **Phase 6: Settings Page and Sub-components** - Full settings UI: color pickers, logo upload, live preview, Save, Reset, and unsaved-changes guard
+- [ ] **Phase 7: i18n Integration and Polish** - Language default persistence, translation keys, toast feedback, and Docker rebuild verification
+
+## Phase Details
+
+### Phase 4: Backend — Schema, API, and Security
+**Goal**: A curl-testable settings API exists with security enforced at the persistence boundary — no logo or color value can be stored without passing sanitization and validation
+**Depends on**: Phase 3 (v1.0 shipped stack)
+**Requirements**: SET-02, SET-03, SET-04, BRAND-01, BRAND-02, BRAND-04, BRAND-09
+**Success Criteria** (what must be TRUE):
+  1. `GET /api/settings` returns a JSON object with all settings fields including `logo_updated_at` and `logo_url`
+  2. `PUT /api/settings` with a color value containing `;` or `url(` returns HTTP 422 (CSS injection blocked)
+  3. `POST /api/settings/logo` with a malicious SVG containing `<script>` stores a sanitized version (no script in retrieved bytes)
+  4. `PUT /api/settings` with default values resets the singleton row and returns canonical defaults from `defaults.py`
+  5. Logo survives `docker compose up --build` (stored as bytea in Postgres, not in container filesystem)
+**Plans**: TBD
+
+### Phase 5: Frontend Plumbing — ThemeProvider and NavBar
+**Goal**: The running app applies persisted settings on every load — NavBar shows the stored logo and app name, CSS variables reflect stored colors, and no default-brand flash occurs during the settings fetch
+**Depends on**: Phase 4
+**Requirements**: BRAND-03, BRAND-06
+**Success Criteria** (what must be TRUE):
+  1. On app load, a neutral skeleton is shown during the settings API call — no "KPI Light" default colors or name flash before stored settings apply
+  2. The NavBar displays the stored logo (60×60 px, CSS-constrained) when one is set, and falls back to the stored app name text when no logo exists
+  3. The stored app name replaces "KPI Light" in the NavBar and in the browser tab title on every page
+  4. A "Settings" link appears in the NavBar and routes to `/settings`
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 6: Settings Page and Sub-components
+**Goal**: Users can open the Settings page and edit all branding properties — colors, logo, and app name — with live preview before committing, a save confirmation flow, and protection against accidental data loss
+**Depends on**: Phase 5
+**Requirements**: SET-01, BRAND-05, BRAND-07, BRAND-08, UX-01, UX-02
+**Success Criteria** (what must be TRUE):
+  1. User can navigate to `/settings` from the NavBar and see a page with color pickers, logo upload, and app name input
+  2. Changing a color or app name updates the live UI immediately (before Save) without persisting to the database
+  3. Clicking Save persists all draft changes and shows a success toast; a failed save shows an error toast and preserves the draft
+  4. Each color picker shows a WCAG AA contrast badge warning for the 3 critical pairs (primary/primary-foreground, background/foreground, destructive/white) when contrast falls below 4.5:1
+  5. Navigating away from Settings with unsaved changes shows a confirmation dialog; closing the browser tab triggers the `beforeunload` warning
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 7: i18n Integration and Polish
+**Goal**: The stored default language is applied before any content renders, the Settings page is fully translated in DE and EN, and the end-to-end Docker stack is verified to survive a full image rebuild with branding intact
+**Depends on**: Phase 6
+**Requirements**: I18N-01, I18N-02
+**Success Criteria** (what must be TRUE):
+  1. User can select DE or EN as the app-wide default language from the Settings page and save it; the language persists across browser sessions and hard refreshes
+  2. On app boot, `i18n.changeLanguage()` is called with the server-persisted language before any translated content renders — no language flash on hard refresh
+  3. The Settings page UI (all labels, buttons, toasts, and dialog text) is fully translated in both DE and EN locale files
+  4. After `docker compose up --build`, all persisted settings (logo, colors, app name, language) are intact — no data loss from image rebuild
+**Plans**: TBD
 
 ## Progress
 
@@ -30,3 +86,7 @@ Not yet scoped. Run `/gsd:new-milestone` to define requirements and roadmap for 
 | 1. Infrastructure and Schema | v1.0 | 2/2 | Complete | 2026-04-10 |
 | 2. File Ingestion Pipeline | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 3. Dashboard Frontend | v1.0 | 4/4 | Complete | 2026-04-11 |
+| 4. Backend — Schema, API, and Security | v1.1 | 0/? | Not started | - |
+| 5. Frontend Plumbing — ThemeProvider and NavBar | v1.1 | 0/? | Not started | - |
+| 6. Settings Page and Sub-components | v1.1 | 0/? | Not started | - |
+| 7. i18n Integration and Polish | v1.1 | 0/? | Not started | - |

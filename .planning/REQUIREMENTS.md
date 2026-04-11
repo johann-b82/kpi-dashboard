@@ -69,28 +69,26 @@
 
 ## Traceability
 
-_(Populated by gsd-roadmapper when roadmap is created — maps each REQ-ID to its phase.)_
-
 | REQ-ID | Phase | Notes |
 |--------|-------|-------|
-| SET-01 | — | |
-| SET-02 | — | |
-| SET-03 | — | |
-| SET-04 | — | |
-| BRAND-01 | — | |
-| BRAND-02 | — | |
-| BRAND-03 | — | |
-| BRAND-04 | — | |
-| BRAND-05 | — | |
-| BRAND-06 | — | |
-| BRAND-07 | — | |
-| BRAND-08 | — | |
-| BRAND-09 | — | |
-| I18N-01 | — | |
-| I18N-02 | — | |
-| UX-01 | — | |
-| UX-02 | — | |
+| SET-01 | Phase 6 | Settings page nav link — delivered as part of SettingsPage |
+| SET-02 | Phase 4 | `app_settings` singleton table via Alembic migration |
+| SET-03 | Phase 4 | GET/PUT /api/settings with Pydantic validation |
+| SET-04 | Phase 4 | Reset endpoint wired to `defaults.py` canonical values |
+| BRAND-01 | Phase 4 | Logo upload endpoint (POST /api/settings/logo); PNG/SVG, 1 MB limit |
+| BRAND-02 | Phase 4 | nh3 SVG sanitization in logo POST handler — security gate |
+| BRAND-03 | Phase 5 | NavBar logo slot (60×60 px) + text fallback |
+| BRAND-04 | Phase 4 | `logo_updated_at` column + ETag; URL cache-busting strategy |
+| BRAND-05 | Phase 6 | ColorPicker component — 6 semantic tokens, hex→oklch via culori |
+| BRAND-06 | Phase 5 | NavBar app name from `useSettings()` hook + `document.title` |
+| BRAND-07 | Phase 6 | Live preview via `previewSettings()` + explicit Save wiring in SettingsPage |
+| BRAND-08 | Phase 6 | WCAG AA contrast badge in ColorPicker for 3 critical pairs |
+| BRAND-09 | Phase 4 | Pydantic `@field_validator` strict regex on color fields |
+| I18N-01 | Phase 7 | Language select in SettingsPage wired to PUT + `i18n.changeLanguage()` |
+| I18N-02 | Phase 7 | ThemeProvider calls `changeLanguage(default_language)` before first render |
+| UX-01 | Phase 6 | Unsaved-changes Dialog + `beforeunload` handler in SettingsPage |
+| UX-02 | Phase 6 | Success/error toast on Save using v1.0 toast infrastructure |
 
 ---
 
-*Last updated: 2026-04-11 — v1.1 milestone started*
+*Last updated: 2026-04-11 — v1.1 roadmap created; traceability populated*
