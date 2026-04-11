@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
-status: completed
-stopped_at: Phase 10 context gathered
-last_updated: "2026-04-11T22:45:36.460Z"
-last_activity: 2026-04-12
+status: executing
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-04-11T23:13:43.568Z"
+last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 100
 ---
 
@@ -27,17 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 09 — frontend-kpi-card-dual-deltas
+**Current focus:** Phase 10 — frontend-chart-prior-period-overlay
 
 ---
 
 ## Current Position
 
-Phase: 09 (frontend-kpi-card-dual-deltas) — COMPLETE (3/3 plans)
+Phase: 10 (frontend-chart-prior-period-overlay) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.2 Period-over-Period Deltas — IN PROGRESS (Phases 8 + 9 of 11 complete)
 **Next phase:** 10 — Frontend Chart Prior-Period Overlay
-**Status:** Phase 09 complete, ready for Phase 10
-**Last activity:** 2026-04-12
+**Status:** Ready to execute
+**Last activity:** 2026-04-11
 
 Progress: [██████████] 100% (19/19 plans in current scope)
 
@@ -88,6 +89,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 09-frontend-kpi-card-dual-deltas P01 | 15min | 3 tasks | 7 files |
 | Phase 09-frontend-kpi-card-dual-deltas P02 | 3min | 2 tasks | 6 files |
 | Phase 09-frontend-kpi-card-dual-deltas P03 | 21 min | 3 tasks | 4 files |
+| Phase 10 P01 | 2min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -145,6 +147,9 @@ Recent decisions affecting current work:
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: delta badges render to the right of the KPI value (flex items-center justify-between, vertically centered against value baseline) instead of stacked below — keeps card heights uniform at 1920×1080.
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: ZEITRAUM filter label dropped, preset bar right-aligned (flex justify-end) — visual whitespace cleaner against new right-side delta layout.
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03: hardcoded period strings (vs. März, vs. Q1, vs. previous period) still inline in frontend/src/lib/periodLabels.ts — Phase 11 must extract via Intl.DateTimeFormat per I18N-DELTA-02.
+- [Phase 10]: selectComparisonMode uses exhaustive switch with no default branch for TypeScript compile-time enforcement
+- [Phase 10]: formatChartSeriesLabel injects t() instead of importing i18next — file stays a pure util module
+- [Phase 10]: kpiKeys.chart embeds comparison+prevStart+prevEnd so TanStack Query invalidates on preset change (D-15)
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -165,6 +170,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T22:45:36.456Z
-**Stopped at:** Phase 10 context gathered
-**Resume file:** .planning/phases/10-frontend-chart-prior-period-overlay/10-CONTEXT.md
+**Last session:** 2026-04-11T23:13:43.565Z
+**Stopped at:** Completed 10-01-PLAN.md
+**Resume file:** None

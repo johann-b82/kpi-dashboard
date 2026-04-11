@@ -86,8 +86,8 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. The default chart comparison mode is `previous_period` for short ranges (≤3 months) and `previous_year` for year-scale ranges — driven by the selected filter, with no manual UI toggle
   4. When the backend returns `previous_series` containing `null` buckets (partial prior data), Recharts renders visual gaps — no fabricated zero line/bar is drawn across the missing range
   5. Switching date filters re-fetches the chart with the correct `comparison` query param and both series update in lock-step with the summary cards — no stale overlay from the previous filter
-**Plans:** 2 plans
-  - [ ] 10-01-PLAN.md — API types + `fetchChart` extension for `comparison` param; filter-scope → comparison-mode selector util with unit tests
+**Plans:** 1/2 plans executed
+  - [x] 10-01-PLAN.md — API types + `fetchChart` extension for `comparison` param; filter-scope → comparison-mode selector util with unit tests
   - [ ] 10-02-PLAN.md — `RevenueChart` Recharts composition: second Line/Bar at reduced opacity, null-gap handling, updated legend with contextual labels, human verification checkpoint
 **UI hint**: yes
 
@@ -120,5 +120,5 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 | 7. i18n Integration and Polish | v1.1 | 6/6 | Complete | 2026-04-11 |
 | 8. Backend — Comparison Aggregation and Chart Overlay API | v1.2 | 0/3 | Not started | - |
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
-| 10. Frontend — Chart Prior-Period Overlay | v1.2 | 0/2 | Not started | - |
+| 10. Frontend — Chart Prior-Period Overlay | v1.2 | 1/2 | In Progress|  |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 0/3 | Not started | - |
