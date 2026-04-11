@@ -150,6 +150,31 @@ docker compose exec db psql -U kpi_user -d kpi_db # database shell
 
 ---
 
+## Testing
+
+### Backend unit/integration tests
+
+Run pytest inside the api container (requires `docker compose up -d`):
+```
+docker compose exec api pytest
+```
+
+### End-to-end rebuild persistence smoke test
+
+Prereq (one-shot, after any `@playwright/test` version bump):
+```
+cd frontend && npx playwright install chromium
+```
+
+Run the full rebuild persistence harness (seeds settings, rebuilds the stack, asserts persistence, visual check via Playwright):
+```
+./scripts/smoke-rebuild.sh
+```
+
+Exits 0 on success; non-zero and prints the failing step on failure. The harness preserves `postgres_data` (it uses `docker compose down`, NOT `down -v`).
+
+---
+
 ## Roadmap
 
 - **v1.0 MVP** ✅ — shipped 2026-04-11 (Docker stack, ingestion pipeline, dashboard)
