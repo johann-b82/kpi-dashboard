@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-11T19:04:14.174Z"
+last_updated: "2026-04-11T19:04:30.201Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -75,6 +75,8 @@ Progress: [██████████] 100% (9/9 plans in current scope)
 | Phase 06-settings-page-and-sub-components P06-03 | 2min | 3 tasks | 4 files |
 | Phase 06-settings-page-and-sub-components P06-04 | 30min | 3 tasks | 6 files |
 | Phase 07-i18n-integration-and-polish P02 | 3min | 3 tasks | 4 files |
+| Phase 07-i18n-integration-and-polish P01 | 8min | 2 tasks | 4 files |
+| Phase 07-i18n-integration-and-polish P02 | 5min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -102,6 +104,7 @@ Recent decisions affecting current work:
 - [Phase 06-settings-page-and-sub-components]: hexToOklch clamps L to [0,1] and coerces non-finite hue to 0 — culori formatCss emits overflow/none values that the backend regex rejects
 - [Phase 06-settings-page-and-sub-components]: formatDetail() helper added to api.ts to unwrap FastAPI 422 array-shaped detail into readable error strings for toasts
 - [Phase 07-i18n-integration-and-polish]: Plan 07-02: bootstrap.ts is single cold-start i18n writer; reuses fetchSettings; seeds ['settings'] cache; falls back to EN without rethrow or DEFAULT_SETTINGS seed; splash placed INSIDE #root for atomic React replacement
+- [Phase 07-i18n-integration-and-polish]: Plan 07-01: single-stage Dockerfile installs dev deps always (Research Pitfall 2 option A); chromium lives at ~/Library/Caches/ms-playwright on macOS
 
 ### Security Gates (Phase 4 must-haves)
 
