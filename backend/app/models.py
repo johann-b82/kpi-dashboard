@@ -2,6 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -10,6 +11,7 @@ from sqlalchemy import (
     String,
     Text,
 )
+from sqlalchemy.dialects.postgresql import BYTEA
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -97,4 +99,40 @@ class SalesRecord(Base):
     batch: Mapped["UploadBatch"] = relationship(
         "UploadBatch",
         back_populates="records",
+    )
+
+
+class AppSettings(Base):
+    """Singleton settings row — exactly one row with id=1, enforced by CHECK constraint.
+
+    Per D-01 / D-02: logo bytes live on the same row (no separate app_logos table).
+    """
+    __tablename__ = "app_settings"
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_app_settings_singleton"),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=False
+    )
+
+    # Colors — oklch strings, validated at the Pydantic layer (see schemas.py)
+    color_primary: Mapped[str] = mapped_column(String(64), nullable=False)
+    color_accent: Mapped[str] = mapped_column(String(64), nullable=False)
+    color_background: Mapped[str] = mapped_column(String(64), nullable=False)
+    color_foreground: Mapped[str] = mapped_column(String(64), nullable=False)
+    color_muted: Mapped[str] = mapped_column(String(64), nullable=False)
+    color_destructive: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    # App identity
+    app_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    default_language: Mapped[str] = mapped_column(
+        String(2), nullable=False
+    )  # "DE" | "EN"
+
+    # Logo — all three are nullable together (no logo = fallback to app_name text)
+    logo_data: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
+    logo_mime: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    logo_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
