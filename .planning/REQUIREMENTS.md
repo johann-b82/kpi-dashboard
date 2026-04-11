@@ -24,13 +24,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DASH-01**: Dashboard displays summary metric cards (total revenue, avg order value, total orders)
 - [ ] **DASH-02**: Dashboard displays time-series chart showing revenue over time
 - [ ] **DASH-03**: User can filter dashboard by date range
-- [ ] **DASH-04**: Dashboard shows data freshness indicator ("Last updated: [timestamp]")
+- [x] **DASH-04**: Dashboard shows data freshness indicator ("Last updated: [timestamp]")
 
 ### Infrastructure
 
 - [x] **INFR-01**: Application runs via Docker Compose (app container + PostgreSQL container)
 - [x] **INFR-02**: Database schema managed via migrations
-- [ ] **INFR-03**: Layout is responsive and usable on 1080p+ desktop screens
+- [x] **INFR-03**: Layout is responsive and usable on 1080p+ desktop screens
 
 ## v2 Requirements
 
@@ -89,10 +89,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-01 | Phase 3 | Pending |
 | DASH-02 | Phase 3 | Pending |
 | DASH-03 | Phase 3 | Pending |
-| DASH-04 | Phase 3 | Pending |
+| DASH-04 | Phase 3 | Complete |
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |
-| INFR-03 | Phase 3 | Pending |
+| INFR-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 13 total
