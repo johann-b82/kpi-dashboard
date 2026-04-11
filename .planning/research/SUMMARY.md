@@ -1,17 +1,19 @@
-# Project Research Summary
+# Research Summary — KPI Light v1.1 Branding & Settings
 
-**Project:** KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
-**Domain:** Internal sales/revenue KPI dashboard with CSV/Excel ingestion
-**Researched:** 2026-04-10
+**Project:** KPI Light
+**Domain:** Runtime corporate-identity theming + settings persistence for a Dockerized internal ERP dashboard
+**Researched:** 2026-04-11
 **Confidence:** HIGH
+
+---
 
 ## Executive Summary
 
-KPI Light is a fixed-schema internal dashboard for visualizing sales/revenue KPIs from uploaded CSV, TXT, and Excel files. Research across all four areas (stack, features, architecture, pitfalls) converges on a well-established pattern: a three-tier architecture (React SPA → FastAPI → PostgreSQL), all running in a single Docker Compose stack with no background workers, message queues, or external storage. The correct build order — infrastructure first, file parser second, API third, frontend last — is dictated by hard component dependencies and is reinforced by where the highest-risk logic lives (the file parser, which must handle Excel quirks, encoding edge cases, and date corruption).
+KPI Light v1.1 adds a Settings page where teams can brand the app (logo, colors, app name, default language) without touching code. This is a well-trodden problem: a singleton settings table in the existing PostgreSQL database, a React context that fetches settings on boot and injects CSS custom properties at runtime, and a new `/settings` route. The v1.0 stack handles all of it — the only new dependency is `nh3==0.3.3` for server-side SVG sanitization. Every other v1.1 feature (runtime theming, logo serving, language switching, live preview, save/reset flows) is implementable with already-installed libraries.
 
-The recommended approach is synchronous in-memory file parsing (pandas + openpyxl), bulk insert into PostgreSQL, and SQL-side aggregation for KPI queries. The frontend does no computation — it consumes structured JSON from the API and renders with Recharts. This keeps each layer testable in isolation. The fixed schema (known columns) is a significant simplifier: it eliminates column-mapping UI, reduces validation complexity to checking column presence and type, and makes error messages actionable. Do not introduce dynamic schema detection; it undermines every simplification the fixed schema provides.
+The recommended approach builds in four sequential phases: backend schema + API, frontend plumbing (ThemeProvider + NavBar wiring), the SettingsPage UI + sub-components, and finally i18n integration + polish. This order is forced by dependency: the Alembic migration must exist before the API, the ThemeProvider must exist before SettingsPage (which calls `previewSettings()`), and i18n integration can trail the UI without blocking anything. The architecture makes zero changes to DashboardPage or UploadPage — theme propagation is automatic via CSS cascade.
 
-The three highest-impact risks are: (1) Docker Compose startup race condition — the API container crashes before PostgreSQL is ready unless a healthcheck with `condition: service_healthy` is used; (2) duplicate row ingestion on re-upload — without a natural unique key and `INSERT ... ON CONFLICT DO NOTHING`, re-uploading the same file silently doubles all revenue totals; and (3) datetime/timezone corruption from Excel and CSV sources — using bare `TIMESTAMP` instead of `TIMESTAMPTZ`, or not explicitly parsing date columns with pandas, produces silent NULL rows and wrong trend charts. All three must be addressed at the schema design stage, not patched later.
+The two hard requirements that cannot be deferred or skimped are SVG sanitization and CSS color value validation. Both are security-level concerns on a zero-auth app: an unvalidated SVG upload is a stored XSS vector (Ghost CMS patched this exact attack in 2025), and an unvalidated color string passed to `document.documentElement.style.setProperty` is a CSS injection vector. Both must be implemented in Phase 1 (backend), before any logo or color is persistable. All other pitfalls are moderate-severity UX or operational concerns with straightforward mitigations.
 
 ---
 
@@ -19,150 +21,202 @@ The three highest-impact risks are: (1) Docker Compose startup race condition �
 
 ### Recommended Stack
 
-The stack is fully async Python on the backend with a static React SPA on the frontend — no server-side rendering, no background workers. All versions verified against PyPI and npm registries as of 2026-04-10.
+No new frontend packages are needed. The entire v1.1 frontend — runtime theming, live preview, logo display, language switching, all Settings UI — is achievable with React state, `document.documentElement.style.setProperty`, TanStack Query, i18next `changeLanguage()`, and existing shadcn/ui components. The only backend addition is `nh3==0.3.3`, a Rust-backed SVG sanitizer chosen over the deprecated `bleach`, the CVE-carrying `lxml html.clean`, and the removed `defusedxml.lxml`.
 
-**Core technologies:**
+**New dependency (backend only):**
+- `nh3==0.3.3` — SVG XSS sanitization; Rust-backed allowlist approach; pre-built manylinux wheels (no C compiler in Docker); actively maintained
 
-- **FastAPI 0.135.3** — REST API and file upload endpoint; native async; built-in UploadFile for multipart forms; automatic OpenAPI docs
-- **SQLAlchemy 2.0.49 + asyncpg 0.31.0** — async ORM + PostgreSQL driver; use AsyncSession + create_async_engine; do NOT mix 1.x sync patterns
-- **Alembic 1.18.4** — schema migrations; requires a separate sync engine config in alembic.ini; never use Base.metadata.create_all()
-- **pandas 3.0.2 + openpyxl 3.1.5** — unified file parsing for CSV, TXT, and Excel; both are runtime (not dev) dependencies
-- **PostgreSQL 17-alpine** — use this exact tag; do not use latest
-- **React 19.2.5 + TypeScript + Vite 8.0.8** — SPA with HMR; no Next.js (no SSR requirement, adds complexity with zero benefit)
-- **Recharts 3.8.1** — SVG-based, React-native charting; more control than Tremor, better React integration than Chart.js
-- **TanStack Query 5.97.0** — server state management for API calls; replaces useEffect + useState boilerplate; do NOT use Redux for server state
-- **Tailwind CSS 4.2.2** — note v4 uses CSS-first config (no tailwind.config.js); breaking change from v3 docs
-- **shadcn/ui** — copy-paste component primitives for KPI cards, upload form, history table; no package version to manage
+**Key existing libraries doing new work in v1.1:**
+- `SQLAlchemy LargeBinary` (maps to `BYTEA`) — logo storage inline in `app_settings` table
+- `Alembic` — new migration adding `app_settings` table + seeding the singleton row
+- `document.documentElement.style.setProperty` (no library) — runtime CSS var injection for theme
+- `i18next.changeLanguage()` — language switching on boot and on save; no detector plugin
+- `TanStack Query` — settings fetch with `staleTime: Infinity`, mutation for save, cache invalidation
 
-Critical: python-multipart==0.0.26 is a hard runtime requirement for FastAPI file uploads — not optional.
+**What NOT to add:**
+- `bleach` — deprecated by Mozilla
+- `defusedxml` — lxml module removed in current versions
+- `lxml html.clean / Cleaner` — CVE GHSA-5jfw-gq64-q45f (SVG/math context-switching bypass)
+- `i18next-browser-languageDetector` — localStorage caching overrides the server default after first visit; defeats the purpose
+- `fastapi-cache / fastapi-cache2` — Redis/Memcached for a 1 MB logo is overkill; inline ETag + 304 is sufficient
+- Filesystem logo storage — container-ephemeral without an explicitly declared named Docker volume
 
 ### Expected Features
 
-**Must have (table stakes):**
-- Drag-and-drop upload zone with "Browse" button fallback
-- Client-side format enforcement (CSV, TXT, XLSX, XLS only) with immediate rejection
-- Upload progress indicator (progress bar, not just a spinner)
-- Actionable parse error messages specifying row/column and reason
-- Upload success confirmation showing rows inserted, filename, timestamp
-- Summary metric cards: total revenue, average order value, total orders, date range covered
-- Time-series line/bar chart: revenue over time (minimum one chart)
-- Upload history list: filename, timestamp, row count, status
-- Data freshness indicator on dashboard header
-- Responsive desktop-first layout (1280px+ viewport)
+**Must have (table stakes — v1.1 is incomplete without these):**
+- Settings route `/settings` reachable from NavBar
+- App name input — replaces "KPI Light" in header and `document.title`
+- Logo upload (PNG/SVG, ≤ 1 MB, drag-and-drop + click) with client-side preview before save
+- Full semantic color palette editing: `--primary`, `--accent`, `--background`, `--foreground`, `--muted`, `--destructive` (user decision — full 6 tokens, not primary-only)
+- Live preview — theme changes reflected immediately while editing, before Save
+- Explicit Save button + Reset to defaults
+- Unsaved-changes warning on navigation away
+- Default UI language setting (DE/EN)
+- Browser tab title updated from stored app name
 
-**Should have (recommended for v1):**
-- Chart type toggle (line vs bar) — 1 hour of effort, visible polish signal
-- Date range filter — transforms dashboard from static report to interactive tool
+**Should have (included in v1.1 scope):**
+- WCAG AA contrast ratio badge on color pickers (warn, do not block)
+- Color preset swatches (4–6 hardcoded options feeding the hex input; zero backend cost)
+- Logo drag-and-drop (reuse `react-dropzone` library — NOT `DropZone.tsx` component)
 
-**Defer to v2+:**
-- Per-upload drill-down, duplicate upload detection, inline parse preview
-- Export filtered data as CSV, upload deletion/rollback
-- Metric cards with period-over-period delta
-- Authentication and RBAC (Authentik/OIDC planned for v2)
-- Scheduled auto-ingestion, mobile layout, multi-tenant views
+**Defer to v1.2+:**
+- Dark mode toggle (per-user preference; needs auth for per-user scoping)
+- Per-user CI customization (needs Authentik/auth from v2)
+- Admin-only settings gating (needs Authentik roles)
+- Font selection (FOUC complexity, low demand)
+- Full OKLCH-native color picker UI (non-designer unfamiliar; hex input is sufficient)
 
-**Anti-features — do not build in v1:**
-- Dynamic schema detection or column mapping UI
-- Authentication (no-op middleware stub only)
-- AI/NL query interface, custom chart builder, notifications, mobile-optimized layout
+**Scope note — full semantic palette:** The user explicitly requested all 6 semantic color tokens (primary, accent, background, foreground, muted, destructive). FEATURES.md had recommended primary-only for v1.1. User decision overrides — implement all 6 tokens, but scope the WCAG contrast checks to the 3 most critical pairs only (`primary/primary-foreground`, `background/foreground`, `destructive/white`).
 
 ### Architecture Approach
 
-Three-tier: React SPA → FastAPI backend → PostgreSQL, all in one Docker Compose stack. Files are parsed in-memory (bytes → DataFrame → DB rows), never stored on disk or in the database as blobs. KPI aggregation happens in SQL (SUM, AVG, GROUP BY with date truncation), not in Python or JavaScript. Two tables from day one: upload_batches (audit log with file hash, row count, status) and sales_records (parsed rows linked to their upload via upload_id foreign key). The upload_id linkage enables future rollback without a schema migration.
+v1.1 is an additive layer on the existing three-tier stack. One new router (`routers/settings.py`) with 4 endpoints, one new SQLAlchemy model (`AppSettings`), one new Alembic migration, one new React context (`ThemeContext.tsx`), one new page (`SettingsPage.tsx`), two new sub-components (`ColorPicker.tsx`, `LogoUpload.tsx`), and modifications to `App.tsx` and `NavBar.tsx`. `DashboardPage` and `UploadPage` require zero changes — they consume Tailwind utility classes that reference the CSS vars, so theme changes propagate automatically.
 
 **Major components:**
+1. `app_settings` table (PostgreSQL) — single row (id=1, enforced by CHECK constraint), typed columns for all settings, `BYTEA` for logo, `TIMESTAMPTZ` for `logo_updated_at` (cache-busting) and `updated_at` (concurrency locking)
+2. `routers/settings.py` (FastAPI) — `GET/PUT /api/settings`, `GET/POST /api/settings/logo`; logo served as `Response` (not `StreamingResponse`) with ETag from SHA-256 of bytes; nh3 sanitization in the POST logo handler
+3. `ThemeContext.tsx` (React) — wraps entire app; fetches settings once on mount with `staleTime: Infinity`; injects CSS vars via `document.documentElement.style.setProperty`; exposes `useSettings()` and `previewSettings()` hooks; calls `i18n.changeLanguage()` before first render
+4. `SettingsPage.tsx` — draft state in `useState`; drives live preview via `previewSettings()`; Save calls `PUT /api/settings` + logo mutation + TanStack Query invalidation
+5. `NavBar.tsx` (modified) — logo slot renders `<img src="/api/settings/logo?v={logo_updated_at}">` if logo set, otherwise falls back to `settings.app_name` text; adds Settings nav link
 
-1. **Frontend UI (React + Vite)** — upload form, dashboard rendering, history table; no business logic, no computation
-2. **API Layer (FastAPI)** — thin routing, request validation, response shaping; delegates to parser and DB layer
-3. **File Parser (pandas + openpyxl)** — accepts UploadFile bytes, returns validated DataFrame or structured error list; unit-testable without DB or HTTP server
-4. **DB Layer (SQLAlchemy 2.0 async + Alembic)** — schema, migrations, queries; bulk insert via executemany; aggregation queries shaped for API response
-5. **PostgreSQL 17-alpine** — durable storage; upload_batches + sales_records; index on order_date for range queries
-6. **Docker Compose** — orchestrates three services; named volume for Postgres persistence; healthcheck-gated startup order
+**Key patterns:**
+- Single-row upsert via `session.execute(insert(...).on_conflict_do_update(...))` — avoids SQLAlchemy issue #9739 (LargeBinary multi-object commit bug) and enforces singleton
+- `QueryClientProvider` wraps `ThemeProvider` wraps the app — order matters; ThemeProvider uses TanStack Query internally
+- `logo_updated_at` timestamp as URL cache-buster: `?v={logo_updated_at}` — deterministic, no ETag complexity on the client
+- Settings query: `staleTime: Infinity, gcTime: Infinity` — settings change only on explicit user save, never on interval
+
+**Integration file paths (confirmed by codebase inspection):**
+- `backend/app/models.py` — add `AppSettings` model
+- `backend/app/schemas.py` — add `AppSettingsResponse`, `AppSettingsUpdate`
+- `backend/app/routers/settings.py` — new file
+- `backend/app/main.py` — add `app.include_router(settings_router)`
+- `backend/alembic/versions/` — new migration file
+- `backend/app/defaults.py` — new file (canonical default settings for reset)
+- `frontend/src/contexts/ThemeContext.tsx` — new file
+- `frontend/src/App.tsx` — wrap with ThemeProvider, add `/settings` route
+- `frontend/src/components/NavBar.tsx` — logo slot, app name hook, Settings link
+- `frontend/src/pages/SettingsPage.tsx` — new file
+- `frontend/src/components/settings/ColorPicker.tsx` — new file
+- `frontend/src/components/settings/LogoUpload.tsx` — new file
+- `frontend/src/locales/de.json`, `frontend/src/locales/en.json` — add `settings.*` and `nav.settings` keys
+
+**Do NOT touch:** `DropZone.tsx`, `DashboardPage.tsx`, `UploadPage.tsx`, `index.css`
 
 ### Critical Pitfalls
 
-1. **Docker Compose startup race condition** — add a pg_isready healthcheck to the db service and use condition: service_healthy on the API's depends_on. Do this before writing any application code.
+1. **SVG XSS (CRITICAL)** — User uploads an SVG with `<script>` or `on*` event handlers; stored and served as-is; executes in the app's origin. Prevention: server-side `nh3` sanitization with a strict element/attribute allowlist before any DB write. Serve logo via `<img>` tag only — never `dangerouslySetInnerHTML`. Add `X-Content-Type-Options: nosniff` header. Phase 1 (backend), before logo is persistable.
 
-2. **Duplicate rows on re-upload** — define a natural business key, add a UNIQUE constraint, and use INSERT ... ON CONFLICT DO NOTHING. Design idempotency before the first row hits the database.
+2. **CSS Color Injection (CRITICAL)** — Raw user-supplied color string passed to `document.documentElement.style.setProperty()` can break out of CSS value context and inject arbitrary declarations. Prevention: Pydantic `@field_validator` with strict regex on the backend (reject strings containing `;`, `}`, `{`, `url(`, `expression(`, quotes). Same regex validation on the frontend before `setProperty` call. Phase 1 (Pydantic schema) + Phase 3 (color picker).
 
-3. **Datetime/timezone corruption** — use TIMESTAMPTZ (never bare TIMESTAMP) for all date columns; explicitly parse date columns with pd.to_datetime() at ingest; normalize to UTC; reject files where date parsing fails. Choose correctly on day one — cannot change without a migration.
+3. **FOUC on Settings Load (MODERATE)** — App boots with CSS-file defaults for 200–800ms while settings API call resolves. Prevention: ThemeProvider renders a neutral skeleton until settings query reaches `isSuccess`; `i18n.changeLanguage()` called inside ThemeProvider before any translated content renders. Phase 2 (ThemeProvider architecture — must be designed correctly the first time; retrofitting the skeleton is a pain).
 
-4. **PostgreSQL data loss on docker compose down** — use a named volume mounted to exactly /var/lib/postgresql/data (not the parent directory); declare in top-level volumes:; never run docker compose down -v in production.
+4. **Logo Cache Staleness (MODERATE)** — Browser caches old logo after upload. Prevention: `logo_updated_at` stored on every logo write; frontend constructs URL as `/api/settings/logo?v={logo_updated_at}`; URL changes on every upload. Phase 1 (backend column + response) + Phase 3 (URL construction in NavBar + SettingsPage).
 
-5. **Stale dashboard data after upload** — after a successful upload, explicitly trigger TanStack Query invalidateQueries for dashboard data. Design the upload-success → dashboard-refresh flow together.
+5. **Language Detection Loop (MODERATE)** — `i18next-browser-languageDetector` creates a race between browser language and server default; localStorage cache fights the DB value. Prevention: do NOT install the detector. Server default is the single source of truth. Phase 4 (i18n wiring), but ThemeProvider architecture must accommodate this from Phase 2.
 
-**Moderate pitfalls (Phase 2):**
-- Windows CSV UTF-8 BOM: use encoding='utf-8-sig'; auto-detect TXT delimiters with sep=None, engine='python'
-- Excel engine mismatch: use openpyxl explicitly for .xlsx; install xlrd for .xls or accept .xlsx only
-- No file size limit causes OOM: enforce 50MB hard limit before parsing
+---
 
-**Minor pitfalls (stub now):**
-- No auth middleware hook — add no-op middleware and nullable uploaded_by column so Authentik can wire in v2 without a cross-cutting rewrite
-- No audit linkage — upload_id FK on sales_records required from day one; retrofitting requires migration and backfill
+## Divergence Resolutions
+
+Four areas where the 4 researchers disagreed — each resolved with explicit rationale:
+
+### 1. Logo Storage: bytea vs Filesystem
+**Vote:** STACK (bytea) + ARCHITECTURE (bytea) + PITFALLS (bytea) vs FEATURES (filesystem). 3:1.
+
+**Resolution: bytea.** In Docker Compose, filesystem storage inside the API container is ephemeral — logo is lost on `docker compose up --build` (every deploy) unless a named volume is explicitly declared and mounted. Adding a volume mount for a single 1 MB file introduces operational complexity disproportionate to the benefit. Bytea keeps the settings row self-contained, fully ACID, and `pg_dump`-backed. Frontend cache-busting via `?v={logo_updated_at}` eliminates the "no browser caching" objection. The 1 MB size limit makes bytea practical — TOAST handles out-of-line storage transparently.
+
+### 2. Color Format: Hex input, oklch stored
+**Vote:** FEATURES (hex input + swatches; CSS vars accept any format) vs PITFALLS (oklch only, match `index.css`) vs STACK (store oklch to match CSS) vs ARCHITECTURE (TEXT column, convert hex→oklch in UI).
+
+**Resolution: Hex `<input type="color">` for UX; convert to oklch before submission; store as TEXT.** The native color widget and hex swatches are the most universally understood format for non-designers. The UI accepts hex, converts to oklch before API submission using `culori` (small, tree-shakeable). Backend stores as TEXT with no format lock-in. On injection via `setProperty`, the oklch string matches the existing `:root` format in `index.css`. The PITFALLS color validator must expect oklch input from the client. Do NOT use a heavy color library — `culori`'s hex→oklch path is the only conversion needed.
+
+### 3. SVG Sanitization: nh3 (unanimous choice, different paths)
+**Vote:** STACK (nh3) vs PITFALLS (defusedxml + allowlist; cairosvg as nuclear fallback).
+
+**Resolution: nh3.** Single mature dependency, Rust-backed, actively maintained, pre-built wheels (no Docker compiler needed), explicit SVG allowlist API. `defusedxml` is deprecated. `lxml html.clean` has CVE GHSA-5jfw-gq64-q45f. The cairosvg→PNG rasterization approach is documented as a fallback option only if nh3 proves insufficient in practice — at 60×60 display, PNG is visually identical to vector.
+
+### 4. Semantic Color Palette Scope: Full 6 tokens (user decision)
+**Vote:** FEATURES (primary-only for v1.1 simplicity) vs PITFALLS + PROJECT.md (full semantic palette).
+
+**Resolution: Full 6 tokens — user decision overrides.** User confirmed full semantic palette in PROJECT.md: primary, accent, background, foreground, muted, destructive. The schema already accommodates all tokens. Scope WCAG contrast warnings to 3 most critical pairs only; do not attempt to check all permutations.
+
+### 5. Language Detector: Unanimous no
+**All 4 researchers agree:** Do NOT install `i18next-browser-languageDetector`. Fetch settings on boot; call `i18n.changeLanguage()` before first render. Server value is the single source of truth.
 
 ---
 
 ## Implications for Roadmap
 
-Research is unambiguous about build order: infrastructure and schema must be solid before any application logic, the file parser is the highest-risk component and should be validated early, API routes before frontend, upload flow before dashboard display.
+Suggested 4-phase structure — matches ARCHITECTURE.md's build order, validated by PITFALLS.md's phase-to-pitfall mapping.
 
-### Phase 1: Infrastructure and Schema Foundation
+### Phase 1: Backend — Schema, API, and Security
+**Rationale:** Schema must exist before API; API must exist before UI. Security pitfalls (SVG XSS, CSS injection) must be addressed here — they cannot be retrofitted after the feature ships. This phase gates everything that follows.
 
-**Rationale:** Everything depends on the database being reachable and the schema being correct. Pitfalls 1, 2, 4, 9, and 11 all require decisions at this stage — they cannot be patched later without migrations or rewrites.
+**Delivers:**
+- `app_settings` Alembic migration (table + singleton row seed + CHECK constraint)
+- `AppSettings` SQLAlchemy model with `LargeBinary` logo column
+- `AppSettingsResponse` / `AppSettingsUpdate` Pydantic schemas with color field validators
+- `routers/settings.py`: `GET /api/settings`, `PUT /api/settings`, `GET /api/settings/logo`, `POST /api/settings/logo`
+- `nh3==0.3.3` added to `requirements.txt`; nh3 sanitization wired in logo POST handler
+- `app/defaults.py` — canonical default settings object (used by reset)
+- ETag + `logo_updated_at` on logo GET response
 
-**Delivers:** Running Docker Compose stack (db + api + frontend services); Postgres with upload_batches and sales_records tables via Alembic migration; named volume; healthcheck startup ordering; no-op auth middleware stub; nullable uploaded_by column; TIMESTAMPTZ on all date fields; UNIQUE constraint on natural business key.
+**Avoids:** Pitfall 1 (SVG XSS), Pitfall 2 (CSS injection — Pydantic validator), Pitfall 6 (bytea vs filesystem), Pitfall 9 (reset-to-defaults divergence)
+**Research flag:** None — well-documented patterns. Skip research-phase.
 
-**Avoids:** Pitfall 1 (startup race), Pitfall 2 (data loss), Pitfall 4 (wrong timestamp type), Pitfall 9 (missing audit linkage), Pitfall 11 (auth retrofit).
+### Phase 2: Frontend Plumbing — ThemeProvider + NavBar Wiring
+**Rationale:** SettingsPage calls `previewSettings()` which lives in ThemeProvider. NavBar consumes `useSettings()`. FOUC mitigation must be designed here — retrofitting the skeleton architecture later requires rewriting the provider. This phase produces a working themed app even before the Settings UI exists.
 
-**Research flag:** Standard patterns — no additional research needed. Official Docker and Alembic docs are sufficient.
+**Delivers:**
+- `ThemeContext.tsx` — settings fetch, CSS var injection, `useSettings()` / `previewSettings()` hooks, neutral skeleton during load
+- `App.tsx` — `ThemeProvider` wrapper, `/settings` route added
+- `NavBar.tsx` — logo slot (`<img>` with `?v=` cache-buster), app name from hook, Settings nav link
+- Settings query configured: `staleTime: Infinity, gcTime: Infinity`
 
-### Phase 2: File Ingestion Pipeline
+**Avoids:** Pitfall 3 (FOUC), Pitfall 4 (logo cache — URL construction in NavBar), Pitfall 5 (polling — single query in provider)
+**Research flag:** None — TanStack Query + CSS var injection is well-documented. Skip research-phase.
 
-**Rationale:** The file parser is the highest-risk component. It must be built and validated with real sample data before API routes and frontend are connected. Edge cases are easier to catch with unit tests than through the full HTTP stack.
+### Phase 3: Frontend — SettingsPage and Sub-components
+**Rationale:** Depends on ThemeProvider (Phase 2) and API (Phase 1). ColorPicker and LogoUpload are independent sub-components; build them before assembling the page. The live-preview wiring, unsaved-changes guard, and Save/Reset flows all assemble here.
 
-**Delivers:** FastAPI POST /upload endpoint; pandas/openpyxl parser supporting CSV, TXT (delimiter auto-detected), XLSX, XLS; schema validation (column presence and types); explicit date parsing with pd.to_datetime(), UTC normalization; utf-8-sig encoding with latin-1 fallback; INSERT ... ON CONFLICT DO NOTHING bulk insert; hard 50MB file size limit; upload_batches record written before rows, status updated on failure; structured error response; formula/injection stripping from cell values.
+**Delivers:**
+- `ColorPicker.tsx` — hex `<input type="color">` + text input + culori hex→oklch conversion + WCAG contrast badge (warn only)
+- `LogoUpload.tsx` — react-dropzone (PNG/SVG, 1 MB limit) + `URL.createObjectURL` preview; posts to logo endpoint
+- `SettingsPage.tsx` — full Settings UI: draft state, live preview, Save, Reset, unsaved-changes warning (beforeunload + wouter intercept + shadcn Dialog)
+- Color preset swatches (4–6 hardcoded oklch options)
 
-**Uses:** FastAPI UploadFile, pandas 3.0.2, openpyxl 3.1.5, asyncpg, SQLAlchemy 2.0 AsyncSession.
+**Avoids:** Pitfall 2 (CSS injection — frontend format validation before setProperty), Pitfall 4 (logo cache — `?v=` in URL), Pitfall 8 (accessibility — contrast badge)
+**Research flag:** Wouter navigation guard requires explicit testing — no `<Prompt>` equivalent; use `beforeunload` + Dialog pattern. Not a research gap, but a testing checkpoint.
 
-**Avoids:** Pitfall 3 (duplicates), Pitfall 4 (datetime), Pitfall 5 (encoding), Pitfall 6 (Excel engine), Pitfall 7 (OOM), Pitfall 10 (formula injection).
+### Phase 4: i18n Integration + Polish
+**Rationale:** Translation keys can be added after the page is built — English strings work as fallback throughout Phase 3. Deferring keeps Phase 3 focused on interaction logic. This phase closes the loop on language default persistence and end-to-end verification.
 
-**Research flag:** Needs phase research — Excel datetime parsing edge cases, composite UNIQUE key design for the specific data schema, and pandas behavior with mixed date formats. Real sample files are essential inputs before implementation.
+**Delivers:**
+- DE/EN locale files updated with `settings.*` and `nav.settings` keys
+- `i18n.changeLanguage(settings.default_language)` wired in ThemeProvider before first render
+- Language dropdown in SettingsPage wired to PUT + immediate `i18n.changeLanguage()`
+- Toast success/error feedback on Save (existing toast infrastructure)
+- E2E verification: `docker compose up --build` after logo upload confirms logo survives
 
-### Phase 3: KPI Query API
-
-**Rationale:** Dashboard query endpoints depend on real data existing in the database (upload pipeline must work first). These are low-risk — SQL aggregation patterns are well-understood — but must be designed to match the frontend's data contract before the frontend is built.
-
-**Delivers:** GET /kpis?from=&to= returning {summary_cards: {total_revenue, avg_order_value, total_orders, date_range}, time_series: [{date, revenue}]}; GET /uploads returning history ordered by timestamp DESC; date-range filtering via query params; all aggregation in PostgreSQL (SUM, AVG, GROUP BY DATE_TRUNC); index on order_date confirmed active.
-
-**Research flag:** Standard patterns — PostgreSQL aggregation and date truncation are well-documented. No additional research needed.
-
-### Phase 4: Upload UI and Dashboard Frontend
-
-**Rationale:** Frontend is built last because it depends on stable API contracts. Upload UI and dashboard are built together because they share the upload-success → dashboard-refresh concern (Pitfall 8) and must be designed as a single flow.
-
-**Delivers:** React SPA with Vite; drag-and-drop upload zone with Browse fallback; client-side format and size validation; progress indicator; success/error state with row count; upload history table (shadcn/ui); summary KPI cards; time-series Recharts chart with line/bar toggle; date range filter controls; data freshness indicator; TanStack Query invalidateQueries after successful upload to force dashboard refresh.
-
-**Addresses:** All table-stakes features from FEATURES.md; Pitfall 8 (stale data) via explicit refetch.
-
-**Research flag:** Standard patterns. Tailwind v4 CSS-first config is the one area to verify against v4 docs specifically — v3 docs are misleading.
+**Avoids:** Pitfall 7 (language detection loop — changeLanguage before render, no localStorage, no detector)
+**Research flag:** None — i18next changeLanguage() is straightforward. Skip research-phase.
 
 ### Phase Ordering Rationale
 
-- Schema before data: TIMESTAMPTZ, UNIQUE constraints, and upload_id FK cannot be added without migrations after data exists. Phase 1 locks these in.
-- Parser before API routes: The parser is the highest-risk component and benefits from isolated unit testing. Connecting through HTTP before it is validated adds debugging noise.
-- API before frontend: The frontend must consume real JSON shapes. Building against a mock risks divergence that requires frontend rewrites.
-- Upload before dashboard: Dashboard KPI endpoints need real data to test; the upload pipeline must be end-to-end first.
-- No background workers in any phase: Synchronous in-memory parsing is sufficient for internal sales file sizes (< 50MB); async job infrastructure is overengineering for v1.
+- Schema before API is a hard dependency — no table, no endpoint
+- Security (SVG XSS + CSS injection) must be backend-first, Phase 1 — cannot be retrofitted post-ship without invalidating stored data
+- ThemeProvider before SettingsPage is a near-hard dependency — SettingsPage calls `previewSettings()` from context; building against a mock doubles the wiring work
+- i18n last is deliberate — English fallback strings serve during Phase 3 development; deferring key additions avoids back-and-forth
 
 ### Research Flags
 
-Needs deeper research during planning:
-- **Phase 2 (File Parser):** Excel datetime parsing edge cases, composite UNIQUE key design for the specific schema, pandas behavior with mixed date formats. Real sample files are essential inputs before implementation.
+Needs deeper research during planning: None identified. All patterns have official docs + direct codebase evidence.
 
-Standard patterns (skip research-phase):
-- **Phase 1 (Infrastructure):** Docker Compose healthcheck, Alembic migrations, named volumes — official documentation is sufficient.
-- **Phase 3 (KPI Query API):** PostgreSQL aggregation and date truncation are standard SQL with official documentation.
-- **Phase 4 (Frontend):** React + Recharts + TanStack Query + shadcn/ui are well-documented. Verify Tailwind v4 CSS config against v4 docs specifically.
+Standard patterns (skip research-phase during planning):
+- Phase 1 — SQLAlchemy singleton row, Alembic migration, FastAPI UploadFile, nh3 API all have clear documentation and codebase precedent
+- Phase 2 — TanStack Query + CSS var injection is the established shadcn live-theming pattern (tweakcn reference)
+- Phase 3 — react-dropzone already installed; WCAG contrast formula is 10 lines of JS; culori is a focused library with a clear API
+- Phase 4 — i18next changeLanguage() is documented in official i18next API docs
 
 ---
 
@@ -170,49 +224,58 @@ Standard patterns (skip research-phase):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All versions verified against PyPI and npm registries. Async pattern verified via official FastAPI + SQLAlchemy 2.0 docs. |
-| Features | HIGH (table stakes), MEDIUM (differentiators) | Table stakes from well-established file-upload and dashboard UX research. Differentiator prioritization is domain-specific judgment. |
-| Architecture | HIGH | Three-tier pattern is standard and verified. Exact column names depend on actual data spec (not yet confirmed). |
-| Pitfalls | HIGH | All critical pitfalls verified via official docs (PostgreSQL wiki, Docker docs, GitHub pandas issues). |
+| Stack | HIGH | All versions verified against PyPI/npm registries; single new dep (nh3) confirmed. Codebase inspection confirmed oklch format, @theme inline structure, i18n setup. |
+| Features | HIGH (table stakes) / MEDIUM (differentiators) | Table stakes confirmed against established shadcn/Tailwind patterns. Full 6-token scope is a user-overridden decision — complexity acknowledged and accepted. |
+| Architecture | HIGH | Based on direct codebase inspection of all relevant files. Integration points are precise, confirmed file paths. No guesses. |
+| Pitfalls | HIGH | Critical pitfalls have real-world CVE/PR precedent (Ghost CMS SVG XSS 2025; lxml CVE). Moderate pitfalls have well-sourced mitigations. Phase assignments validated. |
 
-**Overall confidence:** HIGH
+**Overall confidence: HIGH**
 
 ### Gaps to Address
 
-- **Exact sales data schema (column names and types):** Research assumes order_date, revenue, order_id — but the actual file format from the upstream ERP system is unknown. Must be confirmed with real sample data before Phase 2 begins. The UNIQUE constraint design and date parsing configuration both depend on this.
-- **Expected file sizes and upload frequency:** Research assumes < 50MB, low frequency (manual on-demand upload). If files are larger or more frequent, bulk insert strategy and size limits need revisiting.
-- **Recharts vs Tremor:** MEDIUM confidence — no single authoritative benchmark. Recommendation stands but can be revisited if Recharts styling proves cumbersome at this project size.
-- **XLS support scope:** If the team only produces .xlsx files, xlrd and .xls handling can be dropped, simplifying Phase 2. Confirm with stakeholders before building .xls support.
+- **culori bundle impact:** culori's tree-shaken size in this Vite project was not benchmarked. If bundle impact is unacceptable, an inline ~20-line function covers hex→oklch conversion for the specific values produced by `<input type="color">`. Flag for Phase 3 implementation.
+
+- **wouter navigation guard:** The `beforeunload` + Dialog intercept pattern for unsaved-changes warning requires careful implementation — verify it fires on NavBar link clicks (not just tab close). Not a research gap; a testing checkpoint for Phase 3.
+
+- **Optimistic locking coordination:** PITFALLS.md recommends `updated_at`-based concurrency control (WHERE id=1 AND updated_at=$last_known → 409 on conflict). Implement the 409 response in Phase 1; wire the frontend 409 handler in Phase 3. Requires coordination across phases — note this in the requirements.
+
+- **Color preset swatch values:** Specific oklch values for the 4–6 preset palettes are not defined in research. Requirements or implementation phase should define these or delegate to the implementer.
 
 ---
 
 ## Sources
 
-### Primary (HIGH confidence)
-- FastAPI official docs — UploadFile, request files: https://fastapi.tiangolo.com/tutorial/request-files/
-- SQLAlchemy 2.0 async I/O docs: https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
-- PostgreSQL wiki — TIMESTAMP vs TIMESTAMPTZ: https://wiki.postgresql.org/wiki/Don't_Do_This
-- Docker Compose startup order official docs: https://docs.docker.com/compose/how-tos/startup-order/
-- Docker Hub — postgres:17-alpine tag verified: https://hub.docker.com/_/postgres
-- PyPI — all Python package versions verified: https://pypi.org
-- npm registry — all frontend package versions verified: https://www.npmjs.com
+### Primary (HIGH confidence — verified against live registries, official docs, direct codebase inspection)
+- SQLAlchemy 2.0 LargeBinary / BYTEA PostgreSQL — type mapping
+- SQLAlchemy issue #9739 — LargeBinary multi-object commit bug — singleton-row avoidance
+- lxml html.clean SVG/math context bypass CVE GHSA-5jfw-gq64-q45f
+- nh3 PyPI 0.3.3 (Feb 2026) — version confirmed
+- FastAPI Custom Response docs — Response vs StreamingResponse
+- Tailwind CSS v4 @theme directive — runtime CSS variable behavior
+- shadcn/ui Tailwind v4 theming — CSS variable names and oklch format
+- i18next API — changeLanguage programmatic switching
+- Codebase: `frontend/src/index.css` — oklch format, @theme inline structure confirmed
+- Codebase: `frontend/src/i18n.ts` — no language detector, hardcoded `lng: "de"` confirmed
+- Codebase: `backend/app/models.py`, `schemas.py`, `main.py`, `routers/kpis.py` — patterns confirmed
+- Codebase: `frontend/src/App.tsx`, `NavBar.tsx`, `DropZone.tsx` — integration points confirmed
 
-### Secondary (MEDIUM confidence)
-- Best React Chart Libraries 2025 — LogRocket: https://blog.logrocket.com/best-react-chart-libraries-2025/
-- Vite vs Next.js 2025 — Strapi: https://strapi.io/blog/vite-vs-nextjs-2025-developer-framework-comparison
-- File upload UX best practices — Uploadcare: https://uploadcare.com/blog/file-uploader-ux-best-practices/
-- Sales dashboard KPI metrics — SimplekPI, Klipfolio, Improvado: https://www.simplekpi.com/Blog/best-kpi-dashboards-2026
-- Authentik Docker Compose guide 2025: https://www.simplehomelab.com/authentik-docker-compose-guide-2025/
-- CSV encoding / UTF-8 BOM handling: https://www.elysiate.com/blog/csv-encoding-problems-utf8-bom-character-issues
-- Idempotent database inserts: https://dev.to/dnnsthnnr/idempotent-database-inserts-getting-it-right-2777
-- OWASP File Upload Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
+### Secondary (MEDIUM confidence — multiple community sources agree)
+- Ghost CMS SVG XSS PR #19646 (2025) — real-world SVG upload XSS precedent
+- OWASP CSS Injection Testing Guide — CSS injection risk classification
+- MDN: HTTP Caching (ETag / Cache-Control) — logo cache-busting strategy
+- PostgreSQL BinaryFilesInDB wiki + CYBERTEC binary data performance — bytea trade-offs
+- i18next-browser-languageDetector GitHub issue #250 — localStorage overwrite behavior
+- WCAG color contrast 2025 (AllAccessible) — 4.5:1 ratio requirement for AA
+- Vite FOUC fix patterns — skeleton approach for dark-mode-on-first-paint
+- tweakcn.com — confirmed CSS var injection pattern used in production at scale
+- Cloudscape unsaved-changes pattern — "Leave / Stay" dialog wording
 
-### Tertiary (for reference)
-- GitHub pandas issues #39001, #47269, #59882 — openpyxl datetime and XML edge cases
-- Martin Fowler — Audit Log pattern: https://martinfowler.com/eaaDev/AuditLog.html
-- Fastest way to load data into PostgreSQL with Python: https://hakibenita.com/fast-load-data-python-postgresql
+### Tertiary (informational — no implementation decisions rest solely on these)
+- CairoSVG documentation — nuclear fallback option (rasterize SVG→PNG), not used
+- Docker volumes data persistence guide — named volume requirement context
+- culori library — hex→oklch conversion; bundle size not benchmarked
 
 ---
 
-*Research completed: 2026-04-10*
+*Research completed: 2026-04-11*
 *Ready for roadmap: yes*

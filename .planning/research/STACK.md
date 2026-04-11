@@ -1,195 +1,261 @@
-# Technology Stack
+# Stack Research
 
-**Project:** KPI Light — Dockerized KPI Dashboard with File Upload to PostgreSQL
-**Researched:** 2026-04-10
-**Overall confidence:** HIGH (all versions verified against PyPI and npm registries)
-
----
-
-## Recommended Stack
-
-### Backend Framework
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| FastAPI | 0.135.3 | REST API, file upload endpoint, data endpoints | Fastest Python web framework for async I/O; native async support matches our PostgreSQL async driver; automatic OpenAPI docs save time; UploadFile built-in for multipart forms. Flask/Django are sync-first and add unnecessary complexity for this use case. |
-| Uvicorn | 0.44.0 | ASGI server | Standard ASGI server for FastAPI; production-ready with `--workers` flag. Do NOT use `--reload` in Docker production container. |
-| python-multipart | 0.0.26 | Multipart form parsing (required by FastAPI for file uploads) | FastAPI's UploadFile depends on this at runtime — it is a hard requirement, not optional. |
-| Pydantic v2 | >=2.9.0 (via FastAPI) | Request/response validation, config management | Bundled with FastAPI 0.135.x; v2 is ~10x faster than v1; use BaseSettings for environment config. |
-
-### Database Layer
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| PostgreSQL | 17-alpine (Docker image) | Primary database | Project constraint. Use `postgres:17-alpine` tag — v17 is current LTS, alpine image is ~50% smaller than debian variant. Do NOT use `latest` tag; it changes without warning and can break on major version upgrades. |
-| SQLAlchemy | 2.0.49 | ORM and query builder | Industry standard; v2.0 async API is stable and production-proven. Use `AsyncSession` with `create_async_engine`. Do NOT use the legacy 1.x-style patterns (pre-2.0 `Session` with sync engine) — mixing sync and async causes subtle deadlocks in FastAPI. |
-| asyncpg | 0.31.0 | Async PostgreSQL driver | Required by SQLAlchemy 2.0 async engine (`postgresql+asyncpg://`). Significantly faster than psycopg2 in async contexts. psycopg3 is an alternative but asyncpg has more FastAPI ecosystem examples and is battle-tested. |
-| Alembic | 1.18.4 | Database schema migrations | Standard migration tool for SQLAlchemy; auto-generates migration scripts from model diffs. IMPORTANT: Alembic uses a *sync* engine even in async apps — configure a separate sync `sqlalchemy.url` in `alembic.ini`. Never call `Base.metadata.create_all()` directly; always go through Alembic so migration history stays consistent. |
-
-### File Parsing
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| pandas | 3.0.2 | Parse CSV, TXT (delimited), and Excel files into DataFrames | Single library handles all three input formats with a consistent API (`pd.read_csv`, `pd.read_excel`). For a fixed-schema ingestion pipeline, pandas is significantly simpler than managing separate parsers. Works via `io.BytesIO` on FastAPI's `UploadFile.read()` bytes — no temp file on disk needed. |
-| openpyxl | 3.1.5 | Excel (.xlsx/.xls) engine used by pandas | pandas' `read_excel()` requires openpyxl as the backend for .xlsx files. It is a runtime dependency, not a dev dependency. Install alongside pandas; do not skip it or pandas will fail at runtime with an ImportError. |
-
-### Frontend Framework
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| React | 19.2.5 | UI framework | Standard for interactive dashboards; large ecosystem; hooks-based state management fits dashboard update patterns. |
-| TypeScript | 5.x (via Vite template) | Type safety | Prevents a class of runtime errors in data-binding code (API response → chart data); minimal overhead in this project size. |
-| Vite | 8.0.8 | Build tool and dev server | Internal tool with no SEO requirements — Next.js SSR adds complexity with zero benefit here. Vite's HMR is near-instant; produces smaller bundles than Next.js (~42KB vs ~92KB baseline). Use the `vite create` React-TS template. |
-
-### UI and Charting
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Tailwind CSS | 4.2.2 | Utility-first styling | Fastest path to a polished internal UI without a design system. v4 drops the `tailwind.config.js` file in favor of CSS-first config — note this is a breaking change from v3 docs. |
-| shadcn/ui | latest (copy-paste, no npm package version) | Component primitives (cards, tables, buttons) | Unstyled Radix UI components + Tailwind classes; copy-paste pattern means no "component library update" breaking changes. Use for summary KPI cards, upload form, upload history table. |
-| Recharts | 3.8.1 | Line charts and bar charts for KPI trends | SVG-based (not canvas), React-native API, directly composable with TypeScript. Tremor is built on Recharts but adds abstraction overhead; for a project of this size, raw Recharts gives more control with similar effort. Chart.js/react-chartjs-2 is canvas-based — harder to style and customize individual elements. |
-| @tanstack/react-query | 5.97.0 | Server state management and data fetching | Handles loading/error states, caching, and refetching for API calls. Avoids writing boilerplate `useEffect` + `useState` data fetching. Use for dashboard data endpoints and upload history. Do NOT use Redux or Zustand for server state — that's the wrong tool. |
-
-### Infrastructure
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Docker | latest engine (runtime) | Containerize app | Project constraint. |
-| Docker Compose | v2 (compose v2.x plugin) | Orchestrate app + PostgreSQL containers | Project constraint. Use `docker compose` (v2, no hyphen) syntax — `docker-compose` (v1, Python CLI) is end-of-life. |
+**Domain:** Branding & Settings — runtime theming, logo upload/storage/serving, settings persistence, language default
+**Milestone:** KPI Light v1.1
+**Researched:** 2026-04-11
+**Confidence:** HIGH (all decisions grounded in existing codebase inspection + verified sources)
 
 ---
 
-## Docker Compose Pattern
+## What This Document Covers
 
-The canonical pattern for this stack:
+This is milestone-scoped research for v1.1. It documents only the **additions and changes** needed on top of the validated v1.0 stack. Existing libraries (FastAPI, SQLAlchemy, asyncpg, Alembic, React, TanStack Query, Tailwind v4, shadcn/ui, i18next, wouter) are NOT re-researched — they ship unchanged.
 
-```yaml
-services:
-  db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+---
 
-  api:
-    build: ./backend
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
-    ports:
-      - "8000:8000"
+## New Backend Dependency
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:80"   # nginx serves the Vite build output
-    depends_on:
-      - api
+### SVG Sanitization
 
-volumes:
-  postgres_data:
+| Library | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| nh3 | 0.3.3 | SVG XSS sanitization before storing user-uploaded SVG files | Rust-backed Ammonia HTML/SVG sanitizer; Python binding. ~20x faster than bleach; bleach is deprecated (Mozilla). defusedxml is deprecated for lxml use. lxml's `html.clean` module has a documented CVE for SVG/math context-switching bypass. nh3 applies an allowlist-based strategy and is actively maintained. Single pip install, no C compiler needed (pre-built wheels). |
+
+No other new backend packages are needed. All other v1.1 features reuse existing dependencies.
+
+---
+
+## No New Frontend Dependencies
+
+All v1.1 frontend features (runtime theming, live preview, logo display, language switch) are achievable with the libraries already installed: React state, `document.documentElement.style.setProperty`, TanStack Query, i18next `changeLanguage()`, and existing shadcn/ui components.
+
+---
+
+## Technical Decisions by Feature Area
+
+### 1. Settings Persistence in PostgreSQL (SQLAlchemy 2.0 async + Alembic)
+
+**Pattern: singleton-row `app_settings` table with an upsert on `id = 1`.**
+
+Use a dedicated `AppSettings` model with a fixed primary key of `1`. This is the standard pattern for global, instance-scoped configuration — it avoids key-value EAV tables (which require schema knowledge at query time) and avoids a separate config file that would break Docker immutability.
+
+```python
+# models.py addition
+from sqlalchemy import LargeBinary, String, Boolean
+from sqlalchemy.orm import Mapped, mapped_column
+
+class AppSettings(Base):
+    __tablename__ = "app_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    app_name: Mapped[str] = mapped_column(String(100), nullable=False, default="KPI Light")
+    default_language: Mapped[str] = mapped_column(String(10), nullable=False, default="de")
+    # Semantic color tokens (oklch strings, matching existing CSS variable format)
+    color_primary: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    color_accent: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    color_background: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    color_foreground: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    color_muted: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    color_destructive: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Logo stored inline as bytea
+    logo_data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    logo_content_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # "image/png" | "image/svg+xml"
 ```
 
-Key rules:
-- Use `condition: service_healthy` on `depends_on` — not just `depends_on: db`. Without this the app container starts before PostgreSQL accepts connections, causing startup crashes.
-- `pg_isready` is built into the official postgres image — no extra tools needed.
-- Store all credentials in a `.env` file; never hardcode in `docker-compose.yml`.
-- Run Alembic migrations as a Docker Compose startup command or a separate migration service that exits after completion, before the API service starts.
+**Alembic migration:** Add a new migration script via `alembic revision --autogenerate -m "add_app_settings"`. The `LargeBinary` type maps to PostgreSQL `BYTEA` — this is the correct SQLAlchemy 2.0 type for binary data. No `openpyxl`-style separate engine needed; the existing async engine handles `BYTEA` correctly via asyncpg.
+
+**Known issue to avoid:** SQLAlchemy issue #9739 documents a DBAPIError when committing multiple objects with `LargeBinary` columns in the same flush. Since this is a singleton row, a single `session.merge()` or `session.execute(insert(...).on_conflict_do_update(...))` avoids this entirely.
+
+**Logo storage — bytea vs filesystem:**
+
+Store logo as `BYTEA` in the `app_settings` table. Do NOT use filesystem storage in a Docker Compose setup — filesystem writes inside a container are lost on container restart unless a named volume is mapped. Adding a volume mount for a single logo file creates operational complexity (permissions, backup, Docker Compose coupling) disproportionate to the benefit. The logo is bounded at 1 MB, which is well within PostgreSQL's per-row storage capability. The `logo_content_type` column is required to correctly set the HTTP `Content-Type` response header.
+
+### 2. Runtime Theming with Tailwind v4 CSS Variables
+
+The existing `index.css` already uses `oklch(...)` CSS custom properties on `:root` for all semantic tokens (`--primary`, `--accent`, `--background`, `--foreground`, `--muted`, `--destructive`). The `@theme inline` block maps them to Tailwind utilities via `--color-*` aliases.
+
+**Runtime injection approach:** Use `document.documentElement.style.setProperty()` to override CSS custom properties at runtime. This works because the `@theme inline` variables reference the `:root` custom properties via `var(--primary)` — when the `:root` value changes, all Tailwind utilities that consume it update immediately without a page reload or style sheet regeneration.
+
+```typescript
+// Apply saved theme to :root — call on app boot and on Settings save
+function applyTheme(settings: AppSettings) {
+  const el = document.documentElement;
+  if (settings.color_primary)    el.style.setProperty('--primary', settings.color_primary);
+  if (settings.color_accent)     el.style.setProperty('--accent', settings.color_accent);
+  if (settings.color_background) el.style.setProperty('--background', settings.color_background);
+  if (settings.color_foreground) el.style.setProperty('--foreground', settings.color_foreground);
+  if (settings.color_muted)      el.style.setProperty('--muted', settings.color_muted);
+  if (settings.color_destructive) el.style.setProperty('--destructive', settings.color_destructive);
+}
+```
+
+**Live preview:** Hold pending edits in local React state (`useState`). In the Settings page, call `applyTheme(pendingState)` on each color change to provide instant visual feedback. On "Save", persist to backend via TanStack Query mutation; on "Cancel", re-apply the server-fetched values. This requires no additional state library — TanStack Query already handles server state, and `useState` handles the unsaved preview state.
+
+**Color value format:** Store and accept oklch strings (e.g., `oklch(0.205 0 0)`) to match the existing CSS variable format in `index.css`. Do NOT convert to hex on the backend — the browser renders oklch natively and it is the format already used by shadcn/ui's Tailwind v4 integration.
+
+**Boot hydration:** In `main.tsx` (or a top-level React component), fetch `/api/settings` on mount and call `applyTheme()` before the first meaningful render. Use TanStack Query's `suspense` option or an initializing state to prevent a flash of default theme.
+
+### 3. Serving Logo from FastAPI
+
+Use `Response` (not `StreamingResponse`) for in-memory bytes read from the database. `StreamingResponse` is for large files or generators; a 1 MB BYTEA blob read entirely into memory is better served as a plain `Response`.
+
+```python
+from fastapi import Response
+import hashlib
+
+@router.get("/api/settings/logo")
+async def get_logo(db: AsyncSession = Depends(get_db)):
+    settings = await db.get(AppSettings, 1)
+    if not settings or not settings.logo_data:
+        raise HTTPException(status_code=404)
+
+    etag = hashlib.sha256(settings.logo_data).hexdigest()[:16]
+    return Response(
+        content=settings.logo_data,
+        media_type=settings.logo_content_type,
+        headers={
+            "ETag": f'"{etag}"',
+            "Cache-Control": "public, max-age=3600, must-revalidate",
+        },
+    )
+```
+
+**ETag strategy:** SHA-256 of the raw bytes (truncated to 16 hex chars). This is correct and sufficient — logo changes are infrequent and the hash is computed in-memory on each request, avoiding any stale-cache risk. Do NOT use `Last-Modified` / `mtime` because the data comes from a database row, not a file. Check the `If-None-Match` request header and return `304 Not Modified` if it matches to avoid re-sending 1 MB on every logo fetch.
+
+**Content-Type:** Read from `logo_content_type` column (set at upload time). Hardcoding `image/png` would break SVG logos displayed in `<img>` tags.
+
+### 4. Image Validation and SVG Sanitization
+
+**PNG validation (no new library):** Read the first 8 bytes of the upload and check for the PNG magic number (`b'\x89PNG\r\n\x1a\n'`). FastAPI's `UploadFile` exposes `.read()` returning bytes — slice and compare. Reject anything that doesn't match before further processing.
+
+**SVG validation (no new library):** Check `content_type == "image/svg+xml"` AND confirm the raw bytes contain `<svg` as a basic structural check.
+
+**SVG sanitization (NEW: nh3 0.3.3):** After format validation, sanitize SVG content through nh3's allowlist before storing:
+
+```python
+import nh3
+
+SAFE_SVG_TAGS = {"svg", "path", "circle", "rect", "ellipse", "line", "polyline",
+                 "polygon", "g", "defs", "use", "symbol", "title", "desc",
+                 "linearGradient", "radialGradient", "stop", "clipPath", "mask",
+                 "text", "tspan", "image"}
+
+SAFE_SVG_ATTRS = {"id", "class", "style", "viewBox", "width", "height",
+                  "xmlns", "fill", "stroke", "stroke-width", "opacity",
+                  "transform", "d", "cx", "cy", "r", "rx", "ry",
+                  "x", "y", "x1", "y1", "x2", "y2", "points",
+                  "gradientUnits", "gradientTransform", "offset",
+                  "stop-color", "stop-opacity"}
+
+def sanitize_svg(raw_svg: bytes) -> bytes:
+    clean = nh3.clean(
+        raw_svg.decode("utf-8", errors="replace"),
+        tags=SAFE_SVG_TAGS,
+        attributes={tag: SAFE_SVG_ATTRS for tag in SAFE_SVG_TAGS},
+        strip_comments=True,
+    )
+    return clean.encode("utf-8")
+```
+
+This removes `<script>`, all `on*` event handlers, `javascript:` URIs in `href`/`src`, and XML entity declarations. nh3 is chosen over:
+- bleach: deprecated by Mozilla, unmaintained
+- lxml `html.clean`: has a documented CVE for SVG/math context-switching bypass (GHSA-5jfw-gq64-q45f)
+- defusedxml.lxml: explicitly deprecated and removed in newer versions
+- lxml bare XPath: requires writing your own walk + allowlist, reinventing what nh3 provides
+
+**Size limit:** Check `len(file_bytes) > 1_048_576` (1 MiB = 1,048,576 bytes) before sanitization. Reject with HTTP 422.
+
+**MIME type allowlist:** Accept only `image/png` and `image/svg+xml`. Reject all other MIME types with HTTP 422.
+
+### 5. Language Default — Server-Persisted, Client-Respected
+
+**Current state:** `i18n.ts` hardcodes `lng: "de"`. There is no `i18next-browser-languageDetector` installed — language detection is manual.
+
+**v1.1 approach — no new library needed:**
+
+1. Expose `default_language` in the `/api/settings` response (already on the `AppSettings` model).
+2. On app boot, fetch settings, then call `i18n.changeLanguage(settings.default_language)` before mounting the app (or in a top-level `useEffect` with a loading gate).
+3. On the Settings page, the language dropdown saves to the backend via mutation. The client then calls `i18n.changeLanguage(newLang)` immediately after a successful save.
+4. If the user manually toggles language via the existing `LanguageToggle` component, that in-session override persists in memory for the session. On next reload, the server default applies again (which is the correct behavior for a global instance-wide default).
+
+**Why NOT localStorage-first:** `i18next-browser-languageDetector` + localStorage would make the per-browser cached value override the admin-set server default after first visit — defeating the purpose of a server-persisted default. For a single-instance internal tool, server value wins; don't add the detector plugin.
+
+**Why NOT cookies:** Adds server-side session complexity. The app has no auth and no server-rendered HTML. A fetch on boot is simpler and sufficient.
 
 ---
 
-## Alternatives Considered
+## What NOT to Add
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Backend framework | FastAPI | Django REST Framework | Django's ORM is sync-first; adds migration/admin overhead not needed for this scope |
-| Backend framework | FastAPI | Flask | No async support; no automatic validation; more boilerplate for same result |
-| Async PG driver | asyncpg | psycopg3 (async) | asyncpg has deeper FastAPI ecosystem support and more examples; psycopg3 async is newer and less documented in this context |
-| File parsing | pandas | Pure csv module + openpyxl | Would require separate code paths per format; pandas handles all three uniformly |
-| Frontend build | Vite + React | Next.js | No SSR or SEO requirement; Next.js complexity is wasted; Vite is faster and simpler |
-| Charting | Recharts | Tremor | Tremor is a higher-level abstraction built on Recharts; adds a dependency with less control |
-| Charting | Recharts | Chart.js / react-chartjs-2 | Canvas-based; harder to customize; not React-native; SVG (Recharts) is easier to style with Tailwind |
-| CSS | Tailwind v4 | CSS Modules | Tailwind is faster for internal UI iteration; CSS Modules add file-switching overhead |
-| State management | TanStack Query | Redux Toolkit | Redux is for complex client-side state; server-fetched data is TanStack Query's domain |
-| DB migrations | Alembic | SQLAlchemy `create_all()` | `create_all()` provides no migration history or rollback capability |
+| Avoid | Why | What to Use Instead |
+|-------|-----|---------------------|
+| bleach | Deprecated by Mozilla; unmaintained | nh3 0.3.3 |
+| defusedxml | lxml module deprecated and removed in next version | nh3 for sanitization; plain XML parse not needed here |
+| lxml `html.clean` / `Cleaner` | CVE for SVG/math context bypass (GHSA-5jfw-gq64-q45f) | nh3 |
+| fastapi-cache / fastapi-cache2 | Adds Redis/Memcached dependency for a 1 MB logo; overkill | Compute ETag hash inline; 304 handling is sufficient |
+| Zustand / Redux | Wrong tool for server state | TanStack Query (already installed) |
+| i18next-browser-languageDetector | localStorage cache overrides server default after first visit | Fetch server settings on boot, call `i18n.changeLanguage()` |
+| Filesystem logo storage (volume mount) | Breaks container restart without persistent volume; operational overhead | BYTEA in `app_settings` table |
+| Separate `logo` table | Unnecessary join for a single global logo | `logo_data` + `logo_content_type` columns on `app_settings` |
 
 ---
 
 ## Installation
 
-### Backend (Python — add to `requirements.txt` or `pyproject.toml`)
+### Backend addition to `requirements.txt`
 
 ```
-fastapi==0.135.3
-uvicorn[standard]==0.44.0
-python-multipart==0.0.26
-sqlalchemy==2.0.49
-asyncpg==0.31.0
-alembic==1.18.4
-pandas==3.0.2
-openpyxl==3.1.5
-pydantic-settings>=2.0.0   # for BaseSettings env config
+nh3==0.3.3
 ```
 
-> Use `uvicorn[standard]` (not bare `uvicorn`) to include the Cython-based performance extras in production.
+### Frontend — no new packages
 
-### Frontend (npm)
+All v1.1 frontend work uses already-installed libraries.
 
-```bash
-npm create vite@latest frontend -- --template react-ts
-cd frontend
-npm install recharts @tanstack/react-query tailwindcss @tanstack/react-table
-# Install shadcn/ui via its CLI (copy-paste pattern)
-npx shadcn@latest init
-```
+---
+
+## Version Compatibility Notes
+
+| Package | Version | Compatibility Note |
+|---------|---------|-------------------|
+| nh3 | 0.3.3 | Python >=3.8; pre-built wheels for Linux/macOS/Windows; no C compiler needed in Docker |
+| SQLAlchemy `LargeBinary` | 2.0.49 (existing) | Maps to `BYTEA` on PostgreSQL; asyncpg handles bytes natively |
+| Alembic | 1.18.4 (existing) | `LargeBinary` renders as `BYTEA` in autogenerated PostgreSQL migration — no custom type needed |
+| nh3 in Docker | 0.3.3 | Uses manylinux wheels; works on `python:3.12-slim` base without extra apt packages |
 
 ---
 
 ## Confidence Assessment
 
-| Area | Confidence | Source |
-|------|------------|--------|
-| FastAPI 0.135.3 version | HIGH | Verified against PyPI API directly |
-| pandas 3.0.2 version | HIGH | Verified against PyPI API directly |
-| SQLAlchemy 2.0.49 version | HIGH | Verified against PyPI API directly |
-| asyncpg 0.31.0 version | HIGH | Verified against PyPI API directly |
-| alembic 1.18.4 version | HIGH | Verified against PyPI API directly |
-| openpyxl 3.1.5 version | HIGH | Verified against PyPI API directly |
-| uvicorn 0.44.0 version | HIGH | Verified against PyPI API directly |
-| python-multipart 0.0.26 | HIGH | Verified against PyPI API directly |
-| React 19.2.5 version | HIGH | Verified against npm registry directly |
-| Recharts 3.8.1 version | HIGH | Verified against npm registry directly |
-| Vite 8.0.8 version | HIGH | Verified against npm registry directly |
-| Tailwind CSS 4.2.2 version | HIGH | Verified against npm registry directly |
-| TanStack Query 5.97.0 | HIGH | Verified against npm registry directly |
-| postgres:17-alpine Docker image | HIGH | Verified against Docker Hub tag listing |
-| FastAPI + asyncpg async pattern | HIGH | Official FastAPI docs + SQLAlchemy 2.0 async docs |
-| Docker Compose healthcheck pattern | HIGH | Official Docker documentation + community verification |
-| Recharts over Tremor/Chart.js | MEDIUM | Multiple comparison articles; no single authoritative benchmark |
-| Vite over Next.js for internal tools | HIGH | Multiple independent sources consistently agree on this split |
+| Area | Confidence | Basis |
+|------|------------|-------|
+| BYTEA / `LargeBinary` + asyncpg | HIGH | SQLAlchemy 2.0 docs + GitHub issue #9739 confirming singleton-row avoids the multi-object bug |
+| `document.documentElement.style.setProperty` for Tailwind v4 runtime theming | HIGH | Confirmed by reading `index.css` — `@theme inline` uses `var(--primary)` references that respond to `:root` overrides |
+| oklch as color storage format | HIGH | Codebase inspection — all existing CSS variables use `oklch(...)` |
+| `Response` (not `StreamingResponse`) for in-memory logo bytes | HIGH | FastAPI official docs: StreamingResponse is for generators/large files; Response for in-memory content |
+| ETag via SHA-256 hash of bytes | HIGH | Standard HTTP caching pattern; confirmed in FastAPI community references |
+| nh3 for SVG sanitization | HIGH | PyPI verified (0.3.3, Feb 2026); lxml html.clean CVE confirmed (GHSA-5jfw-gq64-q45f); bleach deprecation confirmed |
+| i18next `changeLanguage()` on boot (no detector plugin) | MEDIUM | Pattern confirmed in i18next docs and community; specific ordering (fetch → changeLanguage → mount) requires careful implementation |
+| Logo size limit check pre-sanitization | HIGH | Standard practice; nh3 processes decoded text so byte check must happen on raw bytes first |
 
 ---
 
 ## Sources
 
-- [FastAPI Full Stack Template (official)](https://fastapi.tiangolo.com/project-generation/)
-- [FastAPI Request Files — official docs](https://fastapi.tiangolo.com/tutorial/request-files/)
-- [SQLAlchemy 2.0 Async I/O docs](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
-- [FastAPI + SQLAlchemy 2.0 async patterns (Dec 2025)](https://dev-faizan.medium.com/fastapi-sqlalchemy-2-0-modern-async-database-patterns-7879d39b6843)
-- [Alembic + FastAPI best practices (2025)](https://blog.greeden.me/en/2025/08/12/no-fail-guide-getting-started-with-database-migrations-fastapi-x-sqlalchemy-x-alembic/)
-- [Docker Compose healthcheck for PostgreSQL](https://eastondev.com/blog/en/posts/dev/20251217-docker-compose-healthcheck/)
-- [How to Use the Postgres Docker Official Image](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)
-- [Best React Chart Libraries 2025 — LogRocket](https://blog.logrocket.com/best-react-chart-libraries-2025/)
-- [Vite vs Next.js 2025 comparison — Strapi](https://strapi.io/blog/vite-vs-nextjs-2025-developer-framework-comparison)
-- [Fastest way to load data into PostgreSQL with Python](https://hakibenita.com/fast-load-data-python-postgresql)
+- [SQLAlchemy 2.0 LargeBinary / BYTEA PostgreSQL](https://docs.sqlalchemy.org/en/20/core/type_basics.html#sqlalchemy.types.LargeBinary) — type mapping
+- [SQLAlchemy issue #9739 — LargeBinary multi-object commit bug](https://github.com/sqlalchemy/sqlalchemy/issues/9739) — singleton-row rationale
+- [lxml html.clean SVG/math context bypass CVE](https://github.com/fedora-python/lxml_html_clean/security/advisories/GHSA-5jfw-gq64-q45f) — why NOT lxml Cleaner
+- [nh3 PyPI](https://pypi.org/project/nh3/) — version 0.3.3, Feb 2026
+- [nh3 GitHub (messense/nh3)](https://github.com/messense/nh3) — allowlist API and SVG support
+- [defusedxml deprecation status](https://discuss.python.org/t/status-of-defusedxml-and-recommendation-in-docs/34762) — lxml module removed
+- [FastAPI Custom Response docs](https://fastapi.tiangolo.com/advanced/custom-response/) — Response vs StreamingResponse
+- [Tailwind CSS v4 @theme directive](https://tailwindcss.com/blog/tailwindcss-v4) — CSS-first config, runtime CSS variable approach
+- [shadcn/ui Tailwind v4 theming](https://ui.shadcn.com/docs/tailwind-v4) — CSS variable names and format
+- [i18next API — changeLanguage](https://www.i18next.com/overview/api) — programmatic language switching
+- [Existing codebase: frontend/src/index.css] — confirmed oklch format, @theme inline structure, CSS variable names
+- [Existing codebase: frontend/src/i18n.ts] — confirmed no language detector installed, hardcoded `lng: "de"`
+- [Existing codebase: backend/app/models.py] — confirmed existing model patterns (Mapped, mapped_column)
+
+---
+
+*Stack research for: KPI Light v1.1 Branding & Settings*
+*Researched: 2026-04-11*
