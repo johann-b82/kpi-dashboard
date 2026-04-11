@@ -53,6 +53,8 @@
   "dashboard.error.body": "Der Server hat nicht geantwortet. Bitte prüfen, ob das Backend läuft, und erneut versuchen.",
   "dashboard.error.retry": "Erneut versuchen",
   "dashboard.chart.title": "Umsatzverlauf",
+  "dashboard.chart.type.bar": "Balken",
+  "dashboard.chart.type.line": "Linie",
   "dashboard.chart.yAxis": "Umsatz (€)",
   "dashboard.chart.xAxis": "Datum"
 }
