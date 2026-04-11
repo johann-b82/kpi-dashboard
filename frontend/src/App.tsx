@@ -6,20 +6,23 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
 import { queryClient } from "./queryClient";
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <NavBar />
-        <main className="pt-16">
-          <Switch>
-            <Route path="/" component={DashboardPage} />
-            <Route path="/upload" component={UploadPage} />
-            <Route path="/settings" component={SettingsPage} />
-          </Switch>
-        </main>
+        <SettingsDraftProvider>
+          <NavBar />
+          <main className="pt-16">
+            <Switch>
+              <Route path="/" component={DashboardPage} />
+              <Route path="/upload" component={UploadPage} />
+              <Route path="/settings" component={SettingsPage} />
+            </Switch>
+          </main>
+        </SettingsDraftProvider>
       </ThemeProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>
