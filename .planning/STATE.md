@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-04-11T19:08:22.591Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-04-11T19:11:19.459Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
-  percent: 100
+  completed_plans: 18
+  percent: 84
 ---
 
 # Project State: KPI Light
@@ -79,6 +79,9 @@ Progress: [████████░░] 84% (16/19 plans in current scope)
 | Phase 07-i18n-integration-and-polish P02 | 5min | 3 tasks | 6 files |
 | Phase 07-i18n-integration-and-polish P01 | 2min | 2 tasks | 4 files |
 | Phase 07-i18n-integration-and-polish P03 | 2min | 3 tasks | 6 files |
+| Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
+| Phase 07-i18n-integration-and-polish P05 | 2min | 1 tasks | 1 files |
+| Phase 07-i18n-integration-and-polish P05 | 1min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -113,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-01: single-stage Dockerfile installs requirements-dev.txt (Pitfall 2 option A); Playwright from host with chromium at OS-default cache path (macOS: ~/Library/Caches/ms-playwright)
 - [Phase 07-i18n-integration-and-polish]: Plan 07-03: PreferencesCard is pure (reports onChange only); useSettingsDraft.setField is the single i18n writer for draft preview — preserves single-writer invariant with bootstrap and LanguageToggle
 - [Phase 07-i18n-integration-and-polish]: Plan 07-03: SettingsPage useEffect cleanup sets draftStatus.setDirty(false) on unmount so NavBar clears disabled state instantly on navigation (D-14)
+- [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle rewritten with TanStack useMutation + pessimistic i18n.changeLanguage; disable state via useSettingsDraftStatus (no route sniffing); full 8-field PUT payload read from cache (no DEFAULT_SETTINGS fallback)
+- [Phase 07-i18n-integration-and-polish]: Plan 07-05: de.json parity achieved at 109 keys (plan said 111, actual count derived from en.json); settings.preferences.title = 'Allgemein' per user preference; contrast badge uses German decimal comma '4,5 : 1'
+- [Phase 07-i18n-integration-and-polish]: Plan 07-05: de.json parity achieved at 109 keys; settings.preferences.title = Allgemein (user preference); contrast.badge uses German decimal comma '4,5 : 1'
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -133,6 +139,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:08:22.588Z
-**Stopped at:** Completed 07-03-PLAN.md
+**Last session:** 2026-04-11T19:11:19.456Z
+**Stopped at:** Completed 07-05-PLAN.md
 **Resume file:** None
