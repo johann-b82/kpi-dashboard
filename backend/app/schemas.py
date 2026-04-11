@@ -1,7 +1,9 @@
+import re
 from datetime import datetime
 from decimal import Decimal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel, Field
 
 
 class ValidationErrorDetail(BaseModel):
@@ -43,3 +45,72 @@ class ChartPoint(BaseModel):
 
 class LatestUploadResponse(BaseModel):
     uploaded_at: datetime | None  # None when no uploads exist
+
+
+# --------------------------------------------------------------------------
+# Phase 4 — Settings schemas (BRAND-09 strict color validation)
+# --------------------------------------------------------------------------
+# Per D-10: matches oklch(L C H) where
+#   L is 0..1 decimal OR 0..100 percent
+#   C is numeric (0..0.5-ish in practice)
+#   H is numeric with optional 'deg' suffix
+# Alpha (oklch(L C H / alpha)) is rejected — frontend culori emits plain form.
+_OKLCH_RE = re.compile(
+    r"^oklch\(\s*"
+    r"(?:0|1|0?\.\d+|100%|\d{1,2}(?:\.\d+)?%?)"      # L
+    r"\s+"
+    r"(?:\d+(?:\.\d+)?)"                              # C
+    r"\s+"
+    r"(?:-?\d+(?:\.\d+)?)(?:deg)?"                    # H
+    r"\s*\)$"
+)
+# Per D-10: full CSS-injection blacklist.
+_FORBIDDEN_CHARS: frozenset[str] = frozenset(";{}\"'`\\<>")
+_FORBIDDEN_TOKENS: tuple[str, ...] = ("url(", "expression(", "/*", "*/")
+
+
+def _validate_oklch(value: str) -> str:
+    """Strict oklch validator. Belt-and-braces: blacklist runs BEFORE regex."""
+    if not isinstance(value, str):
+        raise ValueError("color must be a string")
+    if any(ch in _FORBIDDEN_CHARS for ch in value):
+        raise ValueError("color contains forbidden character")
+    lowered = value.lower()
+    if any(tok in lowered for tok in _FORBIDDEN_TOKENS):
+        raise ValueError("color contains forbidden token")
+    if not _OKLCH_RE.match(value):
+        raise ValueError("color must be a valid oklch(L C H) string")
+    return value
+
+
+OklchColor = Annotated[str, AfterValidator(_validate_oklch)]
+
+
+class SettingsUpdate(BaseModel):
+    """Request body for PUT /api/settings. Does NOT include logo bytes (D-05)."""
+
+    color_primary: OklchColor
+    color_accent: OklchColor
+    color_background: OklchColor
+    color_foreground: OklchColor
+    color_muted: OklchColor
+    color_destructive: OklchColor
+    app_name: Annotated[str, Field(min_length=1, max_length=100)]
+    default_language: Literal["DE", "EN"]
+
+
+class SettingsRead(BaseModel):
+    """Response body for GET/PUT /api/settings. Includes logo_url (D-03)."""
+
+    color_primary: str
+    color_accent: str
+    color_background: str
+    color_foreground: str
+    color_muted: str
+    color_destructive: str
+    app_name: str
+    default_language: Literal["DE", "EN"]
+    logo_url: str | None
+    logo_updated_at: datetime | None
+
+    model_config = {"from_attributes": True}
