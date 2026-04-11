@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
 stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-11T19:04:30.201Z"
+last_updated: "2026-04-11T19:04:38.762Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
@@ -105,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 06-settings-page-and-sub-components]: formatDetail() helper added to api.ts to unwrap FastAPI 422 array-shaped detail into readable error strings for toasts
 - [Phase 07-i18n-integration-and-polish]: Plan 07-02: bootstrap.ts is single cold-start i18n writer; reuses fetchSettings; seeds ['settings'] cache; falls back to EN without rethrow or DEFAULT_SETTINGS seed; splash placed INSIDE #root for atomic React replacement
 - [Phase 07-i18n-integration-and-polish]: Plan 07-01: single-stage Dockerfile installs dev deps always (Research Pitfall 2 option A); chromium lives at ~/Library/Caches/ms-playwright on macOS
+- [Phase 07-i18n-integration-and-polish]: Plan 07-02: Extracted shared queryClient singleton into frontend/src/queryClient.ts — App.tsx previously constructed QueryClient inline so bootstrap could not reach it (Rule 3 blocking fix)
+- [Phase 07-i18n-integration-and-polish]: Plan 07-02: bootstrap.ts does NOT seed DEFAULT_SETTINGS on fetchSettings error (D-04) — falling back to changeLanguage('en') only, so useSettings() surfaces the real backend error via existing toast path
+- [Phase 07-i18n-integration-and-polish]: Plan 07-02: Splash is text-free pulsing dots inside #root — React's first commit atomically replaces it; no localized text avoids mis-language flash during bootstrap fetch
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -125,6 +128,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:04:14.172Z
+**Last session:** 2026-04-11T19:04:38.760Z
 **Stopped at:** Completed 07-02-PLAN.md
 **Resume file:** None
