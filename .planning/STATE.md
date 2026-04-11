@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
-status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-04-11T19:11:52.649Z"
+status: completed
+stopped_at: Completed 07-06-PLAN.md
+last_updated: "2026-04-11T19:43:50.329Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 19
-  completed_plans: 18
-  percent: 95
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State: KPI Light
@@ -33,15 +33,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 ## Current Position
 
-Phase: 07 (i18n-integration-and-polish) — EXECUTING
-Plan: 5 of 6 (07-04 complete)
-**Milestone:** v1.1 Branding & Settings
-**Phase:** 7 of 7 (i18n integration and polish)
-**Plan:** 07-05 next
-**Status:** Executing Phase 07
+Phase: 07 (i18n-integration-and-polish) — COMPLETE
+Plan: 6 of 6 (07-06 complete)
+**Milestone:** v1.1 Branding & Settings — COMPLETE
+**Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
+**Plan:** — (all 6 plans in Phase 7 complete)
+**Status:** Phase 07 complete — milestone v1.1 shipped
 **Last activity:** 2026-04-11
 
-Progress: [██████████] 95% (18/19 plans in current scope)
+Progress: [██████████] 100% (19/19 plans in current scope)
 
 ---
 
@@ -83,6 +83,7 @@ Progress: [██████████] 95% (18/19 plans in current scope)
 | Phase 07-i18n-integration-and-polish P05 | 2min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P05 | 1min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
+| Phase 07-i18n-integration-and-polish P06 | 45min | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-05: de.json parity achieved at 109 keys; settings.preferences.title = Allgemein (user preference); contrast.badge uses German decimal comma '4,5 : 1'
 - [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle uses err.message (not formatDetail import) since updateSettings pre-formats errors via module-private formatDetail; keeps lib/api.ts exports untouched and matches SettingsPage.handleSave pattern
 - [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle is pessimistic — i18n.changeLanguage fires only after server ack so a failed PUT never leaves runtime language out of sync with DB
+- [Phase 07-i18n-integration-and-polish]: Plan 07-06: Rebuild-persistence harness (scripts/smoke-rebuild.sh) seeds via pytest, rebuilds stack with docker compose up --build, asserts via fresh pytest session, visually asserts via Playwright, runs host-side locale parity, and traps EXIT for singleton cleanup. SC4 verified green; user approved D-27.
+- [Phase 07-i18n-integration-and-polish]: Plan 07-06: bootstrap.ts mirrors i18n.language onto document.documentElement.lang on init AND on every languageChanged event (Rule 2 deviation) — fixes a11y contract and unblocks Playwright html[lang=de] assertion; preserves single-writer invariant.
+- [Phase 07-i18n-integration-and-polish]: Plan 07-06 post-approval: NavBar LanguageToggle no longer fires success toast (5d7917b) — the visible language flip is self-confirming; reduces post-07-04 UX noise.
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -142,6 +146,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:11:44.363Z
-**Stopped at:** Completed 07-04-PLAN.md
+**Last session:** 2026-04-11T19:43:25.838Z
+**Stopped at:** Completed 07-06-PLAN.md
 **Resume file:** None

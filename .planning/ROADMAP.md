@@ -96,7 +96,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   - [x] 07-03-PLAN.md — PreferencesCard + useSettingsDraft i18n extension + SettingsDraftContext + 4 new EN keys
   - [x] 07-04-PLAN.md — NavBar LanguageToggle rewrite (useMutation, dirty-aware disable, full PUT payload)
   - [x] 07-05-PLAN.md — Full DE translation pass (111 keys, informal du, loanwords, fix 2 pre-existing Sie strings)
-  - [ ] 07-06-PLAN.md — Rebuild persistence harness (pytest seed/assert/cleanup + Playwright + smoke-rebuild.sh + human verify)
+  - [x] 07-06-PLAN.md — Rebuild persistence harness (pytest seed/assert/cleanup + Playwright + smoke-rebuild.sh + human verify)
 
 ## Progress
 
