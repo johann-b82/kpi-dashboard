@@ -1,4 +1,5 @@
 import type { PrevBounds } from "./prevBounds.ts";
+import type { ComparisonMode } from "./chartComparisonMode.ts";
 
 export const kpiKeys = {
   all: ["kpis"] as const,
@@ -10,10 +11,23 @@ export const kpiKeys = {
    */
   summary: (start?: string, end?: string, prev?: PrevBounds) =>
     ["kpis", "summary", { start, end, prev }] as const,
+  /**
+   * Phase 10: embed comparison mode + prev bounds so TanStack Query
+   * invalidates whenever the user changes preset or the derived prior
+   * window shifts. Lock-step with KpiCardGrid's summary key (SC5).
+   */
   chart: (
     start: string | undefined,
     end: string | undefined,
     granularity: string,
-  ) => ["kpis", "chart", { start, end, granularity }] as const,
+    comparison?: ComparisonMode,
+    prevStart?: string,
+    prevEnd?: string,
+  ) =>
+    [
+      "kpis",
+      "chart",
+      { start, end, granularity, comparison, prevStart, prevEnd },
+    ] as const,
   latestUpload: () => ["kpis", "latest-upload"] as const,
 };

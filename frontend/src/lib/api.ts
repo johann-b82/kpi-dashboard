@@ -88,6 +88,8 @@ export interface ChartResponse {
   previous: ChartPoint[] | null;
 }
 
+import type { ComparisonMode } from "./chartComparisonMode.ts";
+
 export interface LatestUploadResponse {
   uploaded_at: string | null;
 }
@@ -117,10 +119,18 @@ export async function fetchChartData(
   start: string | undefined,
   end: string | undefined,
   granularity: "daily" | "weekly" | "monthly" = "monthly",
+  comparison?: ComparisonMode,
+  prevStart?: string,
+  prevEnd?: string,
 ): Promise<ChartResponse> {
   const params = new URLSearchParams({ granularity });
   if (start) params.set("start_date", start);
   if (end) params.set("end_date", end);
+  if (comparison && comparison !== "none") {
+    params.set("comparison", comparison);
+    if (prevStart) params.set("prev_start", prevStart);
+    if (prevEnd) params.set("prev_end", prevEnd);
+  }
   const res = await fetch(`/api/kpis/chart?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch chart data");
   return res.json();
