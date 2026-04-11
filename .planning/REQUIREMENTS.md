@@ -27,8 +27,8 @@
 - [ ] **CARD-01**: Each of the 3 existing summary cards (revenue, avg order value, total orders) renders two compact delta badges below the main value: one for `vs. Vorperiode` and one for `vs. Vorjahr`.
 - [ ] **CARD-02**: Delta badges show an up-triangle `▲` (green, `--color-primary` or semantic positive token) for positive deltas and a down-triangle `▼` (red, `--color-destructive`) for negative deltas.
 - [ ] **CARD-03**: The badge format is `▲ +12,4 %` / `▼ −8,1 %` — German locale uses comma decimal separator, EN locale uses period decimal separator, always one decimal place.
-- [ ] **CARD-04**: When the comparison baseline is `null` (no prior data, "Gesamter Zeitraum", first month of data, or divide-by-zero), the badge renders as a grayscale em-dash `—` with a tooltip explaining *why* (`keine Vergleichsperiode verfügbar` / `no comparison period available`).
-- [ ] **CARD-05**: Each delta badge is accompanied by a muted secondary label showing what it's comparing to, contextual to the selected date filter — e.g., "vs. März" when the filter is "Dieses Jahr", "vs. Q1" when it's "Dieses Quartal", "vs. Vorwoche" when the filter is a 1-week custom range.
+- [x] **CARD-04**: When the comparison baseline is `null` (no prior data, "Gesamter Zeitraum", first month of data, or divide-by-zero), the badge renders as a grayscale em-dash `—` with a tooltip explaining *why* (`keine Vergleichsperiode verfügbar` / `no comparison period available`).
+- [x] **CARD-05**: Each delta badge is accompanied by a muted secondary label showing what it's comparing to, contextual to the selected date filter — e.g., "vs. März" when the filter is "Dieses Jahr", "vs. Q1" when it's "Dieses Quartal", "vs. Vorwoche" when the filter is a 1-week custom range.
 
 ### Frontend — Chart Overlay
 

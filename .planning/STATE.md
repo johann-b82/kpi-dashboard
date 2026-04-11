@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-04-11T21:22:17.200Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-04-11T21:52:21.945Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 100
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 08 — backend-comparison-aggregation-and-chart-overlay-api
+**Current focus:** Phase 09 — frontend-kpi-card-dual-deltas
 
 ---
 
 ## Current Position
 
-Phase: 08 (backend-comparison-aggregation-and-chart-overlay-api) — EXECUTING
-Plan: 3 of 3
+Phase: 09 (frontend-kpi-card-dual-deltas) — EXECUTING
+Plan: 2 of 3
 **Milestone:** v1.1 Branding & Settings — COMPLETE
 **Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
 **Plan:** — (all 6 plans in Phase 7 complete)
-**Status:** Executing Phase 08
+**Status:** Executing Phase 09
 **Last activity:** 2026-04-11
 
 Progress: [██████████] 100% (19/19 plans in current scope)
@@ -87,6 +87,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 08-backend-comparison-aggregation-and-chart-overlay-api P01 | 6min | 2 tasks | 3 files |
 | Phase 08-backend-comparison-aggregation-and-chart-overlay-api P02 | 8min | 3 tasks | 3 files |
 | Phase 08 P03 | 14min | 4 tasks | 5 files |
+| Phase 09-frontend-kpi-card-dual-deltas P01 | 15min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,10 @@ Recent decisions affecting current work:
 - [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-02: Sequential awaits on shared AsyncSession (not asyncio.gather) — AsyncSession is not safe for concurrent execute() on a single connection; plan's done criteria explicitly allowed the sequential fallback
 - [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-02: Additive non-breaking response shape — top-level current fields preserved, previous_period/previous_year added as nullable siblings; half-specified window and zero-row window both collapse to None (DELTA-05)
 - [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-03: Positional alignment kept for prior series (not upgraded to dense-bucket generation); contract test uses matched seed counts so SC5 sum-equality holds. Known sparse-prior limitation documented for Phase 10 to revisit if visual drift surfaces. Atomic frontend migration of fetchChartData + RevenueChart in same plan — dashboard still builds green, previous series silently available but not rendered.
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: Skipped introducing vitest/jest — verification lives in throwaway node --experimental-strip-types script per plan test_strategy (no new deps)
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: getPresetRange migrated to to-date (MTD/QTD/YTD) semantics with optional today override; endOfMonth/Quarter/Year imports removed from dateUtils.ts per 09-CONTEXT decision A
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: formatPrevPeriodLabel signature gained rangeLengthDays?: number hint to cleanly distinguish custom short (<7d) vs generic branches without re-importing differenceInDays
+- [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-01: Intra-frontend lib/*.ts imports touched by Phase 9 use explicit .ts extensions so Node --experimental-strip-types ESM loader resolves the graph; tsc allowImportingTsExtensions=true already permits this
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -153,6 +158,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T21:21:57.898Z
-**Stopped at:** Completed 08-03-PLAN.md
+**Last session:** 2026-04-11T21:52:04.048Z
+**Stopped at:** Completed 09-01-PLAN.md
 **Resume file:** None

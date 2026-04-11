@@ -71,7 +71,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   4. Each delta badge shows a muted secondary label contextual to the selected date filter — e.g., "vs. März" for "Dieses Jahr", "vs. Q1" for "Dieses Quartal", "vs. Vorwoche" for a 1-week custom range — sourced from the filter scope, not hard-coded
   5. Cards still update live on date filter change and on new upload (existing TanStack Query invalidation path) — delta badges re-render with the new baselines without full page reload
 **Plans:** 3 plans
-  - [ ] 09-01-PLAN.md — Foundation layer: computeDelta + computePrevBounds + periodLabels pure utils, to-date preset semantics migration, extended KpiSummary type / fetchKpiSummary / kpiKeys.summary for Phase 8 contract
+  - [x] 09-01-PLAN.md — Foundation layer: computeDelta + computePrevBounds + periodLabels pure utils, to-date preset semantics migration, extended KpiSummary type / fetchKpiSummary / kpiKeys.summary for Phase 8 contract
   - [ ] 09-02-PLAN.md — Presentational components: DeltaBadge + DeltaBadgeStack + KpiCard `delta?` slot prop + 6 new EN locale keys (DE parity deferred to Phase 11)
   - [ ] 09-03-PLAN.md — Dashboard integration: lift activePreset state to DashboardPage, wire KpiCardGrid with prev bounds + delta math + labels + DeltaBadgeStack, human verification at 1080p + 1440p across DE/EN and all 4 presets
 **UI hint**: yes
