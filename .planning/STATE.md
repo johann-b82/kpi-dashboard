@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
 status: executing
-stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-04-11T19:11:19.459Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-04-11T19:11:52.649Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
   completed_plans: 18
-  percent: 84
+  percent: 95
 ---
 
 # Project State: KPI Light
@@ -82,6 +82,7 @@ Progress: [██████████] 95% (18/19 plans in current scope)
 | Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P05 | 2min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P05 | 1min | 1 tasks | 1 files |
+| Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle rewritten with TanStack useMutation + pessimistic i18n.changeLanguage; disable state via useSettingsDraftStatus (no route sniffing); full 8-field PUT payload read from cache (no DEFAULT_SETTINGS fallback)
 - [Phase 07-i18n-integration-and-polish]: Plan 07-05: de.json parity achieved at 109 keys (plan said 111, actual count derived from en.json); settings.preferences.title = 'Allgemein' per user preference; contrast badge uses German decimal comma '4,5 : 1'
 - [Phase 07-i18n-integration-and-polish]: Plan 07-05: de.json parity achieved at 109 keys; settings.preferences.title = Allgemein (user preference); contrast.badge uses German decimal comma '4,5 : 1'
+- [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle uses err.message (not formatDetail import) since updateSettings pre-formats errors via module-private formatDetail; keeps lib/api.ts exports untouched and matches SettingsPage.handleSave pattern
+- [Phase 07-i18n-integration-and-polish]: Plan 07-04: LanguageToggle is pessimistic — i18n.changeLanguage fires only after server ack so a failed PUT never leaves runtime language out of sync with DB
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -139,6 +142,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T19:11:19.456Z
-**Stopped at:** Completed 07-05-PLAN.md
+**Last session:** 2026-04-11T19:11:44.363Z
+**Stopped at:** Completed 07-04-PLAN.md
 **Resume file:** None
