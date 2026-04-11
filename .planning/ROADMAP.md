@@ -1,79 +1,32 @@
 # Roadmap: ACM KPI Light
 
-**Created:** 2026-04-10
-**Milestone:** v1
-**Granularity:** Coarse
-**Coverage:** 13/13 requirements mapped
+## Milestones
 
----
+- ✅ **v1.0 MVP** — Phases 1–3 (shipped 2026-04-11) — [archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
 
-- [x] **Phase 1: Infrastructure and Schema** - Running Docker Compose stack with correct schema, migrations, and startup ordering
-- [x] **Phase 2: File Ingestion Pipeline** - End-to-end file upload, parsing, validation, and database storage with history (completed 2026-04-10)
-- [ ] **Phase 3: Dashboard Frontend** - KPI query API and interactive React dashboard with all visualizations
+<details>
+<summary>✅ v1.0 MVP (Phases 1–3) — SHIPPED 2026-04-11</summary>
 
----
+- [x] Phase 1: Infrastructure and Schema (2/2 plans) — completed 2026-04-10
+- [x] Phase 2: File Ingestion Pipeline (4/4 plans) — completed 2026-04-10
+- [x] Phase 3: Dashboard Frontend (4/4 plans) — completed 2026-04-11
 
-## Phase Details
+Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
+Requirements: [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
+Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 
-### Phase 1: Infrastructure and Schema
-**Goal**: The full Docker Compose stack runs reliably with a correct, future-proof database schema
-**Depends on**: Nothing (first phase)
-**Requirements**: INFR-01, INFR-02
-**Success Criteria** (what must be TRUE):
-  1. Running `docker compose up` starts both containers (db + api) without error, in the correct order
-  2. The database is accessible from the API container and persists data across restarts
-  3. Alembic migrations run cleanly and produce the upload_batches and sales_records tables with TIMESTAMPTZ date columns (UNIQUE constraint on natural business key deferred to Phase 2 per D-03 — placeholder columns)
-  4. Stopping and restarting the stack does not destroy data (named volume confirmed working)
-**Plans:** 2 plans
+</details>
 
-Plans:
-- [x] 01-01-PLAN.md — Create project scaffold, Docker infrastructure, FastAPI app, models, and Alembic setup
-- [x] 01-02-PLAN.md — Bring up Docker stack, generate initial migration, verify end-to-end
+### 📋 Next Milestone
 
-### Phase 2: File Ingestion Pipeline
-**Goal**: Users can upload CSV and TXT tab-delimited ERP export files and see them parsed, validated, stored, and listed in upload history with a bilingual (DE/EN) React frontend
-**Depends on**: Phase 1
-**Requirements**: UPLD-01, UPLD-02, UPLD-03, UPLD-04, UPLD-05, MGMT-01
-**Success Criteria** (what must be TRUE):
-  1. User can drag-and-drop or browse to select a CSV or TXT file and see an indeterminate spinner during upload
-  2. A valid file is parsed and its rows appear in the database; the upload history list shows filename, timestamp, row count, status, and error count
-  3. An invalid file type is immediately rejected with a clear error message naming the unsupported format
-  4. A file with malformed data produces actionable error messages identifying the specific row and column that failed
-**Plans:** 4/4 plans complete
-
-Plans:
-- [x] 02-01-PLAN.md — Backend data layer: column mapping, ERP parser, models (38-col schema), Pydantic schemas
-- [x] 02-02-PLAN.md — API endpoints: POST /api/upload, GET /api/uploads, DELETE /api/uploads/{id}, Alembic migration
-- [x] 02-03-PLAN.md — Frontend scaffold: Vite + React + Tailwind + shadcn + i18n + Docker container
-- [x] 02-04-PLAN.md — Frontend UI: DropZone, ErrorList, UploadHistory, DeleteConfirmDialog, LanguageToggle
-
-### Phase 3: Dashboard Frontend
-**Goal**: Users can view interactive KPI visualizations of all uploaded data and filter by date range
-**Depends on**: Phase 2
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, INFR-03
-**Success Criteria** (what must be TRUE):
-  1. Dashboard displays summary metric cards for total revenue, average order value, and total orders, populated from real database data
-  2. Dashboard displays a time-series chart showing revenue over time
-  3. User can filter the dashboard by a date range and the cards and chart update to reflect the selected period
-  4. Dashboard shows a data freshness indicator with the timestamp of the most recent upload
-  5. After a successful upload, the dashboard automatically refreshes to reflect the new data without a manual page reload
-**Plans:** 4 plans
-**UI hint**: yes
-
-Plans:
-- [x] 03-01-PLAN.md — Backend KPI API: three aggregation endpoints (/api/kpis, /chart, /latest-upload) + order_date index migration
-- [x] 03-02-PLAN.md — Frontend routing shell: wouter router, NavBar, FreshnessIndicator, KPI fetch helpers, queryKeys factory, UploadPage cleanup
-- [x] 03-03-PLAN.md — KPI cards + date range filter: KpiCard/KpiCardGrid, DateRangeFilter with presets and shadcn calendar popover, DashboardPage composition
-- [x] 03-04-PLAN.md — Revenue chart + toggles + auto-refresh: RevenueChart (line/bar), granularity toggle, chart type toggle, DropZone kpi invalidation
-
----
+Not yet scoped. Run `/gsd:new-milestone` to define requirements and roadmap for v1.1.
 
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Infrastructure and Schema | 2/2 | Complete | 2026-04-10 |
-| 2. File Ingestion Pipeline | 4/4 | Complete   | 2026-04-10 |
-| 3. Dashboard Frontend | 0/4 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Infrastructure and Schema | v1.0 | 2/2 | Complete | 2026-04-10 |
+| 2. File Ingestion Pipeline | v1.0 | 4/4 | Complete | 2026-04-10 |
+| 3. Dashboard Frontend | v1.0 | 4/4 | Complete | 2026-04-11 |

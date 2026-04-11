@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-04-11T06:47:07.784Z"
+milestone_name: MVP
+status: shipped
+stopped_at: v1.0 milestone complete
+last_updated: "2026-04-11T07:30:00.000Z"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -15,111 +15,61 @@ progress:
 
 # Project State: ACM KPI Light
 
-**Last updated:** 2026-04-10
-**Session:** Phase 01 complete — Docker stack operational
+**Last updated:** 2026-04-11
+**Session:** v1.0 MVP shipped — awaiting v1.1 scoping
 
 ---
 
 ## Project Reference
 
+See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
+
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 03 — dashboard-frontend
+**Current focus:** Planning next milestone — run `/gsd:new-milestone` to scope v1.1.
 
 ---
 
 ## Current Position
 
-Phase: 03 (dashboard-frontend) — COMPLETE
-Plan: 4 of 4 (done)
-**Milestone:** v1
-**Phase:** 03
-**Plan:** Not started
-**Status:** Milestone complete
+**Milestone:** v1.0 (shipped 2026-04-11)
+**Status:** All phases complete, milestone archived
 
-**Progress:**
-
-[██████████] 100%
-[Phase 1] Infrastructure and Schema  [X] Complete (2/2 plans)
-[Phase 2] File Ingestion Pipeline    [ ] In Progress (1/4 plans)
-[Phase 3] Dashboard Frontend         [ ] Not started
-
-Overall: 1/3 phases complete
+```
+[██████████] 100% (v1.0 MVP)
+[Phase 1] Infrastructure and Schema  [x] Complete (2/2 plans) — 2026-04-10
+[Phase 2] File Ingestion Pipeline    [x] Complete (4/4 plans) — 2026-04-10
+[Phase 3] Dashboard Frontend         [x] Complete (4/4 plans) — 2026-04-11
+```
 
 ---
-
-## Performance Metrics
-
-**Plans executed:** 2
-**Plans succeeded first attempt:** 2
-**Repairs used:** 0
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 01 | 01 | 108s | 2 | 16 |
-| 01 | 02 | 291s | 2 | 2 |
-| 02 | 03 | 5min | 2 | 34 |
-
----
-| Phase 02 P01 | 297 | 2 tasks | 6 files |
-| Phase 02 P02 | 339 | 2 tasks | 4 files |
-| Phase 02 P04 | 15min | 1 tasks | 8 files |
-| Phase 03 P02 | 4min | 2 tasks | 11 files |
-| Phase 03 P01 | 93s | 2 tasks | 4 files |
-| Phase 03 P03 | 3min | 2 tasks | 11 files |
-| Phase 03 P04 | 120 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
-### Key Decisions
-
-| Decision | Rationale | Phase |
-|----------|-----------|-------|
-| Three phases (coarse granularity) | 13 requirements cluster into 3 natural delivery boundaries: infrastructure, ingestion, dashboard | Roadmap |
-| API routes merged into Phase 3 | KPI query API and dashboard frontend are built together — they share the upload-refresh flow and the API has no independent deliverable worth a standalone phase | Roadmap |
-| FastAPI + SQLAlchemy 2.0 async + PostgreSQL 17-alpine | Research-verified stack; native async; exact versions pinned | Pre-phase |
-| Alembic for migrations (never create_all) | Cannot add TIMESTAMPTZ/UNIQUE constraints after data exists | Phase 1 |
-| Docker Compose three-service pattern (db -> migrate -> api) | Healthcheck dependency chain ensures correct startup ordering | Phase 1 |
-| Rebuild migrate image after migration generation | Migrate service uses COPY layer, not volume mount; must rebuild to include new migrations | Phase 1 |
-| Synchronous in-memory file parsing | < 50MB files; no background workers needed; simpler and sufficient | Phase 2 |
-| INSERT ... ON CONFLICT DO NOTHING | Idempotent re-uploads; requires UNIQUE constraint on business key | Phase 2 |
-| TanStack Query invalidateQueries after upload | Prevents stale dashboard data after upload; must be designed as a single flow | Phase 3 |
-| shadcn init requires path alias in root tsconfig.json | shadcn CLI reads tsconfig.json root, not tsconfig.app.json — paths must be in both | Phase 2 |
-| Vite Docker proxy pattern with no env var | server.host 0.0.0.0 + /api proxy to http://api:8000; no VITE_API_URL switching needed | Phase 2 |
-| Tailwind v4 CSS-first config | @import tailwindcss + @theme in index.css; no tailwind.config.js or postcss.config.js | Phase 2 |
-| GERMAN_TO_ENGLISH empty string key for column 2 | ERP export column 2 has no German header; empty string key maps it to erp_status_flag | Phase 2 |
-| df.map not df.applymap for pandas 3.x | df.applymap removed in pandas 3.x; df.map is the correct API for element-wise cell transforms | Phase 2 |
-| batch.row_count updated to result.rowcount post pg_insert | Reflects actual rows inserted, not rows attempted; ON CONFLICT skips don't inflate the count | Phase 2 |
-| FastAPI APIRouter with /api prefix wired via app.include_router | Standard FastAPI router pattern; prefix set on router not on include_router for clarity | Phase 2 |
-| base-ui PopoverTrigger render prop (not Radix asChild) | shadcn in this repo wraps @base-ui/react/popover; Radix-style asChild does not exist — use render={<Button />} | Phase 3 |
-
-### Research Flags
-
-- **Phase 2 needs phase research before planning:** Excel datetime parsing edge cases, composite UNIQUE key design for the actual schema, pandas behavior with mixed date formats. Real sample files required.
-- **Actual sales data column names unknown:** Research assumes order_date, revenue, order_id — must confirm with real sample data before Phase 2 begins.
-
-### Todos
-
-- [ ] Confirm actual sales file column names and types before Phase 2 planning
-- [ ] Confirm whether .xls support is needed or only .xlsx
-
-### Blockers
+### Open Blockers
 
 None.
+
+### Carry-forward Tech Debt (from v1.0 audit)
+
+- **Phase 2 human-UAT:** 5 visual items pending (drag-drop spinner, toast, inline error list, file-type rejection UI) — tracked in archived `milestones/v1.0-phases/02-file-ingestion-pipeline/02-HUMAN-UAT.md`. Non-blocking.
+- **DASH-02 monthly-only:** Granularity toggle removed by user request post-verification. Backend `/api/kpis/chart` still supports `granularity=daily|weekly|monthly` — cheap to re-enable if needed in v1.1.
+
+### Open Todos
+
+_(None — all v1.0 backlog absorbed into shipped features or deferred to v1.1 scoping)_
 
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T06:43:17.581Z
-**Stopped at:** Completed 03-04-PLAN.md
-
-**To resume:** Run `/gsd:execute-phase 2` to begin Phase 2 (File Ingestion Pipeline). Phase research required first (sample data needed).
+**Last session:** 2026-04-11 — v1.0 milestone shipped
+**Stopped at:** Post-archive — next action: `/gsd:new-milestone`
 
 **Context for next session:**
 
-- Phase 1 COMPLETE: Docker Compose stack operational, Alembic migration applied, health endpoint verified
-- Phase 2 delivers the full file ingestion pipeline including upload UI and history (UPLD-01 through UPLD-05, MGMT-01)
-- Phase 3 delivers the KPI query API and React dashboard frontend (DASH-01 through DASH-04, INFR-03)
-- Research is HIGH confidence; Phase 2 planning needs sample data for schema decisions
-- Actual sales file column names still unknown — must confirm before Phase 2 planning
+- Full milestone history: `.planning/milestones/v1.0-ROADMAP.md`
+- Shipped requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
+- Audit (status: tech_debt, 13/13 satisfied): `.planning/milestones/v1.0-MILESTONE-AUDIT.md`
+- Retrospective + lessons: `.planning/RETROSPECTIVE.md`
+- PROJECT.md evolved with "Current State" and "Next Milestone Goals" sections
