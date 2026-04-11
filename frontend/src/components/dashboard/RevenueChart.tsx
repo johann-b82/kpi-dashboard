@@ -197,8 +197,7 @@ export function RevenueChart({
               {showPrior && (
                 <Bar
                   dataKey="revenuePrior"
-                  fill="var(--color-success)"
-                  fillOpacity={0.4}
+                  fill="var(--color-success-light)"
                   name={labels.prior}
                 />
               )}
@@ -243,9 +242,8 @@ export function RevenueChart({
                 <Line
                   type="monotone"
                   dataKey="revenuePrior"
-                  stroke="var(--color-success)"
-                  strokeDasharray="4 4"
-                  strokeOpacity={0.4}
+                  stroke="var(--color-success-light)"
+                  strokeWidth={2}
                   dot={false}
                   name={labels.prior}
                 />
