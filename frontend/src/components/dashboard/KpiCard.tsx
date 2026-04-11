@@ -25,15 +25,11 @@ export function KpiCard({ label, value, isLoading, delta }: KpiCardProps) {
   }
   return (
     <Card className="p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {label}
-          </p>
-          <p className="text-3xl font-semibold tabular-nums mt-2">
-            {value ?? "—"}
-          </p>
-        </div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <div className="mt-2 flex items-center justify-between gap-4">
+        <p className="text-3xl font-semibold tabular-nums">{value ?? "—"}</p>
         {delta != null && (
           <div className="flex-shrink-0 text-right">{delta}</div>
         )}
