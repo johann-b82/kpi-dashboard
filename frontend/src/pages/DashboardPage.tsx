@@ -1,14 +1,26 @@
-import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import {
+  DateRangeFilter,
+  type DateRangeValue,
+} from "@/components/dashboard/DateRangeFilter";
+import { KpiCardGrid } from "@/components/dashboard/KpiCardGrid";
+import { getPresetRange, toApiDate } from "@/lib/dateUtils";
 
 export function DashboardPage() {
-  useTranslation(); // ensures i18n is initialized on this page
+  // D-13: Default range = current calendar year
+  const [range, setRange] = useState<DateRangeValue>(() => {
+    const initial = getPresetRange("thisYear");
+    return { from: initial.from, to: initial.to };
+  });
+
+  const startDate = toApiDate(range.from);
+  const endDate = toApiDate(range.to);
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      {/* Plan 03 inserts DateRangeFilter and KpiCardGrid here */}
-      {/* Plan 04 inserts RevenueChart here */}
-      <div data-testid="dashboard-stub" className="text-sm text-muted-foreground">
-        Dashboard loading…
-      </div>
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <DateRangeFilter value={range} onChange={setRange} />
+      <KpiCardGrid startDate={startDate} endDate={endDate} />
+      {/* Plan 04 will render <RevenueChart startDate={startDate} endDate={endDate} /> here */}
     </div>
   );
 }
