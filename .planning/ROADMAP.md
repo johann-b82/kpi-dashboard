@@ -44,8 +44,8 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 **Plans:** 6 plans
   - [x] 04-01-PLAN.md — Wave 0 deps + test harness scaffold (nh3, pytest stack, conftest)
   - [x] 04-02-PLAN.md — AppSettings model + defaults.py + Alembic migration with singleton seed
-  - [ ] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
-  - [ ] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
+  - [x] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
+  - [x] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
   - [ ] 04-05-PLAN.md — Settings router (4 handlers) + integration tests for success criteria 1–4
   - [ ] 04-06-PLAN.md — Docker rebuild verification (criterion 5) + human checkpoint
 
