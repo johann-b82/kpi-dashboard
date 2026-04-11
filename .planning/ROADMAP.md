@@ -47,7 +47,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
   - [x] 04-03-PLAN.md — Pydantic schemas + BRAND-09 strict oklch validator with unit tests
   - [x] 04-04-PLAN.md — Logo validation module (nh3 SVG sanitize, PNG magic bytes) with unit tests
   - [x] 04-05-PLAN.md — Settings router (4 handlers) + integration tests for success criteria 1–4
-  - [ ] 04-06-PLAN.md — Docker rebuild verification (criterion 5) + human checkpoint
+  - [x] 04-06-PLAN.md — Docker rebuild verification (criterion 5) + human checkpoint
 
 ### Phase 5: Frontend Plumbing — ThemeProvider and NavBar
 **Goal**: The running app applies persisted settings on every load — NavBar shows the stored logo and app name, CSS variables reflect stored colors, and no default-brand flash occurs during the settings fetch

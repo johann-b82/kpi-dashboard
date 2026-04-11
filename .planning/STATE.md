@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Branding & Settings
-status: awaiting-human-verification
-stopped_at: "04-06 Task 1 committed (fc0955d); awaiting human docker rebuild verification"
-last_updated: "2026-04-11T10:10:16.446Z"
+status: active
+stopped_at: "Completed 04-06-PLAN.md (Phase 4 fully verified — all 5 success criteria PASS)"
+last_updated: "2026-04-11T10:35:00.000Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
-  percent: 33
+  completed_plans: 6
+  percent: 50
 ---
 
 # Project State: KPI Light
@@ -33,15 +33,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 ## Current Position
 
-Phase: 04 (backend-schema-api-and-security) — EXECUTING
-Plan: 6 of 6
+Phase: 04 (backend-schema-api-and-security) — COMPLETE
+Plan: 6 of 6 (DONE)
 **Milestone:** v1.1 Branding & Settings
-**Phase:** 4 of 7 (Backend — Schema, API, and Security)
-**Plan:** 04-06 in progress — Task 1 committed (fc0955d); Task 2 is a human-verification checkpoint (docker rebuild + logo SHA match)
-**Status:** Phase 04 — awaiting human verification for 04-06
+**Phase:** 4 of 7 (Backend — Schema, API, and Security) — COMPLETE
+**Plan:** 04-06 complete — smoke script + rebuild runbook delivered; human verification approved (all 5 Phase 4 success criteria PASS)
+**Status:** Phase 04 complete; ready to start Phase 05 (Frontend Settings Page)
 **Last activity:** 2026-04-11
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100% (Phase 04)
 
 ---
 
@@ -66,6 +66,7 @@ Progress: [████████░░] 83%
 | Phase 04-backend-schema-api-and-security P02 | 3min | 2 tasks | 3 files |
 | Phase 04-backend-schema-api-and-security P03 | 5min | 2 tasks | 2 files |
 | Phase 04-backend-schema-api-and-security P05 | 4min | 2 tasks | 4 files |
+| Phase 04-backend-schema-api-and-security P06 | 10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 04-backend-schema-api-and-security]: Plan 04-02: AppSettings singleton via CheckConstraint(id=1); migration duplicates defaults literally (no import of app.defaults) per D-18
 - [Phase 04-backend-schema-api-and-security]: Plan 04-03: Pydantic belt-and-braces validator (blacklist before regex) for BRAND-09; local reset_settings override in test_color_validator.py isolates pure unit tests from parallel Wave 2 DB work
 - [Phase 04-backend-schema-api-and-security]: Plan 04-05: /api/settings/* router wired (GET/PUT + logo POST/GET with weak ETag/304); engine.dispose() per-test fixture override unblocks shared asyncpg pool across test event loops
+- [Phase 04-backend-schema-api-and-security]: Plan 04-06: Phase 4 smoke script + docker rebuild runbook landed; human verification approved (PASSED 16 / FAILED 0, rebuild SHAs matched). Runbook SVG bug fixed during verification: self-closing `<circle/>` is rewritten by nh3 html5ever and hits reject-on-mutation; explicit close-tag form required.
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -101,6 +103,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T10:10:16.443Z
-**Stopped at:** Completed 04-05-PLAN.md
+**Last session:** 2026-04-11T10:35:00.000Z
+**Stopped at:** Completed 04-06-PLAN.md (Phase 04 fully verified)
 **Resume file:** None
