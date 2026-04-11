@@ -10,7 +10,7 @@
 
 ### Settings Infrastructure
 
-- [ ] **SET-01**: User can navigate to a dedicated Settings page via a top-nav link
+- [x] **SET-01**: User can navigate to a dedicated Settings page via a top-nav link
 - [x] **SET-02**: All settings persist in PostgreSQL via a new `app_settings` singleton table (Alembic migration)
 - [x] **SET-03**: Backend exposes `GET /api/settings` and `PUT /api/settings` with Pydantic validation (color format, language enum, size/type constraints)
 - [x] **SET-04**: User can click "Reset to defaults" to revert all settings to canonical values defined in `backend/app/defaults.py`
@@ -24,7 +24,7 @@
 - [x] **BRAND-05**: User can edit all 6 semantic color tokens (primary, accent, background, foreground, muted, destructive) via hex color inputs; values are converted to oklch before API submission
 - [x] **BRAND-06**: User can edit the app name; the new name replaces "KPI Light" in the top-nav header AND in the browser tab title (`document.title`)
 - [x] **BRAND-07**: While editing, theme changes (colors, logo, app name) reflect instantly as a live preview via CSS variable injection on `:root`; changes only persist after explicit Save
-- [ ] **BRAND-08**: Color inputs show a WCAG AA contrast badge (warn, do not block) for the 3 critical pairs: primary/primary-foreground, background/foreground, destructive/white
+- [x] **BRAND-08**: Color inputs show a WCAG AA contrast badge (warn, do not block) for the 3 critical pairs: primary/primary-foreground, background/foreground, destructive/white
 - [x] **BRAND-09**: Backend validates color strings against a strict oklch/hex regex (rejecting `;`, `}`, `{`, `url(`, `expression(`, quotes) to prevent CSS injection
 
 ### i18n Default Language
