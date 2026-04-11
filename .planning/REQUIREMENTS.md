@@ -47,14 +47,14 @@
 
 | ID | Description | Phase | Status |
 |----|-------------|-------|--------|
-| DELTA-01 | Summary endpoint returns comparison objects | Phase 8 | Not started |
-| DELTA-02 | Previous-period SQL window | Phase 8 | Not started |
-| DELTA-03 | Calendar-matched prior-year window | Phase 8 | Not started |
-| DELTA-04 | Null comparisons for "Gesamter Zeitraum" | Phase 8 | Not started |
-| DELTA-05 | Null distinguishes no-data from zero | Phase 8 | Not started |
-| CHART-01 | Chart endpoint `comparison` param + `previous_series` | Phase 8 | Not started |
-| CHART-02 | Chart aggregation reuses card SQL | Phase 8 | Not started |
-| CHART-03 | Null buckets for partial prior data | Phase 8 | Not started |
+| DELTA-01 | Summary endpoint returns comparison objects | Phase 8 | Complete |
+| DELTA-02 | Previous-period SQL window | Phase 8 | Complete |
+| DELTA-03 | Calendar-matched prior-year window | Phase 8 | Complete |
+| DELTA-04 | Null comparisons for "Gesamter Zeitraum" | Phase 8 | Complete |
+| DELTA-05 | Null distinguishes no-data from zero | Phase 8 | Complete |
+| CHART-01 | Chart endpoint `comparison` param + `previous_series` | Phase 8 | Complete |
+| CHART-02 | Chart aggregation reuses card SQL | Phase 8 | Complete |
+| CHART-03 | Null buckets for partial prior data | Phase 8 | Complete |
 | CARD-01 | Dual delta badges on all 3 cards | Phase 9 | Not started |
 | CARD-02 | Up/down arrow + positive/negative color | Phase 9 | Not started |
 | CARD-03 | Locale-aware percentage formatting | Phase 9 | Not started |
