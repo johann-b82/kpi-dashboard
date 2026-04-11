@@ -10,10 +10,10 @@
 
 ### Backend — Comparison Aggregation
 
-- [ ] **DELTA-01**: `GET /api/dashboard/summary` returns — in addition to the existing current-period fields — two parallel comparison objects `previous_period` and `previous_year`, each with the same schema (`total_revenue`, `avg_order_value`, `total_orders`) or `null` when no comparable window exists.
+- [x] **DELTA-01**: `GET /api/dashboard/summary` returns — in addition to the existing current-period fields — two parallel comparison objects `previous_period` and `previous_year`, each with the same schema (`total_revenue`, `avg_order_value`, `total_orders`) or `null` when no comparable window exists.
 - [x] **DELTA-02**: The backend derives `previous_period` as the same-length window immediately preceding the current `[from, to]` filter (e.g., `[Mar 1, Mar 31]` for a current filter of `[Apr 1, Apr 30]`). Computed via SQL `date_trunc` / interval math, not Python date arithmetic, to stay time-zone safe against the app's UTC Postgres instance.
 - [x] **DELTA-03**: The backend derives `previous_year` as the calendar-matched window exactly one year before the current `[from, to]` filter (e.g., `[Apr 1 2025, Apr 30 2025]`). Leap-year edge cases (Feb 29 → Feb 28) are handled without throwing.
-- [ ] **DELTA-04**: When the current filter is "Gesamter Zeitraum" (no explicit bounds), `previous_period` and `previous_year` are both `null` — no implicit baseline computed.
+- [x] **DELTA-04**: When the current filter is "Gesamter Zeitraum" (no explicit bounds), `previous_period` and `previous_year` are both `null` — no implicit baseline computed.
 - [x] **DELTA-05**: When the computed prior window contains no rows in `sales_records`, the corresponding comparison object is `null` (not a zero-value object). Frontend distinguishes "no data" from "legitimate zero".
 
 ### Backend — Chart Overlay

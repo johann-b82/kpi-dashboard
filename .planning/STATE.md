@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-11T21:08:40.048Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-04-11T21:13:34.225Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 100
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 ## Current Position
 
 Phase: 08 (backend-comparison-aggregation-and-chart-overlay-api) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 **Milestone:** v1.1 Branding & Settings — COMPLETE
 **Phase:** 7 of 7 (i18n integration and polish) — COMPLETE
 **Plan:** — (all 6 plans in Phase 7 complete)
@@ -85,6 +85,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 07-i18n-integration-and-polish P04 | 2min | 1 tasks | 1 files |
 | Phase 07-i18n-integration-and-polish P06 | 45min | 4 tasks | 9 files |
 | Phase 08-backend-comparison-aggregation-and-chart-overlay-api P01 | 6min | 2 tasks | 3 files |
+| Phase 08-backend-comparison-aggregation-and-chart-overlay-api P02 | 8min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,8 @@ Recent decisions affecting current work:
 - [Phase 07-i18n-integration-and-polish]: Plan 07-06: bootstrap.ts mirrors i18n.language onto document.documentElement.lang on init AND on every languageChanged event (Rule 2 deviation) — fixes a11y contract and unblocks Playwright html[lang=de] assertion; preserves single-writer invariant.
 - [Phase 07-i18n-integration-and-polish]: Plan 07-06 post-approval: NavBar LanguageToggle no longer fires success toast (5d7917b) — the visible language flip is self-confirming; reduces post-07-04 UX noise.
 - [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-01: aggregate_kpi_summary returns dict|None (not typed dataclass) so summary and chart endpoints project to different Pydantic shapes; unit tests use year 2099 dates to isolate from real 2026 seed data in shared dev db
+- [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-02: Sequential awaits on shared AsyncSession (not asyncio.gather) — AsyncSession is not safe for concurrent execute() on a single connection; plan's done criteria explicitly allowed the sequential fallback
+- [Phase 08-backend-comparison-aggregation-and-chart-overlay-api]: Plan 08-02: Additive non-breaking response shape — top-level current fields preserved, previous_period/previous_year added as nullable siblings; half-specified window and zero-row window both collapse to None (DELTA-05)
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -148,6 +151,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T21:08:40.045Z
-**Stopped at:** Completed 08-01-PLAN.md
+**Last session:** 2026-04-11T21:13:34.222Z
+**Stopped at:** Completed 08-02-PLAN.md
 **Resume file:** None
