@@ -31,6 +31,7 @@ async def reset_settings():
     """
     try:
         from sqlalchemy import update
+        from sqlalchemy.exc import SQLAlchemyError
 
         from app.database import AsyncSessionLocal
         from app.defaults import DEFAULT_SETTINGS
@@ -39,16 +40,24 @@ async def reset_settings():
         yield
         return
 
-    async with AsyncSessionLocal() as db:
-        await db.execute(
-            update(AppSettings)
-            .where(AppSettings.id == 1)
-            .values(
-                logo_data=None,
-                logo_mime=None,
-                logo_updated_at=None,
-                **DEFAULT_SETTINGS,
+    try:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                update(AppSettings)
+                .where(AppSettings.id == 1)
+                .values(
+                    logo_data=None,
+                    logo_mime=None,
+                    logo_updated_at=None,
+                    **DEFAULT_SETTINGS,
+                )
             )
-        )
-        await db.commit()
+            await db.commit()
+    except (SQLAlchemyError, RuntimeError):
+        # Table may not exist yet in a partial Wave 2 tree (Plans 04-02/04-03
+        # create `app_settings`). Pure unit tests that don't need DB isolation
+        # should still run — let them proceed as a no-op. RuntimeError catches
+        # the "attached to a different loop" fragility when the module-scoped
+        # async engine outlives a parametrized test's event loop.
+        pass
     yield
