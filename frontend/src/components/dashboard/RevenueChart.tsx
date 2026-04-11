@@ -11,15 +11,23 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { fetchChartData } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
+import { selectComparisonMode } from "@/lib/chartComparisonMode";
+import { computePrevBounds } from "@/lib/prevBounds";
+import { formatChartSeriesLabel } from "@/lib/periodLabels";
+import type { Preset } from "@/lib/dateUtils";
+import type { DateRangeValue } from "@/components/dashboard/DateRangeFilter";
 
 interface RevenueChartProps {
   startDate?: string;
   endDate?: string;
+  preset: Preset;
+  range: DateRangeValue;
 }
 
 type ChartType = "bar" | "line";
@@ -27,15 +35,55 @@ type ChartType = "bar" | "line";
 const GRANULARITY = "monthly" as const;
 const CHART_TYPES: ChartType[] = ["bar", "line"];
 
-export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
+export function RevenueChart({
+  startDate,
+  endDate,
+  preset,
+  range,
+}: RevenueChartProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
+  const i18nLocale: "de" | "en" = i18n.language === "de" ? "de" : "en";
   const [chartType, setChartType] = useState<ChartType>("bar");
 
+  // Phase 10: derive comparison mode + prev bounds before the query so
+  // both inputs flow into the cache key (SC5 lock-step with KPI cards).
+  const mode = selectComparisonMode(preset);
+  const prevBounds = computePrevBounds(preset, range);
+  const prevStart =
+    mode === "previous_period"
+      ? prevBounds.prev_period_start
+      : mode === "previous_year"
+        ? prevBounds.prev_year_start
+        : undefined;
+  const prevEnd =
+    mode === "previous_period"
+      ? prevBounds.prev_period_end
+      : mode === "previous_year"
+        ? prevBounds.prev_year_end
+        : undefined;
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: kpiKeys.chart(startDate, endDate, GRANULARITY),
-    queryFn: () => fetchChartData(startDate, endDate, GRANULARITY),
+    queryKey: kpiKeys.chart(
+      startDate,
+      endDate,
+      GRANULARITY,
+      mode,
+      prevStart,
+      prevEnd,
+    ),
+    queryFn: () =>
+      fetchChartData(
+        startDate,
+        endDate,
+        GRANULARITY,
+        mode,
+        prevStart,
+        prevEnd,
+      ),
   });
+
+  const labels = formatChartSeriesLabel(preset, range, i18nLocale, t);
 
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat(locale, {
@@ -84,14 +132,29 @@ export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
     );
   }
 
-  // Phase 8: backend now returns a wrapped ChartResponse { current, previous }.
-  // Read `.current` here; `data.previous` is intentionally ignored until
-  // Phase 10 wires the ghosted overlay series against the same X domain.
-  // Backend returns Decimal as JSON string; coerce to number for Recharts.
-  const rows = (data?.current ?? []).map((p) => ({
-    date: p.date,
-    revenue: p.revenue === null ? null : Number(p.revenue),
-  }));
+  // Phase 10: merge current + previous into a single rows array
+  // keyed by positional index (Phase 8 CHART-01 alignment contract).
+  // Null handling: current always numeric; prior may be null per
+  // bucket (CHART-03) — Number(null) would produce a fabricated
+  // zero bar/line, so we preserve null explicitly.
+  const currentPoints = data?.current ?? [];
+  const prevPoints = data?.previous ?? null;
+  const rows = currentPoints.map((p, i) => {
+    const priorRaw = prevPoints ? (prevPoints[i]?.revenue ?? null) : null;
+    return {
+      date: p.date,
+      revenue: p.revenue === null ? null : Number(p.revenue),
+      revenuePrior:
+        prevPoints === null
+          ? undefined
+          : priorRaw === null
+            ? null
+            : Number(priorRaw),
+    };
+  });
+
+  const showPrior =
+    mode !== "none" && data?.previous !== null && data?.previous !== undefined;
 
   return (
     <Card className="p-6">
@@ -125,7 +188,20 @@ export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
                 }}
                 formatter={(v) => formatCurrency(Number(v))}
               />
-              <Bar dataKey="revenue" fill="var(--color-success)" />
+              <Legend />
+              <Bar
+                dataKey="revenue"
+                fill="var(--color-success)"
+                name={labels.current}
+              />
+              {showPrior && (
+                <Bar
+                  dataKey="revenuePrior"
+                  fill="var(--color-success)"
+                  fillOpacity={0.4}
+                  name={labels.prior}
+                />
+              )}
             </BarChart>
           ) : (
             <LineChart
@@ -154,13 +230,26 @@ export function RevenueChart({ startDate, endDate }: RevenueChartProps) {
                 }}
                 formatter={(v) => formatCurrency(Number(v))}
               />
+              <Legend />
               <Line
                 type="monotone"
                 dataKey="revenue"
                 stroke="var(--color-success)"
                 strokeWidth={2}
                 dot={false}
+                name={labels.current}
               />
+              {showPrior && (
+                <Line
+                  type="monotone"
+                  dataKey="revenuePrior"
+                  stroke="var(--color-success)"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.4}
+                  dot={false}
+                  name={labels.prior}
+                />
+              )}
             </LineChart>
           )}
         </ResponsiveContainer>
