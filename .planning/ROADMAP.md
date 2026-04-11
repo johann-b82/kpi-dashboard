@@ -93,7 +93,7 @@ Audit: [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
 **Plans:** 6 plans
   - [x] 07-01-PLAN.md — Wave 0 infra: install requirements-dev.txt in api Dockerfile + @playwright/test + chromium
   - [x] 07-02-PLAN.md — i18n bootstrap: bootstrap.ts, main.tsx top-level await, i18n.ts lng fix, index.html splash
-  - [ ] 07-03-PLAN.md — PreferencesCard + useSettingsDraft i18n extension + SettingsDraftContext + 4 new EN keys
+  - [x] 07-03-PLAN.md — PreferencesCard + useSettingsDraft i18n extension + SettingsDraftContext + 4 new EN keys
   - [ ] 07-04-PLAN.md — NavBar LanguageToggle rewrite (useMutation, dirty-aware disable, full PUT payload)
   - [ ] 07-05-PLAN.md — Full DE translation pass (111 keys, informal du, loanwords, fix 2 pre-existing Sie strings)
   - [ ] 07-06-PLAN.md — Rebuild persistence harness (pytest seed/assert/cleanup + Playwright + smoke-rebuild.sh + human verify)
