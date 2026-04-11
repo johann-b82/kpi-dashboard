@@ -44,11 +44,28 @@ export async function deleteUpload(id: number): Promise<void> {
   if (!res.ok) throw new Error("Failed to delete upload");
 }
 
-export interface KpiSummary {
+/**
+ * Phase 8 nullable sibling for the dual-delta KPI cards. Matches the
+ * `KpiSummaryComparison` Pydantic model on the backend — three numeric
+ * fields, no further nesting.
+ */
+export interface KpiSummaryComparison {
   total_revenue: number;
   avg_order_value: number;
   total_orders: number;
 }
+
+export interface KpiSummary {
+  total_revenue: number;
+  avg_order_value: number;
+  total_orders: number;
+  /** Null when no baseline exists (thisYear, allTime, or zero-row window). */
+  previous_period: KpiSummaryComparison | null;
+  /** Null when no prior-year data exists for the requested window. */
+  previous_year: KpiSummaryComparison | null;
+}
+
+import type { PrevBounds } from "./prevBounds.ts";
 
 export interface ChartPoint {
   date: string; // ISO date string "YYYY-MM-DD" (bucket-truncated by granularity)
@@ -78,10 +95,18 @@ export interface LatestUploadResponse {
 export async function fetchKpiSummary(
   start?: string,
   end?: string,
+  prev?: PrevBounds,
 ): Promise<KpiSummary> {
   const params = new URLSearchParams();
   if (start) params.set("start_date", start);
   if (end) params.set("end_date", end);
+  if (prev?.prev_period_start)
+    params.set("prev_period_start", prev.prev_period_start);
+  if (prev?.prev_period_end)
+    params.set("prev_period_end", prev.prev_period_end);
+  if (prev?.prev_year_start)
+    params.set("prev_year_start", prev.prev_year_start);
+  if (prev?.prev_year_end) params.set("prev_year_end", prev.prev_year_end);
   const qs = params.toString();
   const res = await fetch(`/api/kpis${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Failed to fetch KPI summary");

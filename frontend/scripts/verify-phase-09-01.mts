@@ -14,6 +14,7 @@ import {
   formatPrevPeriodLabel,
   formatPrevYearLabel,
 } from "../src/lib/periodLabels.ts";
+import { getPresetRange, toApiDate } from "../src/lib/dateUtils.ts";
 
 function assertEq<T>(actual: T, expected: T, label: string): void {
   const a = JSON.stringify(actual);
@@ -207,3 +208,37 @@ assertEq(
 );
 
 console.log("09-01 Task 2 assertions passed");
+
+// ────────────────────────────────────────────────────────────────
+// Task 3: getPresetRange — to-date (MTD/QTD/YTD) semantics
+// ────────────────────────────────────────────────────────────────
+const TODAY3 = new Date("2026-04-11T12:00:00");
+
+function rangeToApi(
+  r: { from?: Date; to?: Date },
+): { from?: string; to?: string } {
+  return { from: toApiDate(r.from), to: toApiDate(r.to) };
+}
+
+assertEq(
+  rangeToApi(getPresetRange("thisMonth", TODAY3)),
+  { from: "2026-04-01", to: "2026-04-11" },
+  "getPresetRange thisMonth @ 2026-04-11 (MTD)",
+);
+assertEq(
+  rangeToApi(getPresetRange("thisQuarter", TODAY3)),
+  { from: "2026-04-01", to: "2026-04-11" },
+  "getPresetRange thisQuarter @ 2026-04-11 (Q2 QTD)",
+);
+assertEq(
+  rangeToApi(getPresetRange("thisYear", TODAY3)),
+  { from: "2026-01-01", to: "2026-04-11" },
+  "getPresetRange thisYear @ 2026-04-11 (YTD)",
+);
+assertEq(
+  rangeToApi(getPresetRange("allTime", TODAY3)),
+  { from: undefined, to: undefined },
+  "getPresetRange allTime → both undefined",
+);
+
+console.log("09-01 Task 3 assertions passed. ALL GREEN.");
