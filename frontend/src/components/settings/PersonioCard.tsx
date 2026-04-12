@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { fetchPersonioOptions, testPersonioConnection } from "@/lib/api";
+import { fetchPersonioOptions, testPersonioConnection, triggerSync } from "@/lib/api";
+import { syncKeys, hrKpiKeys } from "@/lib/queryKeys";
 import type { DraftFields } from "@/hooks/useSettingsDraft";
 
 interface PersonioCardProps {
@@ -27,6 +29,7 @@ interface PersonioCardProps {
  */
 export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const INTERVAL_OPTIONS: Array<{ value: 0 | 1 | 6 | 24; label: string }> = [
     { value: 0, label: t("settings.personio.sync_interval.manual") },
@@ -40,6 +43,22 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
     success: boolean;
     error: string | null;
   } | null>(null);
+
+  const [syncFeedback, setSyncFeedback] = useState<"idle" | "success" | "error">("idle");
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const syncMutation = useMutation({
+    mutationFn: triggerSync,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: syncKeys.meta() });
+      queryClient.invalidateQueries({ queryKey: hrKpiKeys.all() });
+      setSyncFeedback("success");
+      setTimeout(() => setSyncFeedback("idle"), 3000);
+    },
+    onError: (err: Error) => {
+      setSyncFeedback("error");
+      setSyncError(err.message);
+    },
+  });
 
   // Fetch Personio options only when credentials are configured (D-09)
   const { data: options, isLoading: optionsLoading } = useQuery({
@@ -163,6 +182,40 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Sync now */}
+        <div className="flex flex-col gap-2 max-w-md">
+          <button
+            type="button"
+            onClick={() => {
+              setSyncFeedback("idle");
+              setSyncError(null);
+              syncMutation.mutate();
+            }}
+            disabled={syncMutation.isPending || !hasCredentials}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50 w-fit"
+          >
+            {syncMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t("hr.sync.button")}
+              </>
+            ) : syncFeedback === "success" ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                {t("hr.sync.success")}
+              </>
+            ) : (
+              t("hr.sync.button")
+            )}
+          </button>
+          {syncFeedback === "error" && (
+            <p className="text-xs text-destructive">
+              {t("hr.sync.error")}
+              {syncError ? `: ${syncError}` : ""}
+            </p>
+          )}
         </div>
 
         {/* Krankheitstyp (absence type) */}
