@@ -1,186 +1,164 @@
 # Stack Research
 
-**Domain:** Branding & Settings — runtime theming, logo upload/storage/serving, settings persistence, language default
-**Milestone:** KPI Light v1.1
-**Researched:** 2026-04-11
-**Confidence:** HIGH (all decisions grounded in existing codebase inspection + verified sources)
+**Domain:** HR KPI Dashboard & Personio API Integration
+**Milestone:** KPI Light v1.3
+**Researched:** 2026-04-12
+**Confidence:** HIGH (Personio API auth model verified, APScheduler version verified, httpx version verified)
 
 ---
 
 ## What This Document Covers
 
-This is milestone-scoped research for v1.1. It documents only the **additions and changes** needed on top of the validated v1.0 stack. Existing libraries (FastAPI, SQLAlchemy, asyncpg, Alembic, React, TanStack Query, Tailwind v4, shadcn/ui, i18next, wouter) are NOT re-researched — they ship unchanged.
+Milestone-scoped research for v1.3. Documents **only the additions** needed on top of the validated stack. The following are NOT re-researched and ship unchanged: FastAPI, asyncpg, SQLAlchemy 2.0 async, Alembic, React 19, Vite 8, Recharts, Tailwind v4, shadcn/ui, TanStack Query, react-i18next, wouter, Docker Compose + PostgreSQL 17-alpine, nh3.
 
 ---
 
-## New Backend Dependency
+## New Backend Dependencies
 
-### SVG Sanitization
+### 1. Async HTTP Client for Personio API
 
 | Library | Version | Purpose | Why |
 |---------|---------|---------|-----|
-| nh3 | 0.3.3 | SVG XSS sanitization before storing user-uploaded SVG files | Rust-backed Ammonia HTML/SVG sanitizer; Python binding. ~20x faster than bleach; bleach is deprecated (Mozilla). defusedxml is deprecated for lxml use. lxml's `html.clean` module has a documented CVE for SVG/math context-switching bypass. nh3 applies an allowlist-based strategy and is actively maintained. Single pip install, no C compiler needed (pre-built wheels). |
+| httpx | 0.28.1 | Async HTTP client for all Personio REST API calls | `AsyncClient` integrates cleanly into the existing async FastAPI stack — no thread pool, no blocking. The alternative (`personio-py`) is sync-only (uses `requests`), last released in 2022 (v0.2.3), and would block the uvicorn event loop when called from async route handlers. The Personio API surface needed for v1.3 is small (3 endpoints: `/employees`, `/attendances`, `/absences`); a thin httpx-based client is cleaner than a stale third-party wrapper. |
 
-No other new backend packages are needed. All other v1.1 features reuse existing dependencies.
+**Why NOT `personio-py`:**
+- Uses `requests` (sync) — calling from `async def` requires `asyncio.run_in_executor`, adding unnecessary complexity
+- Last release: v0.2.3 (approximately 2022, low maintenance signal)
+- No async interface; no plans for one in any tracked release
+- The Personio API is straightforward REST+JSON; a custom client is ~50 lines and zero risk of library drift
+
+**Personio auth model (verified):**
+- Bearer token obtained via `POST /auth` with `client_id` + `client_secret`
+- Token valid for 24 hours, stable (same value reused for the 24h window)
+- Token rotation: new token returned in response headers on each authenticated call — httpx response header inspection handles this transparently
+- Rate limit on `/auth`: 150 req/min; for background sync this is irrelevant (one call per sync cycle)
+
+```python
+# Personio API client pattern — thin wrapper over httpx.AsyncClient
+import httpx
+
+class PersonioClient:
+    BASE_URL = "https://api.personio.de/v1"
+
+    def __init__(self, client_id: str, client_secret: str):
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._token: str | None = None
+        self._http = httpx.AsyncClient(base_url=self.BASE_URL, timeout=30.0)
+
+    async def _ensure_auth(self) -> None:
+        if self._token:
+            return
+        resp = await self._http.post("/auth", json={
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+        })
+        resp.raise_for_status()
+        self._token = resp.json()["data"]["token"]
+
+    async def get_employees(self) -> list[dict]:
+        await self._ensure_auth()
+        resp = await self._http.get("/company/employees",
+                                     headers={"Authorization": f"Bearer {self._token}"})
+        resp.raise_for_status()
+        # Rotate token if present in response headers
+        if new_token := resp.headers.get("X-Token"):
+            self._token = new_token
+        return resp.json()["data"]
+```
+
+### 2. Background Task Scheduler
+
+| Library | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| APScheduler | 3.11.2 | Configurable interval-based Personio sync, triggered from within the FastAPI process | `AsyncIOScheduler` runs on the same asyncio event loop as FastAPI — no separate process or container needed. `reschedule_job()` allows runtime interval changes (required for "configurable auto-sync interval in Settings" without a server restart). Stable, battle-tested, well-documented. |
+
+**Why NOT APScheduler 4.x:** Pre-release only (latest: 4.0.0a6 as of April 2025). API is not stable; the project explicitly states it is not production-ready. Stay on 3.11.2.
+
+**Why NOT Celery/Redis:** A separate worker process + broker for a single background job is massively disproportionate. No external message broker to operate.
+
+**Why NOT FastAPI `BackgroundTasks`:** `BackgroundTasks` runs after a response — it is not a scheduler and does not repeat. Not applicable here.
+
+**Integration pattern — FastAPI lifespan:**
+
+```python
+from contextlib import asynccontextmanager
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+
+scheduler = AsyncIOScheduler()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load personio_sync_interval_hours from app_settings at startup
+    scheduler.add_job(
+        sync_personio,
+        trigger=IntervalTrigger(hours=personio_sync_interval_hours),
+        id="personio_sync",
+        replace_existing=True,
+        max_instances=1,  # Prevent overlap if sync takes longer than interval
+    )
+    scheduler.start()
+    yield
+    scheduler.shutdown(wait=False)
+
+app = FastAPI(lifespan=lifespan)
+```
+
+**Runtime interval reconfiguration (Settings page "Save"):**
+
+```python
+# When user saves new sync interval in Settings
+scheduler.reschedule_job(
+    job_id="personio_sync",
+    trigger=IntervalTrigger(hours=new_interval_hours),
+)
+```
+
+`reschedule_job()` replaces the trigger and recalculates next run time immediately — no restart required.
 
 ---
 
 ## No New Frontend Dependencies
 
-All v1.1 frontend features (runtime theming, live preview, logo display, language switch) are achievable with the libraries already installed: React state, `document.documentElement.style.setProperty`, TanStack Query, i18next `changeLanguage()`, and existing shadcn/ui components.
+All v1.3 frontend features (HR tab, KPI cards with delta badges, manual sync button, Settings sync interval input, Settings API token input) are achievable with already-installed libraries:
+- **Tab navigation:** existing wouter routes + shadcn/ui Tab components
+- **KPI cards with delta badges:** reuse existing delta badge components from v1.2
+- **Sync status feedback:** TanStack Query mutation + existing shadcn/ui toast or inline status text
+- **Settings inputs:** existing shadcn/ui form components
 
 ---
 
-## Technical Decisions by Feature Area
+## New Database Tables (No New Libraries)
 
-### 1. Settings Persistence in PostgreSQL (SQLAlchemy 2.0 async + Alembic)
+SQLAlchemy 2.0 async + Alembic (both already installed) handle all new HR schema. Three new tables via new Alembic migration:
 
-**Pattern: singleton-row `app_settings` table with an upsert on `id = 1`.**
+| Table | Purpose | Key Columns |
+|-------|---------|-------------|
+| `personio_employees` | Raw employee list snapshot from Personio | `personio_id`, `first_name`, `last_name`, `department`, `position`, `hire_date`, `termination_date`, `status`, `synced_at` |
+| `personio_attendances` | Raw time/attendance entries from Personio | `personio_id`, `employee_id` (FK), `date`, `start_time`, `end_time`, `break_duration`, `type` (regular/overtime), `synced_at` |
+| `personio_absences` | Raw absence records from Personio | `personio_id`, `employee_id` (FK), `absence_type`, `start_date`, `end_date`, `duration_hours`, `status`, `synced_at` |
 
-Use a dedicated `AppSettings` model with a fixed primary key of `1`. This is the standard pattern for global, instance-scoped configuration — it avoids key-value EAV tables (which require schema knowledge at query time) and avoids a separate config file that would break Docker immutability.
+**Design principle:** Store Personio raw data as-is; compute KPIs at query time in SQL (same pattern as sales KPIs in v1.2). Do NOT pre-aggregate — raw data enables ad-hoc period filtering and delta calculations.
 
-```python
-# models.py addition
-from sqlalchemy import LargeBinary, String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
-
-class AppSettings(Base):
-    __tablename__ = "app_settings"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
-    app_name: Mapped[str] = mapped_column(String(100), nullable=False, default="KPI Light")
-    default_language: Mapped[str] = mapped_column(String(10), nullable=False, default="de")
-    # Semantic color tokens (oklch strings, matching existing CSS variable format)
-    color_primary: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    color_accent: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    color_background: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    color_foreground: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    color_muted: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    color_destructive: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    # Logo stored inline as bytea
-    logo_data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
-    logo_content_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # "image/png" | "image/svg+xml"
+**`app_settings` additions** (extend existing table via new Alembic migration):
+```
+personio_client_id       VARCHAR(255) NULL
+personio_client_secret   VARCHAR(255) NULL   -- stored as plaintext; Authentik auth is v2 scope
+personio_sync_interval_hours  INTEGER NOT NULL DEFAULT 24
+personio_last_synced_at  TIMESTAMPTZ NULL
 ```
 
-**Alembic migration:** Add a new migration script via `alembic revision --autogenerate -m "add_app_settings"`. The `LargeBinary` type maps to PostgreSQL `BYTEA` — this is the correct SQLAlchemy 2.0 type for binary data. No `openpyxl`-style separate engine needed; the existing async engine handles `BYTEA` correctly via asyncpg.
+Storing the API secret in PostgreSQL as plaintext is acceptable for v1.3: there is no authentication in front of this app yet (Authentik is v2 scope), and the threat model is internal-network-only. Flag this for the Authentik milestone — at v2, secrets should move to env vars or a secrets manager.
 
-**Known issue to avoid:** SQLAlchemy issue #9739 documents a DBAPIError when committing multiple objects with `LargeBinary` columns in the same flush. Since this is a singleton row, a single `session.merge()` or `session.execute(insert(...).on_conflict_do_update(...))` avoids this entirely.
+---
 
-**Logo storage — bytea vs filesystem:**
+## Settings Page Additions
 
-Store logo as `BYTEA` in the `app_settings` table. Do NOT use filesystem storage in a Docker Compose setup — filesystem writes inside a container are lost on container restart unless a named volume is mapped. Adding a volume mount for a single logo file creates operational complexity (permissions, backup, Docker Compose coupling) disproportionate to the benefit. The logo is bounded at 1 MB, which is well within PostgreSQL's per-row storage capability. The `logo_content_type` column is required to correctly set the HTTP `Content-Type` response header.
+The existing Settings page (built in v1.1) gains two new sections:
 
-### 2. Runtime Theming with Tailwind v4 CSS Variables
-
-The existing `index.css` already uses `oklch(...)` CSS custom properties on `:root` for all semantic tokens (`--primary`, `--accent`, `--background`, `--foreground`, `--muted`, `--destructive`). The `@theme inline` block maps them to Tailwind utilities via `--color-*` aliases.
-
-**Runtime injection approach:** Use `document.documentElement.style.setProperty()` to override CSS custom properties at runtime. This works because the `@theme inline` variables reference the `:root` custom properties via `var(--primary)` — when the `:root` value changes, all Tailwind utilities that consume it update immediately without a page reload or style sheet regeneration.
-
-```typescript
-// Apply saved theme to :root — call on app boot and on Settings save
-function applyTheme(settings: AppSettings) {
-  const el = document.documentElement;
-  if (settings.color_primary)    el.style.setProperty('--primary', settings.color_primary);
-  if (settings.color_accent)     el.style.setProperty('--accent', settings.color_accent);
-  if (settings.color_background) el.style.setProperty('--background', settings.color_background);
-  if (settings.color_foreground) el.style.setProperty('--foreground', settings.color_foreground);
-  if (settings.color_muted)      el.style.setProperty('--muted', settings.color_muted);
-  if (settings.color_destructive) el.style.setProperty('--destructive', settings.color_destructive);
-}
-```
-
-**Live preview:** Hold pending edits in local React state (`useState`). In the Settings page, call `applyTheme(pendingState)` on each color change to provide instant visual feedback. On "Save", persist to backend via TanStack Query mutation; on "Cancel", re-apply the server-fetched values. This requires no additional state library — TanStack Query already handles server state, and `useState` handles the unsaved preview state.
-
-**Color value format:** Store and accept oklch strings (e.g., `oklch(0.205 0 0)`) to match the existing CSS variable format in `index.css`. Do NOT convert to hex on the backend — the browser renders oklch natively and it is the format already used by shadcn/ui's Tailwind v4 integration.
-
-**Boot hydration:** In `main.tsx` (or a top-level React component), fetch `/api/settings` on mount and call `applyTheme()` before the first meaningful render. Use TanStack Query's `suspense` option or an initializing state to prevent a flash of default theme.
-
-### 3. Serving Logo from FastAPI
-
-Use `Response` (not `StreamingResponse`) for in-memory bytes read from the database. `StreamingResponse` is for large files or generators; a 1 MB BYTEA blob read entirely into memory is better served as a plain `Response`.
-
-```python
-from fastapi import Response
-import hashlib
-
-@router.get("/api/settings/logo")
-async def get_logo(db: AsyncSession = Depends(get_db)):
-    settings = await db.get(AppSettings, 1)
-    if not settings or not settings.logo_data:
-        raise HTTPException(status_code=404)
-
-    etag = hashlib.sha256(settings.logo_data).hexdigest()[:16]
-    return Response(
-        content=settings.logo_data,
-        media_type=settings.logo_content_type,
-        headers={
-            "ETag": f'"{etag}"',
-            "Cache-Control": "public, max-age=3600, must-revalidate",
-        },
-    )
-```
-
-**ETag strategy:** SHA-256 of the raw bytes (truncated to 16 hex chars). This is correct and sufficient — logo changes are infrequent and the hash is computed in-memory on each request, avoiding any stale-cache risk. Do NOT use `Last-Modified` / `mtime` because the data comes from a database row, not a file. Check the `If-None-Match` request header and return `304 Not Modified` if it matches to avoid re-sending 1 MB on every logo fetch.
-
-**Content-Type:** Read from `logo_content_type` column (set at upload time). Hardcoding `image/png` would break SVG logos displayed in `<img>` tags.
-
-### 4. Image Validation and SVG Sanitization
-
-**PNG validation (no new library):** Read the first 8 bytes of the upload and check for the PNG magic number (`b'\x89PNG\r\n\x1a\n'`). FastAPI's `UploadFile` exposes `.read()` returning bytes — slice and compare. Reject anything that doesn't match before further processing.
-
-**SVG validation (no new library):** Check `content_type == "image/svg+xml"` AND confirm the raw bytes contain `<svg` as a basic structural check.
-
-**SVG sanitization (NEW: nh3 0.3.3):** After format validation, sanitize SVG content through nh3's allowlist before storing:
-
-```python
-import nh3
-
-SAFE_SVG_TAGS = {"svg", "path", "circle", "rect", "ellipse", "line", "polyline",
-                 "polygon", "g", "defs", "use", "symbol", "title", "desc",
-                 "linearGradient", "radialGradient", "stop", "clipPath", "mask",
-                 "text", "tspan", "image"}
-
-SAFE_SVG_ATTRS = {"id", "class", "style", "viewBox", "width", "height",
-                  "xmlns", "fill", "stroke", "stroke-width", "opacity",
-                  "transform", "d", "cx", "cy", "r", "rx", "ry",
-                  "x", "y", "x1", "y1", "x2", "y2", "points",
-                  "gradientUnits", "gradientTransform", "offset",
-                  "stop-color", "stop-opacity"}
-
-def sanitize_svg(raw_svg: bytes) -> bytes:
-    clean = nh3.clean(
-        raw_svg.decode("utf-8", errors="replace"),
-        tags=SAFE_SVG_TAGS,
-        attributes={tag: SAFE_SVG_ATTRS for tag in SAFE_SVG_TAGS},
-        strip_comments=True,
-    )
-    return clean.encode("utf-8")
-```
-
-This removes `<script>`, all `on*` event handlers, `javascript:` URIs in `href`/`src`, and XML entity declarations. nh3 is chosen over:
-- bleach: deprecated by Mozilla, unmaintained
-- lxml `html.clean`: has a documented CVE for SVG/math context-switching bypass (GHSA-5jfw-gq64-q45f)
-- defusedxml.lxml: explicitly deprecated and removed in newer versions
-- lxml bare XPath: requires writing your own walk + allowlist, reinventing what nh3 provides
-
-**Size limit:** Check `len(file_bytes) > 1_048_576` (1 MiB = 1,048,576 bytes) before sanitization. Reject with HTTP 422.
-
-**MIME type allowlist:** Accept only `image/png` and `image/svg+xml`. Reject all other MIME types with HTTP 422.
-
-### 5. Language Default — Server-Persisted, Client-Respected
-
-**Current state:** `i18n.ts` hardcodes `lng: "de"`. There is no `i18next-browser-languageDetector` installed — language detection is manual.
-
-**v1.1 approach — no new library needed:**
-
-1. Expose `default_language` in the `/api/settings` response (already on the `AppSettings` model).
-2. On app boot, fetch settings, then call `i18n.changeLanguage(settings.default_language)` before mounting the app (or in a top-level `useEffect` with a loading gate).
-3. On the Settings page, the language dropdown saves to the backend via mutation. The client then calls `i18n.changeLanguage(newLang)` immediately after a successful save.
-4. If the user manually toggles language via the existing `LanguageToggle` component, that in-session override persists in memory for the session. On next reload, the server default applies again (which is the correct behavior for a global instance-wide default).
-
-**Why NOT localStorage-first:** `i18next-browser-languageDetector` + localStorage would make the per-browser cached value override the admin-set server default after first visit — defeating the purpose of a server-persisted default. For a single-instance internal tool, server value wins; don't add the detector plugin.
-
-**Why NOT cookies:** Adds server-side session complexity. The app has no auth and no server-rendered HTML. A fetch on boot is simpler and sufficient.
+1. **Personio API Credentials** — `client_id` (text input) + `client_secret` (password input, masked). Saved to `app_settings` via existing settings mutation endpoint.
+2. **Auto-Sync Interval** — number input (hours, 1–168). On save, calls `scheduler.reschedule_job()` in the API handler. Manual "Daten aktualisieren" button on HR tab triggers an immediate ad-hoc sync via a dedicated `POST /api/hr/sync` endpoint.
 
 ---
 
@@ -188,28 +166,32 @@ This removes `<script>`, all `on*` event handlers, `javascript:` URIs in `href`/
 
 | Avoid | Why | What to Use Instead |
 |-------|-----|---------------------|
-| bleach | Deprecated by Mozilla; unmaintained | nh3 0.3.3 |
-| defusedxml | lxml module deprecated and removed in next version | nh3 for sanitization; plain XML parse not needed here |
-| lxml `html.clean` / `Cleaner` | CVE for SVG/math context bypass (GHSA-5jfw-gq64-q45f) | nh3 |
-| fastapi-cache / fastapi-cache2 | Adds Redis/Memcached dependency for a 1 MB logo; overkill | Compute ETag hash inline; 304 handling is sufficient |
-| Zustand / Redux | Wrong tool for server state | TanStack Query (already installed) |
-| i18next-browser-languageDetector | localStorage cache overrides server default after first visit | Fetch server settings on boot, call `i18n.changeLanguage()` |
-| Filesystem logo storage (volume mount) | Breaks container restart without persistent volume; operational overhead | BYTEA in `app_settings` table |
-| Separate `logo` table | Unnecessary join for a single global logo | `logo_data` + `logo_content_type` columns on `app_settings` |
+| `personio-py` | Sync-only (uses `requests`); last release ~2022; blocks event loop in async FastAPI | `httpx.AsyncClient` with thin custom wrapper |
+| APScheduler 4.x | Alpha-only (4.0.0a6); not production-ready; API not stable | APScheduler 3.11.2 |
+| Celery + Redis | Full message broker for a single background job; disproportionate operational overhead | APScheduler 3.11.2 `AsyncIOScheduler` |
+| FastAPI `BackgroundTasks` | Not a scheduler; runs once after response, does not repeat | APScheduler |
+| `rq` (Redis Queue) | Requires Redis; same overkill argument as Celery | APScheduler |
+| A separate `personio-sync` Docker service | Adds container lifecycle complexity; APScheduler runs in-process | In-process APScheduler via lifespan |
+| `aiohttp` | Already have httpx; no need for a second async HTTP library | httpx 0.28.1 |
+| Pre-aggregated HR KPI tables | Loses raw data flexibility; couples schema to current KPI definitions | Raw tables + SQL aggregation at query time |
+| Secrets manager / Vault | v2 scope (Authentik milestone); overkill for internal-only v1.3 | Plaintext in `app_settings` with documented TODO |
 
 ---
 
 ## Installation
 
-### Backend addition to `requirements.txt`
+### Backend additions to `requirements.txt`
 
 ```
-nh3==0.3.3
+httpx==0.28.1
+APScheduler==3.11.2
 ```
+
+No other new backend packages needed.
 
 ### Frontend — no new packages
 
-All v1.1 frontend work uses already-installed libraries.
+All v1.3 frontend work uses already-installed libraries.
 
 ---
 
@@ -217,10 +199,9 @@ All v1.1 frontend work uses already-installed libraries.
 
 | Package | Version | Compatibility Note |
 |---------|---------|-------------------|
-| nh3 | 0.3.3 | Python >=3.8; pre-built wheels for Linux/macOS/Windows; no C compiler needed in Docker |
-| SQLAlchemy `LargeBinary` | 2.0.49 (existing) | Maps to `BYTEA` on PostgreSQL; asyncpg handles bytes natively |
-| Alembic | 1.18.4 (existing) | `LargeBinary` renders as `BYTEA` in autogenerated PostgreSQL migration — no custom type needed |
-| nh3 in Docker | 0.3.3 | Uses manylinux wheels; works on `python:3.12-slim` base without extra apt packages |
+| httpx | 0.28.1 | Python >=3.8; fully async; works with FastAPI's asyncio event loop; no conflicts with existing stack |
+| APScheduler | 3.11.2 | Python >=3.8; `AsyncIOScheduler` requires no separate thread; `max_instances=1` prevents sync job overlap; works with FastAPI lifespan context manager |
+| Personio API | v1 (REST) | Bearer token auth; 24h token validity; endpoints: `/auth`, `/company/employees`, `/company/attendances`, `/company/time-off` (absences) |
 
 ---
 
@@ -228,34 +209,44 @@ All v1.1 frontend work uses already-installed libraries.
 
 | Area | Confidence | Basis |
 |------|------------|-------|
-| BYTEA / `LargeBinary` + asyncpg | HIGH | SQLAlchemy 2.0 docs + GitHub issue #9739 confirming singleton-row avoids the multi-object bug |
-| `document.documentElement.style.setProperty` for Tailwind v4 runtime theming | HIGH | Confirmed by reading `index.css` — `@theme inline` uses `var(--primary)` references that respond to `:root` overrides |
-| oklch as color storage format | HIGH | Codebase inspection — all existing CSS variables use `oklch(...)` |
-| `Response` (not `StreamingResponse`) for in-memory logo bytes | HIGH | FastAPI official docs: StreamingResponse is for generators/large files; Response for in-memory content |
-| ETag via SHA-256 hash of bytes | HIGH | Standard HTTP caching pattern; confirmed in FastAPI community references |
-| nh3 for SVG sanitization | HIGH | PyPI verified (0.3.3, Feb 2026); lxml html.clean CVE confirmed (GHSA-5jfw-gq64-q45f); bleach deprecation confirmed |
-| i18next `changeLanguage()` on boot (no detector plugin) | MEDIUM | Pattern confirmed in i18next docs and community; specific ordering (fetch → changeLanguage → mount) requires careful implementation |
-| Logo size limit check pre-sanitization | HIGH | Standard practice; nh3 processes decoded text so byte check must happen on raw bytes first |
+| httpx 0.28.1 as Personio HTTP client | HIGH | PyPI confirmed latest stable (released Dec 2024); async pattern matches existing stack; official httpx docs + FastAPI async docs |
+| APScheduler 3.11.2 stability | HIGH | Version confirmed via WebSearch + Repology; 3.x docs confirm `AsyncIOScheduler` + `reschedule_job()` API |
+| APScheduler 4.x avoid | HIGH | Pre-release status confirmed (4.0.0a6); project README explicitly flags not production-ready |
+| personio-py avoid (sync-only, stale) | HIGH | GitHub repo confirmed `requests`-only; last PyPI release v0.2.3 |
+| Personio API auth model (24h token, client_id/secret) | HIGH | Verified against official Personio developer docs + changelog |
+| Raw-data storage pattern (no pre-aggregation) | HIGH | Consistent with existing sales KPI pattern in codebase (v1.2 uses SQL-computed windows) |
+| In-process scheduler (no separate container) | MEDIUM | Standard pattern for single-job APScheduler usage; acknowledged risk: sync job shares resources with API requests |
+| Plaintext API secret in app_settings | MEDIUM | Accepted for v1.3 internal-only scope; flagged as tech debt for Authentik milestone |
+
+---
+
+## Risks and Mitigations
+
+| Risk | Likelihood | Mitigation |
+|------|------------|------------|
+| Personio API schema changes break raw data ingestion | Low | Store full raw JSON as JSONB alongside normalized columns — enables schema changes without data loss |
+| Sync job overlaps (slow Personio API response) | Medium | `max_instances=1` on APScheduler job prevents concurrent sync runs |
+| Personio API token expires during long sync | Low | Implement token refresh on 401 response in `PersonioClient._ensure_auth()` by clearing `self._token` and re-authenticating |
+| In-process scheduler causes memory pressure during large syncs | Low | Personio employee/attendance datasets for SMB (target user) are <10k rows; negligible memory footprint |
+| API secret visible in Settings page (plaintext) | Medium | Mask `client_secret` field in UI (password input); document Authentik milestone as the fix |
 
 ---
 
 ## Sources
 
-- [SQLAlchemy 2.0 LargeBinary / BYTEA PostgreSQL](https://docs.sqlalchemy.org/en/20/core/type_basics.html#sqlalchemy.types.LargeBinary) — type mapping
-- [SQLAlchemy issue #9739 — LargeBinary multi-object commit bug](https://github.com/sqlalchemy/sqlalchemy/issues/9739) — singleton-row rationale
-- [lxml html.clean SVG/math context bypass CVE](https://github.com/fedora-python/lxml_html_clean/security/advisories/GHSA-5jfw-gq64-q45f) — why NOT lxml Cleaner
-- [nh3 PyPI](https://pypi.org/project/nh3/) — version 0.3.3, Feb 2026
-- [nh3 GitHub (messense/nh3)](https://github.com/messense/nh3) — allowlist API and SVG support
-- [defusedxml deprecation status](https://discuss.python.org/t/status-of-defusedxml-and-recommendation-in-docs/34762) — lxml module removed
-- [FastAPI Custom Response docs](https://fastapi.tiangolo.com/advanced/custom-response/) — Response vs StreamingResponse
-- [Tailwind CSS v4 @theme directive](https://tailwindcss.com/blog/tailwindcss-v4) — CSS-first config, runtime CSS variable approach
-- [shadcn/ui Tailwind v4 theming](https://ui.shadcn.com/docs/tailwind-v4) — CSS variable names and format
-- [i18next API — changeLanguage](https://www.i18next.com/overview/api) — programmatic language switching
-- [Existing codebase: frontend/src/index.css] — confirmed oklch format, @theme inline structure, CSS variable names
-- [Existing codebase: frontend/src/i18n.ts] — confirmed no language detector installed, hardcoded `lng: "de"`
-- [Existing codebase: backend/app/models.py] — confirmed existing model patterns (Mapped, mapped_column)
+- [Personio Developer Docs — Getting Started](https://developer.personio.de/docs/getting-started-with-the-personio-api)
+- [Personio API Authentication reference](https://developer.personio.de/reference/authentication)
+- [Personio Authentication API — improved bearer token changelog](https://developer.personio.de/changelog/authentication-api-improved-bearer-token)
+- [httpx official docs — Async Support](https://www.python-httpx.org/async/)
+- [httpx PyPI — version 0.28.1 (Dec 2024)](https://pypi.org/project/httpx/)
+- [APScheduler 3.11.2 User Guide](https://apscheduler.readthedocs.io/en/3.x/userguide.html)
+- [APScheduler AsyncIOScheduler docs](https://apscheduler.readthedocs.io/en/3.x/modules/schedulers/asyncio.html)
+- [APScheduler IntervalTrigger docs](https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html)
+- [APScheduler PyPI — 3.11.2 latest stable](https://pypi.org/project/APScheduler/)
+- [Sentry — Schedule tasks with FastAPI (lifespan pattern)](https://sentry.io/answers/schedule-tasks-with-fastapi/)
+- [personio-py GitHub (at-gmbh/personio-py)](https://github.com/at-gmbh/personio-py)
 
 ---
 
-*Stack research for: KPI Light v1.1 Branding & Settings*
-*Researched: 2026-04-11*
+*Stack research for: KPI Light v1.3 HR KPI Dashboard & Personio-Integration*
+*Researched: 2026-04-12*

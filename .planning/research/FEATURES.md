@@ -1,22 +1,197 @@
 # Feature Research
 
-**Domain:** Corporate-identity / white-label settings page for an internal B2B ERP dashboard
-**Milestone:** v1.1 Branding & Settings
-**Researched:** 2026-04-11
-**Confidence:** HIGH for table stakes (established patterns, verified against real shadcn/Tailwind v4 CSS var structure in codebase); MEDIUM for differentiators (opinion-dependent); HIGH for anti-features (scope decisions explicitly set in PROJECT.md)
+**Domain:** HR KPI Dashboard with Personio API Integration (v1.3 milestone)
+**Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
+**Researched:** 2026-04-12
+**Confidence:** HIGH for KPI formulas (industry-standard, multi-source verified); HIGH for Personio API endpoints (official developer docs + community sources); MEDIUM for Personio-specific overtime data (API returns raw attendance records, overtime calculation requires local logic using work-schedule target hours); LOW for skill/development KPI via Personio (no dedicated Personio API endpoint — relies on custom attributes)
 
 ---
 
 ## Context: What Already Exists
 
-v1.0 shipped these components relevant to v1.1:
-- `NavBar.tsx` — hardcoded brand name via `t("nav.brand")` key (`"KPI Light"` in locales)
-- `index.css` — full shadcn/Tailwind v4 CSS variable palette using OKLCH color space: `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--border`, `--input`, `--ring`, plus chart and sidebar tokens
-- `i18n.ts` — hardcoded `lng: "de"` default, no `i18next-browser-languageDetector` installed, flat key convention with `keySeparator: false`
-- `App.tsx` — two routes via wouter (`/` and `/upload`); a `/settings` route is a pure addition
-- No `document.title` management yet — browser tab shows static Vite default
+v1.2 shipped these components directly relevant to v1.3:
 
-**Critical constraint:** CSS variables use OKLCH color space (not hex), which is a Tailwind v4 default. Any color picker must convert hex/RGB input to OKLCH for storage and injection, or store hex and inject as hex (overriding the OKLCH defaults). Hex injection into `:root` via `document.documentElement.style.setProperty()` works regardless of the CSS file's color space — the browser accepts any valid color value for a CSS custom property.
+- **Sales dashboard** — 3 KPI cards (total revenue, avg order value, total orders) with dual delta badges (vs. Vorperiode + vs. Vorjahr), chart overlay, date range presets
+- **Settings page** — stores Personio API token (new v1.3 requirement), configures auto-sync interval
+- **TanStack Query** — `kpiKeys.all` prefix invalidation pattern, loading/error states, cache management
+- **DE/EN i18n** — flat key convention, `keySeparator: false`, `i18n.changeLanguage()` pattern
+- **Delta badges** — reusable component with locale-aware percent formatting and em-dash fallback
+- **PostgreSQL + SQLAlchemy 2.0 async** — Alembic migrations, `AsyncSession` with `create_async_engine`
+- **Docker Compose** — `condition: service_healthy`, environment-based config, `.env` secrets
+
+**Critical constraint:** The HR dashboard KPI "Revenue per production employee" (KPI #5) is a cross-source metric — it joins ERP sales data (already in PostgreSQL from file upload) with Personio headcount data. This is the one metric that cannot be computed from Personio alone.
+
+---
+
+## Personio API Overview
+
+**Auth:** POST `https://api.personio.de/v1/auth` with `client_id` + `client_secret` (passed in POST body as JSON or form-encoded). Returns a bearer token stable for **24 hours**. Token should be cached in memory and refreshed before expiry. Rate limit: 300 req/min, burst 15 req/sec; auth endpoint: 150 req/min.
+
+**Scoping:** Access to specific attributes requires whitelisting in Personio's API credentials settings (Settings → Integrations → API credentials → Readable employee attributes). This is a Personio admin configuration step, not a code step.
+
+**API versions:** v1 (stable, broad compatibility) and v2 (newer features). For this milestone, v1 endpoints cover all required data. Use v2 for absence periods where available (`GET /v2/absence-periods`).
+
+### Endpoints Needed for v1.3
+
+| Endpoint | Method | What It Returns | KPIs It Feeds |
+|----------|--------|-----------------|---------------|
+| `POST /v1/auth` | POST | Bearer token | All (auth) |
+| `GET /v1/company/employees` | GET | All employees: id, first_name, last_name, department, position, hire_date, termination_date, status, weekly_working_hours, custom attributes | KPI #3 (fluctuation), KPI #4 (skills), KPI #5 (production headcount) |
+| `GET /v1/company/attendances` | GET | Attendance records per employee: employee_id, date, start_time, end_time, break (minutes), comment. Filtered by `start_date`, `end_date`, `employees[]` | KPI #1 (overtime ratio), KPI #2 (sick leave hours — though absence endpoint preferred) |
+| `GET /v2/absence-periods` | GET | Absence records: employee_id, start_date, end_date, absence_type (sick leave, vacation, etc.), half_day settings. Filter: `start_date`, `end_date`, `employees[]`, `absence_types[]` | KPI #2 (sick leave ratio) |
+| `GET /v1/company/employees/attributes` | GET | List of all allowed employee attributes including custom ones | KPI #4 (discover skill custom attribute names) |
+
+**No direct overtime endpoint:** Personio tracks attendance (actual hours worked) and work schedules (target hours), but does not expose a pre-computed overtime balance via API. Overtime must be calculated as: `actual_hours - target_hours` for a given period, where target hours come from the employee's work schedule (stored as `weekly_working_hours` on the employee record or via the work schedules endpoint). For v1.3, compute overtime from attendance records + weekly_working_hours from employee data.
+
+**Skills/qualifications:** Personio does not have a dedicated skills API. Skills are stored as custom attributes (e.g., a multi-select or list custom attribute named "Fertigkeiten" or similar). The specific attribute name is customer-defined. For v1.3, the implementation must know the custom attribute key name — make it configurable in Settings.
+
+---
+
+## KPI Formulas
+
+### KPI #1: Überstunden im Vergleich Gesamtstunden Belegschaft (Overtime Ratio)
+
+**Business question:** What percentage of total workforce hours are overtime hours?
+
+**Formula:**
+```
+Overtime Ratio (%) = (Total Overtime Hours / Total Regular Target Hours) × 100
+
+where:
+  Total Overtime Hours    = Σ max(0, actual_hours_i - target_hours_i)  for all employees i in period
+  Total Regular Target    = Σ target_hours_i  for all employees i in period
+  actual_hours_i          = Σ (end_time - start_time - break_minutes/60) for all attendance records of employee i
+  target_hours_i          = employee.weekly_working_hours × (working_weeks in period)
+```
+
+**Personio data sources:**
+- Attendance records: `GET /v1/company/attendances?start_date=&end_date=`
+- Target hours: `employee.weekly_working_hours` from `GET /v1/company/employees`
+
+**Complexity:** MEDIUM — requires joining two data sources, handling part-time employees correctly, and managing employees who joined/left mid-period.
+
+**Edge cases:**
+- Part-time employees: their `weekly_working_hours` is already proportional (e.g., 20h vs 40h FTE) — no FTE conversion needed for the ratio
+- Employees with zero attendance records: treat actual hours as 0 (they may be on leave — absence records should be used to distinguish, but for pure overtime ratio this is acceptable)
+- Negative overtime (employee worked less than target): exclude from overtime numerator (cap at 0), but include target hours in denominator
+
+**Display:** Percentage with 1 decimal place. Delta badges vs. Vorperiode + vs. Vorjahr (same pattern as sales KPIs). No time filter control — always shows the full current sync period.
+
+---
+
+### KPI #2: Krankheit im Vergleich Gesamtstunden Belegschaft (Sick Leave Ratio / Krankenquote)
+
+**Business question:** What percentage of total workforce capacity was lost to sick leave?
+
+**Formula (hours-based — more precise than days-based):**
+```
+Sick Leave Ratio (%) = (Total Sick Leave Hours / Total Work Capacity Hours) × 100
+
+where:
+  Total Sick Leave Hours    = Σ sick_leave_days_i × daily_work_hours_i  for all employees
+  Total Work Capacity Hours = Σ target_hours_i  for all employees in period
+  sick_leave_days_i         = count of sick leave absence days for employee i in period
+  daily_work_hours_i        = employee.weekly_working_hours / 5
+```
+
+**Alternative (days-based — simpler, widely used in Germany):**
+```
+Krankenquote (%) = (Total Sick Days / Total Working Days × Total Employees) × 100
+```
+
+**Recommendation:** Use days-based formula if absence API returns day counts; hours-based if API returns hours directly. The `GET /v2/absence-periods` endpoint returns start_date + end_date, so day count = end_date - start_date + 1 (for full days). Match the calculation method to what Personio actually exposes.
+
+**Personio data sources:**
+- Absence periods filtered by absence type = "Krankheit" (sick leave): `GET /v2/absence-periods?absence_types[]=<sick_leave_type_id>`
+- The sick leave absence type ID must be looked up from the customer's Personio configuration — make it configurable or auto-discover from `GET /v1/company/time-off-types`
+
+**German benchmark:** National average Krankenquote is ~4–5% (DAK 2023: 5.5% record high). Above 6% triggers immediate attention per HR best practice.
+
+**Complexity:** MEDIUM — absence type filtering requires knowing the customer's sick leave type ID; half-day absences need special handling.
+
+**Display:** Percentage with 1 decimal place. Delta badges. German benchmark annotation (optional, configurable).
+
+---
+
+### KPI #3: Fluktuation (MA-Abgänge vs. gesamt MA)
+
+**Business question:** What percentage of the workforce left during the period?
+
+**Formula (industry standard — average headcount denominator):**
+```
+Fluktuationsrate (%) = (Anzahl Abgänge / Durchschnittlicher Personalbestand) × 100
+
+where:
+  Anzahl Abgänge                = employees with termination_date within the reporting period
+  Durchschnittlicher Bestand    = (headcount_at_period_start + headcount_at_period_end) / 2
+  headcount_at_period_start     = employees with hire_date ≤ period_start AND (termination_date IS NULL OR termination_date > period_start)
+  headcount_at_period_end       = employees with hire_date ≤ period_end AND (termination_date IS NULL OR termination_date > period_end)
+```
+
+**Personio data sources:**
+- `GET /v1/company/employees` with fields: `hire_date`, `termination_date`, `status`
+- Important: The employees endpoint by default may only return active employees. Pass `include_deleted=true` or filter by status to capture terminated employees. Verify the exact Personio API parameter — community sources indicate terminated employees are accessible but may require explicit inclusion.
+
+**Complexity:** MEDIUM — requires careful handling of the `include_deleted` parameter and status field; headcount snapshot logic requires two date-based filter passes.
+
+**Display:** Percentage with 1 decimal place. Delta badges. No time filter — fixed to current sync period (typically current month or current year).
+
+**Decision required:** What is the "reporting period" for fluctuation? Month-to-date, quarter-to-date, or year-to-date? Industry standard is annual. For v1.3, display year-to-date (rolling 12 months from last sync date) as default — simpler and most meaningful for annual HR reporting.
+
+---
+
+### KPI #4: MA Entwicklung — Anzahl MA mit neuer Fertigkeit (Employee Skill Development)
+
+**Business question:** How many employees gained a new skill/qualification in the period?
+
+**Formula:**
+```
+MA mit neuer Fertigkeit = count of employees where |skills_current| > |skills_at_period_start|
+
+OR (simpler alternative):
+Total Mitarbeiter mit Fertigkeiten = count of employees with at least one skill recorded
+```
+
+**Critical caveat:** Personio does not have a first-class skills or competencies API. Skills are stored as **custom employee attributes** — the specific attribute key is defined per company by the Personio admin. There is no change-history/audit-log for custom attributes accessible via API.
+
+**Practical consequence:** It is not possible to determine via API which employees gained a new skill during a specific period unless:
+1. The custom attribute stores a date-stamped entry (e.g., a list attribute where each entry includes a date), or
+2. The sync captures snapshots at each sync cycle and compares them (delta detection between syncs).
+
+**Recommendation for v1.3:** Implement as a **configurable custom attribute count metric**. On each sync, store the current skill count per employee in PostgreSQL. Compare current snapshot vs. previous month's snapshot to count employees with an increased skill count. Display as "X MA haben neue Fertigkeiten (seit letzter Periode)" — count of employees where skill count increased since last sync.
+
+**Required configuration:** The custom attribute name/key for skills must be configurable in Settings (e.g., `"dynamic_4739"` or whatever key Personio assigns to the custom attribute in this company's account).
+
+**Complexity:** HIGH — requires custom attribute configuration, snapshot diffing logic, and Personio admin coordination to identify the correct attribute key. This is the most implementation-complex of the 5 KPIs.
+
+**Fallback if not configurable:** Display as "Fertigkeitserfassung nicht konfiguriert" with a link to Settings.
+
+---
+
+### KPI #5: Produktions-Mitarbeiterumsatz (Revenue per Production Employee)
+
+**Business question:** What is the sales revenue generated per production employee?
+
+**Formula:**
+```
+Produktions-Mitarbeiterumsatz (€) = ERP-Umsatz / Anzahl Produktionsmitarbeiter
+
+where:
+  ERP-Umsatz                     = total revenue from sales orders in reporting period (from existing PostgreSQL sales table)
+  Anzahl Produktionsmitarbeiter   = count of active employees in Personio with department = "Produktion" (or configured department name)
+```
+
+**Personio data sources:**
+- `GET /v1/company/employees` filtered by department (or filter post-fetch in Python)
+- The department name for "Produktion" must be configurable in Settings — do not hardcode
+
+**Sales data source:** Existing `orders` table in PostgreSQL (already populated via ERP file upload). Query: `SELECT SUM(umsatz_column) WHERE date IN period` — same query as existing sales dashboard but scoped to the same period as the Personio sync.
+
+**Cross-source dependency:** This KPI is the only one that joins ERP data (file upload → PostgreSQL) with Personio data (API sync → PostgreSQL). Both data sets must be present for this KPI to render. If no ERP data has been uploaded, display em-dash fallback (same pattern as existing no-baseline cases).
+
+**Complexity:** MEDIUM — the revenue query is already solved; the new part is Personio headcount with department filter.
+
+**Display:** Currency (€) with locale formatting. Delta badges vs. Vorperiode + vs. Vorjahr. The period for ERP revenue should match the Personio sync period — document this alignment clearly.
 
 ---
 
@@ -24,117 +199,132 @@ v1.0 shipped these components relevant to v1.1:
 
 ### Table Stakes (Users Expect These)
 
-Features that must exist for v1.1 to feel complete. Missing any of these = the milestone is not done.
-
-| Feature | Why Expected | Complexity | User-Capability Phrasing |
-|---------|--------------|------------|--------------------------|
-| Settings page reachable from top-nav | Standard pattern in every admin panel — users look for a gear icon or "Settings" link in the nav | LOW | User can navigate to Settings from the top navigation bar |
-| App name / brand label editing | The primary white-label act; "KPI Light" must be replaceable without touching code | LOW | User can rename the application (replaces "KPI Light" wherever the brand label appears) |
-| Primary color editing (hex input) | Minimum viable CI customization — one brand color changes the whole app feel | MEDIUM | User can set a brand primary color using a hex code input |
-| Logo upload (PNG/SVG, max 1 MB) | Logos are the most visible CI element; internal teams always want their company mark in the header | MEDIUM | User can upload a PNG or SVG logo that replaces the text brand label in the header |
-| Logo preview before save | Users must confirm they uploaded the right file before it goes live — standard UX for image uploads | LOW | User sees a preview of the uploaded logo before committing the change |
-| Save action with explicit confirmation | Settings changes must not auto-apply permanently — users need a deliberate commit step | LOW | User can save all settings changes with a single Save button; unsaved changes do not persist across sessions |
-| Reset to defaults | Users will inevitably break their color palette or want to undo; a reset escape hatch is expected | LOW | User can reset all branding settings to the factory defaults in one action |
-| Default UI language (DE/EN) | The app currently hardcodes `lng: "de"` — making this editable is the natural v1.1 completion of the i18n work already done | LOW | User can set the default application language (German or English) for all sessions |
-| Live preview while editing | Industry standard for settings pages with visual impact — users expect to see color and logo changes reflected immediately without saving | MEDIUM | User sees a live preview of theme changes (colors, logo, name) reflected in the app header while editing, before saving |
-| Unsaved-changes warning on navigation | Without this, users lose edits when clicking away — basic data-integrity expectation | LOW | User is warned before navigating away from Settings with unsaved changes |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| HR tab in top nav alongside Sales tab | Navigation pattern established by v1.2 Sales tab; users expect multi-domain app to have tab-level navigation | LOW | Rename existing "Dashboard" → "Sales", add "HR" tab. Uses existing wouter routing pattern. |
+| 5 HR KPI cards with values | The explicit milestone goal — the entire HR tab is a dashboard of these 5 KPIs | HIGH | Each KPI card reuses existing shadcn card component + delta badge component from v1.2 |
+| Delta badges on all 5 HR KPI cards | v1.2 established this as the standard on Sales; absence on HR cards would feel inconsistent | MEDIUM | Reuse exact same DeltaBadge component. Requires storing prior-period + prior-year snapshots in PostgreSQL |
+| Manual "Daten aktualisieren" sync button | Users need on-demand control over Personio data freshness | LOW | Button triggers `POST /api/hr/sync` endpoint; TanStack Query invalidation on success |
+| Freshness indicator showing last sync timestamp | Established pattern from v1.0 Sales dashboard — users need to know how stale the data is | LOW | Reuse existing freshness indicator component or create equivalent |
+| Personio API credentials in Settings | Without credentials, the HR tab cannot function; users expect to configure this in Settings | MEDIUM | New Settings fields: API client_id, client_secret (masked input), sick leave absence type ID, production department name, skill custom attribute key |
+| Configurable auto-sync interval in Settings | Users want data refreshed without manual intervention | MEDIUM | Background scheduler (APScheduler or equivalent) in FastAPI; interval options: 1h, 6h, 24h, manual-only |
+| Error state when Personio API unreachable | API credentials may be wrong, Personio may be down — must communicate this clearly | LOW | KPI cards show "Verbindungsfehler" + retry button rather than empty/stale values |
+| DE/EN i18n parity for all HR strings | Established in v1.0 — all user-facing strings must have both translations | MEDIUM | ~40–60 new i18n keys expected; HR-specific terminology (Fluktuation, Krankenquote, Überstunden) |
 
 ### Differentiators (Nice-to-Have, Worth Scoping Discussion)
 
 | Feature | Value Proposition | Complexity | Recommendation |
 |---------|-------------------|------------|----------------|
-| Contrast ratio hint on primary color | Shows WCAG 4.5:1 pass/fail inline next to the color picker — prevents users from picking a color that makes text unreadable | MEDIUM | Include in v1.1 — low surface area, prevents real UX damage. A single pass/fail badge against white/black background is sufficient; full APCA audit is overkill. |
-| Full semantic color palette editing (all shadcn tokens) | Allows deep CI customization — background, foreground, muted, destructive, border, ring | HIGH | Defer to v1.2 or make it an advanced/expandable section within v1.1 Settings. Starting with just `--primary` reduces complexity while delivering 80% of the CI value. |
-| Color palette swatches / preset themes | Offer 3–5 preset palettes (e.g., "Corporate Blue", "Forest Green", "Neutral") — users who don't know brand hex codes benefit | LOW | Include in v1.1 as 4–6 hardcoded swatch buttons feeding the hex input. Zero backend cost; high perceived polish. |
-| Logo drag-and-drop | The v1.0 file upload already has drag-and-drop; users will expect it in logo upload too for consistency | LOW | Include in v1.1 — reuse the existing `DropZone` component pattern. |
-| App name reflected in browser tab title | `document.title` is trivially updated via `useEffect` on the stored app name; users notice when the tab still says "Vite App" | LOW | Include in v1.1 — 5 lines of code, high perceived quality signal. |
+| German benchmark annotation on sick leave card | Shows whether 4.5% Krankenquote is above/below national average — contextualizes the number immediately | LOW | Include in v1.3 as a subtle annotation below the card value. Static threshold (configurable in code, not UI). |
+| Auto-discover Personio absence types | List available absence types from API instead of requiring manual ID entry in Settings | MEDIUM | Include in v1.3 — makes configuration significantly less error-prone. `GET /v1/company/time-off-types` → dropdown in Settings |
+| Auto-discover Personio departments | List available departments from employee data instead of manual text entry | MEDIUM | Include in v1.3 for the same reason. Derives from distinct `department` values in the fetched employee list. |
+| Personio sync history log | Shows last N sync attempts with status (success/error/partial) | MEDIUM | Defer to v1.4 — useful for debugging but not required for v1.3 validation |
+| HR trend chart (historical KPI series) | Line chart showing how sick leave / overtime / fluctuation evolve month over month | HIGH | Defer to v1.4 — requires storing historical snapshots, not just current + one prior period |
+| Employee count card | Simple total headcount as a standalone KPI card | LOW | Include in v1.3 as a 6th card — trivially computed from employee sync, provides context for all ratio KPIs |
 
-### Anti-Features (Explicitly Excluded — Document the Reasoning)
+### Anti-Features (Explicitly Excluded)
 
-| Feature | Why It Seems Appealing | Why Excluded from v1.1 | What to Do Instead |
-|---------|------------------------|------------------------|---------------------|
-| Per-user CI / per-session theme | Some tools let each user set their own colors | No auth, no user identity — single global CI is the correct model for v1.1's pre-auth architecture | Global instance-wide settings only; revisit after Authentik (v2) |
-| Admin-only settings gating | Prevents random team members from changing the brand | Would require pulling Authentik (auth) work forward into v1.1 | Any user can edit; document this as a known limitation to be addressed in v2 |
-| Dark mode / light mode toggle | Users often expect a theme toggle in settings | The CSS already has a `.dark` class variant defined in `index.css`, but there's no toggle yet and the scope question (per-user vs global?) requires auth to answer properly | Defer dark mode toggle to after auth; it's a per-user preference, not a CI setting |
-| Full OKLCH-native color picker | OKLCH is perceptually uniform and maps directly to the CSS variable format used in `index.css` | OKLCH color pickers are not widely understood by non-designers; implementing conversion is extra complexity | Accept hex input; convert to OKLCH at runtime via CSS `color()` function or store as hex and inject directly into CSS custom properties — both work in modern browsers |
-| HSL slider color picker | HSL looks intuitive but is perceptually non-uniform — saturation/hue changes affect perceived brightness in unexpected ways, which is particularly bad for WCAG contrast checking | Would create false confidence in accessibility; users think only the lightness slider affects contrast | Hex input with contrast ratio hint is simpler and more honest |
-| Real-time persistence (auto-save) | Some tools save every keystroke | For settings with visual impact (colors, logo) auto-save creates a jarring live-production-edit experience | Explicit Save button only; live preview is in-memory only until saved |
-| Per-field reset buttons | "Reset this field only" is a UX nicety | Adds significant UI complexity for a settings page with few fields; users can reset all or manually retype | Single "Reset to defaults" button for the whole form |
-| Logo stored as bytea in PostgreSQL | Storing binary in DB is one valid approach | Binary blobs inflate DB backup size, complicate migrations, and are not cacheable by the browser without custom endpoints | Store as file path (uploaded to a volume-mounted directory); serve via a static file route from FastAPI. This is the standard pattern for user-uploaded assets in Dockerized apps. |
-| Font selection / typography settings | Some white-label tools include font pickers | Scope creep for v1.1; font loading is complex (FOUC, variable fonts, fallback stacks) | Geist Variable is already configured and looks professional; lock it for now |
-| Custom CSS / code editor | Power users want to inject arbitrary CSS | Security risk in a shared internal tool; no auth to gate it | Expose the semantic tokens only |
+| Feature | Why Requested | Why Excluded | Alternative |
+|---------|---------------|--------------|-------------|
+| Real-time Personio data (webhook-driven) | Freshest possible data without polling | Personio webhooks require a publicly accessible endpoint (not available for internal Docker Compose deployments without reverse proxy setup); also webhook scope for HR data is complex | Polling-based sync with configurable interval is the correct pattern for an internal intranet tool |
+| Write-back to Personio (create/update records) | Two-way sync | Out of scope for a read-only KPI dashboard; adds OAuth write scopes, data integrity risk, and significant testing burden | Read-only API access only |
+| Per-employee drill-down (who is sick, who is overtime) | Individual transparency | Privacy concern in a pre-auth app — individual attendance data visible to any team member without access control is a data protection issue | Aggregate-only KPIs; individual data deferred to post-Authentik (v2) |
+| Absences calendar view | Visualize who is absent when | Wrong interface for a KPI dashboard; adds significant frontend complexity | Personio's built-in UI already provides this |
+| Full Personio employee directory | Show all employee profiles | Not a KPI feature; duplicates Personio's own interface | Link to Personio app from the HR tab footer if navigation is needed |
+| Historical backdating of KPI snapshots | Load 12 months of historical Personio data on first sync | First sync could pull months of data, but computing accurate prior-period deltas requires careful snapshot storage design; risk of Personio rate limiting on large initial fetch | On first sync, compute current values only; delta badges show em-dash fallback for no-baseline cases (same pattern as v1.2 em-dash for `allTime` preset) |
+| APScheduler persistent job store (database-backed) | Survive container restarts with exact last-run time | Overengineering for an interval-based sync — if the container restarts, the next sync fires at the configured interval from restart time, which is acceptable for non-critical HR data | In-memory APScheduler; on restart, first sync fires at interval from boot time |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Settings page route (/settings)
-  └──requires──> NavBar link to /settings
+HR Tab (navigation)
+  └──requires──> wouter route /hr added to App.tsx
+  └──requires──> NavBar tab link "HR" added
+  └──requires──> Personio credentials stored in Settings (otherwise tab shows config-required state)
 
-App name editing
-  └──requires──> Settings page route
-  └──enhances──> Browser tab title update (document.title)
-  └──enhances──> nav.brand i18n key resolved from DB, not locale file
+Personio Sync (backend)
+  └──requires──> Personio API credentials in PostgreSQL settings table (client_id, client_secret)
+  └──requires──> New PostgreSQL tables: personio_employees, personio_attendances, personio_absences, personio_hr_snapshots
+  └──requires──> New Alembic migration for above tables
+  └──requires──> POST /api/hr/sync FastAPI endpoint
+  └──requires──> Bearer token caching (24h validity) to avoid re-auth on every sync
 
-Logo upload
-  └──requires──> File storage pattern (volume-mounted dir + FastAPI static route)
-  └──requires──> Logo preview component
-  └──enhances──> Header logo replaces text brand label when logo present
+KPI #1 (Overtime Ratio)
+  └──requires──> personio_attendances table (actual hours)
+  └──requires──> personio_employees table (weekly_working_hours for target)
+  └──requires──> Overtime calculation logic: actual - target, capped at 0
 
-Primary color editing
-  └──requires──> Hex input component
-  └──enhances──> Contrast ratio hint (WCAG badge)
-  └──requires──> CSS var injection: document.documentElement.style.setProperty('--primary', value)
-  └──enhances──> Color preset swatches (feed the hex input, no additional storage)
+KPI #2 (Sick Leave Ratio)
+  └──requires──> personio_absences table filtered by sick leave absence type
+  └──requires──> Absence type ID configurable in Settings (or auto-discovered)
+  └──requires──> personio_employees table (weekly_working_hours for capacity denominator)
 
-Live preview
-  └──requires──> In-memory draft state (separate from persisted state)
-  └──requires──> CSS var injection for color live preview
-  └──requires──> Logo preview via object URL (URL.createObjectURL before upload)
-  └──note──> No debounce needed for swatch selection; debounce only hex text input (300ms typical)
+KPI #3 (Fluctuation)
+  └──requires──> personio_employees table with hire_date + termination_date
+  └──requires──> Terminated employee inclusion in sync (verify API parameter)
 
-Save flow
-  └──requires──> Settings API endpoint (POST /api/settings)
-  └──requires──> New `settings` table via Alembic migration
-  └──requires──> TanStack Query mutation + queryKey invalidation
+KPI #4 (Skill Development)
+  └──requires──> personio_employees table with custom attributes stored as JSONB
+  └──requires──> Skill attribute key configurable in Settings
+  └──requires──> personio_hr_snapshots table for delta detection between sync cycles
 
-Unsaved-changes warning
-  └──requires──> wouter's navigation event (use beforeunload for tab close; wouter has no built-in route guard — handle with a confirmation dialog triggered before Link navigation)
+KPI #5 (Revenue per Production Employee)
+  └──requires──> personio_employees table with department filter
+  └──requires──> Production department name configurable in Settings
+  └──requires──> Existing orders table (ERP data — already present from v1.x)
+  └──requires──> Period alignment: ERP revenue period must match Personio sync period
 
-Default language setting
-  └──requires──> i18n.changeLanguage() call on app load when DB setting differs from current lng
-  └──note──> i18n.ts currently hardcodes `lng: "de"`; replace with value fetched from settings API on init
-  └──note──> i18next-browser-languageDetector is NOT installed — no conflict to resolve; just call i18n.changeLanguage() after fetching settings
+Delta Badges on HR KPIs
+  └──requires──> personio_hr_snapshots table storing (kpi_name, value, period_label, computed_at)
+  └──requires──> Prior-period and prior-year snapshot lookup at render time
+  └──note──> Same DeltaBadge component from v1.2 — no new component needed
+
+Auto-sync Scheduler
+  └──requires──> APScheduler (or equivalent) added to FastAPI startup
+  └──requires──> Sync interval stored in Settings table (existing table, new column)
+  └──requires──> Manual sync button calls same sync logic as scheduler
+
+Settings: Personio credentials
+  └──requires──> New Settings fields (extend existing settings table or add personio_config table)
+  └──requires──> Masked display of client_secret (show as ******* after save)
+  └──requires──> Test connection button (calls Personio auth endpoint, returns success/fail)
 ```
 
 ---
 
 ## MVP Definition
 
-### v1.1 Launch With (Table Stakes + Selected Differentiators)
+### v1.3 Launch With
 
-- [ ] Settings route (`/settings`) reachable from NavBar gear icon or text link — why: no entry point = feature is invisible
-- [ ] App name input — user can rename "KPI Light" to their company's tool name; updates `t("nav.brand")` equivalent in the header and `document.title` — why: primary white-label act
-- [ ] Logo upload (PNG/SVG, ≤1 MB, click-to-upload + drag-and-drop) with client-side preview before save — why: most visible CI element
-- [ ] Primary color hex input with live CSS variable injection into `:root` — why: single color change transforms app feel with minimal complexity
-- [ ] Contrast ratio badge (WCAG AA pass/fail for text on primary color) — why: prevents accessibility regressions; very low implementation cost
-- [ ] Color preset swatches (4–6 options) — why: zero backend cost; helps users without brand hex codes
-- [ ] Default UI language toggle (DE / EN) — why: completes the i18n work; currently hardcoded in `i18n.ts`
-- [ ] Save button (explicit commit of all changes to DB) — why: settings are meaningless without persistence
-- [ ] Reset to defaults button — why: escape hatch; prevents users from getting stuck with a broken palette
-- [ ] Unsaved-changes warning modal when navigating away — why: prevents silent data loss
+- [ ] HR tab in NavBar alongside renamed Sales tab — without navigation, nothing else is reachable
+- [ ] Personio API credentials (client_id, client_secret) in Settings with masked display — prerequisite for all HR features
+- [ ] Sick leave absence type ID and production department name configurable in Settings — needed for KPI #2 and KPI #5
+- [ ] Personio sync: fetch and store employees, attendances, absences into PostgreSQL — the data foundation
+- [ ] Manual "Daten aktualisieren" button with success/error feedback — on-demand control
+- [ ] Configurable auto-sync interval (1h / 6h / 24h / manual-only) — core milestone requirement
+- [ ] KPI #1: Overtime Ratio card with value + delta badges — core milestone requirement
+- [ ] KPI #2: Sick Leave Ratio card with value + delta badges — core milestone requirement
+- [ ] KPI #3: Fluctuation card with value + delta badges — core milestone requirement
+- [ ] KPI #4: Skill Development card with configurable attribute key — core milestone requirement; show "nicht konfiguriert" fallback if key not set
+- [ ] KPI #5: Revenue per Production Employee card with value + delta badges + em-dash fallback if no ERP data — core milestone requirement
+- [ ] Freshness indicator showing last Personio sync timestamp
+- [ ] Error state cards when Personio is unreachable or credentials invalid
+- [ ] Full DE/EN i18n for all HR strings
 
-### Add After v1.1 Validation (v1.x)
+### Add After v1.3 Validation
 
-- [ ] Full semantic color palette editing (background, foreground, muted, destructive, border, ring) — trigger: user feedback that primary color alone isn't enough customization
-- [ ] Dark mode toggle — trigger: after auth (v2) enables per-user preference; or as a global setting if demand exists
+- [ ] Auto-discover absence types dropdown in Settings — reduces config friction; trigger: user feedback on Settings UX
+- [ ] Employee count card (6th KPI) — trigger: users find ratio KPIs hard to interpret without absolute headcount context
+- [ ] Personio sync history/log — trigger: debugging requests
 
 ### Future / v2+
 
-- [ ] Per-user theme preferences — requires Authentik auth (user identity)
-- [ ] Admin-only gating for settings edits — requires Authentik roles (RBAC)
-- [ ] Font selection — low demand vs high complexity; defer indefinitely
+- [ ] Per-employee drill-down — requires Authentik auth (data protection)
+- [ ] HR trend chart (12-month historical series) — requires historical snapshot storage design
+- [ ] Personio webhook-driven sync — requires public endpoint (reverse proxy, domain) not available in Docker-internal v1
+- [ ] Write-back to Personio — requires write OAuth scopes, data integrity design
 
 ---
 
@@ -142,133 +332,124 @@ Default language setting
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Settings route + NavBar link | HIGH | LOW | P1 |
-| App name editing | HIGH | LOW | P1 |
-| Browser tab title update | MEDIUM | LOW | P1 |
-| Logo upload + preview | HIGH | MEDIUM | P1 |
-| Primary color hex input + live preview | HIGH | MEDIUM | P1 |
-| Contrast ratio WCAG badge | MEDIUM | LOW | P1 |
-| Color preset swatches | MEDIUM | LOW | P1 |
-| Default language setting (DE/EN) | HIGH | LOW | P1 |
-| Save / Reset flows | HIGH | LOW | P1 |
-| Unsaved-changes warning | MEDIUM | LOW | P1 |
-| Full semantic palette editing | MEDIUM | HIGH | P2 |
-| Dark mode toggle | MEDIUM | MEDIUM | P3 (post-auth) |
-| Per-user CI | LOW (for v1 scope) | HIGH | P3 (post-auth) |
+| HR tab navigation | HIGH | LOW | P1 |
+| Personio credentials in Settings | HIGH | MEDIUM | P1 |
+| Personio sync (employees + attendances + absences) | HIGH | HIGH | P1 |
+| KPI #1: Overtime Ratio | HIGH | MEDIUM | P1 |
+| KPI #2: Sick Leave Ratio | HIGH | MEDIUM | P1 |
+| KPI #3: Fluctuation | HIGH | MEDIUM | P1 |
+| KPI #4: Skill Development | MEDIUM | HIGH | P1 (required by milestone) |
+| KPI #5: Revenue per Production Employee | HIGH | MEDIUM | P1 (required by milestone) |
+| Delta badges on all HR KPIs | HIGH | MEDIUM | P1 |
+| Auto-sync scheduler | MEDIUM | MEDIUM | P1 |
+| Manual sync button | HIGH | LOW | P1 |
+| Error state handling | HIGH | LOW | P1 |
+| DE/EN i18n parity | HIGH | MEDIUM | P1 |
+| Freshness indicator | MEDIUM | LOW | P1 |
+| Auto-discover absence types | MEDIUM | LOW | P2 |
+| Employee count card | MEDIUM | LOW | P2 |
+| Sync history log | LOW | MEDIUM | P3 |
+| HR trend chart | HIGH | HIGH | P3 (v2+) |
 
-**Priority key:** P1 = v1.1 scope, P2 = v1.2 candidate, P3 = v2+
+**Priority key:** P1 = v1.3 scope, P2 = add after v1.3 validation, P3 = v2+
 
 ---
 
 ## Implementation Notes by Feature Area
 
-### 1. Settings Page Layout
+### 1. PostgreSQL Schema for Personio Data
 
-**Recommendation: Single-page form with section headers, not tabbed.**
+Four new tables are required:
 
-Rationale: The settings surface is small (5–7 fields total). Tabs add navigation overhead that only pays off with 4+ distinct setting categories. B2B admin panels use tabs for large surfaces (Billing, Security, Integrations, Team, etc.). For this scope, a vertical single-form layout with visual section dividers ("Branding", "Appearance", "Language") is the correct pattern. This mirrors how tools like Linear, Vercel dashboard, and Metabase handle small settings pages.
+- `personio_employees` — one row per employee per sync: id, personio_id, first_name, last_name, department, position, status, hire_date, termination_date, weekly_working_hours, custom_attributes (JSONB), synced_at
+- `personio_attendances` — one row per attendance record: id, personio_employee_id, date, start_time, end_time, break_minutes, actual_hours (computed on insert), synced_at
+- `personio_absences` — one row per absence period: id, personio_employee_id, absence_type_id, absence_type_name, start_date, end_date, days_count, synced_at
+- `personio_hr_snapshots` — computed KPI values: id, kpi_name, value, period_label, computed_at (used for delta badge lookups)
 
-NavBar placement: Add "Settings" as a link in the right side of the NavBar (next to LanguageToggle). A gear icon + "Settings" text is conventional. Use wouter `<Link href="/settings">`.
+On each sync: truncate and re-insert (simpler than upsert for v1.3); retain snapshot history rows (never truncate snapshots).
 
-### 2. Color Editing UX
+### 2. Sync Architecture
 
-**Recommendation: Hex text input + preset swatches + WCAG contrast badge. No HSL sliders.**
+The sync is triggered by: (a) manual button click → `POST /api/hr/sync`, (b) APScheduler job at configured interval.
 
-Hex input is universal — every brand guideline document lists hex codes. HSL sliders are counterintuitive for accessibility (perceived lightness is non-linear in HSL). OKLCH is even less familiar to non-designers.
+Sync sequence:
+1. Authenticate with Personio → cache bearer token (in-memory, TTL 23h to be safe)
+2. `GET /v1/company/employees` → store to `personio_employees`
+3. `GET /v2/absence-periods` for rolling 13 months → store to `personio_absences`
+4. `GET /v1/company/attendances` for rolling 13 months → store to `personio_attendances`
+5. Compute all 5 KPI values for current period + prior period + prior year → store to `personio_hr_snapshots`
+6. Update `settings.last_hr_sync_at` timestamp
+7. Return sync summary (employees synced, absences synced, attendances synced, errors if any)
 
-Live preview: `document.documentElement.style.setProperty('--primary', hexValue)` injects directly into the `:root` computed style, overriding the CSS file value immediately without a re-render. This is the standard shadcn live-theming pattern (used by tweakcn, shadcn's own theme generator). No React context re-render needed for the color change itself — only the draft state needs to live in React state.
+Pulling 13 months of data on every sync is acceptable given the small team sizes this app targets (internal use, small group per PROJECT.md). For very large companies, add incremental sync using `updated_from` filter — but this is an edge case for v1.3.
 
-Debounce strategy: Debounce hex input at 300ms so CSS var injection doesn't fire on every keystroke. Swatches fire immediately (no debounce needed — one discrete selection).
+### 3. Bearer Token Caching
 
-WCAG contrast badge: Calculate contrast ratio between the hex primary and white (`#ffffff`) and black (`#000000`) using the WCAG luminance formula (no library needed — it's 10 lines of JavaScript). Show "AA Pass" (≥4.5:1 for normal text) or "AA Fail" inline next to the input.
+Token is valid 24h. Cache in a module-level variable (or FastAPI app state) with an expiry timestamp. Before any Personio API call, check if token is present and not expired. Re-authenticate if expired. Do not store the token in PostgreSQL — in-memory is sufficient and avoids plaintext credential storage in the database.
 
-Dark/light mode interaction: v1.1 has no dark mode toggle. The `.dark` class in `index.css` defines separate `--primary` values, but since no toggle exists yet, only the `:root` (light) values need to be written. Injecting via `document.documentElement.style.setProperty` sets an inline style that takes precedence over both `:root` and `.dark` selectors — this is acceptable for v1.1. When dark mode is eventually added, the settings model will need two color values per token (one for light, one for dark).
+### 4. APScheduler Integration
 
-### 3. Logo Upload UX
+Use `APScheduler` (already widely used with FastAPI) with `AsyncIOScheduler`. Add to FastAPI `lifespan` context manager (startup/shutdown). Read interval from settings on each reschedule (allow dynamic interval changes from Settings without container restart).
 
-**Recommendation: Drag-and-drop zone (reuse DropZone pattern) + click fallback. Preview via object URL. Store as file path on disk, not bytea.**
+```python
+# Example — interval configurable from settings
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-Accept PNG and SVG only. 1 MB client-side size limit before upload. Reject other formats with an inline error message (same pattern as upload page).
+scheduler = AsyncIOScheduler()
 
-Preview: Use `URL.createObjectURL(file)` to show an immediate in-browser preview in a 60×60 container before the file is sent to the backend. No server round-trip needed for preview — the object URL is revoked on save or discard.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = await get_settings()
+    if settings.hr_sync_interval_hours > 0:
+        scheduler.add_job(sync_personio, 'interval', hours=settings.hr_sync_interval_hours)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+```
 
-Replace vs reset: The logo state has three states — (a) no logo uploaded (show text brand label), (b) pending new logo (preview shown, not saved), (c) saved logo (served from backend). "Reset logo" removes the saved logo and reverts to text label. "Replace" is just uploading a new file while a saved logo exists — the new preview replaces the old preview in the UI; save overwrites the stored file.
+### 5. KPI #4 Custom Attribute Approach
 
-Storage: FastAPI serves static files from a volume-mounted directory (`/app/static/logos/` or similar). This is the standard Docker pattern — simpler than bytea, browser-cacheable, no custom streaming endpoint needed. The settings table stores the relative path or filename.
+The `custom_attributes` JSONB column on `personio_employees` stores the full custom attribute map from the Personio API response. The skill attribute key (e.g., `"dynamic_4739"`) is stored in Settings. On KPI computation:
 
-### 4. Live Preview Pattern
+1. Read all employees from `personio_employees` where synced_at = latest sync
+2. For each employee, extract `custom_attributes[skill_key]` — this is a list (or null)
+3. Count the list length as `current_skill_count`
+4. Compare with `custom_attributes[skill_key]` from the previous snapshot in `personio_employees` where synced_at = prior sync
+5. Count employees where `current_skill_count > prior_skill_count`
 
-**Recommendation: React state for draft values + CSS var injection for colors + object URL for logo preview. No full app re-render.**
+This approach works without Personio exposing a history API — the app creates its own history by preserving prior sync records.
 
-The draft state lives in a `useState` hook in the Settings page. On every change:
-- Colors → `document.documentElement.style.setProperty('--primary', draftColor)` (direct DOM mutation, no React re-render of the whole tree)
-- Logo → object URL set on an `<img>` in the preview component
-- App name → update `document.title` and the header brand label via a React context or by re-rendering the NavBar with a prop
+### 6. Revenue per Production Employee Period Alignment
 
-On discard: revert CSS var injection from saved values (`document.documentElement.style.removeProperty('--primary')` or re-inject saved value), revoke object URL, restore draft to saved.
+The ERP revenue is date-filtered (existing sales query infrastructure). The Personio production employee count is a point-in-time headcount (active employees with department = configured department, as of last sync date).
 
-On save: POST to `/api/settings`, on success invalidate the settings query (TanStack Query), the CSS var injection becomes the persisted state on next load.
-
-### 5. Save / Discard / Reset Flows
-
-**Recommendation: Explicit Save button + "Discard changes" link + "Reset to defaults" button (in a danger zone section or with a confirmation modal).**
-
-Unsaved-changes warning: wouter does not have a built-in route guard (`<Prompt>` equivalent). Handle by: (a) blocking browser tab close/refresh with `beforeunload` event when `isDirty` is true, and (b) intercepting NavBar link clicks to show a confirmation dialog ("You have unsaved changes. Leave without saving?") when `isDirty`. A shadcn `<Dialog>` component is already in the codebase for this. The dialog uses "Leave" / "Stay" (not "OK" / "Cancel") per UX best practices for action clarity.
-
-Reset to defaults: Show a confirmation dialog before resetting. Reset resets the draft AND (if confirmed) immediately saves defaults to the backend so the reset is persistent. A "Reset" that only resets the draft but not the DB is confusing.
-
-Per-field reset: Excluded (see anti-features). Single global reset is sufficient for this settings surface.
-
-### 6. App Name / Title Editing
-
-**Surfaces where app name appears:**
-- NavBar brand label (currently `t("nav.brand")` → `"KPI Light"`)
-- Browser tab title (`document.title` — currently Vite default, not yet managed)
-
-**Not in scope for v1.1:** PDF export (not a v1 feature). Per-page title suffixes (e.g., "KPI Light | Dashboard") are a v1.2 nicety — for now, a single document.title = appName is sufficient.
-
-Implementation: Store app name in the settings table. On app load, fetch settings and call `document.title = settings.appName`. The NavBar brand label reads from settings context, not from the i18n `nav.brand` key. The i18n key can remain as a fallback if no app name is set.
-
-### 7. Default Language Interaction
-
-**Current state:** `i18n.ts` hardcodes `lng: "de"`. No `i18next-browser-languageDetector` is installed. Users manually toggle via `LanguageToggle` component (which presumably calls `i18n.changeLanguage()`), but that choice is lost on page reload.
-
-**v1.1 behavior:** The settings-stored default language is the app-wide default. On app init, fetch settings and call `i18n.changeLanguage(settings.defaultLanguage)` before rendering. The LanguageToggle remains functional for per-session override (calls `i18n.changeLanguage()` without writing to the DB — session-only).
-
-**Interaction model:** DB setting = instance default (what new sessions start with). LanguageToggle = per-session override (not persisted). This is the correct model for a pre-auth single-instance app. Do not install `i18next-browser-languageDetector` — it adds localStorage caching that would conflict with the DB setting without additional configuration.
-
----
-
-## Competitor / Reference Pattern Analysis
-
-| Pattern | Reference | Our Approach |
-|---------|-----------|--------------|
-| Settings as single-page form | Linear, Vercel dashboard (small settings surfaces) | Single vertical form with section headers |
-| Live color preview via CSS vars | tweakcn.com, shadcn theme generator | Same pattern — `document.documentElement.style.setProperty` |
-| Logo upload with preview | Slack workspace settings, Notion workspace settings | Click + drag-drop zone; object URL preview; save to disk |
-| Unsaved changes modal | AWS Cloudscape design system, GitHub settings | shadcn Dialog with "Leave" / "Stay" actions |
-| WCAG contrast badge | Figma color picker, Material Design color tool | Inline badge next to hex input |
-| Explicit save (not auto-save) | All major admin settings pages (explicit save for config) | Save button; autosave explicitly excluded |
+For v1.3, use: revenue for the current calendar year (or last 12 months) ÷ current production headcount. Document this as "Produktions-MA zum Stichtag der letzten Synchronisierung". The period alignment is inherently approximate — this is acceptable for an internal KPI dashboard. A more precise approach (average headcount over the revenue period) can be added in v2.
 
 ---
 
 ## Sources
 
-- shadcn/ui theming and CSS variables: https://ui.shadcn.com/docs/theming
-- Tailwind v4 shadcn integration: https://ui.shadcn.com/docs/tailwind-v4
-- tweakcn visual theme editor (live CSS var preview reference): https://tailkits.com/tools/tweakcn/
-- Cloudscape unsaved-changes pattern: https://cloudscape.design/patterns/general/unsaved-changes/
-- GitHub Primer saving patterns: https://primer.style/product/ui-patterns/saving/
-- LogRocket tabs UX: https://blog.logrocket.com/ux-design/tabs-ux-best-practices
-- NNGroup tabs used right: https://www.nngroup.com/articles/tabs-used-right/
-- i18next configuration options: https://www.i18next.com/overview/configuration-options
-- i18next-browser-languageDetector detection order: https://deepwiki.com/i18next/i18next-browser-languageDetector/4.1-detection-order-and-caching
-- React dynamic document.title: https://react.dev/reference/react-dom/components/title
-- Josh W. Comeau on CSS variables in React: https://www.joshwcomeau.com/css/css-variables-for-react-devs/
-- WCAG contrast ratios: https://webaim.org/resources/contrastchecker/
-- Sidebar UX best practices: https://uxplanet.org/best-ux-practices-for-designing-a-sidebar-9174ee0ecaa2
-- File upload UX best practices: https://uploadcare.com/blog/file-uploader-ux-best-practices/
+- [Personio Developer Hub — Getting Started](https://developer.personio.de/docs/getting-started-with-the-personio-api)
+- [Personio API — List Attendances](https://developer.personio.de/v1.0/reference/get_company-attendances)
+- [Personio API — List Employees](https://developer.personio.de/v1.0/reference/get_company-employees)
+- [Personio API — List Absence Periods v2](https://developer.personio.de/reference/get_v2-absence-periods)
+- [Personio API — Authentication](https://developer.personio.de/reference/authentication)
+- [Personio Changelog — Rate Limits on GET Employees (May 2024)](https://developer.personio.de/changelog/rate-limits-on-get-employees-endpoint-may-6-2024)
+- [Personio API — Employee Custom Attribute Types](https://developer.personio.de/changelog/employee-api-custom-attribute-types)
+- [Overtime Ratio KPI Definition — OKRify](https://okrify.com/overtime-ratio-percentage/)
+- [Sick Leave / Absenteeism Rate — Geckoboard](https://www.geckoboard.com/best-practice/kpi-examples/absence-rate/)
+- [Calculate Sickness Rate — Absentify](https://absentify.com/blog/calculate-sickness-rate)
+- [German Sick Leave Context — DataPulse Research](https://www.datapulse.de/en/sick-leave-europe-comparison/)
+- [Employee Turnover Rate Formula — Klipfolio](https://www.klipfolio.com/resources/kpi-examples/human-resources/employee-turnover-rate)
+- [Employee Turnover KPIs — NetSuite](https://www.netsuite.com/portal/resource/articles/human-resources/employee-turnover-kpis-metrics.shtml)
+- [Revenue per Employee — AIHR](https://www.aihr.com/blog/revenue-per-employee/)
+- [Revenue per Employee — Personio HR Lexicon](https://www.personio.com/hr-lexicon/revenue-per-employee/)
+- [HR KPIs Guide — AIHR](https://www.aihr.com/blog/human-resources-key-performance-indicators-hr-kpis/)
+- [Learning & Development KPIs — AIHR](https://www.aihr.com/blog/learning-and-development-kpis/)
+- [Personio API Integration Step-by-Step — Bindbee](https://bindbee.dev/blog/personio-api-guide)
+- [HR Personnel Figures — ZEP](https://www.zep.de/en/blog/hr-numbers-figures)
 
 ---
-*Feature research for: KPI Light v1.1 Branding & Settings*
-*Researched: 2026-04-11*
+
+*Feature research for: KPI Light v1.3 HR KPI Dashboard & Personio-Integration*
+*Researched: 2026-04-12*

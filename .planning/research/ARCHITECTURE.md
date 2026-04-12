@@ -1,461 +1,615 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** Internal KPI dashboard — v1.1 Branding & Settings integration
-**Researched:** 2026-04-11
-**Confidence:** HIGH (based on direct codebase inspection)
-
----
-
-## v1.0 Architecture (Shipped — Reference Baseline)
-
-Three-tier: browser frontend → FastAPI backend → PostgreSQL. All in a single Docker Compose stack.
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   Browser                           │
-│  NavBar │ DashboardPage │ UploadPage                │
-└─────────────────────┬───────────────────────────────┘
-                      │ HTTP REST + multipart
-┌─────────────────────▼───────────────────────────────┐
-│             FastAPI (app container)                 │
-│                                                     │
-│  routers/uploads.py  POST /api/uploads              │
-│  routers/kpis.py     GET  /api/kpis                 │
-│                       GET  /api/kpis/chart          │
-│                       GET  /api/kpis/latest-upload  │
-│                                                     │
-│  models.py           UploadBatch, SalesRecord       │
-│  schemas.py          Pydantic request/response      │
-│  database.py         AsyncSession factory           │
-│  parsing/            ERP parser + column mapping    │
-└─────────────────────┬───────────────────────────────┘
-                      │ asyncpg TCP 5432
-┌─────────────────────▼───────────────────────────────┐
-│            PostgreSQL (postgres container)          │
-│                                                     │
-│  upload_batches   — upload audit log                │
-│  sales_records    — parsed ERP row data             │
-└─────────────────────────────────────────────────────┘
-```
-
-**Existing Alembic migrations (3 files):**
-- `be7013446181_initial_schema.py` — baseline tables
-- `d7547428d885_phase2_full_sales_schema.py` — full 38-column sales schema
-- `phase3_order_date_index.py` — order_date index
-
-**Existing frontend route tree (wouter):**
-- `/` → `DashboardPage`
-- `/upload` → `UploadPage`
-- `NavBar` is a global fixed header rendered in `App.tsx` above the `<Switch>`
-
-**Key observations from codebase inspection:**
-- `NavBar.tsx` renders the brand name via `t("nav.brand")` — an i18n key, not a hardcoded string. The app name is already translatable but not DB-backed.
-- `index.css` uses Tailwind v4 CSS custom properties. Theme variables (e.g., `--primary`, `--background`, `--foreground`) are defined in a `:root {}` block as oklch values. These are the injection points for runtime theme application.
-- `App.tsx` wraps everything in `QueryClientProvider` then renders `<NavBar>` and `<Switch>`. No ThemeProvider exists yet.
-- `main.py` includes routers via `app.include_router()`. Pattern: add `settings_router` the same way.
-- `schemas.py` and `models.py` are single files. Settings will add new entries to both.
-- `DropZone.tsx` is tightly coupled to ERP file upload (CSV/TXT accept filter, mutation to `/api/uploads`, KPI cache invalidation). It cannot be reused for logo upload as-is — a new `LogoDropZone` or a generalized variant is needed.
+**Domain:** HR KPI Dashboard with Personio API integration — extension to existing Sales KPI app
+**Researched:** 2026-04-12
+**Confidence:** HIGH (existing codebase inspected directly; Personio API verified via official docs + community sources)
 
 ---
 
-## v1.1 Integration Architecture
+## Standard Architecture
 
-### System Diagram (with Settings layer added)
+### System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          Browser                                │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  ThemeProvider (NEW — wraps entire app in App.tsx)       │   │
-│  │  • Fetches GET /api/settings on mount                    │   │
-│  │  • Injects CSS vars into document.documentElement.style  │   │
-│  │  • Exposes useSettings() hook to consumers               │   │
-│  │  • Holds draft state for live-preview                    │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  NavBar (MODIFIED)          SettingsPage (NEW)                  │
-│  • Logo slot (60×60)        • Color pickers per CSS var         │
-│  • app name from hook       • LogoUpload component              │
-│  • Settings link added      • App name input                    │
-│                             • Language default select           │
-│                             • Live preview + Save button        │
-│                                                                 │
-│  DashboardPage (unchanged)  UploadPage (unchanged)              │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ HTTP REST
-┌──────────────────────────────▼──────────────────────────────────┐
-│                    FastAPI (app container)                       │
-│                                                                 │
-│  routers/settings.py (NEW)                                      │
-│  • GET  /api/settings          → AppSettingsResponse            │
-│  • PUT  /api/settings          ← AppSettingsUpdate body         │
-│  • GET  /api/settings/logo     → Response(media_type=image/*)   │
-│  • POST /api/settings/logo     ← multipart UploadFile           │
-│                                                                 │
-│  models.py (MODIFIED — add AppSettings model)                   │
-│  schemas.py (MODIFIED — add AppSettingsResponse/Update)         │
-│  main.py (MODIFIED — include settings_router)                   │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ asyncpg TCP 5432
-┌──────────────────────────────▼──────────────────────────────────┐
-│                         PostgreSQL                              │
-│                                                                 │
-│  app_settings (NEW, single-row)                                 │
-│  upload_batches / sales_records (unchanged)                     │
-└─────────────────────────────────────────────────────────────────┘
+Browser (React 19 + Vite 8)
+  NavBar (MODIFIED — add HR tab, rename Dashboard nav label to "Sales")
+  Router (wouter)
+    /        → SalesPage (DashboardPage — nav label renamed, file unchanged)
+    /hr      → HrPage (NEW)
+    /upload  → UploadPage (unchanged)
+    /settings → SettingsPage (MODIFIED — add Personio credential fields)
+  TanStack Query cache (hrKeys namespace NEW, kpiKeys namespace unchanged)
+       |
+       | fetch /api/*
+       v
+FastAPI (uvicorn, async)
+  routers/kpis.py        (unchanged)
+  routers/uploads.py     (unchanged)
+  routers/settings.py    (MODIFIED — personio fields + scheduler reschedule)
+  routers/hr.py          (NEW — /api/hr/kpis, /api/hr/sync)
+       |
+  services/
+    kpi_aggregation.py   (unchanged)
+    personio_client.py   (NEW — httpx AsyncClient, token cache)
+    hr_sync.py           (NEW — fetch -> normalize -> upsert)
+    hr_kpi.py            (NEW — SQL aggregations over HR tables)
+       |
+  scheduler.py           (NEW — APScheduler AsyncIOScheduler via lifespan)
+       |
+       | asyncpg / SQLAlchemy 2.0 async
+       v
+PostgreSQL 17
+  upload_batches         (unchanged)
+  sales_records          (unchanged)
+  app_settings           (MODIFIED — +personio_client_id, +personio_client_secret,
+                                     +personio_sync_interval_h, +personio_last_synced_at)
+  personio_employees     (NEW)
+  personio_attendance    (NEW)
+  personio_absences      (NEW)
+       ^
+       | httpx HTTPS outbound from api container
+Personio API v1 (external)
+  POST /v1/auth
+  GET  /v1/company/employees
+  GET  /v1/company/attendances
+  GET  /v1/company/absence-periods
 ```
 
 ---
 
-## Component Boundaries
+## Component Responsibilities
 
-| Component | Status | File Path | Responsibility |
-|-----------|--------|-----------|----------------|
-| `app_settings` table | NEW | via Alembic migration | Single-row settings store |
-| `AppSettings` SQLAlchemy model | NEW | `backend/app/models.py` | ORM mapping for settings row |
-| `AppSettingsResponse` / `AppSettingsUpdate` | NEW | `backend/app/schemas.py` | Pydantic I/O contracts |
-| `routers/settings.py` | NEW | `backend/app/routers/settings.py` | GET/PUT settings, GET/POST logo |
-| `main.py` | MODIFIED | `backend/app/main.py` | Include `settings_router` |
-| Alembic migration | NEW | `backend/alembic/versions/` | Add `app_settings` table |
-| `ThemeProvider` | NEW | `frontend/src/contexts/ThemeContext.tsx` | Fetch settings, inject CSS vars, expose hook |
-| `App.tsx` | MODIFIED | `frontend/src/App.tsx` | Wrap tree in `ThemeProvider`; add `/settings` route |
-| `NavBar.tsx` | MODIFIED | `frontend/src/components/NavBar.tsx` | Add logo slot, app-name from `useSettings()`, Settings link |
-| `SettingsPage` | NEW | `frontend/src/pages/SettingsPage.tsx` | Color pickers, logo upload, app name, language default |
-| `LogoUpload` | NEW | `frontend/src/components/settings/LogoUpload.tsx` | PNG/SVG logo drop + preview; separate from `DropZone` |
-| `ColorPicker` | NEW | `frontend/src/components/settings/ColorPicker.tsx` | Per-CSS-var color input (hex input + native `<input type="color">`) |
-| `DropZone.tsx` | UNCHANGED | `frontend/src/components/DropZone.tsx` | ERP file upload only — do not generalize |
+| Component | Responsibility | Status |
+|-----------|----------------|--------|
+| `routers/kpis.py` | Sales KPI aggregation endpoints | Unchanged |
+| `routers/uploads.py` | File ingestion endpoints | Unchanged |
+| `routers/settings.py` | App settings CRUD | Modified (+personio fields, +scheduler reschedule call) |
+| `routers/hr.py` | HR KPI endpoints + manual sync trigger | New |
+| `services/personio_client.py` | Personio auth + paginated data fetch via httpx | New |
+| `services/hr_sync.py` | Orchestrates fetch -> normalize -> upsert cycle | New |
+| `services/hr_kpi.py` | SQL aggregations for the 5 HR KPIs | New |
+| `scheduler.py` | APScheduler AsyncIOScheduler, lifespan integration | New |
+| `models.py` | SQLAlchemy ORM models | Modified (3 new table classes, AppSettings +4 cols) |
+| `schemas.py` | Pydantic request/response models | Modified (HR types, SettingsUpdate/Read +personio fields) |
+| `main.py` | FastAPI application entry | Modified (lifespan, include hr router) |
+| `HrPage.tsx` | HR tab page: KPI cards + sync button | New |
+| `HrKpiCard.tsx` | Simplified KPI card (no date-range filter) | New |
+| `HrKpiCardGrid.tsx` | Lays out 5 HR KPI cards | New |
+| `hrKeys.ts` | TanStack Query key factory for HR endpoints | New |
+| `NavBar.tsx` | Navigation tabs | Modified (add HR tab, rename Dashboard->Sales) |
+| `SettingsPage.tsx` | Settings form | Modified (Personio token + sync interval fields) |
 
 ---
 
-## Database Schema: `app_settings`
+## Recommended Project Structure
 
-**Decision: Single-row table with typed columns (not key/value, not JSONB)**
+### Backend additions
 
-Rationale: There are fewer than 15 known settings. Typed columns give Pydantic validation for free, make queries trivial (`SELECT * FROM app_settings WHERE id = 1`), and avoid schema-less JSON blobs that complicate future migrations. JSONB would be appropriate only if settings were user-extensible or unknown at design time — they are not here.
-
-**Logo storage: `bytea` column directly in the table**
-
-Rationale: Logo is a single small file (max 1 MB per spec). Storing as `bytea` avoids introducing a volume mount or file-system path dependency. The v1.0 architecture explicitly avoids file storage (Anti-Pattern 1 in v1.0 ARCHITECTURE.md referred to sales data files, not settings assets — a 1 MB logo is categorically different from raw data files). `bytea` keeps the settings self-contained and backup-friendly.
-
-```sql
-CREATE TABLE app_settings (
-  id               INTEGER PRIMARY KEY DEFAULT 1,
-  -- Constraint: only one row allowed
-  CONSTRAINT single_row CHECK (id = 1),
-
-  -- Branding
-  app_name         TEXT    NOT NULL DEFAULT 'KPI Light',
-  logo_data        BYTEA   NULL,           -- raw PNG/SVG bytes
-  logo_mime_type   TEXT    NULL,           -- 'image/png' | 'image/svg+xml'
-  logo_updated_at  TIMESTAMPTZ NULL,       -- used as cache-buster ETag source
-
-  -- Theme (store as CSS-compatible strings, e.g. oklch(...) or hex)
-  color_primary          TEXT NULL,
-  color_primary_fg       TEXT NULL,
-  color_accent           TEXT NULL,
-  color_accent_fg        TEXT NULL,
-  color_background       TEXT NULL,
-  color_foreground       TEXT NULL,
-  color_muted            TEXT NULL,
-  color_muted_fg         TEXT NULL,
-  color_destructive      TEXT NULL,
-
-  -- i18n
-  default_language TEXT NOT NULL DEFAULT 'de',   -- 'de' | 'en'
-
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Seed the single row on migration
-INSERT INTO app_settings (id) VALUES (1) ON CONFLICT DO NOTHING;
+```
+backend/app/
+├── routers/
+│   ├── kpis.py              # unchanged
+│   ├── uploads.py           # unchanged
+│   ├── settings.py          # MODIFIED: personio fields + scheduler.reschedule_job
+│   └── hr.py                # NEW: GET /api/hr/kpis, POST /api/hr/sync
+├── services/
+│   ├── kpi_aggregation.py   # unchanged
+│   ├── personio_client.py   # NEW: auth + paginated fetch
+│   ├── hr_sync.py           # NEW: full sync orchestration
+│   └── hr_kpi.py            # NEW: SQL aggregations for 5 HR KPIs
+├── models.py                # MODIFIED: 3 new table classes + AppSettings +4 cols
+├── schemas.py               # MODIFIED: HR schemas + settings update
+├── scheduler.py             # NEW: APScheduler setup + lifespan context manager
+├── main.py                  # MODIFIED: lifespan, include hr router
+└── database.py              # unchanged
+alembic/versions/
+└── XXXX_v1_3_hr_schema.py  # NEW migration (single file for all v1.3 schema changes)
 ```
 
-**Alembic strategy:** Add as a new migration file following the existing naming convention. The migration both creates the table and seeds the single row. No existing tables are touched.
+### Frontend additions
+
+```
+frontend/src/
+├── pages/
+│   ├── DashboardPage.tsx    # file unchanged; NavBar label changes to "Sales"
+│   └── HrPage.tsx           # NEW
+├── components/
+│   └── hr/
+│       ├── HrKpiCard.tsx    # NEW
+│       └── HrKpiCardGrid.tsx # NEW
+├── lib/
+│   ├── api.ts               # MODIFIED: add HR fetch functions
+│   └── hrKeys.ts            # NEW: TanStack Query keys for /api/hr
+└── locales/ (or i18n JSON files)
+    ├── de.json              # MODIFIED: HR KPI labels + settings Personio fields
+    └── en.json              # MODIFIED: same
+```
 
 ---
 
-## Backend API: `routers/settings.py`
+## Personio API Integration
+
+### Authentication Pattern
+
+Personio v1 uses 2-step auth: POST `client_id` + `client_secret` to `https://api.personio.de/v1/auth`, receive a bearer token. The token is stable for 24 hours — it does not rotate on each call. Tokens begin with a `papi-` prefix.
+
+**Recommended:** Cache token in-process with an `expires_at` timestamp. On each sync run, check whether token expires within the next 5 minutes; re-authenticate only then. Do NOT store the token in PostgreSQL — an in-process module-level dict on `app.state` is sufficient for a single-process Docker container.
 
 ```python
-# Endpoints
-GET  /api/settings          → AppSettingsResponse   (all settings except logo bytes)
-PUT  /api/settings          ← AppSettingsUpdate     (partial update, logo excluded)
-GET  /api/settings/logo     → Response(bytes, media_type=logo_mime_type)
-POST /api/settings/logo     ← UploadFile (PNG/SVG, max 1 MB)
+# services/personio_client.py — token cache pattern
+import time, httpx
+
+_token_cache: dict = {}
+
+async def get_token(client_id: str, client_secret: str) -> str:
+    now = time.monotonic()
+    if _token_cache.get("token") and _token_cache.get("expires_at", 0) > now + 300:
+        return _token_cache["token"]
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            "https://api.personio.de/v1/auth",
+            json={"client_id": client_id, "client_secret": client_secret},
+        )
+        r.raise_for_status()
+        token = r.json()["data"]["token"]
+    _token_cache["token"] = token
+    _token_cache["expires_at"] = now + 86400  # 24 h
+    return token
 ```
 
-**`GET /api/settings`** — Returns all settings except `logo_data` bytes. Returns `logo_url: "/api/settings/logo"` and `logo_updated_at` (ISO string) for cache-busting. Frontend appends `?v={logo_updated_at}` to bust browser image cache.
+### Personio Data Endpoints (v1)
 
-**`PUT /api/settings`** — JSON body, partial update. Validates color values are valid CSS color strings (regex or cssutils). Updates `updated_at`. Returns the full updated `AppSettingsResponse`.
+| Endpoint | Key Fields | KPI Purpose |
+|----------|-----------|-------------|
+| `GET /v1/company/employees` | `id`, `first_name`, `last_name`, `status`, `department`, `position`, `hire_date`, `termination_date`, `weekly_working_hours` | Employee count, turnover, Produktions-MA filter |
+| `GET /v1/company/attendances` | `employee_id`, `date`, `start_time`, `end_time`, `break` (minutes), `is_holiday` | Total hours, overtime |
+| `GET /v1/company/absence-periods` | `employee_id`, `start_date`, `end_date`, `absence_type_id`, `time_unit`, `hours`/`days` | Sick leave hours |
 
-**`GET /api/settings/logo`** — Returns raw bytes with correct `Content-Type` header. Returns HTTP 404 if `logo_data IS NULL` (frontend falls back to text logo). Sets `ETag` header from `logo_updated_at` for HTTP-level caching.
+All three endpoints are paginated via `offset` + `limit`. Attendance and absence endpoints accept `start_date`/`end_date` query params for scoped fetches. Employee fields must be whitelisted in the Personio API credential wizard.
 
-**`POST /api/settings/logo`** — Accepts `multipart/form-data` with a single `UploadFile`. Validates MIME type (`image/png` or `image/svg+xml`) and size (≤ 1 MB). Stores bytes + mime_type + updates `logo_updated_at`. Returns updated `AppSettingsResponse`.
+### Personio Rate Limits
 
-**Pydantic schemas to add to `backend/app/schemas.py`:**
+Rate limits are not publicly documented but are enforced. Strategy: process endpoints sequentially (employees → attendances → absences) with no parallelism. The sync job runs infrequently (default 1 h), so throughput is not a concern at internal scale.
+
+---
+
+## Data Models (New Tables)
+
+### `personio_employees`
+
+```
+id                   INTEGER PK  -- Personio native ID; no autoincrement
+first_name           VARCHAR(255)
+last_name            VARCHAR(255)
+status               VARCHAR(50)       -- "active" | "inactive"
+department           VARCHAR(255) NULLABLE
+position             VARCHAR(255) NULLABLE
+hire_date            DATE NULLABLE
+termination_date     DATE NULLABLE
+weekly_working_hours NUMERIC(5,2) NULLABLE
+synced_at            TIMESTAMPTZ NOT NULL
+```
+
+Use Personio's native `id` as PK (no surrogate). This makes upsert trivial: `INSERT ... ON CONFLICT (id) DO UPDATE SET ...`.
+
+### `personio_attendance`
+
+```
+id             INTEGER PK  -- Personio attendance record ID
+employee_id    INTEGER NOT NULL REFERENCES personio_employees(id)
+date           DATE NOT NULL
+start_time     TIME NOT NULL
+end_time       TIME NOT NULL
+break_minutes  INTEGER NOT NULL DEFAULT 0
+is_holiday     BOOLEAN NOT NULL DEFAULT false
+synced_at      TIMESTAMPTZ NOT NULL
+
+INDEX: (employee_id, date)
+```
+
+### `personio_absences`
+
+```
+id              INTEGER PK  -- Personio absence period ID
+employee_id     INTEGER NOT NULL REFERENCES personio_employees(id)
+absence_type_id INTEGER NOT NULL
+start_date      DATE NOT NULL
+end_date        DATE NOT NULL
+time_unit       VARCHAR(10) NOT NULL  -- "hours" | "days"
+hours           NUMERIC(8,2) NULLABLE
+synced_at       TIMESTAMPTZ NOT NULL
+
+INDEX: (employee_id, start_date, absence_type_id)
+```
+
+### `app_settings` additions (existing table)
+
+```
+personio_client_id        VARCHAR(255) NULLABLE
+personio_client_secret    VARCHAR(255) NULLABLE
+personio_sync_interval_h  INTEGER NOT NULL DEFAULT 1  -- 1 to 168 (1 week)
+personio_last_synced_at   TIMESTAMPTZ NULLABLE
+```
+
+**Why extend `app_settings` instead of a new table:** The singleton pattern is established and tested. A second Personio settings table would require a second singleton CHECK constraint and a second API endpoint with no benefit.
+
+**Security posture:** `personio_client_secret` stored as plaintext in PostgreSQL — same posture as an env var, acceptable for internal-only v1.3. Add a TODO for v2 to move secrets to Authentik/Vault.
+
+---
+
+## HR KPI Calculation Architecture
+
+All 5 KPIs computed in SQL via `services/hr_kpi.py`, following the same isolation pattern as `kpi_aggregation.py`:
+
+| KPI | Tables | Calculation |
+|-----|--------|-------------|
+| Überstunden vs. Gesamtstunden | `personio_attendance`, `personio_employees` | `SUM(end_time - start_time - break_minutes)` vs. `weekly_working_hours x weeks_in_period` |
+| Krankheit vs. Gesamtstunden | `personio_absences` (sick type), `personio_attendance` | Sick absence hours / total worked hours |
+| Fluktuation | `personio_employees` | Employees with `termination_date` in period / total active employees |
+| MA-Entwicklung | `personio_employees` custom attribute | Count with new skill — requires specific custom field whitelisted in Personio; flag as config-dependent |
+| Produktions-Mitarbeiterumsatz | `personio_employees` + `sales_records` | `SUM(sales_records.total_value)` / `COUNT(personio_employees WHERE department='Produktion')` |
+
+The Produktions-Mitarbeiterumsatz KPI crosses the two data pipelines (upload-driven sales data + sync-driven HR data). No foreign key between `sales_records` and `personio_employees`. The join happens only in the aggregation SQL — no schema coupling between the two pipelines.
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: Upsert-Based Sync (No Soft Delete)
+
+**What:** On each sync run, fetch data from Personio for a rolling window and `INSERT ... ON CONFLICT (id) DO UPDATE SET ...`. Do not hard-delete records that disappear from Personio — track termination via `termination_date`.
+
+**When to use:** Personio is append-heavy; hard deletes are rare. Upsert is idempotent and safe for partial syncs.
+
+**Trade-off:** Stale records from truly deleted Personio entries accumulate over time. Acceptable for v1.3 — KPI queries already filter on `status = 'active'` and date ranges.
 
 ```python
-class AppSettingsResponse(BaseModel):
-    app_name: str
-    logo_url: str | None          # "/api/settings/logo" or None
-    logo_updated_at: datetime | None
-    color_primary: str | None
-    color_primary_fg: str | None
-    color_accent: str | None
-    color_accent_fg: str | None
-    color_background: str | None
-    color_foreground: str | None
-    color_muted: str | None
-    color_muted_fg: str | None
-    color_destructive: str | None
-    default_language: str         # "de" | "en"
-    updated_at: datetime
+# hr_sync.py — upsert pattern
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-class AppSettingsUpdate(BaseModel):
-    app_name: str | None = None
-    color_primary: str | None = None
-    color_primary_fg: str | None = None
-    color_accent: str | None = None
-    color_accent_fg: str | None = None
-    color_background: str | None = None
-    color_foreground: str | None = None
-    color_muted: str | None = None
-    color_muted_fg: str | None = None
-    color_destructive: str | None = None
-    default_language: str | None = None
+stmt = pg_insert(PersonioEmployee).values(rows)
+stmt = stmt.on_conflict_do_update(
+    index_elements=["id"],
+    set_={col: stmt.excluded[col] for col in update_cols},
+)
+await session.execute(stmt)
+await session.commit()
+```
+
+### Pattern 2: APScheduler AsyncIOScheduler via FastAPI Lifespan
+
+**What:** APScheduler 3.x `AsyncIOScheduler` runs in the same asyncio event loop as FastAPI. The scheduler instance is attached to `app.state` so routes can call `reschedule_job`.
+
+**When to use:** Single-process Docker container; no external job queue needed at this scale.
+
+```python
+# scheduler.py
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+scheduler = AsyncIOScheduler()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.scheduler = scheduler
+    interval_h = await _load_sync_interval()
+    scheduler.add_job(
+        hr_sync.run_sync,
+        trigger="interval",
+        hours=interval_h,
+        id="personio_sync",
+        replace_existing=True,
+        max_instances=1,  # prevent overlap if sync runs long
+    )
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+```
+
+```python
+# main.py — modified
+from app.scheduler import lifespan
+app = FastAPI(title="KPI Light", lifespan=lifespan)
+```
+
+**Trade-off:** Scheduler resets on container restart (next run in `interval_h` hours). Acceptable for single internal host with low uptime requirements.
+
+### Pattern 3: Manual Sync via Synchronous FastAPI Endpoint
+
+**What:** `POST /api/hr/sync` calls `hr_sync.run_sync(db)` in the request body — no background task deferral.
+
+**When to use:** "Daten aktualisieren" button. At internal scale (~20-50 employees), sync takes <10 s and completing before responding gives the user immediate feedback.
+
+**Constraint:** If employee count grows, switch to `BackgroundTasks` + a `GET /api/hr/sync-status` polling endpoint. For v1.3, synchronous is correct.
+
+```python
+# routers/hr.py
+@router.post("/sync", response_model=HrSyncResult)
+async def trigger_sync(
+    request: Request,
+    db: AsyncSession = Depends(get_async_db_session),
+):
+    settings = await _get_settings(db)
+    if not settings.personio_client_id:
+        raise HTTPException(422, "Personio credentials not configured")
+    result = await hr_sync.run_sync(db, settings)
+    return result
+```
+
+### Pattern 4: Scheduler Reschedule on Settings Change
+
+**What:** When the user saves a new `personio_sync_interval_h`, the settings PUT endpoint calls `request.app.state.scheduler.reschedule_job("personio_sync", trigger="interval", hours=new_interval)`.
+
+**Why:** The interval must take effect immediately without a container restart.
+
+```python
+# routers/settings.py — modified PUT handler
+@router.put("", response_model=SettingsRead)
+async def put_settings(
+    payload: SettingsUpdate,
+    request: Request,
+    db: AsyncSession = Depends(get_async_db_session),
+) -> SettingsRead:
+    row = await _get_singleton(db)
+    # ... update existing fields ...
+    row.personio_sync_interval_h = payload.personio_sync_interval_h
+    await db.commit()
+    # Reschedule live
+    scheduler = request.app.state.scheduler
+    if scheduler.get_job("personio_sync"):
+        scheduler.reschedule_job(
+            "personio_sync",
+            trigger="interval",
+            hours=payload.personio_sync_interval_h,
+        )
+    return _build_read(row)
 ```
 
 ---
 
-## Frontend: ThemeProvider
+## Data Flow
 
-**Location:** `frontend/src/contexts/ThemeContext.tsx`
+### Scheduled / Manual Sync Flow
 
-**Role:** Fetches `GET /api/settings` once on app mount (via TanStack Query), injects non-null color values as inline style properties on `document.documentElement`, exposes `useSettings()` hook.
-
-**Why inline styles on `documentElement` and not a CSS file rewrite:**
-- Tailwind v4 in this project uses CSS custom properties (e.g., `--primary`, `--background`) defined in `:root {}` in `index.css`. Inline styles on `:root` (`document.documentElement.style.setProperty('--primary', value)`) override the stylesheet-defined values with highest specificity within the same cascade layer. This is the correct, minimal-footprint approach — no stylesheet mutation, no `<style>` tag injection.
-- The `@theme inline` block in `index.css` maps Tailwind color tokens to these CSS vars (e.g., `--color-primary: var(--primary)`). So overriding `--primary` at runtime automatically propagates to all Tailwind utility classes that use `bg-primary`, `text-primary`, etc.
-
-**Initial-load flash prevention (SSR-less Vite context):**
-- There is no SSR. On cold load, the browser paints with the CSS-file defaults first, then after the settings fetch resolves (~1 network round-trip), `ThemeProvider` injects overrides. For internal tooling this is acceptable. If flash is objectionable, a future mitigation is an inline `<script>` in `index.html` that reads settings from localStorage and applies vars synchronously — but this adds complexity and should be deferred.
-- TanStack Query should set `staleTime: Infinity` for settings (they change only on explicit user save, not on interval) and `gcTime: Infinity` to keep the cache warm across navigations.
-
-**Draft state for live preview:**
-- `SettingsPage` maintains its own local `draft` state (a copy of current settings). Color/name changes update `draft` immediately — `ThemeProvider` exposes a `previewSettings(draft)` function that re-injects CSS vars without persisting. On "Save", the page calls `PUT /api/settings`, which on success invalidates the settings query, causing `ThemeProvider` to refetch and lock in the saved values.
-
-```tsx
-// Simplified ThemeProvider interface
-interface ThemeContextValue {
-  settings: AppSettingsResponse | undefined;
-  isLoading: boolean;
-  previewSettings: (draft: Partial<AppSettingsResponse>) => void;
-  resetPreview: () => void;
-}
+```
+Scheduler trigger (interval) OR POST /api/hr/sync
+    |
+    v
+hr_sync.run_sync(db)
+    |
+    v
+Read personio_client_id + personio_client_secret from app_settings
+    |
+    v
+personio_client.get_token(client_id, secret)  [24 h in-process cache]
+    |
+    v
+personio_client.fetch_employees()         -> list[dict]
+personio_client.fetch_attendances(...)    -> list[dict]  (rolling window)
+personio_client.fetch_absences(...)       -> list[dict]  (rolling window)
+    |
+    v
+Normalize dicts -> SQLAlchemy model value dicts
+    |
+    v
+pg_insert().on_conflict_do_update()  x 3 tables  (sequential, same session)
+    |
+    v
+UPDATE app_settings SET personio_last_synced_at = now()
+    |
+    v
+Return HrSyncResult { employees_upserted, attendance_upserted, absences_upserted, synced_at }
 ```
 
-**Integration in `App.tsx`:**
-```tsx
-// App.tsx — modified
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>           {/* NEW — wraps everything below */}
-        <NavBar />
-        <main className="pt-16">
-          <Switch>
-            <Route path="/" component={DashboardPage} />
-            <Route path="/upload" component={UploadPage} />
-            <Route path="/settings" component={SettingsPage} />  {/* NEW */}
-          </Switch>
-        </main>
-        <Toaster position="top-right" />
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
-}
+### HR KPI Read Flow
+
+```
+GET /api/hr/kpis
+    |
+    v
+hr_kpi.aggregate_hr_kpis(db)
+    |
+    v
+SQL queries over personio_employees, personio_attendance, personio_absences
+(Produktions-Mitarbeiterumsatz also joins sales_records)
+    |
+    v
+HrKpiSummary { 5 KPI values, previous_period deltas }
+    |
+    v
+TanStack Query (hrKeys.kpis) caches response
+    |
+    v
+HrPage -> HrKpiCardGrid -> HrKpiCard x 5
 ```
 
-`QueryClientProvider` must remain the outer wrapper so `ThemeProvider` can use TanStack Query internally.
+### Settings Save Flow (with Personio fields)
+
+```
+User edits personio_client_id / personio_client_secret / personio_sync_interval_h
+    |
+    v
+PUT /api/settings (extended payload)
+    |
+    v
+SettingsUpdate validates: client_id (non-empty string or null),
+  client_secret (non-empty string or null),
+  personio_sync_interval_h (int, 1-168)
+    |
+    v
+Update app_settings singleton row
+    |
+    v
+request.app.state.scheduler.reschedule_job("personio_sync", hours=new_interval)
+    |
+    v
+Return updated SettingsRead (client_secret masked — return boolean has_secret, not the value)
+```
+
+**Security note on client_secret response:** The `SettingsRead` schema should return `personio_has_secret: bool` (not the secret value) so the frontend can show "configured" vs "not configured" without exposing the credential.
 
 ---
 
-## Frontend: NavBar Modifications
+## Integration Points: New vs. Modified vs. Unchanged
 
-**File:** `frontend/src/components/NavBar.tsx` (MODIFIED)
-
-Changes needed:
-1. Replace `t("nav.brand")` span with a composite brand slot: if `settings.logo_url` is set, render `<img src="{logo_url}?v={logo_updated_at}" className="h-[60px] w-[60px] object-contain" />` alongside or instead of the text name. If no logo, show app name text from `settings.app_name ?? t("nav.brand")`.
-2. Add `<Link href="/settings">` with the same `linkClass` pattern as existing nav links.
-3. Pull `settings` from `useSettings()` hook.
-
-No structural refactor needed — the existing flexbox layout accommodates the logo slot on the left side.
-
----
-
-## Frontend: SettingsPage
-
-**File:** `frontend/src/pages/SettingsPage.tsx` (NEW)
-
-**Layout:** Standard page card, matching DashboardPage/UploadPage visual pattern.
-
-**Sections:**
-1. **Branding** — App name text input + LogoUpload component
-2. **Theme** — Grid of ColorPicker components, one per editable CSS var
-3. **Localization** — `<select>` for default language (DE / EN)
-4. **Actions** — "Preview" (implicit, as editing drives live preview) + "Save" button + "Reset to defaults" link
-
-**LogoUpload (`frontend/src/components/settings/LogoUpload.tsx`):**
-- Uses `react-dropzone` (already installed via `DropZone.tsx`) with `accept: { "image/png": [".png"], "image/svg+xml": [".svg"] }` and `maxSize: 1_048_576`.
-- On drop, calls `POST /api/settings/logo` via a dedicated TanStack Query mutation.
-- Does NOT reuse `DropZone.tsx` — that component is coupled to ERP upload callbacks and KPI cache invalidation. A separate component avoids conditional branching and keeps responsibilities clean.
-- Shows current logo preview (from `useSettings()`) above the drop target.
-
-**ColorPicker (`frontend/src/components/settings/ColorPicker.tsx`):**
-- Props: `label`, `varName` (e.g., `"--primary"`), `value`, `onChange`.
-- Renders a label + `<input type="color">` (native browser color wheel) + a hex text input for precise entry.
-- Color values stored internally as hex strings (simpler for `<input type="color">`). The backend receives and stores whatever CSS-compatible string is passed. On injection into CSS vars, hex strings work natively — no oklch conversion required.
-- Note: The existing `:root` defaults use oklch. New user-set values will be hex. This is valid CSS — mixing color spaces in custom properties is fine since the browser resolves them at paint time.
+| Component | New | Modified | Unchanged |
+|-----------|-----|----------|-----------|
+| `models.py` | `PersonioEmployee`, `PersonioAttendance`, `PersonioAbsence` classes | `AppSettings` (+4 cols) | `SalesRecord`, `UploadBatch` |
+| `schemas.py` | `HrSyncResult`, `HrKpiSummary`, `HrKpiValue` | `SettingsUpdate`, `SettingsRead` (+personio fields) | All sales/upload schemas |
+| `routers/hr.py` | Entire file | — | — |
+| `routers/settings.py` | — | personio fields + scheduler reschedule | Logo, color, app_name logic |
+| `routers/kpis.py` | — | — | Unchanged |
+| `routers/uploads.py` | — | — | Unchanged |
+| `services/personio_client.py` | Entire file | — | — |
+| `services/hr_sync.py` | Entire file | — | — |
+| `services/hr_kpi.py` | Entire file | — | — |
+| `services/kpi_aggregation.py` | — | — | Unchanged |
+| `scheduler.py` | Entire file | — | — |
+| `main.py` | — | lifespan + include hr router | Health endpoint |
+| `database.py` | — | — | Unchanged |
+| Alembic migrations | 1 new migration file | — | 4 existing migrations |
+| `NavBar.tsx` | — | Add HR tab; rename Dashboard -> Sales | Logo, settings, language |
+| `App.tsx` | — | Add `/hr` route | Existing routes |
+| `HrPage.tsx` | Entire file | — | — |
+| `HrKpiCard.tsx` | Entire file | — | — |
+| `HrKpiCardGrid.tsx` | Entire file | — | — |
+| `api.ts` | — | Add HR fetch functions + Personio settings types | All existing functions |
+| `hrKeys.ts` | Entire file | — | — |
+| `SettingsPage.tsx` | — | Add Personio credential + sync interval fields | Color, logo, preferences |
+| `de.json` / `en.json` | — | HR KPI labels + Personio settings labels | All existing keys |
 
 ---
 
-## Theme Application Flow (End-to-End)
+## Build Order
 
-```
-App cold load:
-1. main.tsx renders <App> → <QueryClientProvider> → <ThemeProvider>
-2. ThemeProvider fires useQuery({ queryKey: ["settings"], ... })
-3. During loading: CSS-file defaults apply (index.css :root block)
-4. Fetch resolves → ThemeProvider calls applySettings(data):
-   - For each non-null color field → document.documentElement.style.setProperty(cssVar, value)
-   - Sets document.title = settings.app_name
-   - Calls i18n.changeLanguage(settings.default_language) if browser detection
-     hasn't already matched user preference
+Dependencies drive the order. Each step unblocks the next.
 
-Settings live-preview (SettingsPage editing):
-5. User changes a color picker → draft state updates → previewSettings(draft) called
-6. ThemeProvider injects draft CSS vars immediately (no network round-trip)
-7. All pages/components re-render with new var values (CSS cascade handles this)
+**Phase 1 — Database schema + migration (unblocks everything backend)**
+Create the 3 new SQLAlchemy model classes (`PersonioEmployee`, `PersonioAttendance`, `PersonioAbsence`) and extend `AppSettings` with 4 personio columns. Write one Alembic migration that adds all 6 schema changes (3 tables + 4 columns). Run it.
 
-Settings save:
-8. User clicks Save → PUT /api/settings with draft body
-9. On success: queryClient.invalidateQueries({ queryKey: ["settings"] })
-10. ThemeProvider refetches → reapplies persisted values
-11. logo_updated_at changes on logo save → NavBar img src ?v= param changes → browser re-fetches logo
+Rationale: All other backend components depend on these tables. Schema first means API can be curl-tested before any frontend work begins. If schema needs adjustment it is cheap to add another migration.
 
-Logo cache-busting:
-- NavBar renders: <img src={`/api/settings/logo?v=${settings.logo_updated_at}`} />
-- When logo is updated, logo_updated_at changes → URL changes → browser fetches new image
-- No ETag complexity needed on the client side — query param is sufficient for internal tooling
-```
+**Phase 2 — Personio client service (unblocks sync and manual trigger)**
+Implement `services/personio_client.py`: auth with 24 h in-process token cache, paginated fetch for all 3 endpoints. Write unit tests with mocked httpx responses (no real Personio account needed to test fetch logic).
 
----
+Rationale: Pure I/O module with no FastAPI coupling — easiest to test in isolation. All other sync logic depends on this.
 
-## Impact on Existing Pages
+**Phase 3 — Sync service and upsert logic (unblocks scheduler and API endpoint)**
+Implement `services/hr_sync.py`: call the client, normalize response dicts, run `pg_insert().on_conflict_do_update()` for all 3 tables, update `personio_last_synced_at`. Sequential awaits (not `asyncio.gather`) on the same AsyncSession.
 
-| Page/Component | Impact | Change Required |
-|----------------|--------|-----------------|
-| `DashboardPage.tsx` | None | No change |
-| `UploadPage.tsx` | None | No change |
-| `DropZone.tsx` | None | No change |
-| `App.tsx` | MODIFIED | Add `ThemeProvider` wrapper + `/settings` route |
-| `NavBar.tsx` | MODIFIED | Logo slot + app name from hook + Settings nav link |
-| `main.tsx` | None | No change |
-| `index.css` | None (no changes to CSS file) | CSS vars overridden at runtime via JS, not by editing the file |
-| `schemas.py` | MODIFIED | Add `AppSettingsResponse`, `AppSettingsUpdate` |
-| `models.py` | MODIFIED | Add `AppSettings` SQLAlchemy model |
-| `main.py` | MODIFIED | `app.include_router(settings_router)` |
-| i18n locale files | MODIFIED | Add `nav.settings` key (and possibly `settings.*` keys for the settings page UI) |
+Rationale: Requires Phase 1 schema and Phase 2 client. Can be integration-tested by running against a real DB with fixture data.
 
-`DashboardPage` and `UploadPage` require **zero changes** — they consume Tailwind utility classes that reference the CSS vars, so theme changes propagate automatically through the cascade without touching those files.
+**Phase 4 — Scheduler integration (unblocks auto-sync)**
+Implement `scheduler.py` with `AsyncIOScheduler`. Modify `main.py` to use the lifespan context manager, attach `scheduler` to `app.state`, register the interval job.
 
----
+Rationale: Needs Phase 3 sync service. Can be verified by inspecting `scheduler.get_jobs()` without running real Personio calls.
 
-## Build Order / Phase Breakdown
+**Phase 5 — HR KPI aggregation service (unblocks HR API endpoints)**
+Implement `services/hr_kpi.py`: SQL aggregations for all 5 KPIs. Include the cross-source Produktions-Mitarbeiterumsatz query (joins `sales_records`).
 
-**Constraint:** Schema before API, API before UI, ThemeProvider before color editor.
+Rationale: Requires Phase 1 schema. Independent of Phase 2-4. Can be developed in parallel with Phase 3-4.
 
-```
-Phase 1: Backend — Database schema + API
-  1a. Add AppSettings SQLAlchemy model to backend/app/models.py
-  1b. Add Pydantic schemas to backend/app/schemas.py
-  1c. Write Alembic migration (table + seed row)
-  1d. Implement backend/app/routers/settings.py (GET/PUT /api/settings)
-  1e. Register router in backend/app/main.py
-  1f. Implement GET/POST /api/settings/logo endpoints
-  → Deliverable: curl-testable settings API, logo round-trip works
+**Phase 6 — HR API router + Settings extension (unblocks frontend)**
+Implement `routers/hr.py`: `GET /api/hr/kpis`, `POST /api/hr/sync`. Extend `routers/settings.py` and schemas with personio fields. Hook `scheduler.reschedule_job` into the settings PUT handler. Mask `personio_client_secret` in responses.
 
-Phase 2: Frontend plumbing — ThemeProvider + NavBar
-  2a. Create frontend/src/contexts/ThemeContext.tsx (ThemeProvider + useSettings hook)
-  2b. Modify frontend/src/App.tsx: wrap with ThemeProvider, add /settings route
-  2c. Modify frontend/src/components/NavBar.tsx: logo slot, app name, Settings link
-  → Deliverable: App loads settings on mount, CSS vars injected, NavBar shows name from DB
-  → This must come before SettingsPage because SettingsPage calls previewSettings()
-     which is exposed by ThemeProvider
+Rationale: Requires all backend services (Phases 2-5). After this phase the full API surface is curl-testable.
 
-Phase 3: Frontend — SettingsPage + sub-components
-  3a. Create frontend/src/components/settings/ColorPicker.tsx
-  3b. Create frontend/src/components/settings/LogoUpload.tsx
-  3c. Create frontend/src/pages/SettingsPage.tsx (assembles sub-components)
-  3d. Wire live-preview: draft state → previewSettings() → CSS var injection
-  3e. Wire Save: PUT /api/settings + settings query invalidation
-  → Deliverable: Full settings UX functional end-to-end
+**Phase 7 — Frontend HR tab (depends on Phase 6 API)**
+Add `HrPage.tsx`, `HrKpiCard.tsx`, `HrKpiCardGrid.tsx`, `hrKeys.ts`. Extend `api.ts` with HR fetch functions. Add `/hr` route to `App.tsx`. Add HR tab to `NavBar.tsx` and rename the Dashboard tab label to "Sales". Add i18n keys for all 5 KPI labels.
 
-Phase 4: i18n + polish
-  4a. Add settings page translation keys to DE/EN locale files
-  4b. Wire default_language setting to i18n.changeLanguage() in ThemeProvider
-  4c. Reset-to-defaults logic (PUT with null values → backend returns CSS-file defaults)
-  → Deliverable: Language default persists across sessions; settings page fully translated
-```
+Rationale: Frontend cannot be built meaningfully without the API endpoints. The NavBar rename is a 2-line change and can be done first in this phase.
 
-**Why this order minimizes rework:**
-- Schema first: API can be developed and tested via curl before any frontend exists. If schema needs adjustment, it's cheap to add another Alembic migration.
-- ThemeProvider before SettingsPage: `SettingsPage` depends on `previewSettings()` from `ThemeContext`. Building the provider first means the page can be developed against a real context, not a mock.
-- NavBar after ThemeProvider: NavBar consumes `useSettings()`, so the context must exist first.
-- i18n last: Translation keys can be added any time without blocking functionality — English strings work as fallback. Deferring keeps phase 3 focused on interaction logic.
+**Phase 8 — Settings UI extension (can overlap with Phase 7)**
+Add Personio credential fields and sync interval input to `SettingsPage.tsx`. Show "has_secret" indicator instead of the secret value. Add "Daten aktualisieren" button to `HrPage.tsx` that calls `POST /api/hr/sync` and invalidates `hrKeys.kpis`.
+
+Rationale: Independent of Phase 7 once Phase 6 API is complete.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Storing Logo on the Filesystem
-**What:** Saving logo PNG to a Docker volume path and serving it statically.
-**Why bad:** Adds a volume mount dependency, complicates backup, and requires the API container to have write access to shared storage. The v1 Compose stack has no shared volume between api and frontend containers.
-**Instead:** Store as `bytea` in Postgres, serve via `GET /api/settings/logo`.
+### Anti-Pattern 1: Concurrent `asyncio.gather` on a Single AsyncSession
 
-### Anti-Pattern 2: Writing CSS Vars Back to index.css at Runtime
-**What:** Using the settings API to rewrite `index.css` or inject a `<style>` tag with new `:root {}` values.
-**Why bad:** Requires server-side file mutation inside the container (read-only build artifact), and `<style>` injection fights with Tailwind's cascade specificity unpredictably.
-**Instead:** Use `document.documentElement.style.setProperty()` — inline styles on `:root` override stylesheet rules within the same origin without mutation.
+**What people do:** Run employee, attendance, and absence fetches or DB writes concurrently with `asyncio.gather` sharing one `AsyncSession`.
 
-### Anti-Pattern 3: Per-User Settings
-**What:** Scoping settings to an authenticated user session.
-**Why bad:** Auth is deferred to v2. Per-user scoping requires the user identity layer that doesn't exist yet.
-**Instead:** Single global row (`id = 1`, enforced by CHECK constraint). Any user can edit. This matches the v1.0 pre-auth model explicitly.
+**Why it's wrong:** SQLAlchemy `AsyncSession` is not safe for concurrent `execute()` calls on one connection. Causes `InvalidRequestError` intermittently. This project already learned this lesson in v1.2 Phase 8 (documented in `routers/kpis.py` comment).
 
-### Anti-Pattern 4: Reusing DropZone for Logo Upload
-**What:** Adding a `mode` prop to `DropZone.tsx` to handle both ERP file upload and logo upload.
-**Why bad:** `DropZone.tsx` is coupled to `kpiKeys` cache invalidation, `UploadResponse` type, and ERP-specific accept filters. Conditional branching on `mode` creates a fragile dual-purpose component.
-**Instead:** New `LogoUpload` component that reuses `react-dropzone` (the library) but not `DropZone.tsx` (the component).
+**Do this instead:** Sequential awaits. If speed becomes important, open separate `AsyncSession` instances per fetch — each Personio request is logically independent.
 
-### Anti-Pattern 5: Polling Settings on Every Page
-**What:** Each page independently queries `GET /api/settings`.
-**Why bad:** Redundant network requests, inconsistent state between pages if one refetches and another doesn't.
-**Instead:** Single `useQuery` in `ThemeProvider` at app root. All consumers call `useSettings()` which reads from context — one fetch, shared state.
+### Anti-Pattern 2: Storing Personio Bearer Token in PostgreSQL
+
+**What people do:** `UPDATE app_settings SET personio_token = '...'` after each auth call.
+
+**Why it's wrong:** Adds a DB write on every sync init; stale 24 h tokens cause failures if not refreshed; unnecessary round-trip.
+
+**Do this instead:** In-process module-level dict with `expires_at` timestamp. Refresh automatically when `expires_at - now() < 300 s`.
+
+### Anti-Pattern 3: Full Historical Fetch on Every Sync
+
+**What people do:** Fetch all Personio attendance/absence records with no date filter, truncate and reload the table.
+
+**Why it's wrong:** Expensive pagination for large orgs; full replace creates data gaps if sync fails mid-way; no idempotency guarantee.
+
+**Do this instead:** Fetch a rolling window (current year + previous year) using `start_date`/`end_date` params. Upsert on conflict — partial syncs are safe and idempotent.
+
+### Anti-Pattern 4: Using `Depends(get_async_db_session)` in Scheduler Jobs
+
+**What people do:** Inject a FastAPI request-scoped session into the scheduled background job.
+
+**Why it's wrong:** The scheduler runs outside the HTTP request lifecycle — FastAPI's `Depends` system is unavailable.
+
+**Do this instead:** The scheduled job opens its own session explicitly:
+```python
+async def run_sync():
+    async with AsyncSessionLocal() as session:
+        await _do_sync(session)
+```
+
+### Anti-Pattern 5: Creating a Separate `personio_settings` Table
+
+**What people do:** Create a new singleton table just for Personio credentials, mirroring `app_settings`.
+
+**Why it's wrong:** Duplicates the singleton pattern, requires a second CHECK constraint migration, and splits settings UI across two API endpoints.
+
+**Do this instead:** Add 4 nullable columns to the existing `app_settings` table (already singleton, already tested, already has a Settings UI).
+
+### Anti-Pattern 6: Exposing `personio_client_secret` in API Responses
+
+**What people do:** Return the raw secret string in `GET /api/settings` responses.
+
+**Why it's wrong:** The secret leaks into browser DevTools, TanStack Query cache, and React state. Any future XSS vulnerability can exfiltrate it.
+
+**Do this instead:** Return `personio_has_secret: bool` in `SettingsRead`. The frontend shows "configured" or "not configured" without the value. On `PUT /api/settings`, if `personio_client_secret` is omitted or null, preserve the existing value (don't overwrite with null on every save).
 
 ---
 
-## Scalability Notes
+## Scaling Considerations
 
-Settings are read on every app mount and cached indefinitely (`staleTime: Infinity`). This is appropriate: settings change rarely (manual admin action), there are no concurrent users competing to update them (no auth in v1, single team), and the single-row table query is negligible Postgres load. No caching layer is needed.
+| Concern | Current (~20 employees, internal) | At 200 employees | At 1000+ employees |
+|---------|-----------------------------------|-----------------|-------------------|
+| Sync duration | <5 s per run | 15-30 s per run | >60 s; move to BackgroundTasks + status polling |
+| HR KPI query latency | <100 ms | <200 ms | Add indexes on date cols (already planned) |
+| Scheduler persistence | In-process (resets on restart) | In-process | SQLAlchemyJobStore for persistence |
+| Token cache | Module-level dict | Module-level dict | Module-level dict (single process) |
+
+For v1.3 at internal scale, current-process APScheduler + synchronous sync endpoint is the correct choice.
 
 ---
 
 ## Sources
 
-- Codebase direct inspection: `backend/app/main.py`, `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/kpis.py`, `frontend/src/App.tsx`, `frontend/src/components/NavBar.tsx`, `frontend/src/components/DropZone.tsx`, `frontend/src/index.css`, `frontend/src/main.tsx`
-- Alembic migration history: `backend/alembic/versions/` (3 existing migrations confirmed)
-- `.planning/PROJECT.md` — v1.1 feature spec and constraints
-- Tailwind v4 CSS custom property cascade behavior: `index.css` `@theme inline` block confirms `--color-primary: var(--primary)` mapping
-- `document.documentElement.style.setProperty` overrides stylesheet `:root` rules per CSS cascade specification (inline style > author stylesheet in same origin)
+- Personio API v1 auth: [developer.personio.de/reference/authentication](https://developer.personio.de/reference/authentication)
+- Personio getting started: [developer.personio.de/docs/getting-started-with-the-personio-api](https://developer.personio.de/docs/getting-started-with-the-personio-api)
+- Personio employees endpoint: [developer.personio.de/v1.0/reference/get_company-employees](https://developer.personio.de/v1.0/reference/get_company-employees)
+- Personio attendance fields: [developer.personio.de/v1.0/reference/patch_company-attendances-id](https://developer.personio.de/v1.0/reference/patch_company-attendances-id)
+- Personio absence API changes: [developer.personio.de/changelog/absence-api-absence-type-configuration](https://developer.personio.de/changelog/absence-api-absence-type-configuration)
+- Personio OpenAPI spec: [github.com/personio/api-docs/blob/master/personio-personnel-data-api-oa3.yaml](https://github.com/personio/api-docs/blob/master/personio-personnel-data-api-oa3.yaml)
+- APScheduler 3.x AsyncIOScheduler: [apscheduler.readthedocs.io/en/3.x/userguide.html](https://apscheduler.readthedocs.io/en/3.x/userguide.html)
+- httpx async client: [python-httpx.org/async](https://www.python-httpx.org/async/)
+- SQLAlchemy AsyncSession single-connection constraint: documented in existing `backend/app/routers/kpis.py` (v1.2 Phase 8 comment, HIGH confidence)
+- PostgreSQL `INSERT ... ON CONFLICT DO UPDATE`: PostgreSQL 17 docs (HIGH confidence, standard SQL feature)
+
+---
+*Architecture research for: HR KPI Dashboard & Personio Integration (v1.3)*
+*Researched: 2026-04-12*
