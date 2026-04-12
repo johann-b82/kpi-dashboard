@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
-status: phase-complete
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-04-11T22:25:50.436Z"
-last_activity: 2026-04-11
+status: completed
+stopped_at: Completed 13-03-PLAN.md
+last_updated: "2026-04-12T09:33:31.806Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 2
@@ -88,6 +88,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 09-frontend-kpi-card-dual-deltas P01 | 15min | 3 tasks | 7 files |
 | Phase 09-frontend-kpi-card-dual-deltas P02 | 3min | 2 tasks | 6 files |
 | Phase 09-frontend-kpi-card-dual-deltas P03 | 21 min | 3 tasks | 4 files |
+| Phase 13-sync-service-settings-extension P03 | 8m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,8 @@ Recent decisions affecting current work:
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: delta badges render to the right of the KPI value (flex items-center justify-between, vertically centered against value baseline) instead of stacked below — keeps card heights uniform at 1920×1080.
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03 post-checkpoint: ZEITRAUM filter label dropped, preset bar right-aligned (flex justify-end) — visual whitespace cleaner against new right-side delta layout.
 - [Phase 09-frontend-kpi-card-dual-deltas]: Plan 09-03: hardcoded period strings (vs. März, vs. Q1, vs. previous period) still inline in frontend/src/lib/periodLabels.ts — Phase 11 must extract via Intl.DateTimeFormat per I18N-DELTA-02.
+- [Phase 13-sync-service-settings-extension]: Used native <select> elements with Tailwind styling as shadcn Select fallback — no shadcn Select component exists in this project
+- [Phase 13-sync-service-settings-extension]: PersonioCard testPersonioConnection uses local component state, not draft, to avoid marking settings dirty on connection test
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -165,6 +168,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T22:25:47.847Z
-**Stopped at:** Completed 09-03-PLAN.md
+**Last session:** 2026-04-12T09:33:31.803Z
+**Stopped at:** Completed 13-03-PLAN.md
 **Resume file:** None
