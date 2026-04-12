@@ -20,7 +20,7 @@ function App() {
           <DateRangeProvider>
             <NavBar />
             <SubHeader />
-            <main className="pt-28">
+            <main className="pt-36">
               <Switch>
                 <Route path="/" component={DashboardPage} />
                 <Route path="/upload" component={UploadPage} />

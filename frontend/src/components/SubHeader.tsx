@@ -41,7 +41,7 @@ export function SubHeader() {
   const { preset, range, handleFilterChange } = useDateRange();
 
   return (
-    <div className="fixed top-16 inset-x-0 h-12 bg-card z-40">
+    <div className="fixed top-24 inset-x-0 h-12 bg-card z-40">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         <div>
           {location === "/" && (
