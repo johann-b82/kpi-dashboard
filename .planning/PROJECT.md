@@ -8,6 +8,17 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.6 Multi-Select HR Criteria
+
+**Goal:** Convert all 3 Personio config fields (Krankheitstyp, Produktions-Abteilung, Qualifikations-Schluessel) from single-select dropdowns to multi-select checklists, and update HR KPI calculations to consider all selected values.
+
+**Target features:**
+- Database schema migration: single values → JSON arrays for all 3 fields
+- Backend API: accept/return arrays instead of single values
+- HR KPI aggregation: filter with `IN` clauses instead of `==`
+- Frontend: replace `<select>` dropdowns with checkbox list UI in PersonioCard
+- Backward compatibility: migrate existing single values to single-element arrays
+
 ## Current State
 
 **Shipped:** v1.5 Segmented Controls — 2026-04-12
@@ -184,4 +195,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v1.5 milestone*
+*Last updated: 2026-04-12 after v1.6 milestone started*
