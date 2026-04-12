@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { Route, Switch } from "wouter";
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { HRPage } from "./pages/HRPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -19,6 +20,7 @@ function App() {
             <Switch>
               <Route path="/" component={DashboardPage} />
               <Route path="/upload" component={UploadPage} />
+              <Route path="/hr" component={HRPage} />
               <Route path="/settings" component={SettingsPage} />
             </Switch>
           </main>

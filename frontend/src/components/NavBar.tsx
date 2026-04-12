@@ -22,6 +22,8 @@ export function NavBar() {
       ? "text-primary font-semibold border-b-2 border-primary pb-1"
       : "text-foreground hover:text-primary");
 
+  const showUploadFreshness = location === "/" || location === "/upload";
+
   // Gear link — styled <Link> directly (no nested <Button> to avoid invalid <a><button>)
   const settingsLinkClass =
     "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
@@ -42,14 +44,17 @@ export function NavBar() {
         )}
 
         <Link href="/" className={linkClass(location === "/")}>
-          {t("nav.dashboard")}
+          {t("nav.sales")}
         </Link>
         <Link href="/upload" className={linkClass(location === "/upload")}>
           {t("nav.upload")}
         </Link>
+        <Link href="/hr" className={linkClass(location === "/hr")}>
+          {t("nav.hr")}
+        </Link>
 
         <div className="ml-auto flex items-center gap-4">
-          <FreshnessIndicator />
+          {showUploadFreshness && <FreshnessIndicator />}
           <LanguageToggle />
           <Link
             href="/settings"
