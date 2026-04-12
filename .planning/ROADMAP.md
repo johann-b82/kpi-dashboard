@@ -93,7 +93,10 @@ Requirements: [milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
   3. Date range presets in the SubHeader use the segmented control instead of individual buttons
   4. Balken/Linie chart type toggle and DE/EN language toggle both use the segmented control
   5. All segmented control labels display correctly in both DE and EN with no missing or broken translation keys
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 18-01-PLAN.md — Create reusable SegmentedControl component
+- [ ] 18-02-PLAN.md — Integrate SegmentedControl into all 5 consumers
 **UI hint**: yes
 
 ## Progress
