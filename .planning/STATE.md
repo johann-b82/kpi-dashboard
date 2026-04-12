@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: planning
-stopped_at: Phase 12 context gathered
-last_updated: "2026-04-12T08:25:29.479Z"
-last_activity: 2026-04-12 — v1.3 roadmap written (Phases 12–16)
+status: executing
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-04-12T08:48:01.237Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,17 +27,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 12 — HR Schema & Personio Client
+**Current focus:** Phase 12 — hr-schema-personio-client
 
 ---
 
 ## Current Position
 
-Phase: 12 of 16 (HR Schema & Personio Client)
-Plan: — (not yet planned)
+Phase: 12 (hr-schema-personio-client) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Ready to plan Phase 12
-**Last activity:** 2026-04-12 — v1.3 roadmap written (Phases 12–16)
+**Status:** Ready to execute
+**Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 
 ---
+| Phase 12-hr-schema-personio-client P01 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - **v1.3 design:** KPI #4 (Skill Development) uses snapshot diffing on custom attribute — highest complexity; "nicht konfiguriert" fallback required
 - **v1.3 design:** KPI #5 (Revenue/MA) is a cross-source join (orders DB + Personio employees); em-dash fallback when no ERP data
 - **v1.3 design:** Phase ordering: Schema → Sync Service → Nav Shell → KPI Cards → i18n; matches v1.1/v1.2 pattern
+- [Phase 12-hr-schema-personio-client]: Fernet BYTEA storage: ciphertext stored as BYTEA on AppSettings singleton, consistent with logo_data precedent
+- [Phase 12-hr-schema-personio-client]: personio_client_id/secret are Optional in SettingsUpdate (None = preserve existing encrypted value); SettingsRead exposes personio_has_credentials boolean only
+- [Phase 12-hr-schema-personio-client]: DEFAULT_SETTINGS reset comparison uses model_dump(include=_CORE_FIELDS) to exclude Personio Optional fields
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T08:25:29.477Z
-**Stopped at:** Phase 12 context gathered
-**Resume file:** .planning/phases/12-hr-schema-personio-client/12-CONTEXT.md
+**Last session:** 2026-04-12T08:48:01.234Z
+**Stopped at:** Completed 12-01-PLAN.md
+**Resume file:** None

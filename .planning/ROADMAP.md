@@ -68,9 +68,9 @@ Requirements: [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
   1. Alembic migration creates HR tables (personio_employees, personio_attendances, personio_absences, personio_sync_meta) and the app starts cleanly against the migrated schema
   2. Personio client_id and client_secret can be saved in Settings — the values are masked on display and never returned in GET /api/settings responses
   3. The Personio httpx client can authenticate (fetch a bearer token) given valid credentials, and surfaces a clear error when credentials are invalid
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 12-01-PLAN.md — HR models, Alembic migration, Fernet encryption, Settings API credential support
+- [x] 12-01-PLAN.md — HR models, Alembic migration, Fernet encryption, Settings API credential support
 - [ ] 12-02-PLAN.md — Personio httpx client with token caching, exception hierarchy, and unit tests
 
 ### Phase 13: Sync Service & Settings Extension
@@ -133,7 +133,7 @@ Plans:
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete | 2026-04-11 |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete | 2026-04-12 |
-| 12. HR Schema & Personio Client | v1.3 | 0/2 | Not started | - |
+| 12. HR Schema & Personio Client | v1.3 | 1/2 | In Progress|  |
 | 13. Sync Service & Settings Extension | v1.3 | 0/? | Not started | - |
 | 14. Navigation & HR Tab Shell | v1.3 | 0/? | Not started | - |
 | 15. HR KPI Cards & Dashboard | v1.3 | 0/? | Not started | - |
