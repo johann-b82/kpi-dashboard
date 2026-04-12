@@ -62,9 +62,9 @@ def _build_read(row: AppSettings) -> SettingsRead:
         logo_updated_at=row.logo_updated_at,
         personio_has_credentials=personio_has_credentials,
         personio_sync_interval_h=row.personio_sync_interval_h,
-        personio_sick_leave_type_id=row.personio_sick_leave_type_id,
-        personio_production_dept=row.personio_production_dept,
-        personio_skill_attr_key=row.personio_skill_attr_key,
+        personio_sick_leave_type_id=row.personio_sick_leave_type_id or [],
+        personio_production_dept=row.personio_production_dept or [],
+        personio_skill_attr_key=row.personio_skill_attr_key or [],
     )
 
 
