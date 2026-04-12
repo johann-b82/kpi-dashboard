@@ -31,3 +31,7 @@ export const kpiKeys = {
     ] as const,
   latestUpload: () => ["kpis", "latest-upload"] as const,
 };
+
+export const syncKeys = {
+  meta: () => ["sync", "meta"] as const,
+};

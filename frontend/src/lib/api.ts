@@ -296,3 +296,36 @@ export async function testPersonioConnection(): Promise<SyncTestResult> {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Phase 14 — Sync meta and trigger
+// ---------------------------------------------------------------------------
+
+export interface SyncMetaResponse {
+  last_synced_at: string | null;
+  last_sync_status: "ok" | "error" | null;
+  last_sync_error: string | null;
+}
+
+export async function fetchSyncMeta(): Promise<SyncMetaResponse> {
+  const res = await fetch("/api/sync/meta");
+  if (!res.ok) throw new Error("Failed to fetch sync meta");
+  return res.json();
+}
+
+export interface SyncResult {
+  employees_synced: number;
+  attendance_synced: number;
+  absences_synced: number;
+  status: "ok" | "error";
+  error_message: string | null;
+}
+
+export async function triggerSync(): Promise<SyncResult> {
+  const res = await fetch("/api/sync", { method: "POST" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Sync failed" }));
+    throw new Error(formatDetail(err.detail) || "Sync failed");
+  }
+  return res.json();
+}
