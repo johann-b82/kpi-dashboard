@@ -10,10 +10,10 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.1 Branding & Settings — 2026-04-11 (v1.0 MVP shipped same day)
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. v1.1 added `nh3` SVG sanitization, `culori` hex↔oklch conversion, `react-colorful` pickers, and Playwright E2E harness.
-**Scope delivered in v1.1:** full branding Settings page (6 semantic color tokens, logo upload, app name, DE/EN default), ThemeProvider live-preview, persisting NavBar LanguageToggle, async i18n bootstrap (no language flash), WCAG contrast badges, unsaved-changes guard, full de.json parity in informal "du" tone, and a rebuild-persistence smoke harness (`scripts/smoke-rebuild.sh`) proving settings survive `docker compose up --build`.
-**Audit status:** 13/13 v1.0 + 17/17 v1.1 requirements satisfied (SET, BRAND, I18N, UX). v1.1 was archived without a formal `/gsd:audit-milestone` pass — any post-ship findings carry forward as v1.2 tech debt.
+**Shipped:** v1.2 Period-over-Period Deltas — 2026-04-12 (v1.1 shipped 2026-04-11, v1.0 same day)
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (119 keys), Intl.DateTimeFormat for locale-aware month names.
+**Scope delivered in v1.2:** dual delta badges on all 3 KPI cards (vs. Vorperiode + vs. Vorjahr), ghosted amber prior-period chart overlay, contextual period labels via Intl.DateTimeFormat (month names, quarter tags), full DE/EN i18n parity for all v1.2 strings, persistent locale parity check script, em-dash fallback for no-baseline cases (allTime, thisYear prev-period), live language switch re-renders without refresh.
+**Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
 
 ## Current Milestone: v1.2 Period-over-Period Deltas
 
@@ -125,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — Phase 10 (Frontend Chart Prior-Period Overlay) complete*
+*Last updated: 2026-04-12 — Phase 11 (i18n Contextual Labels & Polish) complete — v1.2 milestone approved*
