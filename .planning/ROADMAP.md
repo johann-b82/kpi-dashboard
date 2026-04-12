@@ -89,7 +89,7 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 ### v1.6 Multi-Select HR Criteria (Phases 19–20)
 
 - [x] **Phase 19: Backend — Array Migration, API, and KPI Aggregation** - Migrate DB columns to JSON arrays, update Settings API to accept/return arrays, update HR KPI aggregation to filter with IN clauses (completed 2026-04-12)
-- [ ] **Phase 20: Frontend — Checkbox List UI and i18n** - Replace PersonioCard dropdowns with checkbox lists, wire array state to API, add i18n keys for all new labels
+- [x] **Phase 20: Frontend — Checkbox List UI and i18n** - Replace PersonioCard dropdowns with checkbox lists, wire array state to API, add i18n keys for all new labels (completed 2026-04-12)
 
 ## Phase Details
 
@@ -134,4 +134,4 @@ Plans:
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19 | v1.6 | 2/2 | Complete    | 2026-04-12 |
-| 20 | v1.6 | 1/2 | In Progress|  |
+| 20 | v1.6 | 1/2 | Complete    | 2026-04-12 |
