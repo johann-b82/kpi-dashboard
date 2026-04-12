@@ -14,7 +14,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { fetchChartData } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
 import { selectComparisonMode } from "@/lib/chartComparisonMode";
@@ -95,19 +95,15 @@ export function RevenueChart({
   const Header = (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
       <p className="text-xl font-semibold">{t("dashboard.chart.title")}</p>
-      <div className="flex gap-2">
-        {CHART_TYPES.map((type) => (
-          <Button
-            key={type}
-            type="button"
-            variant={chartType === type ? "default" : "outline"}
-            size="sm"
-            onClick={() => setChartType(type)}
-          >
-            {t(`dashboard.chart.type.${type}`)}
-          </Button>
-        ))}
-      </div>
+      <SegmentedControl
+        segments={CHART_TYPES.map((type) => ({
+          value: type,
+          label: t(`dashboard.chart.type.${type}`),
+        }))}
+        value={chartType}
+        onChange={(type) => setChartType(type)}
+        aria-label="Chart type"
+      />
     </div>
   );
 

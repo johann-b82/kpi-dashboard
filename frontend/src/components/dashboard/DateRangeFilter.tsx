@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { getPresetRange, type Preset } from "@/lib/dateUtils";
 
 export interface DateRangeValue {
@@ -28,20 +28,14 @@ export function DateRangeFilter({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-end">
-      <div className="flex flex-wrap gap-2">
-        {PRESETS.map((p) => (
-          <Button
-            key={p}
-            type="button"
-            variant={preset === p ? "default" : "outline"}
-            size="sm"
-            onClick={() => selectPreset(p)}
-          >
-            {t(`dashboard.filter.${p}`)}
-          </Button>
-        ))}
-      </div>
-    </div>
+    <SegmentedControl<Preset>
+      segments={PRESETS.map((p) => ({
+        value: p,
+        label: t(`dashboard.filter.${p}`),
+      }))}
+      value={preset}
+      onChange={(p) => selectPreset(p)}
+      aria-label="Date range"
+    />
   );
 }

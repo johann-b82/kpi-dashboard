@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 interface PreferencesCardProps {
   value: "DE" | "EN";
@@ -36,31 +37,15 @@ export function PreferencesCard({ value, onChange }: PreferencesCardProps) {
           <Label className="text-sm font-medium">
             {t("settings.preferences.language.label")}
           </Label>
-          <div
-            role="radiogroup"
+          <SegmentedControl<"DE" | "EN">
+            segments={LANGS.map((lang) => ({
+              value: lang,
+              label: lang,
+            }))}
+            value={value}
+            onChange={onChange}
             aria-label={t("settings.preferences.language.label")}
-            className="inline-flex rounded-md border border-border overflow-hidden w-fit"
-          >
-            {LANGS.map((lang) => {
-              const active = value === lang;
-              return (
-                <button
-                  key={lang}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => onChange(lang)}
-                  className={
-                    active
-                      ? "px-4 py-2 text-sm font-semibold bg-accent/20 text-primary"
-                      : "px-4 py-2 text-sm text-muted-foreground hover:bg-accent/10"
-                  }
-                >
-                  {lang}
-                </button>
-              );
-            })}
-          </div>
+          />
           <p className="text-xs text-muted-foreground">
             {t("settings.preferences.language.help")}
           </p>
