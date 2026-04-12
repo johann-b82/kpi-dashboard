@@ -103,7 +103,10 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
   3. `PUT /api/settings` accepts arrays for those 3 fields and persists them correctly
   4. `GET /api/personio/options` continues to return all available absence types, departments, and skill attributes unchanged
   5. An HR KPI returns `is_configured=false` only when its array field is empty or null; a single-element array produces a KPI value
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
+- [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
 
 ### Phase 20: Frontend — Checkbox List UI and i18n
 **Goal**: Users can select multiple values for all 3 Personio config fields via checkbox lists in PersonioCard, with correct bilingual labels and round-trip persistence
@@ -114,7 +117,10 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
   2. Selecting multiple checkboxes and saving results in all selected values stored and re-checked on the next page load
   3. Deselecting all checkboxes for a field saves an empty array (not null or a stale single value)
   4. All checkbox list labels render correctly in both DE and EN without missing keys or fallback strings
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
+- [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
 **UI hint**: yes
 
 ## Progress
@@ -127,5 +133,5 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
-| 19 | v1.6 | 0/TBD | Not started | - |
+| 19 | v1.6 | 0/2 | Not started | - |
 | 20 | v1.6 | 0/TBD | Not started | - |
