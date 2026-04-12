@@ -40,7 +40,7 @@ Requirements for HR KPI Dashboard & Personio-Integration milestone. Each maps to
 
 ### Internationalization
 
-- [ ] **I18N-01**: Full DE/EN parity for all v1.3 strings (HR tab, KPI labels, Settings fields, error states, sync feedback)
+- [x] **I18N-01**: Full DE/EN parity for all v1.3 strings (HR tab, KPI labels, Settings fields, error states, sync feedback)
 
 ## Future Requirements
 
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SET-02 | Phase 13 | Complete |
 | SET-03 | Phase 13 | Complete |
 | SET-04 | Phase 13 | Complete |
-| I18N-01 | Phase 16 | Pending |
+| I18N-01 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 20 total
