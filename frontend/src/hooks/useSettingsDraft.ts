@@ -7,9 +7,10 @@ import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { hexToOklch, oklchToHex } from "@/lib/color";
 
 /**
- * The 8 editable fields exposed to the UI. Color fields are stored as HEX
+ * The editable fields exposed to the UI. Color fields are stored as HEX
  * strings in the draft (for HexColorPicker compatibility — D-03) and converted
  * to oklch only at save time. Non-color fields are stored as-is.
+ * Phase 13: Personio fields added — credentials are write-only (not in GET response).
  */
 export interface DraftFields {
   color_primary: string;      // hex "#rrggbb" in draft
@@ -20,6 +21,13 @@ export interface DraftFields {
   color_destructive: string;  // hex
   app_name: string;
   default_language: "DE" | "EN";
+  // Phase 13 Personio fields
+  personio_client_id: string;           // local-only, write-only (not in Settings response)
+  personio_client_secret: string;       // local-only, write-only
+  personio_sync_interval_h: 0 | 1 | 6 | 24;
+  personio_sick_leave_type_id: number | null;
+  personio_production_dept: string | null;
+  personio_skill_attr_key: string | null;
 }
 
 export interface UseSettingsDraftReturn {
@@ -43,6 +51,7 @@ export interface UseSettingsDraftReturn {
  * Converts server Settings (oklch colors) into a DraftFields (hex colors).
  * Called once on first successful load (D-06 snapshot capture) and after
  * save/resetToDefaults to rotate the snapshot.
+ * Phase 13: Personio credentials are write-only — always start empty in draft.
  */
 function settingsToDraft(s: Settings): DraftFields {
   return {
@@ -54,6 +63,13 @@ function settingsToDraft(s: Settings): DraftFields {
     color_destructive: oklchToHex(s.color_destructive),
     app_name: s.app_name,
     default_language: s.default_language,
+    // Personio: credentials are write-only, always start empty
+    personio_client_id: "",
+    personio_client_secret: "",
+    personio_sync_interval_h: ((s.personio_sync_interval_h ?? 1) as 0 | 1 | 6 | 24),
+    personio_sick_leave_type_id: s.personio_sick_leave_type_id ?? null,
+    personio_production_dept: s.personio_production_dept ?? null,
+    personio_skill_attr_key: s.personio_skill_attr_key ?? null,
   };
 }
 
@@ -62,6 +78,7 @@ function settingsToDraft(s: Settings): DraftFields {
  * colors) for pushing into the ["settings"] cache. Merges with the previous
  * cache value to preserve logo_url / logo_updated_at which are not part of
  * the draft.
+ * Phase 13: Personio fields from draft are synced to cache (except credentials).
  */
 function draftToCacheSettings(draft: DraftFields, prev: Settings): Settings {
   return {
@@ -74,15 +91,21 @@ function draftToCacheSettings(draft: DraftFields, prev: Settings): Settings {
     color_destructive: hexToOklch(draft.color_destructive),
     app_name: draft.app_name,
     default_language: draft.default_language,
+    // Personio: keep server values from prev, only sync_interval from draft
+    personio_sync_interval_h: draft.personio_sync_interval_h,
+    personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
+    personio_production_dept: draft.personio_production_dept,
+    personio_skill_attr_key: draft.personio_skill_attr_key,
   };
 }
 
 /**
  * Builds the PUT payload from the current draft. Throws if any hex fails to
  * parse — caller (save) catches and surfaces via toast.
+ * Phase 13: Personio fields included; credentials only sent if non-empty.
  */
 function draftToPutPayload(draft: DraftFields): SettingsUpdatePayload {
-  return {
+  const payload: SettingsUpdatePayload = {
     color_primary: hexToOklch(draft.color_primary),
     color_accent: hexToOklch(draft.color_accent),
     color_background: hexToOklch(draft.color_background),
@@ -91,7 +114,20 @@ function draftToPutPayload(draft: DraftFields): SettingsUpdatePayload {
     color_destructive: hexToOklch(draft.color_destructive),
     app_name: draft.app_name,
     default_language: draft.default_language,
+    // Personio fields — only include if user changed them
+    personio_sync_interval_h: draft.personio_sync_interval_h,
+    personio_sick_leave_type_id: draft.personio_sick_leave_type_id ?? undefined,
+    personio_production_dept: draft.personio_production_dept ?? undefined,
+    personio_skill_attr_key: draft.personio_skill_attr_key ?? undefined,
   };
+  // Only send credentials if user typed something (non-empty)
+  if (draft.personio_client_id) {
+    payload.personio_client_id = draft.personio_client_id;
+  }
+  if (draft.personio_client_secret) {
+    payload.personio_client_secret = draft.personio_client_secret;
+  }
+  return payload;
 }
 
 function shallowEqualDraft(a: DraftFields, b: DraftFields): boolean {
@@ -103,7 +139,13 @@ function shallowEqualDraft(a: DraftFields, b: DraftFields): boolean {
     a.color_muted === b.color_muted &&
     a.color_destructive === b.color_destructive &&
     a.app_name === b.app_name &&
-    a.default_language === b.default_language
+    a.default_language === b.default_language &&
+    a.personio_client_id === b.personio_client_id &&
+    a.personio_client_secret === b.personio_client_secret &&
+    a.personio_sync_interval_h === b.personio_sync_interval_h &&
+    a.personio_sick_leave_type_id === b.personio_sick_leave_type_id &&
+    a.personio_production_dept === b.personio_production_dept &&
+    a.personio_skill_attr_key === b.personio_skill_attr_key
   );
 }
 
