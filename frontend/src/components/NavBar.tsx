@@ -1,8 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Upload as UploadIcon, Settings as SettingsIcon } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 
@@ -22,6 +21,11 @@ export function NavBar() {
       ? "text-primary font-semibold border-b-2 border-primary pb-1"
       : "text-foreground hover:text-primary");
 
+  // Upload icon link — styled Link directly (no nested <Button> to avoid invalid <a><button>)
+  const uploadLinkClass =
+    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
+    (location === "/upload" ? "text-primary" : "text-foreground");
+
   // Gear link — styled <Link> directly (no nested <Button> to avoid invalid <a><button>)
   const settingsLinkClass =
     "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
@@ -35,22 +39,25 @@ export function NavBar() {
           <img
             src={settings.logo_url}
             alt={settings.app_name}
-            className="max-h-14 max-w-14 object-contain"
+            className="max-h-8 max-w-8 object-contain"
           />
         ) : (
-          <span className="text-sm font-semibold">{settings.app_name}</span>
+          <span className="text-xs font-semibold">{settings.app_name}</span>
         )}
 
         <Link href="/" className={linkClass(location === "/")}>
           {t("nav.dashboard")}
         </Link>
-        <Link href="/upload" className={linkClass(location === "/upload")}>
-          {t("nav.upload")}
-        </Link>
 
         <div className="ml-auto flex items-center gap-4">
-          <FreshnessIndicator />
           <LanguageToggle />
+          <Link
+            href="/upload"
+            aria-label={t("nav.upload")}
+            className={uploadLinkClass}
+          >
+            <UploadIcon className="h-5 w-5" />
+          </Link>
           <Link
             href="/settings"
             aria-label={t("nav.settings")}
