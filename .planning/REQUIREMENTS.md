@@ -25,7 +25,7 @@ Requirements for v1.6 Multi-Select HR Criteria. Each maps to roadmap phases.
 
 ### Frontend Settings UI
 
-- [ ] **UI-01**: PersonioCard renders checkbox lists instead of `<select>` dropdowns for all 3 fields
+- [x] **UI-01**: PersonioCard renders checkbox lists instead of `<select>` dropdowns for all 3 fields
 - [x] **UI-02**: Checkbox state persists correctly through save/reload cycle
 - [x] **UI-03**: All checkbox list labels display correctly in both DE and EN
 
@@ -54,7 +54,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KPI-02 | Phase 19 | Complete |
 | KPI-03 | Phase 19 | Complete |
 | KPI-04 | Phase 19 | Complete |
-| UI-01 | Phase 20 | Pending |
+| UI-01 | Phase 20 | Complete |
 | UI-02 | Phase 20 | Complete |
 | UI-03 | Phase 20 | Complete |
 
