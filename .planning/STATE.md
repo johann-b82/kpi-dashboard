@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
 status: planning
-stopped_at: Phase 15 context gathered
-last_updated: "2026-04-12T14:10:15.462Z"
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-04-12T14:38:14.395Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 0
 ---
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-sync-service-settings-extension P03 | 8m | 2 tasks | 4 files |
 | Phase 14-navigation-hr-tab-shell P01 | 5min | 2 tasks | 6 files |
 | Phase 14-navigation-hr-tab-shell P02 | 10min | 2 tasks | 3 files |
+| Phase 15 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 14-navigation-hr-tab-shell]: nav.dashboard renamed to nav.sales in both locale files (EN: Sales, DE: Vertrieb) — NAV-01 satisfied in Plan 01 (data layer) before NavBar component update in Plan 02
 - [Phase 14-navigation-hr-tab-shell]: FreshnessIndicator gated on location === '/' || location === '/upload' — hidden on /hr and /settings
 - [Phase 14-navigation-hr-tab-shell]: HRPage sync feedback uses local useState ('idle'|'success'|'error') with 3s auto-reset, independent of TanStack mutation lifecycle
+- [Phase 15]: Sequential awaits for HR KPI computations on shared AsyncSession (no asyncio.gather)
+- [Phase 15]: Single /api/hr/kpis endpoint returns all 5 KPIs; revenue/employee reuses aggregate_kpi_summary
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T14:10:15.459Z
-**Stopped at:** Phase 15 context gathered
-**Resume file:** .planning/phases/15-hr-kpi-cards-dashboard/15-CONTEXT.md
+**Last session:** 2026-04-12T14:38:14.393Z
+**Stopped at:** Completed 15-01-PLAN.md
+**Resume file:** None

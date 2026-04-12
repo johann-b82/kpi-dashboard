@@ -24,12 +24,12 @@ Requirements for HR KPI Dashboard & Personio-Integration milestone. Each maps to
 
 ### HR KPIs
 
-- [ ] **HRKPI-01**: HR tab displays Overtime Ratio KPI card (Überstunden / Gesamtstunden) with delta badges (vs. Vorperiode + vs. Vorjahr)
-- [ ] **HRKPI-02**: HR tab displays Sick Leave Ratio KPI card (Krankheit / Gesamtstunden) with delta badges
-- [ ] **HRKPI-03**: HR tab displays Fluctuation KPI card (MA-Abgänge / gesamt MA) with delta badges
-- [ ] **HRKPI-04**: HR tab displays Skill Development KPI card (MA mit neuer Fertigkeit) with delta badges; shows "nicht konfiguriert" fallback if skill attribute key not set
-- [ ] **HRKPI-05**: HR tab displays Revenue per Production Employee KPI card (Auftrags-Umsatz / Produktions-MA) with delta badges; shows em-dash fallback if no ERP data
-- [ ] **HRKPI-06**: HR KPI cards show error state when Personio is unreachable or credentials invalid
+- [x] **HRKPI-01**: HR tab displays Overtime Ratio KPI card (Überstunden / Gesamtstunden) with delta badges (vs. Vorperiode + vs. Vorjahr)
+- [x] **HRKPI-02**: HR tab displays Sick Leave Ratio KPI card (Krankheit / Gesamtstunden) with delta badges
+- [x] **HRKPI-03**: HR tab displays Fluctuation KPI card (MA-Abgänge / gesamt MA) with delta badges
+- [x] **HRKPI-04**: HR tab displays Skill Development KPI card (MA mit neuer Fertigkeit) with delta badges; shows "nicht konfiguriert" fallback if skill attribute key not set
+- [x] **HRKPI-05**: HR tab displays Revenue per Production Employee KPI card (Auftrags-Umsatz / Produktions-MA) with delta badges; shows em-dash fallback if no ERP data
+- [x] **HRKPI-06**: HR KPI cards show error state when Personio is unreachable or credentials invalid
 
 ### Settings Extension
 
@@ -88,12 +88,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERS-04 | Phase 12, 13 | Complete |
 | PERS-05 | Phase 13 | Complete |
 | PERS-06 | Phase 13 | Complete |
-| HRKPI-01 | Phase 15 | Pending |
-| HRKPI-02 | Phase 15 | Pending |
-| HRKPI-03 | Phase 15 | Pending |
-| HRKPI-04 | Phase 15 | Pending |
-| HRKPI-05 | Phase 15 | Pending |
-| HRKPI-06 | Phase 15 | Pending |
+| HRKPI-01 | Phase 15 | Complete |
+| HRKPI-02 | Phase 15 | Complete |
+| HRKPI-03 | Phase 15 | Complete |
+| HRKPI-04 | Phase 15 | Complete |
+| HRKPI-05 | Phase 15 | Complete |
+| HRKPI-06 | Phase 15 | Complete |
 | SET-01 | Phase 13 | Complete |
 | SET-02 | Phase 13 | Complete |
 | SET-03 | Phase 13 | Complete |
