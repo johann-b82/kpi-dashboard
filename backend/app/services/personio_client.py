@@ -140,3 +140,128 @@ class PersonioClient:
         # authenticate() always sets self._token; assertion for type narrowing
         assert self._token is not None
         return self._token
+
+    async def fetch_employees(self) -> list[dict]:
+        """Paginated GET /company/employees. Returns list of raw employee dicts.
+
+        Uses offset-based pagination with limit=50. Loops until response is
+        smaller than the limit (i.e., last page).
+        """
+        token = await self._get_valid_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        results: list[dict] = []
+        offset = 0
+        limit = 50
+        while True:
+            try:
+                resp = await self._http.get(
+                    "/company/employees",
+                    headers=headers,
+                    params={"limit": limit, "offset": offset},
+                )
+            except httpx.TimeoutException as exc:
+                raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
+            except httpx.RequestError as exc:
+                raise PersonioNetworkError(f"Personio unreachable: {exc}") from exc
+            if resp.status_code == 401:
+                raise PersonioAuthError("Invalid credentials", status_code=401)
+            if resp.status_code == 429:
+                retry_after = int(resp.headers.get("Retry-After", "60"))
+                raise PersonioRateLimitError(f"Rate limited, retry in {retry_after}s", retry_after=retry_after)
+            if resp.is_error:
+                raise PersonioAPIError(f"Personio API error {resp.status_code}", status_code=resp.status_code)
+            data = resp.json()["data"]
+            results.extend(data)
+            if len(data) < limit:
+                break
+            offset += limit
+        return results
+
+    async def fetch_attendances(self) -> list[dict]:
+        """Paginated GET /company/attendances. Returns list of raw attendance dicts."""
+        token = await self._get_valid_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        results: list[dict] = []
+        offset = 0
+        limit = 50
+        while True:
+            try:
+                resp = await self._http.get(
+                    "/company/attendances",
+                    headers=headers,
+                    params={"limit": limit, "offset": offset},
+                )
+            except httpx.TimeoutException as exc:
+                raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
+            except httpx.RequestError as exc:
+                raise PersonioNetworkError(f"Personio unreachable: {exc}") from exc
+            if resp.status_code == 401:
+                raise PersonioAuthError("Invalid credentials", status_code=401)
+            if resp.status_code == 429:
+                retry_after = int(resp.headers.get("Retry-After", "60"))
+                raise PersonioRateLimitError(f"Rate limited, retry in {retry_after}s", retry_after=retry_after)
+            if resp.is_error:
+                raise PersonioAPIError(f"Personio API error {resp.status_code}", status_code=resp.status_code)
+            data = resp.json()["data"]
+            results.extend(data)
+            if len(data) < limit:
+                break
+            offset += limit
+        return results
+
+    async def fetch_absences(self) -> list[dict]:
+        """Paginated GET /company/absence-periods. Returns list of raw absence dicts."""
+        token = await self._get_valid_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        results: list[dict] = []
+        offset = 0
+        limit = 50
+        while True:
+            try:
+                resp = await self._http.get(
+                    "/company/absence-periods",
+                    headers=headers,
+                    params={"limit": limit, "offset": offset},
+                )
+            except httpx.TimeoutException as exc:
+                raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
+            except httpx.RequestError as exc:
+                raise PersonioNetworkError(f"Personio unreachable: {exc}") from exc
+            if resp.status_code == 401:
+                raise PersonioAuthError("Invalid credentials", status_code=401)
+            if resp.status_code == 429:
+                retry_after = int(resp.headers.get("Retry-After", "60"))
+                raise PersonioRateLimitError(f"Rate limited, retry in {retry_after}s", retry_after=retry_after)
+            if resp.is_error:
+                raise PersonioAPIError(f"Personio API error {resp.status_code}", status_code=resp.status_code)
+            data = resp.json()["data"]
+            results.extend(data)
+            if len(data) < limit:
+                break
+            offset += limit
+        return results
+
+    async def fetch_absence_types(self) -> list[dict]:
+        """Non-paginated GET /company/absence-types. Returns list of absence type dicts.
+
+        Single request — typically fewer than 20 items.
+        """
+        token = await self._get_valid_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        try:
+            resp = await self._http.get(
+                "/company/absence-types",
+                headers=headers,
+            )
+        except httpx.TimeoutException as exc:
+            raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
+        except httpx.RequestError as exc:
+            raise PersonioNetworkError(f"Personio unreachable: {exc}") from exc
+        if resp.status_code == 401:
+            raise PersonioAuthError("Invalid credentials", status_code=401)
+        if resp.status_code == 429:
+            retry_after = int(resp.headers.get("Retry-After", "60"))
+            raise PersonioRateLimitError(f"Rate limited, retry in {retry_after}s", retry_after=retry_after)
+        if resp.is_error:
+            raise PersonioAPIError(f"Personio API error {resp.status_code}", status_code=resp.status_code)
+        return resp.json()["data"]
