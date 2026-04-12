@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Select HR Criteria
-status: planning
-stopped_at: Phase 20 context gathered
-last_updated: "2026-04-12T19:07:09.725Z"
+status: executing
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-04-12T19:21:28.194Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.6 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 19 — backend-array-migration-api-and-kpi-aggregation
+**Current focus:** Phase 20 — frontend-checkbox-list-ui-and-i18n
 
 ---
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
+Phase: 20 (frontend-checkbox-list-ui-and-i18n) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.6 Multi-Select HR Criteria
-**Status:** Ready to plan
+**Status:** Ready to execute
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 ---
 | Phase 19 P01 | 3min | 2 tasks | 4 files |
 | Phase 19-backend-array-migration-api-and-kpi-aggregation P02 | 2min | 1 tasks | 1 files |
+| Phase 20 P01 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,7 @@ Recent decisions affecting current work:
 - [Phase 19]: JSONB chosen for 3 Personio config array columns — consistent with existing raw_json usage; NULL preserved as NULL not [null] in migration CASE expressions; PUT guard stays 'is not None' so [] (clear) is distinct from None (skip)
 - [Phase 19-backend-array-migration-api-and-kpi-aggregation]: or_(*(...)) generator idiom for JSONB multi-key skill development filter — single WHERE clause scales to N keys without N separate .where() chains
 - [Phase 19-backend-array-migration-api-and-kpi-aggregation]: truthiness guard (if x:) replaces is not None — empty list [] from NULL normalization correctly produces is_configured=False per D-06
+- [Phase 20]: skill_attributes extracted from employee raw_json attributes; draftToPutPayload sends arrays directly without guard; shallowEqualDraft uses JSON.stringify for array equality
 
 ### Pending Todos
 
@@ -106,6 +108,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T19:07:09.717Z
-**Stopped at:** Phase 20 context gathered
-**Resume file:** .planning/phases/20-frontend-checkbox-list-ui-and-i18n/20-CONTEXT.md
+**Last session:** 2026-04-12T19:21:28.192Z
+**Stopped at:** Completed 20-01-PLAN.md
+**Resume file:** None
