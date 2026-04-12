@@ -8,26 +8,23 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.5 Segmented Controls
-
-**Goal:** Unify all toggle/tab controls into a consistent pill-shaped segmented control style.
-
-**Target features:**
-- Sales/HR tab navigation as segmented control
-- Date range presets as segmented control
-- Balken/Linie chart type toggle as segmented control
-- DE/EN language toggle as segmented control
-
 ## Current State
 
-**Shipped:** v1.4 Navbar & Layout Polish — 2026-04-12
+**Shipped:** v1.5 Segmented Controls — 2026-04-12
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
-**Codebase:** ~9,800 LOC (Python + TypeScript), 5 milestones shipped (v1.0–v1.4).
-**Audit status:** All v1.0–v1.3 requirements satisfied. v1.4: 7/7 requirements satisfied (LAY-01 user-approved deviation — no border).
+**Codebase:** ~9,800 LOC (Python + TypeScript), 6 milestones shipped (v1.0–v1.5).
+**Audit status:** All v1.0–v1.4 requirements satisfied. v1.5: 6/6 requirements satisfied (SEG-01 through SEG-06).
 
-## Shipped: v1.4 Navbar & Layout Polish (2026-04-12)
+## Shipped: v1.5 Segmented Controls (2026-04-12)
+
+Unified all toggle/tab controls into pill-shaped SegmentedControl — Sales/HR nav tabs, DE/EN language toggle (navbar + settings), date range presets, chart type selector. Primary color active segment with white container and primary outline. Reusable generic component with ARIA radiogroup semantics.
+
+<details>
+<summary>v1.4 Navbar & Layout Polish (2026-04-12)</summary>
 
 Refined navbar — 32px logo, underline-style active tabs, upload icon in action area. New SubHeader with route-aware freshness (HR sync on /hr, upload timestamp on Sales). DateRangeContext shared state. Sync button relocated from HR page to Settings. Layout spacing balanced.
+
+</details>
 
 <details>
 <summary>v1.3 HR KPI Dashboard & Personio-Integration (2026-04-12)</summary>
