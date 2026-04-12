@@ -1,4 +1,4 @@
-# KPI Light
+# KPI
 
 A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files into PostgreSQL for Sales KPIs, and syncs Personio HR data for HR KPIs -- all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use.
 
