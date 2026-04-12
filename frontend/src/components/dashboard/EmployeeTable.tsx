@@ -1,0 +1,132 @@
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Search, ArrowUp, ArrowDown } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { fetchEmployees } from "@/lib/api";
+import { useTableState } from "@/hooks/useTableState";
+
+export function EmployeeTable() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === "de" ? "de-DE" : "en-US";
+  const [search, setSearch] = useState("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["employees", search],
+    queryFn: () => fetchEmployees({ search: search || undefined }),
+  });
+
+  const rows = useMemo(
+    () =>
+      data?.map((r) => ({
+        ...r,
+        name: [r.first_name, r.last_name].filter(Boolean).join(" ") || "—",
+      })),
+    [data]
+  );
+
+  const { processed, sortKey, sortDir, toggleSort } =
+    useTableState(rows, { key: "last_name", dir: "asc" });
+
+  const formatDate = (d: string | null) => {
+    if (!d) return "—";
+    return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+      new Date(d)
+    );
+  };
+
+  const columns = [
+    { key: "name", label: t("hr.table.name"), align: "left" as const },
+    { key: "department", label: t("hr.table.department"), align: "left" as const },
+    { key: "position", label: t("hr.table.position"), align: "left" as const },
+    { key: "status", label: t("hr.table.status"), align: "left" as const },
+    { key: "hire_date", label: t("hr.table.hireDate"), align: "left" as const },
+    { key: "weekly_working_hours", label: t("hr.table.hours"), align: "right" as const },
+  ];
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xl font-semibold">{t("hr.table.title")}</p>
+        <div className="relative w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("hr.table.search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-9"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-md border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              {columns.map((col) => (
+                <th key={col.key} className={`px-3 py-0 font-medium text-${col.align}`}>
+                  <button
+                    onClick={() => toggleSort(col.key)}
+                    className="flex items-center gap-1 py-2 hover:text-foreground transition-colors w-full"
+                    style={{ justifyContent: col.align === "right" ? "flex-end" : "flex-start" }}
+                  >
+                    {col.label}
+                    {sortKey === col.key && (
+                      sortDir === "asc"
+                        ? <ArrowUp className="h-3 w-3" />
+                        : <ArrowDown className="h-3 w-3" />
+                    )}
+                  </button>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                  {t("hr.table.loading")}
+                </td>
+              </tr>
+            ) : !processed.length ? (
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                  {t("hr.table.empty")}
+                </td>
+              </tr>
+            ) : (
+              processed.map((row) => (
+                <tr key={row.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+                  <td className="px-3 py-2 font-medium">{row.name}</td>
+                  <td className="px-3 py-2">{row.department ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{row.position ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                        row.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {row.status ?? "—"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2">{formatDate(row.hire_date)}</td>
+                  <td className="px-3 py-2 text-right">
+                    {row.weekly_working_hours != null ? `${row.weekly_working_hours}h` : "—"}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      {rows && (
+        <p className="text-xs text-muted-foreground mt-2">
+          {processed.length} {t("hr.table.records")}
+        </p>
+      )}
+    </Card>
+  );
+}

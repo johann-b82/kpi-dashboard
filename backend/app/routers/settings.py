@@ -64,6 +64,10 @@ def _build_read(row: AppSettings) -> SettingsRead:
         personio_sick_leave_type_id=row.personio_sick_leave_type_id or [],
         personio_production_dept=row.personio_production_dept or [],
         personio_skill_attr_key=row.personio_skill_attr_key or [],
+        target_overtime_ratio=float(row.target_overtime_ratio) if row.target_overtime_ratio is not None else None,
+        target_sick_leave_ratio=float(row.target_sick_leave_ratio) if row.target_sick_leave_ratio is not None else None,
+        target_fluctuation=float(row.target_fluctuation) if row.target_fluctuation is not None else None,
+        target_revenue_per_employee=float(row.target_revenue_per_employee) if row.target_revenue_per_employee is not None else None,
     )
 
 
@@ -203,6 +207,14 @@ async def put_settings(
         row.personio_production_dept = payload.personio_production_dept
     if payload.personio_skill_attr_key is not None:
         row.personio_skill_attr_key = payload.personio_skill_attr_key
+    if payload.target_overtime_ratio is not None:
+        row.target_overtime_ratio = payload.target_overtime_ratio
+    if payload.target_sick_leave_ratio is not None:
+        row.target_sick_leave_ratio = payload.target_sick_leave_ratio
+    if payload.target_fluctuation is not None:
+        row.target_fluctuation = payload.target_fluctuation
+    if payload.target_revenue_per_employee is not None:
+        row.target_revenue_per_employee = payload.target_revenue_per_employee
 
     # D-07: if the payload exactly matches canonical defaults, this is a
     # "reset to defaults" — also wipe the logo trio. A non-default PUT

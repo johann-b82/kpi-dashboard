@@ -158,6 +158,11 @@ export interface Settings {
   personio_sick_leave_type_id: number[];
   personio_production_dept: string[];
   personio_skill_attr_key: string[];
+  // HR KPI targets
+  target_overtime_ratio: number | null;
+  target_sick_leave_ratio: number | null;
+  target_fluctuation: number | null;
+  target_revenue_per_employee: number | null;
 }
 
 export async function fetchSettings(): Promise<Settings> {
@@ -188,6 +193,10 @@ export interface SettingsUpdatePayload {
   personio_sick_leave_type_id?: number[];
   personio_production_dept?: string[];
   personio_skill_attr_key?: string[];
+  target_overtime_ratio?: number | null;
+  target_sick_leave_ratio?: number | null;
+  target_fluctuation?: number | null;
+  target_revenue_per_employee?: number | null;
 }
 
 /**
@@ -351,5 +360,78 @@ export interface HrKpiResponse {
 export async function fetchHrKpis(): Promise<HrKpiResponse> {
   const res = await fetch("/api/hr/kpis");
   if (!res.ok) throw new Error("Failed to fetch HR KPIs");
+  return res.json();
+}
+
+export interface HrKpiHistoryPoint {
+  month: string;
+  overtime_ratio: number | null;
+  sick_leave_ratio: number | null;
+  fluctuation: number | null;
+  revenue_per_production_employee: number | null;
+}
+
+export async function fetchHrKpiHistory(): Promise<HrKpiHistoryPoint[]> {
+  const res = await fetch("/api/hr/kpis/history");
+  if (!res.ok) throw new Error("Failed to fetch HR KPI history");
+  return res.json();
+}
+
+// --------------------------------------------------------------------------
+// Data table types and fetchers
+// --------------------------------------------------------------------------
+
+export interface SalesRecordRow {
+  id: number;
+  order_number: string;
+  customer_name: string | null;
+  city: string | null;
+  order_date: string | null;
+  total_value: number | null;
+  remaining_value: number | null;
+  responsible_person: string | null;
+  project_name: string | null;
+  status_code: number | null;
+}
+
+export async function fetchSalesRecords(params?: {
+  start_date?: string;
+  end_date?: string;
+  customer?: string;
+  search?: string;
+}): Promise<SalesRecordRow[]> {
+  const q = new URLSearchParams();
+  if (params?.start_date) q.set("start_date", params.start_date);
+  if (params?.end_date) q.set("end_date", params.end_date);
+  if (params?.customer) q.set("customer", params.customer);
+  if (params?.search) q.set("search", params.search);
+  const res = await fetch(`/api/data/sales?${q}`);
+  if (!res.ok) throw new Error("Failed to fetch sales records");
+  return res.json();
+}
+
+export interface EmployeeRow {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  status: string | null;
+  department: string | null;
+  position: string | null;
+  hire_date: string | null;
+  termination_date: string | null;
+  weekly_working_hours: number | null;
+}
+
+export async function fetchEmployees(params?: {
+  department?: string;
+  status?: string;
+  search?: string;
+}): Promise<EmployeeRow[]> {
+  const q = new URLSearchParams();
+  if (params?.department) q.set("department", params.department);
+  if (params?.status) q.set("status", params.status);
+  if (params?.search) q.set("search", params.search);
+  const res = await fetch(`/api/data/employees?${q}`);
+  if (!res.ok) throw new Error("Failed to fetch employees");
   return res.json();
 }

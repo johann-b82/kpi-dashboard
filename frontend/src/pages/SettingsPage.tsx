@@ -13,6 +13,7 @@ import { ColorPicker } from "@/components/settings/ColorPicker";
 import { ContrastBadge } from "@/components/settings/ContrastBadge";
 import { LogoUpload } from "@/components/settings/LogoUpload";
 import { PersonioCard } from "@/components/settings/PersonioCard";
+import { HrTargetsCard } from "@/components/settings/HrTargetsCard";
 import { ActionBar } from "@/components/settings/ActionBar";
 import { ResetDialog } from "@/components/settings/ResetDialog";
 import { UnsavedChangesDialog } from "@/components/settings/UnsavedChangesDialog";
@@ -264,6 +265,9 @@ export function SettingsPage() {
         setField={setField}
         hasCredentials={settingsData?.personio_has_credentials ?? false}
       />
+
+      {/* HR KPI Targets */}
+      <HrTargetsCard draft={draft} setField={setField} />
 
       <ActionBar
         isDirty={isDirty}

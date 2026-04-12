@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
   BarChart,
-  LineChart,
+  AreaChart,
+  Area,
   Bar,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,10 +30,10 @@ interface RevenueChartProps {
   range: DateRangeValue;
 }
 
-type ChartType = "bar" | "line";
+type ChartType = "bar" | "area";
 
 const GRANULARITY = "monthly" as const;
-const CHART_TYPES: ChartType[] = ["bar", "line"];
+const CHART_TYPES: ChartType[] = ["bar", "area"];
 
 export function RevenueChart({
   startDate,
@@ -91,6 +91,19 @@ export function RevenueChart({
       currency: "EUR",
       maximumFractionDigits: 0,
     }).format(n);
+
+  const formatXAxis = (dateStr: string) => {
+    const d = new Date(dateStr);
+    if (preset === "thisMonth") {
+      // Show calendar week
+      const jan1 = new Date(d.getFullYear(), 0, 1);
+      const days = Math.floor((d.getTime() - jan1.getTime()) / 86400000);
+      const cw = Math.ceil((days + jan1.getDay() + 1) / 7);
+      return i18nLocale === "de" ? `KW ${cw}` : `CW ${cw}`;
+    }
+    // thisQuarter, thisYear, allTime → show month name
+    return new Intl.DateTimeFormat(locale, { month: "short" }).format(d);
+  };
 
   const Header = (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -170,6 +183,7 @@ export function RevenueChart({
                 dataKey="date"
                 stroke="var(--color-muted-foreground)"
                 tick={{ fontSize: 12 }}
+                tickFormatter={formatXAxis}
               />
               <YAxis
                 stroke="var(--color-muted-foreground)"
@@ -182,6 +196,7 @@ export function RevenueChart({
                   border: "1px solid var(--color-border)",
                   borderRadius: "6px",
                 }}
+                labelFormatter={(label) => formatXAxis(String(label))}
                 formatter={(v) => formatCurrency(Number(v))}
               />
               <Legend />
@@ -199,7 +214,7 @@ export function RevenueChart({
               )}
             </BarChart>
           ) : (
-            <LineChart
+            <AreaChart
               data={rows}
               margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
             >
@@ -211,6 +226,7 @@ export function RevenueChart({
                 dataKey="date"
                 stroke="var(--color-muted-foreground)"
                 tick={{ fontSize: 12 }}
+                tickFormatter={formatXAxis}
               />
               <YAxis
                 stroke="var(--color-muted-foreground)"
@@ -223,28 +239,31 @@ export function RevenueChart({
                   border: "1px solid var(--color-border)",
                   borderRadius: "6px",
                 }}
+                labelFormatter={(label) => formatXAxis(String(label))}
                 formatter={(v) => formatCurrency(Number(v))}
               />
               <Legend />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="revenue"
                 stroke="var(--color-chart-current)"
                 strokeWidth={2}
-                dot={false}
+                fill="var(--color-chart-current)"
+                fillOpacity={0.15}
                 name={labels.current}
               />
               {showPrior && (
-                <Line
+                <Area
                   type="monotone"
                   dataKey="revenuePrior"
                   stroke="var(--color-chart-prior)"
                   strokeWidth={2}
-                  dot={false}
+                  fill="var(--color-chart-prior)"
+                  fillOpacity={0.1}
                   name={labels.prior}
                 />
               )}
-            </LineChart>
+            </AreaChart>
           )}
         </ResponsiveContainer>
       </div>

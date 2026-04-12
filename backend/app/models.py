@@ -149,6 +149,12 @@ class AppSettings(Base):
     personio_production_dept: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     personio_skill_attr_key: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
+    # HR KPI target values — nullable (no target = no reference line)
+    target_overtime_ratio: Mapped[float | None] = mapped_column(Numeric(8, 4), nullable=True)
+    target_sick_leave_ratio: Mapped[float | None] = mapped_column(Numeric(8, 4), nullable=True)
+    target_fluctuation: Mapped[float | None] = mapped_column(Numeric(8, 4), nullable=True)
+    target_revenue_per_employee: Mapped[float | None] = mapped_column(Numeric(15, 2), nullable=True)
+
 
 class PersonioEmployee(Base):
     __tablename__ = "personio_employees"

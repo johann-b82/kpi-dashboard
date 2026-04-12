@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Upload as UploadIcon, Settings as SettingsIcon } from "lucide-react";
+import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
@@ -40,15 +40,27 @@ export function NavBar() {
           <span className="text-xs font-semibold">{settings.app_name}</span>
         )}
 
-        <SegmentedControl
-          segments={[
-            { value: "/", label: t("nav.sales") },
-            { value: "/hr", label: t("nav.hr") },
-          ]}
-          value={location === "/hr" ? "/hr" : "/"}
-          onChange={(path) => navigate(path)}
-          aria-label="Navigation"
-        />
+        {location === "/settings" || location === "/upload" ? (
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
+            aria-label={t("nav.back")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        ) : (
+          <SegmentedControl
+            segments={[
+              { value: "/", label: t("nav.sales") },
+              { value: "/hr", label: t("nav.hr") },
+            ]}
+            value={location === "/hr" ? "/hr" : "/"}
+            onChange={(path) => navigate(path)}
+            aria-label="Navigation"
+            className="border-transparent"
+          />
+        )}
 
         <div className="ml-auto flex items-center gap-4">
           <LanguageToggle />

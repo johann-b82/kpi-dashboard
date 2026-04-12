@@ -5,6 +5,7 @@ interface SegmentedControlProps<T extends string> {
   disabled?: boolean;
   "aria-label"?: string;
   title?: string;
+  className?: string;
 }
 
 function SegmentedControl<T extends string>({
@@ -14,6 +15,7 @@ function SegmentedControl<T extends string>({
   disabled = false,
   "aria-label": ariaLabel,
   title,
+  className: extraClassName,
 }: SegmentedControlProps<T>) {
   return (
     <div
@@ -21,7 +23,7 @@ function SegmentedControl<T extends string>({
       aria-label={ariaLabel}
       aria-disabled={disabled ? "true" : undefined}
       title={title}
-      className={`inline-flex items-center bg-background border border-primary rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}`}
+      className={`inline-flex items-center bg-background border border-primary rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}${extraClassName ? ` ${extraClassName}` : ""}`}
     >
       {segments.map((segment) => {
         const isActive = segment.value === value;

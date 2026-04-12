@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
@@ -138,6 +138,11 @@ class SettingsUpdate(BaseModel):
     personio_sick_leave_type_id: list[int] | None = None
     personio_production_dept: list[str] | None = None
     personio_skill_attr_key: list[str] | None = None
+    # HR KPI targets — None means "don't change"
+    target_overtime_ratio: float | None = None
+    target_sick_leave_ratio: float | None = None
+    target_fluctuation: float | None = None
+    target_revenue_per_employee: float | None = None
 
 
 class SettingsRead(BaseModel):
@@ -159,6 +164,11 @@ class SettingsRead(BaseModel):
     personio_sick_leave_type_id: list[int] = []
     personio_production_dept: list[str] = []
     personio_skill_attr_key: list[str] = []
+    # HR KPI targets
+    target_overtime_ratio: float | None = None
+    target_sick_leave_ratio: float | None = None
+    target_fluctuation: float | None = None
+    target_revenue_per_employee: float | None = None
 
     model_config = {"from_attributes": True}
 
@@ -231,3 +241,44 @@ class HrKpiResponse(BaseModel):
     fluctuation: HrKpiValue
     skill_development: HrKpiValue
     revenue_per_production_employee: HrKpiValue
+
+
+# --------------------------------------------------------------------------
+# Data table schemas — raw record listing
+# --------------------------------------------------------------------------
+
+class SalesRecordRead(BaseModel):
+    id: int
+    order_number: str
+    customer_name: str | None = None
+    city: str | None = None
+    order_date: date | None = None
+    total_value: float | None = None
+    remaining_value: float | None = None
+    responsible_person: str | None = None
+    project_name: str | None = None
+    status_code: int | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class HrKpiHistoryPoint(BaseModel):
+    month: str  # "2026-01"
+    overtime_ratio: float | None = None
+    sick_leave_ratio: float | None = None
+    fluctuation: float | None = None
+    revenue_per_production_employee: float | None = None
+
+
+class EmployeeRead(BaseModel):
+    id: int
+    first_name: str | None = None
+    last_name: str | None = None
+    status: str | None = None
+    department: str | None = None
+    position: str | None = None
+    hire_date: date | None = None
+    termination_date: date | None = None
+    weekly_working_hours: float | None = None
+
+    model_config = {"from_attributes": True}

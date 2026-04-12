@@ -9,8 +9,8 @@
   --color-primary: #2563eb;
   --color-destructive: #dc2626;
   --color-success: #16a34a;
-  --color-chart-current: #2563eb;
-  --color-chart-prior: #f59e0b;
+  --color-chart-current: var(--primary);
+  --color-chart-prior: var(--muted);
   --color-warning: #facc15;
 }
 

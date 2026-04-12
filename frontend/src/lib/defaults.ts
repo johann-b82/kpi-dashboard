@@ -16,6 +16,10 @@ export const DEFAULT_SETTINGS: Settings = {
   personio_sick_leave_type_id: [],
   personio_production_dept: [],
   personio_skill_attr_key: [],
+  target_overtime_ratio: null,
+  target_sick_leave_ratio: null,
+  target_fluctuation: null,
+  target_revenue_per_employee: null,
 };
 
 export const THEME_TOKEN_MAP = {

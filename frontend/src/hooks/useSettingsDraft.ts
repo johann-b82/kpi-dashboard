@@ -26,6 +26,11 @@ export interface DraftFields {
   personio_sick_leave_type_id: number[];
   personio_production_dept: string[];
   personio_skill_attr_key: string[];
+  // HR KPI targets (stored as ratios, e.g. 0.05 = 5%)
+  target_overtime_ratio: number | null;
+  target_sick_leave_ratio: number | null;
+  target_fluctuation: number | null;
+  target_revenue_per_employee: number | null;
 }
 
 export interface UseSettingsDraftReturn {
@@ -67,6 +72,10 @@ function settingsToDraft(s: Settings): DraftFields {
     personio_sick_leave_type_id: s.personio_sick_leave_type_id ?? [],
     personio_production_dept: s.personio_production_dept ?? [],
     personio_skill_attr_key: s.personio_skill_attr_key ?? [],
+    target_overtime_ratio: s.target_overtime_ratio,
+    target_sick_leave_ratio: s.target_sick_leave_ratio,
+    target_fluctuation: s.target_fluctuation,
+    target_revenue_per_employee: s.target_revenue_per_employee,
   };
 }
 
@@ -92,6 +101,10 @@ function draftToCacheSettings(draft: DraftFields, prev: Settings): Settings {
     personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
     personio_production_dept: draft.personio_production_dept,
     personio_skill_attr_key: draft.personio_skill_attr_key,
+    target_overtime_ratio: draft.target_overtime_ratio,
+    target_sick_leave_ratio: draft.target_sick_leave_ratio,
+    target_fluctuation: draft.target_fluctuation,
+    target_revenue_per_employee: draft.target_revenue_per_employee,
   };
 }
 
@@ -114,6 +127,10 @@ function draftToPutPayload(draft: DraftFields): SettingsUpdatePayload {
     personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
     personio_production_dept: draft.personio_production_dept,
     personio_skill_attr_key: draft.personio_skill_attr_key,
+    target_overtime_ratio: draft.target_overtime_ratio,
+    target_sick_leave_ratio: draft.target_sick_leave_ratio,
+    target_fluctuation: draft.target_fluctuation,
+    target_revenue_per_employee: draft.target_revenue_per_employee,
   };
   // Only send credentials if user typed something (non-empty)
   if (draft.personio_client_id) {
