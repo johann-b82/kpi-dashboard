@@ -1,17 +1,20 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     Text,
+    Time,
 )
-from sqlalchemy.dialects.postgresql import BYTEA
+from sqlalchemy.dialects.postgresql import BYTEA, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -136,3 +139,107 @@ class AppSettings(Base):
     logo_updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+    # Personio credentials — Fernet-encrypted BYTEA (D-01, D-04)
+    personio_client_id_enc: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
+    personio_client_secret_enc: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
+
+    # Sync interval for APScheduler (Phase 13) — default 1 hour
+    personio_sync_interval_h: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+
+class PersonioEmployee(Base):
+    __tablename__ = "personio_employees"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    department: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    position: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    hire_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    termination_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    weekly_working_hours: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    raw_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    attendances: Mapped[list["PersonioAttendance"]] = relationship(
+        "PersonioAttendance",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
+    absences: Mapped[list["PersonioAbsence"]] = relationship(
+        "PersonioAbsence",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
+
+
+class PersonioAttendance(Base):
+    __tablename__ = "personio_attendance"
+    __table_args__ = (
+        Index("ix_personio_attendance_employee_date", "employee_id", "date"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    employee_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("personio_employees.id"), nullable=False
+    )
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    start_time: Mapped[time] = mapped_column(Time, nullable=False)
+    end_time: Mapped[time] = mapped_column(Time, nullable=False)
+    break_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_holiday: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    raw_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    employee: Mapped["PersonioEmployee"] = relationship(
+        "PersonioEmployee",
+        back_populates="attendances",
+    )
+
+
+class PersonioAbsence(Base):
+    __tablename__ = "personio_absences"
+    __table_args__ = (
+        Index(
+            "ix_personio_absences_employee_start_type",
+            "employee_id",
+            "start_date",
+            "absence_type_id",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    employee_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("personio_employees.id"), nullable=False
+    )
+    absence_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    time_unit: Mapped[str] = mapped_column(String(10), nullable=False)
+    hours: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
+    synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    raw_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    employee: Mapped["PersonioEmployee"] = relationship(
+        "PersonioEmployee",
+        back_populates="absences",
+    )
+
+
+class PersonioSyncMeta(Base):
+    __tablename__ = "personio_sync_meta"
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_personio_sync_meta_singleton"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    last_synced_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_sync_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    last_sync_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    employees_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    attendance_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    absences_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
