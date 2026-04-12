@@ -147,6 +147,11 @@ class AppSettings(Base):
     # Sync interval for APScheduler (Phase 13) — default 1 hour
     personio_sync_interval_h: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
+    # Personio KPI configuration columns (Phase 13 Plan 01)
+    personio_sick_leave_type_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    personio_production_dept: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    personio_skill_attr_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
 
 class PersonioEmployee(Base):
     __tablename__ = "personio_employees"

@@ -134,6 +134,11 @@ class SettingsUpdate(BaseModel):
     # Personio credentials — Optional; None means "don't change existing value" (D-03)
     personio_client_id: str | None = None
     personio_client_secret: str | None = None
+    # Personio KPI configuration (Phase 13)
+    personio_sync_interval_h: Literal[0, 1, 6, 24] | None = None
+    personio_sick_leave_type_id: int | None = None
+    personio_production_dept: str | None = None
+    personio_skill_attr_key: str | None = None
 
 
 class SettingsRead(BaseModel):
@@ -151,5 +156,39 @@ class SettingsRead(BaseModel):
     logo_updated_at: datetime | None
     # Personio write-only — only expose boolean, never raw credentials (D-03, PERS-01)
     personio_has_credentials: bool = False
+    # Personio KPI configuration (Phase 13)
+    personio_sync_interval_h: int = 1
+    personio_sick_leave_type_id: int | None = None
+    personio_production_dept: str | None = None
+    personio_skill_attr_key: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------
+# Phase 13 Plan 01 — Sync and Personio schemas
+# --------------------------------------------------------------------------
+
+
+class SyncResult(BaseModel):
+    employees_synced: int
+    attendance_synced: int
+    absences_synced: int
+    status: Literal["ok", "error"]
+    error_message: str | None = None
+
+
+class SyncTestResult(BaseModel):
+    success: bool
+    error: str | None = None
+
+
+class AbsenceTypeOption(BaseModel):
+    id: int
+    name: str
+
+
+class PersonioOptions(BaseModel):
+    absence_types: list[AbsenceTypeOption]
+    departments: list[str]
+    error: str | None = None
