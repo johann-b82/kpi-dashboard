@@ -10,7 +10,7 @@ Requirements for HR KPI Dashboard & Personio-Integration milestone. Each maps to
 ### Navigation
 
 - [x] **NAV-01**: Existing "Dashboard" tab is renamed to "Sales"
-- [ ] **NAV-02**: New "HR" tab appears alongside "Sales" in NavBar navigation
+- [x] **NAV-02**: New "HR" tab appears alongside "Sales" in NavBar navigation
 - [x] **NAV-03**: HR tab shows last Personio sync timestamp as freshness indicator
 
 ### Personio Integration
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | NAV-01 | Phase 14 | Complete |
-| NAV-02 | Phase 14 | Pending |
+| NAV-02 | Phase 14 | Complete |
 | NAV-03 | Phase 14 | Complete |
 | PERS-01 | Phase 12 | Complete |
 | PERS-02 | Phase 13 | Complete |

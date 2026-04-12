@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-04-12T10:06:50.164Z"
+status: verifying
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-04-12T10:16:21.698Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 Phase: 14 (navigation-hr-tab-shell) — EXECUTING
 Plan: 2 of 2
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-sync-service-settings-extension P02 | 2min | 2 tasks | 4 files |
 | Phase 13-sync-service-settings-extension P03 | 8m | 2 tasks | 4 files |
 | Phase 14-navigation-hr-tab-shell P01 | 5min | 2 tasks | 6 files |
+| Phase 14-navigation-hr-tab-shell P02 | 10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 13-sync-service-settings-extension]: PersonioCard testPersonioConnection uses local component state, not draft, to avoid marking settings dirty on connection test
 - [Phase 14-navigation-hr-tab-shell]: GET /api/sync/meta returns SyncMetaRead() defaults (all null) when no personio_sync_meta row exists — avoids 404 on fresh installs before first sync
 - [Phase 14-navigation-hr-tab-shell]: nav.dashboard renamed to nav.sales in both locale files (EN: Sales, DE: Vertrieb) — NAV-01 satisfied in Plan 01 (data layer) before NavBar component update in Plan 02
+- [Phase 14-navigation-hr-tab-shell]: FreshnessIndicator gated on location === '/' || location === '/upload' — hidden on /hr and /settings
+- [Phase 14-navigation-hr-tab-shell]: HRPage sync feedback uses local useState ('idle'|'success'|'error') with 3s auto-reset, independent of TanStack mutation lifecycle
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T10:06:50.161Z
-**Stopped at:** Completed 14-01-PLAN.md
+**Last session:** 2026-04-12T10:16:21.694Z
+**Stopped at:** Completed 14-02-PLAN.md
 **Resume file:** None

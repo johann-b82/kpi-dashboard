@@ -54,7 +54,7 @@ Requirements: [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
 
 - [x] **Phase 12: HR Schema & Personio Client** — Alembic migration for HR tables, httpx Personio API client, write-only credential storage (completed 2026-04-12)
 - [x] **Phase 13: Sync Service & Settings Extension** — APScheduler auto-sync, manual sync endpoint, raw data persistence, Settings fields for Personio config (completed 2026-04-12)
-- [ ] **Phase 14: Navigation & HR Tab Shell** — Rename Sales tab, add HR tab with sync freshness indicator
+- [x] **Phase 14: Navigation & HR Tab Shell** — Rename Sales tab, add HR tab with sync freshness indicator (completed 2026-04-12)
 - [ ] **Phase 15: HR KPI Cards & Dashboard** — All 5 KPI computations with delta badges, error state handling
 - [ ] **Phase 16: i18n & Polish** — Full DE/EN parity for all v1.3 strings
 
@@ -97,10 +97,10 @@ Plans:
   1. The existing "Dashboard" tab label is renamed to "Sales" in the NavBar
   2. A new "HR" tab appears in the NavBar and routes to the HR dashboard page
   3. The HR tab displays the timestamp of the last successful Personio sync as a freshness indicator
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 14-01-PLAN.md — Backend sync meta endpoint, frontend API plumbing, locale key updates
-- [ ] 14-02-PLAN.md — NavBar updates (Sales rename, HR link, conditional FreshnessIndicator) and HRPage component
+- [x] 14-02-PLAN.md — NavBar updates (Sales rename, HR link, conditional FreshnessIndicator) and HRPage component
 **UI hint**: yes
 
 ### Phase 15: HR KPI Cards & Dashboard
@@ -142,6 +142,6 @@ Plans:
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete | 2026-04-12 |
 | 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 13. Sync Service & Settings Extension | v1.3 | 3/3 | Complete    | 2026-04-12 |
-| 14. Navigation & HR Tab Shell | v1.3 | 1/2 | In Progress|  |
+| 14. Navigation & HR Tab Shell | v1.3 | 2/2 | Complete   | 2026-04-12 |
 | 15. HR KPI Cards & Dashboard | v1.3 | 0/? | Not started | - |
 | 16. i18n & Polish | v1.3 | 0/? | Not started | - |
