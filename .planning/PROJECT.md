@@ -8,30 +8,23 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.6 Multi-Select HR Criteria
-
-**Goal:** Convert all 3 Personio config fields (Krankheitstyp, Produktions-Abteilung, Qualifikations-Schluessel) from single-select dropdowns to multi-select checklists, and update HR KPI calculations to consider all selected values.
-
-**Target features:**
-- Database schema migration: single values → JSON arrays for all 3 fields
-- Backend API: accept/return arrays instead of single values
-- HR KPI aggregation: filter with `IN` clauses instead of `==`
-- Frontend: replace `<select>` dropdowns with checkbox list UI in PersonioCard
-- Backward compatibility: migrate existing single values to single-element arrays
-
 ## Current State
 
-**Shipped:** v1.5 Segmented Controls — 2026-04-12
-**Active:** v1.6 Multi-Select HR Criteria — Phase 20 complete (all phases done, human UAT pending)
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
-**Codebase:** ~9,800 LOC (Python + TypeScript), 6 milestones shipped (v1.0–v1.5).
-**Audit status:** All v1.0–v1.5 requirements satisfied.
-**Phase 19 complete:** Backend array migration done — all 3 Personio config columns are JSONB arrays, Settings API accepts/returns arrays, HR KPI aggregation uses IN/OR filters.
-**Phase 20 complete:** Frontend checkbox list UI — PersonioCard shows scrollable checkbox lists for all 3 config fields, array-typed state management, bilingual i18n labels. Human UAT pending for visual rendering and persistence.
+**Shipped:** v1.6 Multi-Select HR Criteria — 2026-04-12
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
+**Codebase:** ~10,000 LOC (Python + TypeScript), 7 milestones shipped (v1.0–v1.6).
+**Audit status:** All v1.0–v1.6 requirements satisfied.
 
-## Shipped: v1.5 Segmented Controls (2026-04-12)
+## Shipped: v1.6 Multi-Select HR Criteria (2026-04-12)
 
-Unified all toggle/tab controls into pill-shaped SegmentedControl — Sales/HR nav tabs, DE/EN language toggle (navbar + settings), date range presets, chart type selector. Primary color active segment with white container and primary outline. Reusable generic component with ARIA radiogroup semantics.
+All 3 Personio config fields converted from single-select dropdowns to multi-select checkbox lists. Database columns migrated to JSONB arrays via Alembic. HR KPI aggregation uses IN/OR filters. Reusable CheckboxList component with scrollable container, loading/empty/disabled states. Language preference moved from database to localStorage.
+
+<details>
+<summary>v1.5 Segmented Controls (2026-04-12)</summary>
+
+Unified all toggle/tab controls into pill-shaped SegmentedControl — Sales/HR nav tabs, DE/EN language toggle, date range presets, chart type selector. Primary color active segment with white container and primary outline. Reusable generic component with ARIA radiogroup semantics.
+
+</details>
 
 <details>
 <summary>v1.4 Navbar & Layout Polish (2026-04-12)</summary>
@@ -50,7 +43,7 @@ Multi-domain KPI platform — Sales tab (renamed from Dashboard) + new HR tab wi
 <details>
 <summary>v1.2 Period-over-Period Deltas (2026-04-12)</summary>
 
-At-a-glance growth signals on the dashboard — dual delta badges on every KPI card (vs. Vorperiode + vs. Vorjahr), ghosted amber chart overlay for prior-period comparison, contextual period labels via Intl.DateTimeFormat, full DE/EN i18n parity (119 keys), em-dash fallback for no-baseline cases. Human-verified across 4 presets × 2 languages.
+At-a-glance growth signals on the dashboard — dual delta badges on every KPI card (vs. Vorperiode + vs. Vorjahr), ghosted amber chart overlay for prior-period comparison, contextual period labels via Intl.DateTimeFormat, full DE/EN i18n parity (119 keys), em-dash fallback for no-baseline cases.
 
 </details>
 
@@ -117,6 +110,16 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ SEG-05: DE/EN language toggle rendered as segmented control with disabled-when-dirty guard — v1.5
 - ✓ SEG-06: Full DE/EN i18n parity maintained — v1.5
 
+### Validated in v1.6
+
+- ✓ MIG-01: Database migration converts 3 Personio config columns to JSON array columns — v1.6
+- ✓ API-01: Settings GET/PUT endpoints accept and return arrays — v1.6
+- ✓ API-02: Personio options endpoint returns absence types, departments, and skill attributes — v1.6
+- ✓ KPI-01..04: HR KPI aggregation uses IN/OR filters for multi-value support — v1.6
+- ✓ UI-01: PersonioCard renders checkbox lists instead of select dropdowns — v1.6
+- ✓ UI-02: Checkbox state persists correctly through save/reload cycle — v1.6
+- ✓ UI-03: All checkbox list labels display correctly in both DE and EN — v1.6
+
 ### Out of Scope
 
 - Authentication/login — deferred to v2 (Authentik OIDC/OAuth2)
@@ -156,33 +159,14 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 | Docker Compose deployment | Entire stack containerized for portability and reproducibility | ✓ Phase 1 |
 | FastAPI + asyncpg + SQLAlchemy 2.0 async | Async end-to-end matches I/O-bound workload; 10x Pydantic v2 validation | ✓ v1.0 |
 | wouter over react-router | Smaller footprint, simpler API; only two routes in v1 | ✓ Phase 3 |
-| shadcn wraps @base-ui/react (not Radix) | Project's shadcn registry uses base-ui primitives — use `render` prop, not `asChild` | ✓ Phase 3 (caught during 03-03 execution) |
-| TanStack Query `kpiKeys.all` prefix invalidation | Single `invalidateQueries({queryKey: ["kpis"]})` covers all dashboard queries; no per-query plumbing | ✓ Phase 3 (CF-02 auto-refresh flow) |
-| i18n flat keys with `keySeparator:false` | Dotted keys like `dashboard.filter.thisYear` stay literal (not nested) — simpler JSON, no collision risk | ✓ Phase 2 |
-| DASH-02 shipped monthly-only (granularity toggle removed) | User-directed post-verification UX cleanup — chart simplicity valued over granularity control | ⚠️ Revisit (backend still supports daily/weekly/monthly — cheap to re-add) |
-| Recharts over Tremor/Chart.js | SVG-native, React-composable, directly styleable with Tailwind/CSS vars | ✓ Phase 3 |
-| CSV/TXT only for v1.0 (Excel deferred) | openpyxl dependency kept; v1.0 scope focused on ERP tab-delimited export the user actually has | ✓ v1.0 |
-| SQL-computed comparison windows | `previous_period` + `previous_year` via interval math in SQL, not Python — timezone-safe against UTC Postgres | ✓ v1.2 Phase 8 |
-| Dual delta badges (not inline sparklines) | Two compact badges per card — simpler than sparklines, covers the "at-a-glance growth" use case | ✓ v1.2 Phase 9 |
-| Intl.DateTimeFormat over date-fns/luxon | Zero new dependencies for locale-aware month names; `getLocalizedMonthName` with year-2000 seed | ✓ v1.2 Phase 11 |
-| "vs." as locale-invariant loanword | German keeps "vs." prefix (not "ggü.") — matches informal tone, consistent with existing DE strings | ✓ v1.2 Phase 11 |
-| No manual comparison mode toggle | Default driven by filter scope (short→prev-period, year→prev-year); manual toggle deferred to v1.3+ | ✓ v1.2 (deliberate scope cut) |
-| Fernet encryption for Personio credentials | Write-only API pattern — credentials encrypted at rest, never returned in GET responses | ✓ v1.3 Phase 12 |
-| APScheduler in-process (not persistent) | In-memory scheduler under FastAPI lifespan; restart recovery sufficient for internal use | ✓ v1.3 Phase 13 |
-| No time filter on HR tab | HR KPIs use rolling calendar month windows; user decided no preset bar needed | ✓ v1.3 Phase 15 (deliberate scope cut) |
-| INTERVAL_OPTIONS inside component body | Must be inside function body so `t()` re-evaluates on language change | ✓ v1.3 Phase 16 |
-| DateRangeContext for shared filter state | Lifts preset/range state from DashboardPage so SubHeader can read it; mirrors SettingsDraftContext pattern | ✓ v1.4 Phase 17 |
-| Route-aware SubHeader freshness | HR tab shows sync freshness (last_synced_at), all others show upload freshness — users see domain-relevant timestamp | ✓ v1.4 Phase 17 |
-| Sync button in Settings (not HR page) | User preference — HR page is for viewing KPIs, sync control belongs with Personio configuration | ✓ v1.4 Phase 17 |
-| No SubHeader border (LAY-01 deviation) | User explicitly removed border-b for clean look; bg-card matches page background so border was nearly invisible anyway | ✓ v1.4 Phase 17 |
-| SegmentedControl with primary color + outline | User changed active from bg-foreground to bg-primary, container from bg-muted to bg-background+border-primary during visual verification | ✓ v1.5 Phase 18 |
-| Generic SegmentedControl<T extends string> | Single component serves all 5 consumers with type-safe value/onChange — no per-consumer variants needed | ✓ v1.5 Phase 18 |
+| shadcn wraps @base-ui/react (not Radix) | Project's shadcn registry uses base-ui primitives — use `render` prop, not `asChild` | ✓ Phase 3 |
+| JSONB arrays for multi-select config | Alembic CASE-WHEN migration preserves existing values; `or []` normalization at read time | ✓ v1.6 Phase 19 |
+| Language in localStorage (not DB) | Language is a per-browser preference, not shared state; eliminates API round-trip on switch | ✓ v1.6 Phase 20 |
+| Reusable CheckboxList component | Single component serves all 3 Personio config fields with consistent UX | ✓ v1.6 Phase 20 |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
-
-Last updated: 2026-04-12
 
 **After each phase transition:**
 1. Requirements invalidated? → Move to Out of Scope with reason
@@ -198,4 +182,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v1.6 milestone started*
+*Last updated: 2026-04-12 after v1.6 milestone completed*

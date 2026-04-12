@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.6 Multi-Select HR Criteria (Shipped: 2026-04-12)
+
+**Phases completed:** 2 phases, 4 plans, 8 tasks
+
+**Key accomplishments:**
+
+- **JSONB array migration (Phase 19)** — Alembic migration converts 3 Personio config columns from scalar to JSONB arrays with NULL-safe CASE expressions, preserving existing values as single-element arrays
+- **Array API contract (Phase 19)** — Settings GET/PUT endpoints accept and return arrays; Pydantic schemas enforce `list[int]`/`list[str]` types; `or []` normalization in HR KPI aggregation
+- **Multi-value HR KPI aggregation (Phase 19)** — Sick leave, revenue/employee, and skill development KPIs all use IN/OR filters instead of equality, supporting multiple selected values per field
+- **CheckboxList UI (Phase 20)** — Reusable scrollable checkbox list component with loading/empty/disabled states, shadcn Checkbox primitive, PersonioCard rewired from `<select>` dropdowns to 3 checkbox lists with bilingual i18n labels
+
+---
+
 ## v1.5 Segmented Controls (Shipped: 2026-04-12)
 
 **Phases completed:** 1 phases, 2 plans, 4 tasks

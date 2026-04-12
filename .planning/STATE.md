@@ -4,7 +4,7 @@ milestone: v1.6
 milestone_name: Multi-Select HR Criteria
 status: completed
 stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-04-12T19:39:38.617Z"
+last_updated: "2026-04-12T20:06:43.204Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 2
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.6 milestone started)
 Phase: 20
 Plan: Not started
 **Milestone:** v1.6 Multi-Select HR Criteria
-**Status:** Milestone complete
+**Status:** v1.6 milestone complete
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
