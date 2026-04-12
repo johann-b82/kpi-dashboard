@@ -79,32 +79,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| PERS-01 | — | Pending |
-| PERS-02 | — | Pending |
-| PERS-03 | — | Pending |
-| PERS-04 | — | Pending |
-| PERS-05 | — | Pending |
-| PERS-06 | — | Pending |
-| HRKPI-01 | — | Pending |
-| HRKPI-02 | — | Pending |
-| HRKPI-03 | — | Pending |
-| HRKPI-04 | — | Pending |
-| HRKPI-05 | — | Pending |
-| HRKPI-06 | — | Pending |
-| SET-01 | — | Pending |
-| SET-02 | — | Pending |
-| SET-03 | — | Pending |
-| SET-04 | — | Pending |
-| I18N-01 | — | Pending |
+| NAV-01 | Phase 14 | Pending |
+| NAV-02 | Phase 14 | Pending |
+| NAV-03 | Phase 14 | Pending |
+| PERS-01 | Phase 12 | Pending |
+| PERS-02 | Phase 13 | Pending |
+| PERS-03 | Phase 13 | Pending |
+| PERS-04 | Phase 12, 13 | Pending |
+| PERS-05 | Phase 13 | Pending |
+| PERS-06 | Phase 13 | Pending |
+| HRKPI-01 | Phase 15 | Pending |
+| HRKPI-02 | Phase 15 | Pending |
+| HRKPI-03 | Phase 15 | Pending |
+| HRKPI-04 | Phase 15 | Pending |
+| HRKPI-05 | Phase 15 | Pending |
+| HRKPI-06 | Phase 15 | Pending |
+| SET-01 | Phase 13 | Pending |
+| SET-02 | Phase 13 | Pending |
+| SET-03 | Phase 13 | Pending |
+| SET-04 | Phase 13 | Pending |
+| I18N-01 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-12 — traceability filled after roadmap creation (Phases 12–16)*
