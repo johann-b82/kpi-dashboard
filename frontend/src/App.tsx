@@ -8,6 +8,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
+import { DateRangeProvider } from "./contexts/DateRangeContext";
 import { queryClient } from "./queryClient";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <SettingsDraftProvider>
+          <DateRangeProvider>
           <NavBar />
           <main className="pt-16">
             <Switch>
@@ -24,6 +26,7 @@ function App() {
               <Route path="/settings" component={SettingsPage} />
             </Switch>
           </main>
+          </DateRangeProvider>
         </SettingsDraftProvider>
       </ThemeProvider>
       <Toaster position="top-right" />
