@@ -6,6 +6,7 @@
 - ✅ **v1.1 Branding & Settings** — Phases 4–7 (shipped 2026-04-11) — [archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.2 Period-over-Period Deltas** — Phases 8–11 (shipped 2026-04-12) — [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.3 HR KPI Dashboard & Personio-Integration** — Phases 12–16 (shipped 2026-04-12) — [archive](milestones/v1.3-ROADMAP.md)
+- 🚧 **v1.4 Navbar & Layout Polish** — Phase 17 (in progress)
 
 ## Phases
 
@@ -62,3 +63,30 @@ Requirements: [milestones/v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md)
 Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
 
 </details>
+
+### 🚧 v1.4 Navbar & Layout Polish (In Progress)
+
+**Milestone Goal:** Refine navbar appearance and layout — smaller logo, underline-style tabs, upload icon in action area, reorganized sub-header with presets and freshness indicator.
+
+- [ ] **Phase 17: Navbar & Layout Polish** — Navbar visual overhaul, tab style, upload icon, sub-header reorganization, and i18n parity
+
+## Phase Details
+
+### Phase 17: Navbar & Layout Polish
+**Goal**: Users see a visually refined navbar with underline-style tab indicator, upload accessible via icon, and a reorganized sub-header that horizontally aligns date range presets with the freshness timestamp
+**Depends on**: Phase 16
+**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, LAY-01, LAY-02, I18N-01
+**Success Criteria** (what must be TRUE):
+  1. Navbar logo is visibly smaller than before — does not dominate the navbar height
+  2. Active tab is indicated by a blue underline; inactive tabs show as plain text with no background highlight or pill shape
+  3. Upload tab is absent from tab navigation; upload is reachable via an icon in the navbar action area, positioned between the DE/EN toggle and the gear icon
+  4. A horizontal separator line appears below the tab bar, and a sub-header row below it shows date range preset buttons left-aligned and the freshness timestamp right-aligned in the same horizontal row
+  5. All new and modified navbar/layout UI strings are present in both DE and EN locale files with no missing keys
+**Plans**: TBD
+**UI hint**: yes
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 17. Navbar & Layout Polish | 0/TBD | Not started | - |

@@ -44,19 +44,19 @@ Deferred to later milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| LAY-01 | — | Pending |
-| LAY-02 | — | Pending |
-| I18N-01 | — | Pending |
+| NAV-01 | Phase 17 | Pending |
+| NAV-02 | Phase 17 | Pending |
+| NAV-03 | Phase 17 | Pending |
+| NAV-04 | Phase 17 | Pending |
+| LAY-01 | Phase 17 | Pending |
+| LAY-02 | Phase 17 | Pending |
+| I18N-01 | Phase 17 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-12 — Phase 17 mapping added*
