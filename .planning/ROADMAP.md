@@ -119,8 +119,8 @@ Plans:
   4. All checkbox list labels render correctly in both DE and EN without missing keys or fallback strings
 **Plans**: 2 plans
 Plans:
-- [x] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
-- [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
+- [ ] 20-01-PLAN.md — Backend skill_attributes + frontend type/state migration + i18n
+- [ ] 20-02-PLAN.md — CheckboxList component + PersonioCard rewire
 **UI hint**: yes
 
 ## Progress
@@ -134,4 +134,4 @@ Plans:
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19 | v1.6 | 2/2 | Complete    | 2026-04-12 |
-| 20 | v1.6 | 0/TBD | Not started | - |
+| 20 | v1.6 | 0/2 | Not started | - |
