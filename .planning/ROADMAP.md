@@ -146,5 +146,5 @@ Plans:
 | 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 13. Sync Service & Settings Extension | v1.3 | 3/3 | Complete    | 2026-04-12 |
 | 14. Navigation & HR Tab Shell | v1.3 | 2/2 | Complete    | 2026-04-12 |
-| 15. HR KPI Cards & Dashboard | v1.3 | 2/2 | Complete   | 2026-04-12 |
+| 15. HR KPI Cards & Dashboard | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 16. i18n & Polish | v1.3 | 0/? | Not started | - |
