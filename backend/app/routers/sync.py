@@ -9,8 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.models import AppSettings
-from app.schemas import SyncResult, SyncTestResult
+from app.models import AppSettings, PersonioSyncMeta
+from app.schemas import SyncMetaRead, SyncResult, SyncTestResult
 from app.security.fernet import decrypt_credential
 from app.services.personio_client import (
     PersonioAPIError,
@@ -72,3 +72,17 @@ async def test_sync(db: AsyncSession = Depends(get_async_db_session)) -> SyncTes
         return SyncTestResult(success=False, error=str(exc))
     finally:
         await client.close()
+
+
+@router.get("/meta", response_model=SyncMetaRead)
+async def get_sync_meta(
+    db: AsyncSession = Depends(get_async_db_session),
+) -> SyncMetaRead:
+    """Return personio_sync_meta singleton for HR freshness display."""
+    result = await db.execute(
+        select(PersonioSyncMeta).where(PersonioSyncMeta.id == 1)
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        return SyncMetaRead()
+    return SyncMetaRead.model_validate(row)

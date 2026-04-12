@@ -192,3 +192,16 @@ class PersonioOptions(BaseModel):
     absence_types: list[AbsenceTypeOption]
     departments: list[str]
     error: str | None = None
+
+
+# --------------------------------------------------------------------------
+# Phase 14 Plan 01 — Sync meta schema
+# --------------------------------------------------------------------------
+
+
+class SyncMetaRead(BaseModel):
+    last_synced_at: datetime | None = None
+    last_sync_status: str | None = None
+    last_sync_error: str | None = None
+
+    model_config = {"from_attributes": True}
