@@ -38,8 +38,8 @@
 
 ### Frontend — i18n
 
-- [ ] **I18N-DELTA-01**: All new UI strings (badge labels, tooltips, secondary labels, chart legend entries) are added to both `frontend/src/locales/en.json` and `frontend/src/locales/de.json` in informal "du" tone. Locale parity is verified via the same set-diff check used in Phase 7.
-- [ ] **I18N-DELTA-02**: Period labels ("März", "Q1", "Vorwoche") are locale-formatted. Use the existing i18next pattern — no new date library added unless a phase plan justifies it; `Intl.DateTimeFormat` is the fallback.
+- [x] **I18N-DELTA-01**: All new UI strings (badge labels, tooltips, secondary labels, chart legend entries) are added to both `frontend/src/locales/en.json` and `frontend/src/locales/de.json` in informal "du" tone. Locale parity is verified via the same set-diff check used in Phase 7.
+- [x] **I18N-DELTA-02**: Period labels ("März", "Q1", "Vorwoche") are locale-formatted. Use the existing i18next pattern — no new date library added unless a phase plan justifies it; `Intl.DateTimeFormat` is the fallback.
 
 ---
 

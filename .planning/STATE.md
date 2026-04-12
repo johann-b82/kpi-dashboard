@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Period-over-Period Deltas
-status: planning
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-04-11T23:35:36.239Z"
-last_activity: 2026-04-11
+status: executing
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-04-12T07:19:46.798Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 100
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 10 — frontend-chart-prior-period-overlay
+**Current focus:** Phase 11 — i18n-contextual-labels-and-polish
 
 ---
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
+Phase: 11 (i18n-contextual-labels-and-polish) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.2 Period-over-Period Deltas — IN PROGRESS (Phases 8 + 9 of 11 complete)
 **Next phase:** 10 — Frontend Chart Prior-Period Overlay
-**Status:** Ready to plan
-**Last activity:** 2026-04-11
+**Status:** Ready to execute
+**Last activity:** 2026-04-12
 
 Progress: [██████████] 100% (19/19 plans in current scope)
 
@@ -91,6 +91,7 @@ Progress: [██████████] 100% (19/19 plans in current scope)
 | Phase 09-frontend-kpi-card-dual-deltas P03 | 21 min | 3 tasks | 4 files |
 | Phase 10 P01 | 2min | 3 tasks | 6 files |
 | Phase 10-frontend-chart-prior-period-overlay P10-02 | 15min | 3 tasks | 3 files |
+| Phase 11-i18n-contextual-labels-and-polish P01 | 10 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,9 @@ Recent decisions affecting current work:
 - [Phase Phase 10]: Chart-local CSS tokens (--color-chart-current/#2563eb, --color-chart-prior/#f59e0b) scoped in index.css to avoid shadcn neutral app-wide palette collision
 - [Phase Phase 10]: Plan 10-02: Color-based chart series differentiation (blue vs amber) superseded D-05/D-06 opacity+dashed approach after user feedback at human-verify checkpoint
 - [Phase Phase 10]: Plan 10-02: Chart-color customization in Settings deferred to future phase; --color-chart-* token architecture makes the extension straightforward when planned
+- [Phase 11-i18n-contextual-labels-and-polish]: ChartLabelT type hoisted before formatPrevPeriodLabel to enable required t parameter; duplicate declaration removed
+- [Phase 11-i18n-contextual-labels-and-polish]: formatChartSeriesLabel thisMonth branch refactored to use getLocalizedMonthName — single Intl helper, LOCALE_TAG regional codes now only used by formatPrevYearLabel
+- [Phase 11-i18n-contextual-labels-and-polish]: noBaseline/noBaselineTooltip DE: Kein Vergleichszeitraum verfügbar for both — identical to EN pair, informal du-compatible, no verb
 
 ### Security Gates (Phase 4 must-haves)
 
@@ -174,6 +178,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-11T23:30:31.532Z
-**Stopped at:** Completed 10-02-PLAN.md
+**Last session:** 2026-04-12T07:19:46.795Z
+**Stopped at:** Completed 11-01-PLAN.md
 **Resume file:** None
