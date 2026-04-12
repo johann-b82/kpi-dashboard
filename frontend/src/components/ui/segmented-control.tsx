@@ -21,7 +21,7 @@ function SegmentedControl<T extends string>({
       aria-label={ariaLabel}
       aria-disabled={disabled ? "true" : undefined}
       title={title}
-      className={`inline-flex items-center bg-muted rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}`}
+      className={`inline-flex items-center bg-background border border-primary rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}`}
     >
       {segments.map((segment) => {
         const isActive = segment.value === value;
@@ -34,7 +34,7 @@ function SegmentedControl<T extends string>({
             onClick={() => onChange(segment.value)}
             className={
               isActive
-                ? "bg-foreground text-background text-sm font-medium rounded-full px-3 h-6 transition-colors"
+                ? "bg-primary text-primary-foreground text-sm font-medium rounded-full px-3 h-6 transition-colors"
                 : "transparent text-muted-foreground text-sm font-normal rounded-full px-3 h-6 hover:text-foreground transition-colors"
             }
           >
