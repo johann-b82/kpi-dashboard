@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: verifying
+status: planning
 stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-04-12T10:16:21.698Z"
+last_updated: "2026-04-12T13:50:46.461Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 ## Current Position
 
-Phase: 14 (navigation-hr-tab-shell) — EXECUTING
-Plan: 2 of 2
+Phase: 15
+Plan: Not started
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
