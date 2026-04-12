@@ -55,7 +55,7 @@ Requirements: [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
 - [x] **Phase 12: HR Schema & Personio Client** — Alembic migration for HR tables, httpx Personio API client, write-only credential storage (completed 2026-04-12)
 - [x] **Phase 13: Sync Service & Settings Extension** — APScheduler auto-sync, manual sync endpoint, raw data persistence, Settings fields for Personio config (completed 2026-04-12)
 - [x] **Phase 14: Navigation & HR Tab Shell** — Rename Sales tab, add HR tab with sync freshness indicator (completed 2026-04-12)
-- [ ] **Phase 15: HR KPI Cards & Dashboard** — All 5 KPI computations with delta badges, error state handling
+- [x] **Phase 15: HR KPI Cards & Dashboard** — All 5 KPI computations with delta badges, error state handling (completed 2026-04-12)
 - [ ] **Phase 16: i18n & Polish** — Full DE/EN parity for all v1.3 strings
 
 ## Phase Details
@@ -112,10 +112,10 @@ Plans:
   2. Skill Development KPI card displays correctly when a skill attribute key is configured; shows "nicht konfiguriert" fallback when no key is set
   3. Revenue per Production Employee KPI card shows the cross-source value (orders DB / Personio production employees); shows em-dash fallback when no ERP data is present
   4. All 5 KPI cards show an error state (not a crash) when Personio is unreachable or credentials are invalid
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 15-01-PLAN.md — Backend: Pydantic schemas, HR KPI aggregation service, router, main.py wiring
-- [ ] 15-02-PLAN.md — Frontend: API types, query keys, HrKpiCardGrid component, HRPage integration, locale strings
+- [x] 15-02-PLAN.md — Frontend: API types, query keys, HrKpiCardGrid component, HRPage integration, locale strings
 **UI hint**: yes
 
 ### Phase 16: i18n & Polish
@@ -146,5 +146,5 @@ Plans:
 | 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 13. Sync Service & Settings Extension | v1.3 | 3/3 | Complete    | 2026-04-12 |
 | 14. Navigation & HR Tab Shell | v1.3 | 2/2 | Complete    | 2026-04-12 |
-| 15. HR KPI Cards & Dashboard | v1.3 | 1/2 | In Progress|  |
+| 15. HR KPI Cards & Dashboard | v1.3 | 2/2 | Complete   | 2026-04-12 |
 | 16. i18n & Polish | v1.3 | 0/? | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
 status: planning
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-04-12T14:38:14.395Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-04-12T14:43:48.204Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14-navigation-hr-tab-shell P01 | 5min | 2 tasks | 6 files |
 | Phase 14-navigation-hr-tab-shell P02 | 10min | 2 tasks | 3 files |
 | Phase 15 P01 | 3min | 2 tasks | 4 files |
+| Phase 15 P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 14-navigation-hr-tab-shell]: HRPage sync feedback uses local useState ('idle'|'success'|'error') with 3s auto-reset, independent of TanStack mutation lifecycle
 - [Phase 15]: Sequential awaits for HR KPI computations on shared AsyncSession (no asyncio.gather)
 - [Phase 15]: Single /api/hr/kpis endpoint returns all 5 KPIs; revenue/employee reuses aggregate_kpi_summary
+- [Phase 15]: Static delta labels for HR KPIs (vs. Vormonat / vs. Vorjahr) since HR tab has no time filter
+- [Phase 15]: Intl.NumberFormat for percent (1 decimal) and EUR currency (0 decimals) formatting on HR KPI cards
 
 ### Pending Todos
 
@@ -117,6 +120,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T14:38:14.393Z
-**Stopped at:** Completed 15-01-PLAN.md
+**Last session:** 2026-04-12T14:43:48.201Z
+**Stopped at:** Completed 15-02-PLAN.md
 **Resume file:** None
