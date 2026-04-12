@@ -22,11 +22,12 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ## Current State
 
 **Shipped:** v1.5 Segmented Controls — 2026-04-12
-**Active:** v1.6 Multi-Select HR Criteria — Phase 19 complete, Phase 20 remaining
+**Active:** v1.6 Multi-Select HR Criteria — Phase 20 complete (all phases done, human UAT pending)
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
 **Codebase:** ~9,800 LOC (Python + TypeScript), 6 milestones shipped (v1.0–v1.5).
 **Audit status:** All v1.0–v1.5 requirements satisfied.
 **Phase 19 complete:** Backend array migration done — all 3 Personio config columns are JSONB arrays, Settings API accepts/returns arrays, HR KPI aggregation uses IN/OR filters.
+**Phase 20 complete:** Frontend checkbox list UI — PersonioCard shows scrollable checkbox lists for all 3 config fields, array-typed state management, bilingual i18n labels. Human UAT pending for visual rendering and persistence.
 
 ## Shipped: v1.5 Segmented Controls (2026-04-12)
 
