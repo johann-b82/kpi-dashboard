@@ -9,10 +9,10 @@ Requirements for v1.4 Navbar & Layout Polish. Each maps to roadmap phases.
 
 ### Navbar
 
-- [ ] **NAV-01**: Logo rendered at reduced size in navbar
-- [ ] **NAV-02**: Active tab indicated by blue underline; inactive tabs shown as plain text (no background highlight)
-- [ ] **NAV-03**: Upload tab removed from tab navigation
-- [ ] **NAV-04**: Upload page accessible via upload icon in navbar action area, positioned between DE/EN toggle and gear/settings icon
+- [x] **NAV-01**: Logo rendered at reduced size in navbar
+- [x] **NAV-02**: Active tab indicated by blue underline; inactive tabs shown as plain text (no background highlight)
+- [x] **NAV-03**: Upload tab removed from tab navigation
+- [x] **NAV-04**: Upload page accessible via upload icon in navbar action area, positioned between DE/EN toggle and gear/settings icon
 
 ### Layout
 
@@ -21,7 +21,7 @@ Requirements for v1.4 Navbar & Layout Polish. Each maps to roadmap phases.
 
 ### i18n
 
-- [ ] **I18N-01**: All new/modified UI elements maintain full DE/EN parity
+- [x] **I18N-01**: All new/modified UI elements maintain full DE/EN parity
 
 ## Future Requirements
 
@@ -44,13 +44,13 @@ Deferred to later milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | Phase 17 | Pending |
-| NAV-02 | Phase 17 | Pending |
-| NAV-03 | Phase 17 | Pending |
-| NAV-04 | Phase 17 | Pending |
+| NAV-01 | Phase 17 | Complete |
+| NAV-02 | Phase 17 | Complete |
+| NAV-03 | Phase 17 | Complete |
+| NAV-04 | Phase 17 | Complete |
 | LAY-01 | Phase 17 | Pending |
 | LAY-02 | Phase 17 | Pending |
-| I18N-01 | Phase 17 | Pending |
+| I18N-01 | Phase 17 | Complete |
 
 **Coverage:**
 - v1.4 requirements: 7 total

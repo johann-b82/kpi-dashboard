@@ -84,7 +84,7 @@ Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
   5. All new and modified navbar/layout UI strings are present in both DE and EN locale files with no missing keys
 **Plans**: 2 plans
 Plans:
-- [ ] 17-01-PLAN.md — DateRangeContext, NavBar updates (logo, tabs, upload icon)
+- [x] 17-01-PLAN.md — DateRangeContext, NavBar updates (logo, tabs, upload icon)
 - [ ] 17-02-PLAN.md — SubHeader component, App.tsx layout wiring
 **UI hint**: yes
 
@@ -92,4 +92,4 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 17. Navbar & Layout Polish | 0/2 | Not started | - |
+| 17. Navbar & Layout Polish | 1/2 | In Progress|  |

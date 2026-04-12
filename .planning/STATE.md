@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Navbar & Layout Polish
-status: planning
-stopped_at: Phase 17 context gathered
-last_updated: "2026-04-12T16:24:13.430Z"
-last_activity: 2026-04-12 — Roadmap created (1 phase, 7 requirements)
+status: executing
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-04-12T16:47:44.243Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,17 +27,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.4 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 17 — Navbar & Layout Polish
+**Current focus:** Phase 17 — navbar-layout-polish
 
 ---
 
 ## Current Position
 
-Phase: 17 (not started)
-Plan: —
+Phase: 17 (navbar-layout-polish) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.4 Navbar & Layout Polish
-**Status:** Roadmap created — ready to plan Phase 17
-**Last activity:** 2026-04-12 — Roadmap created (1 phase, 7 requirements)
+**Status:** Ready to execute
+**Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14-navigation-hr-tab-shell P02 | 10min | 2 tasks | 3 files |
 | Phase 15 P01 | 3min | 2 tasks | 4 files |
 | Phase 15 P02 | 3min | 2 tasks | 6 files |
+| Phase 17-navbar-layout-polish P17-01 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase 14-navigation-hr-tab-shell]: FreshnessIndicator gated on location === '/' || location === '/upload' — hidden on /hr and /settings
 - [Phase 15]: Static delta labels for HR KPIs (vs. Vormonat / vs. Vorjahr) since HR tab has no time filter
 - [Phase 16]: INTERVAL_OPTIONS inside component body — must be inside function body so `t()` re-evaluates on language change
+- [Phase 17-navbar-layout-polish]: DateRangeProvider added to App.tsx inside SettingsDraftProvider; nav.dashboard key retained (no nav.sales in locales); FreshnessIndicator fully removed from NavBar per D-12 — lives only in SubHeader
 
 ### Pending Todos
 
@@ -104,6 +106,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T16:24:13.427Z
-**Stopped at:** Phase 17 context gathered
-**Resume file:** .planning/phases/17-navbar-layout-polish/17-CONTEXT.md
+**Last session:** 2026-04-12T16:47:44.240Z
+**Stopped at:** Completed 17-01-PLAN.md
+**Resume file:** None
