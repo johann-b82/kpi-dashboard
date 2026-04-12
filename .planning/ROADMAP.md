@@ -133,7 +133,7 @@ Plans:
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete | 2026-04-11 |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete | 2026-04-12 |
-| 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete   | 2026-04-12 |
+| 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 13. Sync Service & Settings Extension | v1.3 | 0/? | Not started | - |
 | 14. Navigation & HR Tab Shell | v1.3 | 0/? | Not started | - |
 | 15. HR KPI Cards & Dashboard | v1.3 | 0/? | Not started | - |
