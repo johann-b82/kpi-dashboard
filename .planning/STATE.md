@@ -1,43 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Navbar & Layout Polish
-status: completed
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-04-12T17:14:55.990Z"
+milestone: v1.5
+milestone_name: Segmented Controls
+status: active
+stopped_at: null
+last_updated: "2026-04-12"
 last_activity: 2026-04-12
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
 # Project State: KPI Light
 
 **Last updated:** 2026-04-12
-**Session:** v1.4 Navbar & Layout Polish — roadmap created
+**Session:** v1.5 Segmented Controls — defining requirements
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.4 milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.5 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 17 — navbar-layout-polish
+**Current focus:** Defining requirements for v1.5
 
 ---
 
 ## Current Position
 
-Phase: 17
-Plan: Not started
-**Milestone:** v1.4 Navbar & Layout Polish
-**Status:** v1.4 milestone complete
-**Last activity:** 2026-04-12
+Phase: Not started (defining requirements)
+Plan: —
+**Milestone:** v1.5 Segmented Controls
+**Status:** Defining requirements
+**Last activity:** 2026-04-12 — Milestone v1.5 started
 
 Progress: [░░░░░░░░░░] 0%
 

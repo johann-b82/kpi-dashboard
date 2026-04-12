@@ -8,6 +8,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.5 Segmented Controls
+
+**Goal:** Unify all toggle/tab controls into a consistent pill-shaped segmented control style.
+
+**Target features:**
+- Sales/HR tab navigation as segmented control
+- Date range presets as segmented control
+- Balken/Linie chart type toggle as segmented control
+- DE/EN language toggle as segmented control
+
 ## Current State
 
 **Shipped:** v1.4 Navbar & Layout Polish — 2026-04-12
@@ -166,4 +176,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v1.4 milestone*
+*Last updated: 2026-04-12 after v1.5 milestone started*
