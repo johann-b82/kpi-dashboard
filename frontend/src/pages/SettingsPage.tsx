@@ -13,6 +13,7 @@ import { ColorPicker } from "@/components/settings/ColorPicker";
 import { ContrastBadge } from "@/components/settings/ContrastBadge";
 import { LogoUpload } from "@/components/settings/LogoUpload";
 import { PreferencesCard } from "@/components/settings/PreferencesCard";
+import { PersonioCard } from "@/components/settings/PersonioCard";
 import { ActionBar } from "@/components/settings/ActionBar";
 import { ResetDialog } from "@/components/settings/ResetDialog";
 import { UnsavedChangesDialog } from "@/components/settings/UnsavedChangesDialog";
@@ -262,6 +263,13 @@ export function SettingsPage() {
       <PreferencesCard
         value={draft.default_language}
         onChange={(v) => setField("default_language", v)}
+      />
+
+      {/* Personio Card — D-11, D-12 */}
+      <PersonioCard
+        draft={draft}
+        setField={setField}
+        hasCredentials={settingsData?.personio_has_credentials ?? false}
       />
 
       <ActionBar
