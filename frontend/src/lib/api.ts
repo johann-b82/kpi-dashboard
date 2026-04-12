@@ -150,7 +150,6 @@ export interface Settings {
   color_muted: string;
   color_destructive: string;
   app_name: string;
-  default_language: "DE" | "EN";
   logo_url: string | null;
   logo_updated_at: string | null;
   // Phase 13 Personio fields
@@ -182,7 +181,6 @@ export interface SettingsUpdatePayload {
   color_muted: string;
   color_destructive: string;
   app_name: string;
-  default_language: "DE" | "EN";
   // Phase 13 Personio fields — undefined means "don't change"
   personio_client_id?: string;
   personio_client_secret?: string;

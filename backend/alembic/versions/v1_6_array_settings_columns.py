@@ -9,7 +9,7 @@ Existing non-NULL values are wrapped in single-element arrays.
 NULL values remain NULL (not [null]) — per D-02.
 
 Revision ID: e5f6a7b8c9d0
-Revises: d4e5f6a7b8c9
+Revises: 7022a1dfd988
 Create Date: 2026-04-12
 """
 import sqlalchemy as sa
@@ -17,7 +17,7 @@ from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB
 
 revision = "e5f6a7b8c9d0"
-down_revision = "d4e5f6a7b8c9"
+down_revision = "7022a1dfd988"
 branch_labels = None
 depends_on = None
 

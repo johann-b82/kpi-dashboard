@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import i18n from "@/i18n";
 import { useSettings } from "@/hooks/useSettings";
 import { updateSettings, type Settings, type SettingsUpdatePayload } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
@@ -20,7 +19,6 @@ export interface DraftFields {
   color_muted: string;        // hex
   color_destructive: string;  // hex
   app_name: string;
-  default_language: "DE" | "EN";
   // Phase 13 Personio fields
   personio_client_id: string;           // local-only, write-only (not in Settings response)
   personio_client_secret: string;       // local-only, write-only
@@ -62,7 +60,6 @@ function settingsToDraft(s: Settings): DraftFields {
     color_muted: oklchToHex(s.color_muted),
     color_destructive: oklchToHex(s.color_destructive),
     app_name: s.app_name,
-    default_language: s.default_language,
     // Personio: credentials are write-only, always start empty
     personio_client_id: "",
     personio_client_secret: "",
@@ -90,7 +87,6 @@ function draftToCacheSettings(draft: DraftFields, prev: Settings): Settings {
     color_muted: hexToOklch(draft.color_muted),
     color_destructive: hexToOklch(draft.color_destructive),
     app_name: draft.app_name,
-    default_language: draft.default_language,
     // Personio: keep server values from prev, only sync_interval from draft
     personio_sync_interval_h: draft.personio_sync_interval_h,
     personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
@@ -113,7 +109,6 @@ function draftToPutPayload(draft: DraftFields): SettingsUpdatePayload {
     color_muted: hexToOklch(draft.color_muted),
     color_destructive: hexToOklch(draft.color_destructive),
     app_name: draft.app_name,
-    default_language: draft.default_language,
     // Personio fields — only include if user changed them
     personio_sync_interval_h: draft.personio_sync_interval_h,
     personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
@@ -139,7 +134,6 @@ function shallowEqualDraft(a: DraftFields, b: DraftFields): boolean {
     a.color_muted === b.color_muted &&
     a.color_destructive === b.color_destructive &&
     a.app_name === b.app_name &&
-    a.default_language === b.default_language &&
     a.personio_client_id === b.personio_client_id &&
     a.personio_client_secret === b.personio_client_secret &&
     a.personio_sync_interval_h === b.personio_sync_interval_h &&
@@ -203,13 +197,6 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
         }
         return next;
       });
-      // D-10: sync i18n runtime for live preview when language changes.
-      // Fire-and-forget — react-i18next re-renders via `languageChanged`
-      // event, not via Promise resolution. Keeping setField sync preserves
-      // all existing call-site signatures.
-      if (field === "default_language") {
-        void i18n.changeLanguage(String(value).toLowerCase());
-      }
     },
     [queryClient],
   );
@@ -247,9 +234,6 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
         draftToCacheSettings(snapshot, prevCache),
       );
     }
-    // D-10: sync i18n runtime back to the snapshot language so the
-    // live-previewed language reverts alongside the colors.
-    void i18n.changeLanguage(snapshot.default_language.toLowerCase());
   }, [snapshot, queryClient]);
 
   const resetToDefaults = useCallback(async () => {
@@ -265,16 +249,12 @@ export function useSettingsDraft(): UseSettingsDraftReturn {
         color_muted: DEFAULT_SETTINGS.color_muted,
         color_destructive: DEFAULT_SETTINGS.color_destructive,
         app_name: DEFAULT_SETTINGS.app_name,
-        default_language: DEFAULT_SETTINGS.default_language,
       };
       const response = await updateSettings(payload);
       const nextSnapshot = settingsToDraft(response);
       setSnapshot(nextSnapshot);
       setDraft(nextSnapshot);
       queryClient.setQueryData<Settings>(["settings"], response);
-      // D-10: sync i18n runtime to the post-reset default language
-      // (canonical default is "EN" from backend/app/defaults.py).
-      void i18n.changeLanguage(nextSnapshot.default_language.toLowerCase());
     } finally {
       setIsSaving(false);
     }

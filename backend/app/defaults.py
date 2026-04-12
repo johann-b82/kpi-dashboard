@@ -18,5 +18,4 @@ DEFAULT_SETTINGS: Final[dict[str, str]] = {
     "color_muted": "oklch(0.90 0 0)",
     "color_destructive": "oklch(0.55 0.22 25)",
     "app_name": "KPI Light",
-    "default_language": "EN",
 }

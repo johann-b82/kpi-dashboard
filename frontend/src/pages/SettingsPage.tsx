@@ -12,7 +12,6 @@ import { hexToOklch, WHITE_OKLCH } from "@/lib/color";
 import { ColorPicker } from "@/components/settings/ColorPicker";
 import { ContrastBadge } from "@/components/settings/ContrastBadge";
 import { LogoUpload } from "@/components/settings/LogoUpload";
-import { PreferencesCard } from "@/components/settings/PreferencesCard";
 import { PersonioCard } from "@/components/settings/PersonioCard";
 import { ActionBar } from "@/components/settings/ActionBar";
 import { ResetDialog } from "@/components/settings/ResetDialog";
@@ -258,12 +257,6 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Preferences Card — General / Language picker (I18N-01, D-07) */}
-      <PreferencesCard
-        value={draft.default_language}
-        onChange={(v) => setField("default_language", v)}
-      />
 
       {/* Personio Card — D-11, D-12 */}
       <PersonioCard

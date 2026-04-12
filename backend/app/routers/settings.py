@@ -57,7 +57,6 @@ def _build_read(row: AppSettings) -> SettingsRead:
         color_muted=row.color_muted,
         color_destructive=row.color_destructive,
         app_name=row.app_name,
-        default_language=row.default_language,
         logo_url=logo_url,
         logo_updated_at=row.logo_updated_at,
         personio_has_credentials=personio_has_credentials,
@@ -171,7 +170,6 @@ async def put_settings(
     row.color_muted = payload.color_muted
     row.color_destructive = payload.color_destructive
     row.app_name = payload.app_name
-    row.default_language = payload.default_language
 
     # Personio credential guard — None means "don't change" (D-03, Pitfall 3)
     if payload.personio_client_id is not None:

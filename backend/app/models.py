@@ -129,9 +129,6 @@ class AppSettings(Base):
 
     # App identity
     app_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    default_language: Mapped[str] = mapped_column(
-        String(2), nullable=False
-    )  # "DE" | "EN"
 
     # Logo — all three are nullable together (no logo = fallback to app_name text)
     logo_data: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
