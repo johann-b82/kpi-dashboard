@@ -153,6 +153,12 @@ export interface Settings {
   default_language: "DE" | "EN";
   logo_url: string | null;
   logo_updated_at: string | null;
+  // Phase 13 Personio fields
+  personio_has_credentials: boolean;
+  personio_sync_interval_h: number;
+  personio_sick_leave_type_id: number | null;
+  personio_production_dept: string | null;
+  personio_skill_attr_key: string | null;
 }
 
 export async function fetchSettings(): Promise<Settings> {
@@ -162,10 +168,11 @@ export async function fetchSettings(): Promise<Settings> {
 }
 
 /**
- * Payload for PUT /api/settings. Exactly 8 fields — logo bytes have their
+ * Payload for PUT /api/settings. Exactly 8 required fields — logo bytes have their
  * own endpoint (Phase 4 D-05). All color_* fields must be in canonical
  * `oklch(L C H)` format; the backend's _OKLCH_RE regex rejects hex and
  * any string containing `;`, `}`, `{`, `url(`, `expression(`, or quotes.
+ * Phase 13: Personio fields are optional — undefined means "don't change".
  */
 export interface SettingsUpdatePayload {
   color_primary: string;
@@ -176,6 +183,13 @@ export interface SettingsUpdatePayload {
   color_destructive: string;
   app_name: string;
   default_language: "DE" | "EN";
+  // Phase 13 Personio fields — undefined means "don't change"
+  personio_client_id?: string;
+  personio_client_secret?: string;
+  personio_sync_interval_h?: 0 | 1 | 6 | 24;
+  personio_sick_leave_type_id?: number;
+  personio_production_dept?: string;
+  personio_skill_attr_key?: string;
 }
 
 /**
@@ -235,6 +249,50 @@ export async function uploadLogo(file: File): Promise<Settings> {
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Failed to upload logo" }));
     throw new Error(formatDetail(err.detail) || "Failed to upload logo");
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Phase 13 — Personio options and sync test
+// ---------------------------------------------------------------------------
+
+export interface AbsenceTypeOption {
+  id: number;
+  name: string;
+}
+
+export interface PersonioOptions {
+  absence_types: AbsenceTypeOption[];
+  departments: string[];
+  error: string | null;
+}
+
+export interface SyncTestResult {
+  success: boolean;
+  error: string | null;
+}
+
+/**
+ * GET /api/settings/personio-options — fetches live absence types and
+ * departments from Personio. Only called when hasCredentials is true.
+ */
+export async function fetchPersonioOptions(): Promise<PersonioOptions> {
+  const res = await fetch("/api/settings/personio-options");
+  if (!res.ok) throw new Error("Failed to fetch Personio options");
+  return res.json();
+}
+
+/**
+ * POST /api/sync/test — tests the Personio connection using the stored
+ * credentials. Returns { success, error } — does not throw on API-level
+ * failures (only on network/parse errors).
+ */
+export async function testPersonioConnection(): Promise<SyncTestResult> {
+  const res = await fetch("/api/sync/test", { method: "POST" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Connection test failed" }));
+    throw new Error(formatDetail(err.detail) || "Connection test failed");
   }
   return res.json();
 }

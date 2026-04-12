@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
 status: executing
-stopped_at: Completed 13-02-PLAN.md
-last_updated: "2026-04-12T09:32:42.279Z"
+stopped_at: Completed 13-03-PLAN.md
+last_updated: "2026-04-12T09:33:31.806Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-hr-schema-personio-client P02 | 8min | 1 tasks | 2 files |
 | Phase 13-sync-service-settings-extension P01 | 2m 22s | 2 tasks | 5 files |
 | Phase 13-sync-service-settings-extension P02 | 2min | 2 tasks | 4 files |
+| Phase 13-sync-service-settings-extension P03 | 8m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 13-sync-service-settings-extension]: Sequential fetches in run_sync() (not asyncio.gather) to maintain FK ordering: employees upserted before attendances and absences
 - [Phase 13-sync-service-settings-extension]: app.state.scheduler attached in lifespan so PUT /api/settings can reschedule without global import side-effects
 - [Phase 13-sync-service-settings-extension]: interval_h == 0 removes APScheduler job (manual-only mode, D-07); replace_existing=True handles both add and reschedule in one call
+- [Phase 13-sync-service-settings-extension]: Used native <select> elements with Tailwind styling as shadcn Select fallback — no shadcn Select component exists in this project
+- [Phase 13-sync-service-settings-extension]: PersonioCard testPersonioConnection uses local component state, not draft, to avoid marking settings dirty on connection test
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T09:32:42.276Z
-**Stopped at:** Completed 13-02-PLAN.md
+**Last session:** 2026-04-12T09:33:31.803Z
+**Stopped at:** Completed 13-03-PLAN.md
 **Resume file:** None
