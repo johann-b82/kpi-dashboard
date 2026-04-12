@@ -88,7 +88,7 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 
 ### v1.6 Multi-Select HR Criteria (Phases 19–20)
 
-- [ ] **Phase 19: Backend — Array Migration, API, and KPI Aggregation** - Migrate DB columns to JSON arrays, update Settings API to accept/return arrays, update HR KPI aggregation to filter with IN clauses
+- [x] **Phase 19: Backend — Array Migration, API, and KPI Aggregation** - Migrate DB columns to JSON arrays, update Settings API to accept/return arrays, update HR KPI aggregation to filter with IN clauses (completed 2026-04-12)
 - [ ] **Phase 20: Frontend — Checkbox List UI and i18n** - Replace PersonioCard dropdowns with checkbox lists, wire array state to API, add i18n keys for all new labels
 
 ## Phase Details
@@ -106,7 +106,7 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 **Plans**: 2 plans
 Plans:
 - [x] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
-- [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
+- [x] 19-02-PLAN.md — KPI aggregation IN/OR filters
 
 ### Phase 20: Frontend — Checkbox List UI and i18n
 **Goal**: Users can select multiple values for all 3 Personio config fields via checkbox lists in PersonioCard, with correct bilingual labels and round-trip persistence
@@ -119,7 +119,7 @@ Plans:
   4. All checkbox list labels render correctly in both DE and EN without missing keys or fallback strings
 **Plans**: 2 plans
 Plans:
-- [ ] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
+- [x] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
 - [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
 **UI hint**: yes
 
@@ -133,5 +133,5 @@ Plans:
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
-| 19 | v1.6 | 1/2 | In Progress|  |
+| 19 | v1.6 | 2/2 | Complete   | 2026-04-12 |
 | 20 | v1.6 | 0/TBD | Not started | - |

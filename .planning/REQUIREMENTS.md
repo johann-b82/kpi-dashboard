@@ -18,10 +18,10 @@ Requirements for v1.6 Multi-Select HR Criteria. Each maps to roadmap phases.
 
 ### HR KPI Aggregation
 
-- [ ] **KPI-01**: Sick leave ratio considers all selected absence type IDs (IN filter instead of equality)
-- [ ] **KPI-02**: Revenue per production employee considers all selected departments (IN filter instead of equality)
-- [ ] **KPI-03**: Skill development KPI considers all selected skill attribute keys (IN filter instead of equality)
-- [ ] **KPI-04**: Each KPI returns `is_configured=false` only when its corresponding array is empty or null
+- [x] **KPI-01**: Sick leave ratio considers all selected absence type IDs (IN filter instead of equality)
+- [x] **KPI-02**: Revenue per production employee considers all selected departments (IN filter instead of equality)
+- [x] **KPI-03**: Skill development KPI considers all selected skill attribute keys (IN filter instead of equality)
+- [x] **KPI-04**: Each KPI returns `is_configured=false` only when its corresponding array is empty or null
 
 ### Frontend Settings UI
 
@@ -50,10 +50,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIG-01 | Phase 19 | Complete |
 | API-01 | Phase 19 | Complete |
 | API-02 | Phase 19 | Complete |
-| KPI-01 | Phase 19 | Pending |
-| KPI-02 | Phase 19 | Pending |
-| KPI-03 | Phase 19 | Pending |
-| KPI-04 | Phase 19 | Pending |
+| KPI-01 | Phase 19 | Complete |
+| KPI-02 | Phase 19 | Complete |
+| KPI-03 | Phase 19 | Complete |
+| KPI-04 | Phase 19 | Complete |
 | UI-01 | Phase 20 | Pending |
 | UI-02 | Phase 20 | Pending |
 | UI-03 | Phase 20 | Pending |
