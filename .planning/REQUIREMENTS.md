@@ -16,8 +16,8 @@ Requirements for v1.4 Navbar & Layout Polish. Each maps to roadmap phases.
 
 ### Layout
 
-- [ ] **LAY-01**: Horizontal separator line below the tab bar
-- [ ] **LAY-02**: Sub-header row below separator with date range preset buttons (left-aligned) and freshness timestamp (right-aligned), horizontally aligned
+- [x] **LAY-01**: ~~Horizontal separator line below the tab bar~~ User-approved deviation: separator removed for clean look; sub-header positioned with 32px gap below navbar
+- [x] **LAY-02**: Sub-header row below navbar with date range preset buttons (left-aligned) and freshness timestamp (right-aligned), horizontally aligned
 
 ### i18n
 
@@ -48,8 +48,8 @@ Deferred to later milestones. Tracked but not in current roadmap.
 | NAV-02 | Phase 17 | Complete |
 | NAV-03 | Phase 17 | Complete |
 | NAV-04 | Phase 17 | Complete |
-| LAY-01 | Phase 17 | Pending |
-| LAY-02 | Phase 17 | Pending |
+| LAY-01 | Phase 17 | Complete (deviation: no border, user-approved) |
+| LAY-02 | Phase 17 | Complete |
 | I18N-01 | Phase 17 | Complete |
 
 **Coverage:**
@@ -59,4 +59,4 @@ Deferred to later milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 — Phase 17 mapping added*
+*Last updated: 2026-04-12 — Phase 17 complete*

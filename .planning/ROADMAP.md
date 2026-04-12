@@ -68,7 +68,7 @@ Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
 
 **Milestone Goal:** Refine navbar appearance and layout — smaller logo, underline-style tabs, upload icon in action area, reorganized sub-header with presets and freshness indicator.
 
-- [ ] **Phase 17: Navbar & Layout Polish** — Navbar visual overhaul, tab style, upload icon, sub-header reorganization, and i18n parity
+- [x] **Phase 17: Navbar & Layout Polish** — Navbar visual overhaul, tab style, upload icon, sub-header reorganization, and i18n parity (completed 2026-04-12)
 
 ## Phase Details
 
@@ -85,11 +85,11 @@ Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
 **Plans**: 2 plans
 Plans:
 - [x] 17-01-PLAN.md — DateRangeContext, NavBar updates (logo, tabs, upload icon)
-- [ ] 17-02-PLAN.md — SubHeader component, App.tsx layout wiring
+- [x] 17-02-PLAN.md — SubHeader component, App.tsx layout wiring
 **UI hint**: yes
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 17. Navbar & Layout Polish | 1/2 | In Progress|  |
+| 17. Navbar & Layout Polish | 2/2 | Complete    | 2026-04-12 |
