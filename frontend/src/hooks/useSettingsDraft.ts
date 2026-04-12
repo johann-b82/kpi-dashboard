@@ -25,9 +25,9 @@ export interface DraftFields {
   personio_client_id: string;           // local-only, write-only (not in Settings response)
   personio_client_secret: string;       // local-only, write-only
   personio_sync_interval_h: 0 | 1 | 6 | 24;
-  personio_sick_leave_type_id: number | null;
-  personio_production_dept: string | null;
-  personio_skill_attr_key: string | null;
+  personio_sick_leave_type_id: number[];
+  personio_production_dept: string[];
+  personio_skill_attr_key: string[];
 }
 
 export interface UseSettingsDraftReturn {
@@ -67,9 +67,9 @@ function settingsToDraft(s: Settings): DraftFields {
     personio_client_id: "",
     personio_client_secret: "",
     personio_sync_interval_h: ((s.personio_sync_interval_h ?? 1) as 0 | 1 | 6 | 24),
-    personio_sick_leave_type_id: s.personio_sick_leave_type_id ?? null,
-    personio_production_dept: s.personio_production_dept ?? null,
-    personio_skill_attr_key: s.personio_skill_attr_key ?? null,
+    personio_sick_leave_type_id: s.personio_sick_leave_type_id ?? [],
+    personio_production_dept: s.personio_production_dept ?? [],
+    personio_skill_attr_key: s.personio_skill_attr_key ?? [],
   };
 }
 
@@ -116,9 +116,9 @@ function draftToPutPayload(draft: DraftFields): SettingsUpdatePayload {
     default_language: draft.default_language,
     // Personio fields — only include if user changed them
     personio_sync_interval_h: draft.personio_sync_interval_h,
-    personio_sick_leave_type_id: draft.personio_sick_leave_type_id ?? undefined,
-    personio_production_dept: draft.personio_production_dept ?? undefined,
-    personio_skill_attr_key: draft.personio_skill_attr_key ?? undefined,
+    personio_sick_leave_type_id: draft.personio_sick_leave_type_id,
+    personio_production_dept: draft.personio_production_dept,
+    personio_skill_attr_key: draft.personio_skill_attr_key,
   };
   // Only send credentials if user typed something (non-empty)
   if (draft.personio_client_id) {
@@ -143,9 +143,9 @@ function shallowEqualDraft(a: DraftFields, b: DraftFields): boolean {
     a.personio_client_id === b.personio_client_id &&
     a.personio_client_secret === b.personio_client_secret &&
     a.personio_sync_interval_h === b.personio_sync_interval_h &&
-    a.personio_sick_leave_type_id === b.personio_sick_leave_type_id &&
-    a.personio_production_dept === b.personio_production_dept &&
-    a.personio_skill_attr_key === b.personio_skill_attr_key
+    JSON.stringify(a.personio_sick_leave_type_id) === JSON.stringify(b.personio_sick_leave_type_id) &&
+    JSON.stringify(a.personio_production_dept) === JSON.stringify(b.personio_production_dept) &&
+    JSON.stringify(a.personio_skill_attr_key) === JSON.stringify(b.personio_skill_attr_key)
   );
 }
 

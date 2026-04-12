@@ -156,9 +156,9 @@ export interface Settings {
   // Phase 13 Personio fields
   personio_has_credentials: boolean;
   personio_sync_interval_h: number;
-  personio_sick_leave_type_id: number | null;
-  personio_production_dept: string | null;
-  personio_skill_attr_key: string | null;
+  personio_sick_leave_type_id: number[];
+  personio_production_dept: string[];
+  personio_skill_attr_key: string[];
 }
 
 export async function fetchSettings(): Promise<Settings> {
@@ -187,9 +187,9 @@ export interface SettingsUpdatePayload {
   personio_client_id?: string;
   personio_client_secret?: string;
   personio_sync_interval_h?: 0 | 1 | 6 | 24;
-  personio_sick_leave_type_id?: number;
-  personio_production_dept?: string;
-  personio_skill_attr_key?: string;
+  personio_sick_leave_type_id?: number[];
+  personio_production_dept?: string[];
+  personio_skill_attr_key?: string[];
 }
 
 /**
@@ -265,6 +265,7 @@ export interface AbsenceTypeOption {
 export interface PersonioOptions {
   absence_types: AbsenceTypeOption[];
   departments: string[];
+  skill_attributes: string[];
   error: string | null;
 }
 

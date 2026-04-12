@@ -158,9 +158,11 @@
   "settings.personio.sync_interval.every6h": "Alle 6 Stunden",
   "settings.personio.sync_interval.daily": "Täglich",
   "settings.personio.sick_leave_type.label": "Krankheitstyp",
-  "settings.personio.sick_leave_type.placeholder": "Abwesenheitstyp wählen",
+  "settings.personio.sick_leave_type.placeholder": "Keine Abwesenheitstypen ausgewählt",
   "settings.personio.production_dept.label": "Produktions-Abteilung",
-  "settings.personio.production_dept.placeholder": "Abteilung wählen",
+  "settings.personio.production_dept.placeholder": "Keine Abteilungen ausgewählt",
   "settings.personio.skill_attr_key.label": "Skill-Attribut-Schlüssel",
-  "settings.personio.skill_attr_key.placeholder": "z.B. dynamic_12345"
+  "settings.personio.skill_attr_key.placeholder": "Keine Attribute ausgewählt",
+  "settings.personio.no_options": "Keine Optionen verfügbar",
+  "settings.personio.loading": "Wird geladen..."
 }
