@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: planning
-stopped_at: Completed 16-i18n-polish-01-PLAN.md
-last_updated: "2026-04-12T15:11:00.717Z"
+status: executing
+stopped_at: Phase 16 context gathered
+last_updated: "2026-04-12T15:05:45.541Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 14 — navigation-hr-tab-shell
+**Current focus:** Phase 16 — i18n-polish
 
 ---
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
+Phase: 16 (i18n-polish) — EXECUTING
+Plan: 1 of 1
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Ready to plan
+**Status:** Executing Phase 16
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -69,7 +69,6 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14-navigation-hr-tab-shell P02 | 10min | 2 tasks | 3 files |
 | Phase 15 P01 | 3min | 2 tasks | 4 files |
 | Phase 15 P02 | 3min | 2 tasks | 6 files |
-| Phase 16-i18n-polish P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -103,7 +102,6 @@ Recent decisions affecting current work:
 - [Phase 15]: Single /api/hr/kpis endpoint returns all 5 KPIs; revenue/employee reuses aggregate_kpi_summary
 - [Phase 15]: Static delta labels for HR KPIs (vs. Vormonat / vs. Vorjahr) since HR tab has no time filter
 - [Phase 15]: Intl.NumberFormat for percent (1 decimal) and EUR currency (0 decimals) formatting on HR KPI cards
-- [Phase 16-i18n-polish]: INTERVAL_OPTIONS inside component body (not module scope) so t() re-evaluates on language change
 
 ### Pending Todos
 
@@ -122,6 +120,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T15:11:00.714Z
-**Stopped at:** Completed 16-i18n-polish-01-PLAN.md
-**Resume file:** None
+**Last session:** 2026-04-12T14:56:39.200Z
+**Stopped at:** Phase 16 context gathered
+**Resume file:** .planning/phases/16-i18n-polish/16-CONTEXT.md
