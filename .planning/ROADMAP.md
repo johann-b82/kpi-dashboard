@@ -83,10 +83,10 @@ Plans:
   3. Settings page shows a sick-leave absence type dropdown populated from Personio absence types discovered via API
   4. Settings page shows a production department dropdown populated from employee department data
   5. Settings page includes a skill custom attribute key field (for KPI #4) and the auto-sync interval selector
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [x] 13-01-PLAN.md — Models, schemas, migration, PersonioClient extensions, hr_sync.py service
-- [ ] 13-02-PLAN.md — APScheduler lifespan, sync router, settings router extensions, main.py wiring
+- [x] 13-02-PLAN.md — APScheduler lifespan, sync router, settings router extensions, main.py wiring
 - [ ] 13-03-PLAN.md — Frontend PersonioCard, TypeScript types, draft hook extension
 
 ### Phase 14: Navigation & HR Tab Shell
@@ -138,7 +138,7 @@ Plans:
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete | 2026-04-11 |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete | 2026-04-12 |
 | 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete    | 2026-04-12 |
-| 13. Sync Service & Settings Extension | v1.3 | 1/3 | In Progress|  |
+| 13. Sync Service & Settings Extension | v1.3 | 2/3 | In Progress|  |
 | 14. Navigation & HR Tab Shell | v1.3 | 0/? | Not started | - |
 | 15. HR KPI Cards & Dashboard | v1.3 | 0/? | Not started | - |
 | 16. i18n & Polish | v1.3 | 0/? | Not started | - |

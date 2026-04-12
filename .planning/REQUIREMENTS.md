@@ -16,11 +16,11 @@ Requirements for HR KPI Dashboard & Personio-Integration milestone. Each maps to
 ### Personio Integration
 
 - [x] **PERS-01**: User can enter Personio API client_id and client_secret in Settings (masked display, write-only — never returned in GET responses)
-- [ ] **PERS-02**: User can trigger manual Personio data sync via "Daten aktualisieren" button on HR tab with success/error feedback
-- [ ] **PERS-03**: Personio data syncs automatically at a configurable interval (1h / 6h / 24h / manual-only) set in Settings
+- [x] **PERS-02**: User can trigger manual Personio data sync via "Daten aktualisieren" button on HR tab with success/error feedback
+- [x] **PERS-03**: Personio data syncs automatically at a configurable interval (1h / 6h / 24h / manual-only) set in Settings
 - [x] **PERS-04**: Personio raw data (employees, attendances, absences) is fetched and stored in PostgreSQL
-- [ ] **PERS-05**: Absence types are auto-discovered from Personio API and presented as dropdown in Settings
-- [ ] **PERS-06**: Departments are auto-discovered from Personio employee data and presented as dropdown in Settings
+- [x] **PERS-05**: Absence types are auto-discovered from Personio API and presented as dropdown in Settings
+- [x] **PERS-06**: Departments are auto-discovered from Personio employee data and presented as dropdown in Settings
 
 ### HR KPIs
 
@@ -83,11 +83,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-02 | Phase 14 | Pending |
 | NAV-03 | Phase 14 | Pending |
 | PERS-01 | Phase 12 | Complete |
-| PERS-02 | Phase 13 | Pending |
-| PERS-03 | Phase 13 | Pending |
+| PERS-02 | Phase 13 | Complete |
+| PERS-03 | Phase 13 | Complete |
 | PERS-04 | Phase 12, 13 | Complete |
-| PERS-05 | Phase 13 | Pending |
-| PERS-06 | Phase 13 | Pending |
+| PERS-05 | Phase 13 | Complete |
+| PERS-06 | Phase 13 | Complete |
 | HRKPI-01 | Phase 15 | Pending |
 | HRKPI-02 | Phase 15 | Pending |
 | HRKPI-03 | Phase 15 | Pending |
