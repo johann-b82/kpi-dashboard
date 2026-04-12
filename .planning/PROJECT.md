@@ -8,6 +8,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.4 Navbar & Layout Polish
+
+**Goal:** Refine navbar appearance and layout — smaller logo, underline-style tabs, upload icon in action area, reorganized sub-header with presets and freshness indicator.
+
+**Target features:**
+- Smaller logo in navbar
+- Underline-style tab indicator (active = blue underline, inactive = plain text)
+- Upload tab removed; upload accessible via icon between DE/EN toggle and gear icon
+- Sub-header row below separator: date range presets (left) + freshness timestamp (right), horizontally aligned
+
 ## Current State
 
 **Shipped:** v1.3 HR KPI Dashboard & Personio-Integration — 2026-04-12
@@ -145,4 +155,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — v1.3 HR KPI Dashboard & Personio-Integration milestone shipped*
+*Last updated: 2026-04-12 — v1.4 Navbar & Layout Polish milestone started*

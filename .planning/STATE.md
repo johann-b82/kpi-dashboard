@@ -1,43 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: HR KPI Dashboard & Personio-Integration
-status: completed
-stopped_at: Phase 16 context gathered
-last_updated: "2026-04-12T15:21:14.818Z"
+milestone: v1.4
+milestone_name: Navbar & Layout Polish
+status: active
+stopped_at: ""
+last_updated: "2026-04-12"
 last_activity: 2026-04-12
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
 # Project State: KPI Light
 
 **Last updated:** 2026-04-12
-**Session:** v1.3 HR KPI Dashboard & Personio-Integration — roadmap created
+**Session:** v1.4 Navbar & Layout Polish — defining requirements
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.4 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 16 — i18n-polish
+**Current focus:** Defining requirements
 
 ---
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
-**Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** v1.3 milestone complete
-**Last activity:** 2026-04-12
+Phase: Not started (defining requirements)
+Plan: —
+**Milestone:** v1.4 Navbar & Layout Polish
+**Status:** Defining requirements
+**Last activity:** 2026-04-12 — Milestone v1.4 started
 
 Progress: [░░░░░░░░░░] 0%
 
