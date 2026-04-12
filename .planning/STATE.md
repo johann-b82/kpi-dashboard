@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Segmented Controls
-status: executing
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-04-12T17:56:58.548Z"
+status: verifying
+stopped_at: "Completed 18-02-PLAN.md (Task 3 checkpoint:human-verify pending)"
+last_updated: "2026-04-12T18:00:40.522Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.5 milestone started)
 Phase: 18 (segmented-controls) — EXECUTING
 Plan: 2 of 2
 **Milestone:** v1.5 Segmented Controls
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ---
 | Phase 18 P01 | 1min | 1 tasks | 1 files |
+| Phase 18 P02 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - **v1.3 constraint:** No time filter on HR tab — HR shows current period only
 - [Phase 18]: Generic typing T extends string enforces type-safe value/onChange at each SegmentedControl consumer
 - [Phase 18]: title prop added to SegmentedControl to support disabled tooltip pattern (NavBar language toggle D-09)
+- [Phase 18]: navigate destructured from useLocation() for SegmentedControl onChange in NavBar (wouter pattern)
+- [Phase 18]: handleToggle removed from LanguageToggle — onChange calls mutation.mutate directly
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T17:56:58.546Z
-**Stopped at:** Completed 18-01-PLAN.md
+**Last session:** 2026-04-12T18:00:36.532Z
+**Stopped at:** Completed 18-02-PLAN.md (Task 3 checkpoint:human-verify pending)
 **Resume file:** None

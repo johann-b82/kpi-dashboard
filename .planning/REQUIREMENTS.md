@@ -10,11 +10,11 @@ Requirements for v1.5 Segmented Controls. Each maps to roadmap phases.
 ### Segmented Control
 
 - [x] **SEG-01**: Reusable SegmentedControl component with pill-shaped container, rounded ends, dark active state, light inactive state
-- [ ] **SEG-02**: Sales/HR tab navigation rendered as segmented control in navbar
-- [ ] **SEG-03**: Date range presets rendered as segmented control in SubHeader
-- [ ] **SEG-04**: Balken/Linie chart type toggle rendered as segmented control
-- [ ] **SEG-05**: DE/EN language toggle rendered as segmented control in navbar
-- [ ] **SEG-06**: Full DE/EN i18n parity maintained
+- [x] **SEG-02**: Sales/HR tab navigation rendered as segmented control in navbar
+- [x] **SEG-03**: Date range presets rendered as segmented control in SubHeader
+- [x] **SEG-04**: Balken/Linie chart type toggle rendered as segmented control
+- [x] **SEG-05**: DE/EN language toggle rendered as segmented control in navbar
+- [x] **SEG-06**: Full DE/EN i18n parity maintained
 
 ## Future Requirements
 
@@ -35,11 +35,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SEG-01 | Phase 18 | Complete |
-| SEG-02 | Phase 18 | Pending |
-| SEG-03 | Phase 18 | Pending |
-| SEG-04 | Phase 18 | Pending |
-| SEG-05 | Phase 18 | Pending |
-| SEG-06 | Phase 18 | Pending |
+| SEG-02 | Phase 18 | Complete |
+| SEG-03 | Phase 18 | Complete |
+| SEG-04 | Phase 18 | Complete |
+| SEG-05 | Phase 18 | Complete |
+| SEG-06 | Phase 18 | Complete |
 
 **Coverage:**
 - v1.5 requirements: 6 total

@@ -79,7 +79,7 @@ Requirements: [milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
 
 **Milestone Goal:** Unify all toggle/tab controls into a consistent pill-shaped segmented control style.
 
-- [ ] **Phase 18: Segmented Controls** — Reusable SegmentedControl component applied to all 4 toggle/tab controls with i18n parity
+- [x] **Phase 18: Segmented Controls** — Reusable SegmentedControl component applied to all 4 toggle/tab controls with i18n parity (completed 2026-04-12)
 
 ## Phase Details
 
@@ -96,7 +96,7 @@ Requirements: [milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
 **Plans**: 2 plans
 Plans:
 - [x] 18-01-PLAN.md — Create reusable SegmentedControl component
-- [ ] 18-02-PLAN.md — Integrate SegmentedControl into all 5 consumers
+- [x] 18-02-PLAN.md — Integrate SegmentedControl into all 5 consumers
 **UI hint**: yes
 
 ## Progress
@@ -111,4 +111,4 @@ Phase 18 is the sole phase in v1.5.
 | 8–11 | v1.2 | 10/10 | Complete | 2026-04-12 |
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
-| 18 | v1.5 | 1/2 | In Progress|  |
+| 18 | v1.5 | 2/2 | Complete   | 2026-04-12 |
