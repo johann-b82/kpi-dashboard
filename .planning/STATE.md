@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
 status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-04-12T09:33:31.806Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-04-12T10:06:50.164Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 6
   percent: 0
 ---
 
@@ -27,14 +27,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 13 — sync-service-settings-extension
+**Current focus:** Phase 14 — navigation-hr-tab-shell
 
 ---
 
 ## Current Position
 
-Phase: 13 (sync-service-settings-extension) — EXECUTING
-Plan: 3 of 3
+Phase: 14 (navigation-hr-tab-shell) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
 **Status:** Ready to execute
 **Last activity:** 2026-04-12
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-sync-service-settings-extension P01 | 2m 22s | 2 tasks | 5 files |
 | Phase 13-sync-service-settings-extension P02 | 2min | 2 tasks | 4 files |
 | Phase 13-sync-service-settings-extension P03 | 8m | 2 tasks | 4 files |
+| Phase 14-navigation-hr-tab-shell P01 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 13-sync-service-settings-extension]: interval_h == 0 removes APScheduler job (manual-only mode, D-07); replace_existing=True handles both add and reschedule in one call
 - [Phase 13-sync-service-settings-extension]: Used native <select> elements with Tailwind styling as shadcn Select fallback — no shadcn Select component exists in this project
 - [Phase 13-sync-service-settings-extension]: PersonioCard testPersonioConnection uses local component state, not draft, to avoid marking settings dirty on connection test
+- [Phase 14-navigation-hr-tab-shell]: GET /api/sync/meta returns SyncMetaRead() defaults (all null) when no personio_sync_meta row exists — avoids 404 on fresh installs before first sync
+- [Phase 14-navigation-hr-tab-shell]: nav.dashboard renamed to nav.sales in both locale files (EN: Sales, DE: Vertrieb) — NAV-01 satisfied in Plan 01 (data layer) before NavBar component update in Plan 02
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T09:33:31.803Z
-**Stopped at:** Completed 13-03-PLAN.md
+**Last session:** 2026-04-12T10:06:50.161Z
+**Stopped at:** Completed 14-01-PLAN.md
 **Resume file:** None
