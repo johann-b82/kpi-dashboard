@@ -65,12 +65,12 @@ def _weekday_count(first_day: date, last_day: date) -> int:
 async def _headcount_at_eom(
     session: AsyncSession,
     last_day: date,
-    department: str | None = None,
+    departments: list[str] | None = None,
 ) -> int:
     """Count active employees as of *last_day*.
 
     Active = hire_date <= last_day AND (termination_date IS NULL OR termination_date > last_day).
-    When *department* is given, filter by exact string match (D-11).
+    When *departments* is given, filter by IN match (any selected department).
     """
     stmt = select(func.count(PersonioEmployee.id)).where(
         PersonioEmployee.hire_date <= last_day,
@@ -79,8 +79,8 @@ async def _headcount_at_eom(
             PersonioEmployee.termination_date > last_day,
         ),
     )
-    if department is not None:
-        stmt = stmt.where(PersonioEmployee.department == department)
+    if departments:
+        stmt = stmt.where(PersonioEmployee.department.in_(departments))
     result = await session.execute(stmt)
     return result.scalar_one() or 0
 
@@ -147,7 +147,7 @@ async def _sick_leave_ratio(
     session: AsyncSession,
     first_day: date,
     last_day: date,
-    sick_leave_type_id: int,
+    sick_leave_type_ids: list[int],
 ) -> float | None:
     """HRKPI-02: sick leave hours / total scheduled hours.
 
@@ -163,7 +163,7 @@ async def _sick_leave_ratio(
             PersonioAbsence.employee_id,
         )
         .where(
-            PersonioAbsence.absence_type_id == sick_leave_type_id,
+            PersonioAbsence.absence_type_id.in_(sick_leave_type_ids),
             PersonioAbsence.start_date <= last_day,
             PersonioAbsence.end_date >= first_day,
         )
@@ -246,19 +246,19 @@ async def _fluctuation(
 async def _skill_development(
     session: AsyncSession,
     last_day: date,
-    skill_attr_key: str,
+    skill_attr_keys: list[str],
 ) -> float | None:
     """HRKPI-04: employees with non-null configured skill attribute / total headcount.
 
-    Proxy metric: employees with current non-null value for the configured
-    attribute. No historical snapshot table exists.
+    Proxy metric: employees with current non-null value for ANY of the configured
+    attributes. No historical snapshot table exists.
     """
     headcount = await _headcount_at_eom(session, last_day)
     if headcount == 0:
         return None
 
     # Query active employees with non-null skill attribute value in raw_json
-    # JSONB path: raw_json -> 'attributes' -> skill_attr_key -> 'value'
+    # JSONB path: raw_json -> 'attributes' -> key -> 'value' for any of skill_attr_keys
     skilled_stmt = select(func.count(PersonioEmployee.id)).where(
         PersonioEmployee.hire_date <= last_day,
         or_(
@@ -266,7 +266,10 @@ async def _skill_development(
             PersonioEmployee.termination_date > last_day,
         ),
         PersonioEmployee.raw_json.isnot(None),
-        PersonioEmployee.raw_json["attributes"][skill_attr_key]["value"].as_string().notin_(["null", ""]),
+        or_(*(
+            PersonioEmployee.raw_json["attributes"][key]["value"].as_string().notin_(["null", ""])
+            for key in skill_attr_keys
+        )),
     )
     skilled = (await session.execute(skilled_stmt)).scalar_one() or 0
     return skilled / headcount
@@ -276,7 +279,7 @@ async def _revenue_per_production_employee(
     session: AsyncSession,
     first_day: date,
     last_day: date,
-    production_dept: str,
+    production_depts: list[str],
 ) -> float | None:
     """HRKPI-05: total monthly revenue / production dept headcount.
 
@@ -290,7 +293,7 @@ async def _revenue_per_production_employee(
     if revenue <= 0:
         return None
 
-    headcount = await _headcount_at_eom(session, last_day, department=production_dept)
+    headcount = await _headcount_at_eom(session, last_day, departments=production_depts)
     if headcount == 0:
         return None
     return revenue / headcount
@@ -319,9 +322,9 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
         await db.execute(sa_select(AppSettings).where(AppSettings.id == 1))
     ).scalar_one_or_none()
 
-    sick_type_id = settings_row.personio_sick_leave_type_id if settings_row else None
-    prod_dept = settings_row.personio_production_dept if settings_row else None
-    skill_key = settings_row.personio_skill_attr_key if settings_row else None
+    sick_type_ids: list[int] = (settings_row.personio_sick_leave_type_id or []) if settings_row else []
+    prod_depts: list[str] = (settings_row.personio_production_dept or []) if settings_row else []
+    skill_keys: list[str] = (settings_row.personio_skill_attr_key or []) if settings_row else []
 
     # --- Overtime Ratio (always configured) ---
     ot_cur = await _overtime_ratio(db, cur_first, cur_last)
@@ -329,10 +332,10 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
     ot_ya = await _overtime_ratio(db, ya_first, ya_last)
 
     # --- Sick Leave Ratio (needs sick_leave_type_id) ---
-    if sick_type_id is not None:
-        sl_cur = await _sick_leave_ratio(db, cur_first, cur_last, sick_type_id)
-        sl_prev = await _sick_leave_ratio(db, prev_first, prev_last, sick_type_id)
-        sl_ya = await _sick_leave_ratio(db, ya_first, ya_last, sick_type_id)
+    if sick_type_ids:
+        sl_cur = await _sick_leave_ratio(db, cur_first, cur_last, sick_type_ids)
+        sl_prev = await _sick_leave_ratio(db, prev_first, prev_last, sick_type_ids)
+        sl_ya = await _sick_leave_ratio(db, ya_first, ya_last, sick_type_ids)
         sick_kpi = HrKpiValue(
             value=sl_cur, previous_period=sl_prev, previous_year=sl_ya
         )
@@ -344,27 +347,27 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
     fl_prev = await _fluctuation(db, prev_first, prev_last)
     fl_ya = await _fluctuation(db, ya_first, ya_last)
 
-    # --- Skill Development (needs skill_attr_key) ---
-    if skill_key is not None:
-        sd_cur = await _skill_development(db, cur_last, skill_key)
-        sd_prev = await _skill_development(db, prev_last, skill_key)
-        sd_ya = await _skill_development(db, ya_last, skill_key)
+    # --- Skill Development (needs skill_attr_keys) ---
+    if skill_keys:
+        sd_cur = await _skill_development(db, cur_last, skill_keys)
+        sd_prev = await _skill_development(db, prev_last, skill_keys)
+        sd_ya = await _skill_development(db, ya_last, skill_keys)
         skill_kpi = HrKpiValue(
             value=sd_cur, previous_period=sd_prev, previous_year=sd_ya
         )
     else:
         skill_kpi = HrKpiValue(value=None, is_configured=False)
 
-    # --- Revenue per Production Employee (needs production_dept) ---
-    if prod_dept is not None:
+    # --- Revenue per Production Employee (needs production_depts) ---
+    if prod_depts:
         rpe_cur = await _revenue_per_production_employee(
-            db, cur_first, cur_last, prod_dept
+            db, cur_first, cur_last, prod_depts
         )
         rpe_prev = await _revenue_per_production_employee(
-            db, prev_first, prev_last, prod_dept
+            db, prev_first, prev_last, prod_depts
         )
         rpe_ya = await _revenue_per_production_employee(
-            db, ya_first, ya_last, prod_dept
+            db, ya_first, ya_last, prod_depts
         )
         rpe_kpi = HrKpiValue(
             value=rpe_cur, previous_period=rpe_prev, previous_year=rpe_ya
