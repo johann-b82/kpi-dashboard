@@ -64,7 +64,7 @@ Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
 
 </details>
 
-### 🚧 v1.4 Navbar & Layout Polish (In Progress)
+### v1.4 Navbar & Layout Polish (In Progress)
 
 **Milestone Goal:** Refine navbar appearance and layout — smaller logo, underline-style tabs, upload icon in action area, reorganized sub-header with presets and freshness indicator.
 
@@ -82,11 +82,14 @@ Audit: [milestones/v1.3-MILESTONE-AUDIT.md](milestones/v1.3-MILESTONE-AUDIT.md)
   3. Upload tab is absent from tab navigation; upload is reachable via an icon in the navbar action area, positioned between the DE/EN toggle and the gear icon
   4. A horizontal separator line appears below the tab bar, and a sub-header row below it shows date range preset buttons left-aligned and the freshness timestamp right-aligned in the same horizontal row
   5. All new and modified navbar/layout UI strings are present in both DE and EN locale files with no missing keys
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 17-01-PLAN.md — DateRangeContext, NavBar updates (logo, tabs, upload icon)
+- [ ] 17-02-PLAN.md — SubHeader component, App.tsx layout wiring
 **UI hint**: yes
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 17. Navbar & Layout Polish | 0/TBD | Not started | - |
+| 17. Navbar & Layout Polish | 0/2 | Not started | - |
