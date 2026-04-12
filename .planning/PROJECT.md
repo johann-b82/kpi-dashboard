@@ -15,6 +15,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Scope delivered in v1.2:** dual delta badges on all 3 KPI cards (vs. Vorperiode + vs. Vorjahr), ghosted amber prior-period chart overlay, contextual period labels via Intl.DateTimeFormat (month names, quarter tags), full DE/EN i18n parity for all v1.2 strings, persistent locale parity check script, em-dash fallback for no-baseline cases (allTime, thisYear prev-period), live language switch re-renders without refresh.
 **Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
 **Phase 12 complete (2026-04-12):** HR database schema (4 Personio tables), Fernet credential encryption, Settings API write-only credential storage, async PersonioClient with token caching and exception hierarchy — foundation for Phase 13 sync service.
+**Phase 13 complete (2026-04-12):** Sync service with data-fetch methods (employees, attendances, absences, absence types), APScheduler-based periodic sync, API routes (POST /api/sync, POST /api/sync/test, GET /api/settings/personio-options), frontend PersonioCard with credential inputs, sync interval selector, live-populated dropdowns, and connection test — all Personio configuration UI complete.
 
 ## Current Milestone: v1.3 HR KPI Dashboard & Personio-Integration
 
