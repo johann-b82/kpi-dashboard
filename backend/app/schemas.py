@@ -205,3 +205,30 @@ class SyncMetaRead(BaseModel):
     last_sync_error: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------
+# Phase 15 Plan 01 — HR KPI schemas
+# --------------------------------------------------------------------------
+
+
+class HrKpiValue(BaseModel):
+    """A single HR KPI for one calendar month window.
+
+    value=None + is_configured=True  -> no data yet (em-dash)
+    value=None + is_configured=False -> setting not configured ("nicht konfiguriert")
+    Per D-06/D-07/D-08.
+    """
+
+    value: float | None = None
+    is_configured: bool = True
+    previous_period: float | None = None
+    previous_year: float | None = None
+
+
+class HrKpiResponse(BaseModel):
+    overtime_ratio: HrKpiValue
+    sick_leave_ratio: HrKpiValue
+    fluctuation: HrKpiValue
+    skill_development: HrKpiValue
+    revenue_per_production_employee: HrKpiValue
