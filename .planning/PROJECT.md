@@ -8,26 +8,23 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.4 Navbar & Layout Polish
-
-**Goal:** Refine navbar appearance and layout — smaller logo, underline-style tabs, upload icon in action area, reorganized sub-header with presets and freshness indicator.
-
-**Target features:**
-- Smaller logo in navbar
-- Underline-style tab indicator (active = blue underline, inactive = plain text)
-- Upload tab removed; upload accessible via icon between DE/EN toggle and gear icon
-- Sub-header row below separator: date range presets (left) + freshness timestamp (right), horizontally aligned
-
 ## Current State
 
-**Shipped:** v1.3 HR KPI Dashboard & Personio-Integration — 2026-04-12
+**Shipped:** v1.4 Navbar & Layout Polish — 2026-04-12
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
-**Codebase:** ~9,700 LOC (Python + TypeScript), 27 source files added/modified in v1.3, 4 milestones shipped (v1.0–v1.3).
-**Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements + 20/20 v1.3 requirements satisfied. v1.3 milestone audit passed (20/20 requirements, 4/4 cross-phase integrations, 4/4 E2E flows).
+**Codebase:** ~9,800 LOC (Python + TypeScript), 5 milestones shipped (v1.0–v1.4).
+**Audit status:** All v1.0–v1.3 requirements satisfied. v1.4: 7/7 requirements satisfied (LAY-01 user-approved deviation — no border).
 
-## Shipped: v1.3 HR KPI Dashboard & Personio-Integration (2026-04-12)
+## Shipped: v1.4 Navbar & Layout Polish (2026-04-12)
+
+Refined navbar — 32px logo, underline-style active tabs, upload icon in action area. New SubHeader with route-aware freshness (HR sync on /hr, upload timestamp on Sales). DateRangeContext shared state. Sync button relocated from HR page to Settings. Layout spacing balanced.
+
+<details>
+<summary>v1.3 HR KPI Dashboard & Personio-Integration (2026-04-12)</summary>
 
 Multi-domain KPI platform — Sales tab (renamed from Dashboard) + new HR tab with 5 KPI cards (overtime ratio, sick leave ratio, fluctuation, skill development, revenue/employee), dual delta badges, Personio API integration with Fernet-encrypted credentials, configurable auto-sync (APScheduler), Settings UI with live-populated dropdowns for absence types and departments, full DE/EN i18n parity (164 keys).
+
+</details>
 
 <details>
 <summary>v1.2 Period-over-Period Deltas (2026-04-12)</summary>
@@ -79,6 +76,16 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ HRKPI-01..06: 5 HR KPI cards with dual delta badges, error state handling — v1.3
 - ✓ SET-01..04: Sick leave type, production department, skill attribute key, sync interval config — v1.3
 - ✓ I18N-01: Full DE/EN parity for all v1.3 strings (164 keys total) — v1.3
+
+### Validated in v1.4
+
+- ✓ NAV-01: Logo reduced to 32px in navbar — v1.4
+- ✓ NAV-02: Active tab blue underline, inactive plain text — v1.4
+- ✓ NAV-03: Upload tab removed from nav — v1.4
+- ✓ NAV-04: Upload icon in action area between DE/EN toggle and gear — v1.4
+- ✓ LAY-01: Sub-header positioned below navbar (user-approved: no border separator) — v1.4
+- ✓ LAY-02: Sub-header with date presets (left) + route-aware freshness (right) — v1.4
+- ✓ I18N-01: Full DE/EN parity maintained — v1.4
 
 ### Out of Scope
 
@@ -134,6 +141,10 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 | APScheduler in-process (not persistent) | In-memory scheduler under FastAPI lifespan; restart recovery sufficient for internal use | ✓ v1.3 Phase 13 |
 | No time filter on HR tab | HR KPIs use rolling calendar month windows; user decided no preset bar needed | ✓ v1.3 Phase 15 (deliberate scope cut) |
 | INTERVAL_OPTIONS inside component body | Must be inside function body so `t()` re-evaluates on language change | ✓ v1.3 Phase 16 |
+| DateRangeContext for shared filter state | Lifts preset/range state from DashboardPage so SubHeader can read it; mirrors SettingsDraftContext pattern | ✓ v1.4 Phase 17 |
+| Route-aware SubHeader freshness | HR tab shows sync freshness (last_synced_at), all others show upload freshness — users see domain-relevant timestamp | ✓ v1.4 Phase 17 |
+| Sync button in Settings (not HR page) | User preference — HR page is for viewing KPIs, sync control belongs with Personio configuration | ✓ v1.4 Phase 17 |
+| No SubHeader border (LAY-01 deviation) | User explicitly removed border-b for clean look; bg-card matches page background so border was nearly invisible anyway | ✓ v1.4 Phase 17 |
 
 ## Evolution
 
@@ -155,4 +166,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — v1.4 Navbar & Layout Polish milestone started*
+*Last updated: 2026-04-12 after v1.4 milestone*

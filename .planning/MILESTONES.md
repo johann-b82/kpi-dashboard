@@ -1,5 +1,16 @@
 # Milestones
 
+## v1.4 Navbar & Layout Polish (Shipped: 2026-04-12)
+
+**Phases completed:** 1 phases, 2 plans, 4 tasks
+
+**Key accomplishments:**
+
+- DateRangeContext extracted from DashboardPage, NavBar updated with 32px logo, upload icon action link, and upload tab removed
+- SubHeader with route-aware freshness, DateRangeFilter on Sales tab, and sync button relocated to Settings
+
+---
+
 ## v1.3 HR KPI Dashboard & Personio-Integration (Shipped: 2026-04-12)
 
 **Phases completed:** 5 phases, 10 plans, 12 tasks

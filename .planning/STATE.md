@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Navbar & Layout Polish
 status: completed
 stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-04-12T17:13:42.588Z"
+last_updated: "2026-04-12T17:14:55.990Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 1
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.4 milestone started)
 Phase: 17
 Plan: Not started
 **Milestone:** v1.4 Navbar & Layout Polish
-**Status:** Milestone complete
+**Status:** v1.4 milestone complete
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
