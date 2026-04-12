@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Dockerized web application for uploading tab-delimited ERP export files (38-column sales data) into PostgreSQL and visualizing KPIs on a bilingual (DE/EN) interactive dashboard. Expanding from Sales-only to multi-domain KPI platform with HR metrics sourced from Personio. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
+A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files (38-column sales data) into PostgreSQL for Sales KPIs, and syncs Personio HR data (employees, attendances, absences) for 5 HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
 
 ## Core Value
 
@@ -10,37 +10,21 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.2 Period-over-Period Deltas — 2026-04-12 (v1.1 shipped 2026-04-11, v1.0 same day)
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names.
-**Scope delivered in v1.2:** dual delta badges on all 3 KPI cards (vs. Vorperiode + vs. Vorjahr), ghosted amber prior-period chart overlay, contextual period labels via Intl.DateTimeFormat (month names, quarter tags), full DE/EN i18n parity for all v1.2 strings, persistent locale parity check script, em-dash fallback for no-baseline cases (allTime, thisYear prev-period), live language switch re-renders without refresh.
-**Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
-**Phase 12 complete (2026-04-12):** HR database schema (4 Personio tables), Fernet credential encryption, Settings API write-only credential storage, async PersonioClient with token caching and exception hierarchy — foundation for Phase 13 sync service.
-**Phase 13 complete (2026-04-12):** Sync service with data-fetch methods (employees, attendances, absences, absence types), APScheduler-based periodic sync, API routes (POST /api/sync, POST /api/sync/test, GET /api/settings/personio-options), frontend PersonioCard with credential inputs, sync interval selector, live-populated dropdowns, and connection test — all Personio configuration UI complete.
-**Phase 14 complete (2026-04-12):** Navigation tabs (Dashboard→Sales rename, HR tab), HR page shell with Personio sync freshness indicator and manual sync trigger, GET /api/sync/meta endpoint, full EN/DE i18n for all new strings — multi-tab navigation ready for HR KPI cards.
-**Phase 15 complete (2026-04-12):** Backend HR KPI aggregation service (5 KPIs × 3 calendar month windows), GET /api/hr/kpis endpoint, frontend HrKpiCardGrid with 3+2 layout, dual delta badges, no-sync/error/unconfigured state handling, 14 DE/EN locale keys — HR tab now shows live KPI data.
-**Phase 16 complete (2026-04-12):** Full DE/EN i18n parity for all v1.3 strings — 24 new `settings.personio.*` keys in both locale files, PersonioCard.tsx wired with useTranslation, dead `hr.placeholder` key removed, proper UTF-8 umlauts in German values. Locale parity: 164 keys in both en.json and de.json.
+**Shipped:** v1.3 HR KPI Dashboard & Personio-Integration — 2026-04-12
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
+**Codebase:** ~9,700 LOC (Python + TypeScript), 27 source files added/modified in v1.3, 4 milestones shipped (v1.0–v1.3).
+**Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements + 20/20 v1.3 requirements satisfied. v1.3 milestone audit passed (20/20 requirements, 4/4 cross-phase integrations, 4/4 E2E flows).
 
-## Current Milestone: v1.3 HR KPI Dashboard & Personio-Integration
+## Shipped: v1.3 HR KPI Dashboard & Personio-Integration (2026-04-12)
 
-**Goal:** Extend the app from a Sales-only dashboard to a multi-domain KPI platform with a new HR tab — 5 KPIs calculated from Personio raw data, configurable auto-sync, and cross-source revenue-per-employee metric.
+Multi-domain KPI platform — Sales tab (renamed from Dashboard) + new HR tab with 5 KPI cards (overtime ratio, sick leave ratio, fluctuation, skill development, revenue/employee), dual delta badges, Personio API integration with Fernet-encrypted credentials, configurable auto-sync (APScheduler), Settings UI with live-populated dropdowns for absence types and departments, full DE/EN i18n parity (164 keys).
 
-**Target features:**
-- Rename existing "Dashboard" tab to "Sales", add "HR" tab alongside
-- Personio API integration: fetch raw data (time entries, absences, employee list), store in PostgreSQL
-- 5 HR KPIs calculated from raw data:
-  1. Überstunden im Vergleich Gesamtstunden Belegschaft
-  2. Krankheit im Vergleich Gesamtstunden Belegschaft
-  3. Fluktuation (MA-Abgänge vs. gesamt MA)
-  4. MA Entwicklung (Anzahl MA mit neuer Fertigkeit)
-  5. Produktions-Mitarbeiterumsatz (Auftrags-DB Umsatz / Produktions-MA aus Personio)
-- HR dashboard with KPI cards + delta badges (vs. Vorperiode / vs. Vorjahr), no time filter
-- Manual "Daten aktualisieren" button on HR tab
-- Configurable auto-sync interval in Settings
-- Personio API token configurable in Settings
-
-## Shipped: v1.2 Period-over-Period Deltas (2026-04-12)
+<details>
+<summary>v1.2 Period-over-Period Deltas (2026-04-12)</summary>
 
 At-a-glance growth signals on the dashboard — dual delta badges on every KPI card (vs. Vorperiode + vs. Vorjahr), ghosted amber chart overlay for prior-period comparison, contextual period labels via Intl.DateTimeFormat, full DE/EN i18n parity (119 keys), em-dash fallback for no-baseline cases. Human-verified across 4 presets × 2 languages.
+
+</details>
 
 ## Deferred to Later Milestones
 
@@ -77,6 +61,14 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ Dual delta badges on all 3 KPI cards with locale-correct formatting (CARD-01..05) — v1.2
 - ✓ Chart prior-period overlay with contextual legend (CHART-04..06) — v1.2
 - ✓ Full DE/EN parity for all v1.2 strings + Intl.DateTimeFormat period labels (I18N-DELTA-01..02) — v1.2
+
+### Validated in v1.3
+
+- ✓ NAV-01/02/03: Sales tab rename, HR tab with sync freshness indicator — v1.3
+- ✓ PERS-01..06: Personio credentials (write-only), manual/auto sync, raw data storage, absence types + departments auto-discovery — v1.3
+- ✓ HRKPI-01..06: 5 HR KPI cards with dual delta badges, error state handling — v1.3
+- ✓ SET-01..04: Sick leave type, production department, skill attribute key, sync interval config — v1.3
+- ✓ I18N-01: Full DE/EN parity for all v1.3 strings (164 keys total) — v1.3
 
 ### Out of Scope
 
@@ -128,6 +120,10 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 | Intl.DateTimeFormat over date-fns/luxon | Zero new dependencies for locale-aware month names; `getLocalizedMonthName` with year-2000 seed | ✓ v1.2 Phase 11 |
 | "vs." as locale-invariant loanword | German keeps "vs." prefix (not "ggü.") — matches informal tone, consistent with existing DE strings | ✓ v1.2 Phase 11 |
 | No manual comparison mode toggle | Default driven by filter scope (short→prev-period, year→prev-year); manual toggle deferred to v1.3+ | ✓ v1.2 (deliberate scope cut) |
+| Fernet encryption for Personio credentials | Write-only API pattern — credentials encrypted at rest, never returned in GET responses | ✓ v1.3 Phase 12 |
+| APScheduler in-process (not persistent) | In-memory scheduler under FastAPI lifespan; restart recovery sufficient for internal use | ✓ v1.3 Phase 13 |
+| No time filter on HR tab | HR KPIs use rolling calendar month windows; user decided no preset bar needed | ✓ v1.3 Phase 15 (deliberate scope cut) |
+| INTERVAL_OPTIONS inside component body | Must be inside function body so `t()` re-evaluates on language change | ✓ v1.3 Phase 16 |
 
 ## Evolution
 
@@ -149,4 +145,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — Phase 16 (i18n polish) complete, v1.3 milestone all phases shipped*
+*Last updated: 2026-04-12 — v1.3 HR KPI Dashboard & Personio-Integration milestone shipped*

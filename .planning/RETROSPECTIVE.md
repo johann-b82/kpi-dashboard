@@ -104,6 +104,55 @@
 
 ---
 
+## Milestone: v1.3 — HR KPI Dashboard & Personio-Integration
+
+**Shipped:** 2026-04-12
+**Phases:** 5 (12–16) | **Plans:** 10 | **Tasks:** 12
+**Scope:** 27 files changed, +2,544 LOC, 20/20 requirements
+
+### What Was Built
+
+- **HR database schema + encrypted credentials (Phase 12)** — 4 Personio tables via Alembic, Fernet-encrypted credential columns, write-only Settings API, async PersonioClient with token caching and exception hierarchy
+- **Sync service + Settings extension (Phase 13)** — APScheduler periodic sync, manual sync endpoint, raw data persistence, PersonioCard frontend with credential inputs, live-populated dropdowns, connection test
+- **Multi-tab navigation (Phase 14)** — Dashboard→Sales rename, HR tab with sync freshness indicator and manual sync trigger
+- **HR KPI cards (Phase 15)** — 5 KPIs (overtime, sick leave, fluctuation, skill development, revenue/employee) with dual delta badges, error/no-sync/unconfigured states
+- **i18n polish (Phase 16)** — 24 new settings.personio.* keys, PersonioCard wired with useTranslation, 164 keys total DE/EN parity
+
+### What Worked
+
+- **Phase decomposition matched domain boundaries** — schema→sync→navigation→KPIs→i18n created clean dependency chains. Each phase had a clear contract to its successor.
+- **Backend-first pattern continued from v1.2** — Phase 12 (schema) and Phase 13 (sync service) shipped before any frontend work, so Phase 14/15 executors had stable APIs to build against.
+- **Single-plan phases (Phase 16) execute fast** — 1 plan with 2 tasks, no wave complexity, agent finished in ~5 minutes. Good pattern for i18n/polish phases.
+- **Milestone audit caught a cosmetic ROADMAP.md issue** — plan checkbox not ticked and progress count at 0/1 despite completion. Fixed before archival.
+- **Write-only credential pattern (PERS-01)** — Fernet encryption + never-return-in-GET eliminated an entire class of credential leakage bugs.
+
+### What Was Inefficient
+
+- **SUMMARY.md one-liner extraction still fragile** — `summary-extract` returned partial fragments ("One-liner:", "scheduler.py (new file):") for Phase 13 summaries, corrupting the auto-generated MILESTONES.md entry. Had to manually clean up. **Lesson:** SUMMARY template should enforce a clear one-liner field that the CLI can reliably parse.
+- **ROADMAP.md plan progress not updated by phase-complete** — Phase 16 showed `0/1` plans and `[ ]` checkbox after `phase complete` ran. Same stale-progress issue from v1.0 and v1.2. **Lesson:** This is a recurring CLI bug — `phase complete` should also tick plan checkboxes.
+- **Pre-existing TypeScript error in defaults.ts** — `Settings` type grew Personio fields across phases 12-13 but `defaults.ts` was never updated with the new fields. Not caught until Phase 16 ran `tsc --noEmit`. Non-blocking (runtime works via API defaults) but should have been caught in Phase 13 verification.
+
+### Patterns Established
+
+- **Fernet encryption for internal credential storage** — symmetric encryption with Python `cryptography` library; key stored as env var; write-only API pattern prevents accidental exposure.
+- **APScheduler in-process under FastAPI lifespan** — no persistent job store needed for interval-based sync in internal tools; in-memory scheduler restarts cleanly on container restart.
+- **INTERVAL_OPTIONS inside component body** — module-scope constants using `t()` don't re-evaluate on language change; must be inside the React component body.
+- **Locale parity script as build gate** — `check-locale-parity.mts` now covers 164 keys across 4 milestones of accumulated translations.
+
+### Key Lessons
+
+1. **Domain-boundary phase decomposition works.** v1.3's 5 phases mapped cleanly to schema→service→UI shell→cards→polish. Each phase had minimal cross-cutting concerns.
+2. **Recurring CLI bugs compound.** ROADMAP.md stale progress has appeared in v1.0, v1.2, and v1.3. Worth filing as a proper fix rather than manually patching each time.
+3. **TypeScript strict mode catches late what verification should catch early.** The `defaults.ts` gap should have been caught in Phase 13 when the Settings type was extended.
+
+### Cost Observations
+
+- Model mix: sonnet for executor + verifier + integration checker, opus for orchestration
+- Sessions: 1 (all 5 phases in single continuous session)
+- Notable: Phase 16 (single plan) completed in ~5 min agent time — smallest phase yet. v1.3 overall was the fastest milestone despite being the largest feature set.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -112,6 +161,7 @@
 |-----------|----------|--------|------------|
 | v1.0 MVP | 1 | 3 | Initial baseline |
 | v1.2 Deltas | 2 | 4 | Backend-first contract, persistent i18n infra |
+| v1.3 HR+Personio | 1 | 5 | Domain-boundary decomposition, encrypted credentials |
 
 ### Cumulative Quality
 
@@ -119,10 +169,13 @@
 |-----------|-------|----------|-------------------|
 | v1.0 MVP | 0 automated | Manual curl + human-UAT | 0 (first milestone) |
 | v1.2 Deltas | verify scripts + integration | Script-based + human 4×2 matrix | 0 (Intl.DateTimeFormat built-in) |
+| v1.3 HR+Personio | parity script + tsc | Automated verification + audit | httpx, APScheduler, cryptography |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. **Backend-first for data features** — clean API contract before frontend work prevents mid-execution surprises (v1.2 confirmed v1.0 pattern)
-2. **Persistent infra scripts > throwaway verify scripts** — `check-locale-parity.mts` catches regressions across milestones; per-phase scripts are single-use (v1.2)
+1. **Backend-first for data features** — clean API contract before frontend work prevents mid-execution surprises (v1.0, v1.2, v1.3)
+2. **Persistent infra scripts > throwaway verify scripts** — `check-locale-parity.mts` catches regressions across milestones; per-phase scripts are single-use (v1.2, v1.3)
 3. **Deferred human-UAT rots** — close visual verification same-day or it never gets done (v1.0, still relevant)
-4. **Pre-phase design contracts pay for themselves** — zero mid-execution scope drift when plans are fully specified (v1.0, confirmed in v1.2)
+4. **Pre-phase design contracts pay for themselves** — zero mid-execution scope drift when plans are fully specified (v1.0, v1.2, v1.3)
+5. **Domain-boundary phase decomposition scales** — mapping phases to domain concepts (schema→service→UI→polish) creates clean dependency chains with minimal cross-cutting concerns (v1.3)
+6. **Recurring CLI bugs need upstream fixes, not workarounds** — ROADMAP.md stale progress appeared in v1.0, v1.2, and v1.3 (all milestones)

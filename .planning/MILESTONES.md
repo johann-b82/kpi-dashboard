@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.3 HR KPI Dashboard & Personio-Integration (Shipped: 2026-04-12)
+
+**Phases completed:** 5 phases, 10 plans, 12 tasks
+
+**Timeline:** 2026-04-12 (single day)
+**Scope:** 27 files changed, +2,544 LOC, 20/20 requirements satisfied
+**Audit:** Passed — 20/20 requirements, 4/4 cross-phase integrations, 4/4 E2E flows
+
+**Key accomplishments:**
+
+- **HR database schema + Personio client (Phase 12)** — 4 Personio HR tables (employees, attendance, absences, sync_meta) via Alembic migration, Fernet-encrypted credential columns, write-only Settings API, async PersonioClient with token caching and exception hierarchy
+- **Sync service + Settings extension (Phase 13)** — APScheduler-based periodic sync, manual sync endpoint, raw data persistence (employees, attendances, absences), PersonioCard frontend with credential inputs, live-populated dropdowns for absence types and departments, connection test
+- **Navigation + HR tab shell (Phase 14)** — Multi-tab navigation (Dashboard→Sales rename, HR tab), HR page shell with Personio sync freshness indicator and manual sync trigger
+- **HR KPI cards + dashboard (Phase 15)** — Backend HR KPI aggregation service (5 KPIs × 3 calendar month windows), HrKpiCardGrid with 3+2 layout, dual delta badges, no-sync/error/unconfigured state handling
+- **i18n polish (Phase 16)** — 24 new `settings.personio.*` keys in both locale files, PersonioCard.tsx wired with useTranslation, dead key removed, proper UTF-8 umlauts — 164 keys total with full DE/EN parity
+
+---
+
 ## v1.2 Period-over-Period Deltas (Shipped: 2026-04-12)
 
 **Phases completed:** 4 phases, 10 plans, 16 tasks
