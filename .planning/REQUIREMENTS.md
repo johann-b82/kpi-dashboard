@@ -47,21 +47,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MIG-01 | — | Pending |
-| API-01 | — | Pending |
-| API-02 | — | Pending |
-| KPI-01 | — | Pending |
-| KPI-02 | — | Pending |
-| KPI-03 | — | Pending |
-| KPI-04 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
+| MIG-01 | Phase 19 | Pending |
+| API-01 | Phase 19 | Pending |
+| API-02 | Phase 19 | Pending |
+| KPI-01 | Phase 19 | Pending |
+| KPI-02 | Phase 19 | Pending |
+| KPI-03 | Phase 19 | Pending |
+| KPI-04 | Phase 19 | Pending |
+| UI-01 | Phase 20 | Pending |
+| UI-02 | Phase 20 | Pending |
+| UI-03 | Phase 20 | Pending |
 
 **Coverage:**
 - v1.6 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-12*

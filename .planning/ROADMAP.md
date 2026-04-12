@@ -8,6 +8,7 @@
 - ✅ **v1.3 HR KPI Dashboard & Personio-Integration** — Phases 12–16 (shipped 2026-04-12) — [archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.4 Navbar & Layout Polish** — Phase 17 (shipped 2026-04-12) — [archive](milestones/v1.4-ROADMAP.md)
 - ✅ **v1.5 Segmented Controls** — Phase 18 (shipped 2026-04-12) — [archive](milestones/v1.5-ROADMAP.md)
+- 🔄 **v1.6 Multi-Select HR Criteria** — Phases 19–20 (active)
 
 ## Phases
 
@@ -85,6 +86,37 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 
 </details>
 
+### v1.6 Multi-Select HR Criteria (Phases 19–20)
+
+- [ ] **Phase 19: Backend — Array Migration, API, and KPI Aggregation** - Migrate DB columns to JSON arrays, update Settings API to accept/return arrays, update HR KPI aggregation to filter with IN clauses
+- [ ] **Phase 20: Frontend — Checkbox List UI and i18n** - Replace PersonioCard dropdowns with checkbox lists, wire array state to API, add i18n keys for all new labels
+
+## Phase Details
+
+### Phase 19: Backend — Array Migration, API, and KPI Aggregation
+**Goal**: The backend fully supports arrays for all 3 Personio config fields — stored as JSON arrays, exchanged as arrays over the API, and applied as IN-filter queries in HR KPI aggregation
+**Depends on**: Phase 18 (prior milestone complete)
+**Requirements**: MIG-01, API-01, API-02, KPI-01, KPI-02, KPI-03, KPI-04
+**Success Criteria** (what must be TRUE):
+  1. Existing single-value config rows are automatically migrated to single-element JSON arrays on `docker compose up` — no manual data fix needed
+  2. `GET /api/settings` returns arrays for `sick_leave_type_id`, `production_dept`, and `skill_attr_key`
+  3. `PUT /api/settings` accepts arrays for those 3 fields and persists them correctly
+  4. `GET /api/personio/options` continues to return all available absence types, departments, and skill attributes unchanged
+  5. An HR KPI returns `is_configured=false` only when its array field is empty or null; a single-element array produces a KPI value
+**Plans**: TBD
+
+### Phase 20: Frontend — Checkbox List UI and i18n
+**Goal**: Users can select multiple values for all 3 Personio config fields via checkbox lists in PersonioCard, with correct bilingual labels and round-trip persistence
+**Depends on**: Phase 19
+**Requirements**: UI-01, UI-02, UI-03
+**Success Criteria** (what must be TRUE):
+  1. PersonioCard shows a scrollable checkbox list (not a dropdown) for each of the 3 Personio config fields, with one checkbox per available option
+  2. Selecting multiple checkboxes and saving results in all selected values stored and re-checked on the next page load
+  3. Deselecting all checkboxes for a field saves an empty array (not null or a stale single value)
+  4. All checkbox list labels render correctly in both DE and EN without missing keys or fallback strings
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -95,3 +127,5 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
+| 19 | v1.6 | 0/TBD | Not started | - |
+| 20 | v1.6 | 0/TBD | Not started | - |
