@@ -76,6 +76,7 @@ export function KpiCardGrid({
     preset,
     prevPeriodStartDate,
     shortLocale,
+    t,
     rangeLengthDays,
   );
   const prevYearLabel = formatPrevYearLabel(prevYearStartDate, shortLocale);

@@ -5,15 +5,12 @@
  * Implements CARD-05 (contextual secondary labels) per 09-CONTEXT.md
  * section D.
  *
- * These helpers compose Intl.DateTimeFormat output with a small set of
- * static phrase strings ("vs. ", "Vorperiode", "days earlier", …). The
- * phrases are inline for Phase 9 so EN runtime works today; Phase 11
- * will extract them to `en.json` / `de.json` keys in the dedicated DE
- * parity pass. This file deliberately does NOT import i18next — it
- * stays a pure utility module.
+ * Phase 11 routes the previously-inline short-range and generic-fallback
+ * strings through the injected t() function for full DE/EN parity;
+ * month-name formatting uses getLocalizedMonthName (D-04).
  *
- * TODO(Phase 11): extract `vsPrefix`, `vsCustomPeriod`, `vsShortPeriod`
- * strings to i18n keys (see CONTEXT section D for proposed key names).
+ * This file deliberately does NOT import i18next — it stays a pure
+ * utility module; callers inject t() from their own useTranslation() hook.
  */
 import { subMonths } from "date-fns";
 import type { DateRangeValue } from "../components/dashboard/DateRangeFilter.tsx";
@@ -24,6 +21,29 @@ const LOCALE_TAG = { de: "de-DE", en: "en-US" } as const;
 
 export type SupportedLocale = "de" | "en";
 
+type ChartLabelT = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;
+
+/**
+ * Phase 11 — Locale-aware month name helper (D-04).
+ *
+ * Wraps Intl.DateTimeFormat with a fixed year-2000 seed date to avoid
+ * DST/day-boundary edge cases. Short locale codes "de"/"en" (D-03) —
+ * sufficient for { month: "long" }. Coexists intentionally with the
+ * module-private LOCALE_TAG regional map used by formatPrevYearLabel
+ * for the Apr.-style short-month case; do NOT unify them.
+ */
+export function getLocalizedMonthName(
+  monthIndex: number,
+  locale: SupportedLocale,
+): string {
+  return new Intl.DateTimeFormat(locale, { month: "long" }).format(
+    new Date(2000, monthIndex, 1),
+  );
+}
+
 /**
  * Secondary label for the "vs. previous period" delta badge.
  *
@@ -31,6 +51,8 @@ export type SupportedLocale = "de" | "en";
  * @param prevPeriodStart  First day of the prior period; null collapses
  *                         to em-dash (thisYear / allTime / no baseline).
  * @param locale           "de" | "en".
+ * @param t                i18next-compatible t() function injected by caller
+ *                         (keeps this module i18next-free for testability).
  * @param rangeLengthDays  Only consulted for the custom (preset === null)
  *                         branch — used to decide between the short-range
  *                         "{N} days earlier" and the generic "Vorperiode"
@@ -40,6 +62,7 @@ export function formatPrevPeriodLabel(
   preset: Preset | null,
   prevPeriodStart: Date | null,
   locale: SupportedLocale,
+  t: ChartLabelT,
   rangeLengthDays?: number,
 ): string {
   // No baseline → em-dash (thisYear, allTime, or explicit null)
@@ -51,15 +74,17 @@ export function formatPrevPeriodLabel(
     return EM_DASH;
   }
 
-  // thisMonth → "vs. {MonthName}"
+  // thisMonth → "vs. {MonthName}" via Intl + locale-invariant "vs." prefix
+  // (D-13: "vs." is a loanword kept in DE; no new vsMonth i18n key needed).
   if (preset === "thisMonth") {
-    const monthName = new Intl.DateTimeFormat(LOCALE_TAG[locale], {
-      month: "long",
-    }).format(prevPeriodStart);
+    const monthName = getLocalizedMonthName(
+      prevPeriodStart.getMonth(),
+      locale,
+    );
     return `vs. ${monthName}`;
   }
 
-  // thisQuarter → "vs. Q{n}" (locale-neutral)
+  // thisQuarter → "vs. Q{n}" (locale-invariant per D-02)
   if (preset === "thisQuarter") {
     const q = Math.floor(prevPeriodStart.getMonth() / 3) + 1;
     return `vs. Q${q}`;
@@ -68,15 +93,10 @@ export function formatPrevPeriodLabel(
   // Custom (preset === null)
   if (preset === null) {
     if (rangeLengthDays !== undefined && rangeLengthDays < 7) {
-      if (locale === "de") {
-        return `vs. ${rangeLengthDays} Tage zuvor`;
-      }
-      // EN: special-case 1-day
-      if (rangeLengthDays === 1) return "vs. 1 day earlier";
-      return `vs. ${rangeLengthDays} days earlier`;
+      return t("dashboard.delta.vsShortPeriod", { count: rangeLengthDays });
     }
     // Generic fallback
-    return locale === "de" ? "vs. Vorperiode" : "vs. previous period";
+    return t("dashboard.delta.vsCustomPeriod");
   }
 
   return EM_DASH;
@@ -100,11 +120,6 @@ export function formatPrevYearLabel(
   }).format(prevYearStart);
   return `vs. ${formatted}`;
 }
-
-type ChartLabelT = (
-  key: string,
-  options?: Record<string, unknown>,
-) => string;
 
 export interface ChartSeriesLabels {
   current: string;
@@ -134,15 +149,12 @@ export function formatChartSeriesLabel(
   const anchor = range.to ?? new Date();
 
   if (preset === "thisMonth") {
-    const fmt = new Intl.DateTimeFormat(LOCALE_TAG[locale], {
-      month: "long",
-    });
     return {
       current: t("dashboard.chart.series.revenueMonth", {
-        month: fmt.format(anchor),
+        month: getLocalizedMonthName(anchor.getMonth(), locale),
       }),
       prior: t("dashboard.chart.series.revenueMonth", {
-        month: fmt.format(subMonths(anchor, 1)),
+        month: getLocalizedMonthName(subMonths(anchor, 1).getMonth(), locale),
       }),
     };
   }
