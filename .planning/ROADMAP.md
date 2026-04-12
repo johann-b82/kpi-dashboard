@@ -111,4 +111,4 @@ Phase 18 is the sole phase in v1.5.
 | 8–11 | v1.2 | 10/10 | Complete | 2026-04-12 |
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
-| 18 | v1.5 | 2/2 | Complete   | 2026-04-12 |
+| 18 | v1.5 | 2/2 | Complete    | 2026-04-12 |
