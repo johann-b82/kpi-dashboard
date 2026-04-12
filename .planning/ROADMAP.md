@@ -126,7 +126,9 @@ Plans:
   1. Every visible string on the HR tab (KPI labels, delta badges, sync feedback, error states, freshness indicator) renders correctly in both German and English
   2. Every Settings field added in v1.3 (Personio credentials, absence type, department, skill attribute key, sync interval) renders correctly in both languages
   3. Switching language via the NavBar toggle re-renders all v1.3 strings without a page refresh
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 16-01-PLAN.md — Extract PersonioCard strings to i18n, add 24 settings.personio.* keys, remove dead key, verify parity
 
 ## Progress
 
@@ -147,4 +149,4 @@ Plans:
 | 13. Sync Service & Settings Extension | v1.3 | 3/3 | Complete    | 2026-04-12 |
 | 14. Navigation & HR Tab Shell | v1.3 | 2/2 | Complete    | 2026-04-12 |
 | 15. HR KPI Cards & Dashboard | v1.3 | 2/2 | Complete    | 2026-04-12 |
-| 16. i18n & Polish | v1.3 | 0/? | Not started | - |
+| 16. i18n & Polish | v1.3 | 0/1 | Not started | - |
