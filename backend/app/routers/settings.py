@@ -15,9 +15,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.defaults import DEFAULT_SETTINGS
 from app.models import AppSettings
-from app.schemas import SettingsRead, SettingsUpdate
-from app.security.fernet import encrypt_credential
+from app.schemas import AbsenceTypeOption, PersonioOptions, SettingsRead, SettingsUpdate
+from app.security.fernet import decrypt_credential, encrypt_credential
 from app.security.logo_validation import SvgRejected, sanitize_svg, sniff_mime
+from app.services.personio_client import PersonioAPIError, PersonioClient
 
 router = APIRouter(prefix="/api/settings")
 
@@ -60,6 +61,10 @@ def _build_read(row: AppSettings) -> SettingsRead:
         logo_url=logo_url,
         logo_updated_at=row.logo_updated_at,
         personio_has_credentials=personio_has_credentials,
+        personio_sync_interval_h=row.personio_sync_interval_h,
+        personio_sick_leave_type_id=row.personio_sick_leave_type_id,
+        personio_production_dept=row.personio_production_dept,
+        personio_skill_attr_key=row.personio_skill_attr_key,
     )
 
 
@@ -77,9 +82,64 @@ async def get_settings(db: AsyncSession = Depends(get_async_db_session)) -> Sett
     return _build_read(row)
 
 
+@router.get("/personio-options", response_model=PersonioOptions)
+async def get_personio_options(
+    db: AsyncSession = Depends(get_async_db_session),
+) -> PersonioOptions:
+    """Fetch absence types and departments live from Personio (D-08, D-09).
+
+    Returns degraded response (not 500) when credentials missing or API fails (D-10).
+    """
+    row = await _get_singleton(db)
+    if not (row.personio_client_id_enc and row.personio_client_secret_enc):
+        return PersonioOptions(
+            absence_types=[],
+            departments=[],
+            error="Personio-Zugangsdaten nicht konfiguriert",
+        )
+    try:
+        client_id = decrypt_credential(row.personio_client_id_enc)
+        client_secret = decrypt_credential(row.personio_client_secret_enc)
+        client = PersonioClient(client_id=client_id, client_secret=client_secret)
+        try:
+            absence_types_raw = await client.fetch_absence_types()
+            employees_raw = await client.fetch_employees()
+        finally:
+            await client.close()
+
+        absence_types = []
+        for t in absence_types_raw:
+            try:
+                attrs = t.get("attributes", {})
+                name = attrs.get("name", {}).get("value") if isinstance(attrs.get("name"), dict) else attrs.get("name")
+                if t.get("id") is not None and name:
+                    absence_types.append(AbsenceTypeOption(id=t["id"], name=name))
+            except (KeyError, TypeError):
+                continue  # Skip malformed entries (Pitfall 7)
+
+        departments = sorted({
+            e.get("attributes", {}).get("department", {}).get("value")
+            for e in employees_raw
+            if e.get("attributes", {}).get("department", {}).get("value")
+        })
+
+        return PersonioOptions(
+            absence_types=absence_types,
+            departments=departments,
+            error=None,
+        )
+    except PersonioAPIError as exc:
+        return PersonioOptions(
+            absence_types=[],
+            departments=[],
+            error=str(exc),
+        )
+
+
 @router.put("", response_model=SettingsRead)
 async def put_settings(
     payload: SettingsUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_async_db_session),
 ) -> SettingsRead:
     row = await _get_singleton(db)
@@ -98,6 +158,33 @@ async def put_settings(
         row.personio_client_id_enc = encrypt_credential(payload.personio_client_id)
     if payload.personio_client_secret is not None:
         row.personio_client_secret_enc = encrypt_credential(payload.personio_client_secret)
+
+    # New Personio config fields — None means "don't change" (same pattern as credentials)
+    if payload.personio_sync_interval_h is not None:
+        row.personio_sync_interval_h = payload.personio_sync_interval_h
+        # Reschedule APScheduler job immediately (D-06, D-07)
+        sched = request.app.state.scheduler
+        from app.scheduler import SYNC_JOB_ID, _run_scheduled_sync
+        if payload.personio_sync_interval_h == 0:
+            # manual-only: remove job if it exists (D-07)
+            if sched.get_job(SYNC_JOB_ID):
+                sched.remove_job(SYNC_JOB_ID)
+        else:
+            # Add with replace_existing=True handles both add and reschedule (Pitfall 1)
+            sched.add_job(
+                _run_scheduled_sync,
+                trigger="interval",
+                hours=payload.personio_sync_interval_h,
+                id=SYNC_JOB_ID,
+                replace_existing=True,
+                max_instances=1,
+            )
+    if payload.personio_sick_leave_type_id is not None:
+        row.personio_sick_leave_type_id = payload.personio_sick_leave_type_id
+    if payload.personio_production_dept is not None:
+        row.personio_production_dept = payload.personio_production_dept
+    if payload.personio_skill_attr_key is not None:
+        row.personio_skill_attr_key = payload.personio_skill_attr_key
 
     # D-07: if the payload exactly matches canonical defaults, this is a
     # "reset to defaults" — also wipe the logo trio. A non-default PUT
