@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Select HR Criteria
-status: verifying
+status: planning
 stopped_at: Completed 19-02-PLAN.md
-last_updated: "2026-04-12T18:54:27.595Z"
+last_updated: "2026-04-12T18:57:47.040Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 2
@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.6 milestone started)
 
 ## Current Position
 
-Phase: 19 (backend-array-migration-api-and-kpi-aggregation) — EXECUTING
-Plan: 2 of 2
+Phase: 20
+Plan: Not started
 **Milestone:** v1.6 Multi-Select HR Criteria
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
