@@ -36,6 +36,8 @@ key-decisions:
   - "handleToggle removed from LanguageToggle — onChange calls mutation.mutate directly"
   - "DateRangeFilter return simplified to bare SegmentedControl — wrapper divs removed"
   - "DE/EN labels are literal strings (not t() keys) per UI-SPEC Copywriting Contract"
+  - "Active segment uses bg-primary text-primary-foreground per user feedback"
+  - "Container uses bg-background border border-primary (white fill, primary outline) per user feedback"
 
 requirements-completed: [SEG-02, SEG-03, SEG-04, SEG-05, SEG-06]
 
@@ -53,7 +55,7 @@ completed: 2026-04-12
 - **Duration:** ~4 min
 - **Started:** 2026-04-12T17:56:58Z
 - **Completed:** 2026-04-12T17:59:55Z
-- **Tasks:** 2 (Task 3 is checkpoint:human-verify — pending user)
+- **Tasks:** 3 (2 auto + 1 human-verify approved)
 - **Files modified:** 5
 
 ## Accomplishments
@@ -86,6 +88,7 @@ completed: 2026-04-12
 - `frontend/src/components/dashboard/DateRangeFilter.tsx` — PRESETS mapped to SegmentedControl<Preset>
 - `frontend/src/components/dashboard/RevenueChart.tsx` — CHART_TYPES mapped to SegmentedControl in Header
 - `frontend/src/components/settings/PreferencesCard.tsx` — LANGS mapped to SegmentedControl<"DE"|"EN">
+- `frontend/src/components/ui/segmented-control.tsx` — Updated to primary color active state, white container with primary outline
 
 ## Decisions Made
 
@@ -105,9 +108,13 @@ None - all integrations are fully wired to their respective state/mutation sourc
 
 None. TypeScript compiled cleanly after each file edit.
 
-## Pending: Task 3
+## Task 3: Visual Verification — Approved
 
-Task 3 is `checkpoint:human-verify` — awaiting visual verification of all 5 segmented controls in the running application at http://localhost:5173.
+User visually verified all 5 segmented controls. Requested and applied two styling changes:
+1. Active segment: `bg-foreground text-background` → `bg-primary text-primary-foreground`
+2. Container: `bg-muted` → `bg-background border border-primary`
+
+Commit: `94c95b0` (style)
 
 ---
 *Phase: 18-segmented-controls*
