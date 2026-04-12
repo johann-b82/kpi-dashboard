@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useSettings } from "@/hooks/useSettings";
 import { useSettingsDraftStatus } from "@/contexts/SettingsDraftContext";
 import {
@@ -69,34 +69,17 @@ export function LanguageToggle() {
   const isDE = i18n.language === "de";
   const isDisabled = isDirty || mutation.isPending;
 
-  const handleToggle = () => {
-    if (isDisabled) return;
-    mutation.mutate(isDE ? "EN" : "DE");
-  };
-
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleToggle}
+    <SegmentedControl<"DE" | "EN">
+      segments={[
+        { value: "DE", label: "DE" },
+        { value: "EN", label: "EN" },
+      ]}
+      value={isDE ? "DE" : "EN"}
+      onChange={(lang) => mutation.mutate(lang)}
       disabled={isDisabled}
-      aria-disabled={isDisabled}
+      aria-label="Language"
       title={isDirty ? t("settings.preferences.toggle_disabled_tooltip") : undefined}
-      className="text-sm"
-    >
-      {isDE ? (
-        <>
-          <span className="font-semibold">DE</span>
-          <span className="mx-1 text-slate-400">/</span>
-          <span className="text-slate-500">EN</span>
-        </>
-      ) : (
-        <>
-          <span className="text-slate-500">DE</span>
-          <span className="mx-1 text-slate-400">/</span>
-          <span className="font-semibold">EN</span>
-        </>
-      )}
-    </Button>
+    />
   );
 }

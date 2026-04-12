@@ -4,22 +4,17 @@ import { Upload as UploadIcon, Settings as SettingsIcon } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 export function NavBar() {
   const { t } = useTranslation();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { data } = useSettings();
 
   // Fallback chain: cached data > frontend defaults.
   // ThemeProvider gates render while isLoading, so by the time NavBar renders,
   // data is present OR ThemeProvider is in error-fallback mode (data undefined).
   const settings = data ?? DEFAULT_SETTINGS;
-
-  const linkClass = (active: boolean) =>
-    "text-sm " +
-    (active
-      ? "text-primary font-semibold border-b-2 border-primary pb-1"
-      : "text-foreground hover:text-primary");
 
   // Upload icon link — styled Link directly (no nested <Button> to avoid invalid <a><button>)
   const uploadLinkClass =
@@ -45,12 +40,15 @@ export function NavBar() {
           <span className="text-xs font-semibold">{settings.app_name}</span>
         )}
 
-        <Link href="/" className={linkClass(location === "/")}>
-          {t("nav.sales")}
-        </Link>
-        <Link href="/hr" className={linkClass(location === "/hr")}>
-          {t("nav.hr")}
-        </Link>
+        <SegmentedControl
+          segments={[
+            { value: "/", label: t("nav.sales") },
+            { value: "/hr", label: t("nav.hr") },
+          ]}
+          value={location === "/hr" ? "/hr" : "/"}
+          onChange={(path) => navigate(path)}
+          aria-label="Navigation"
+        />
 
         <div className="ml-auto flex items-center gap-4">
           <LanguageToggle />
