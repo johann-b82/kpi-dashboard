@@ -1,7 +1,40 @@
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
 import { useDateRange } from "@/contexts/DateRangeContext";
+import { fetchSyncMeta } from "@/lib/api";
+import { syncKeys } from "@/lib/queryKeys";
+
+function HrFreshnessIndicator() {
+  const { t, i18n } = useTranslation();
+  const { data, isLoading } = useQuery({
+    queryKey: syncKeys.meta(),
+    queryFn: fetchSyncMeta,
+  });
+
+  if (isLoading) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+  if (!data?.last_synced_at) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        {t("hr.sync.never")}
+      </span>
+    );
+  }
+  const locale = i18n.language === "de" ? "de-DE" : "en-US";
+  const formatted = new Intl.DateTimeFormat(locale, {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(data.last_synced_at));
+  return (
+    <span className="text-xs text-muted-foreground">
+      {t("hr.sync.lastSynced")} {formatted}
+    </span>
+  );
+}
 
 export function SubHeader() {
   const [location] = useLocation();
@@ -19,7 +52,7 @@ export function SubHeader() {
             />
           )}
         </div>
-        <FreshnessIndicator />
+        {location === "/hr" ? <HrFreshnessIndicator /> : <FreshnessIndicator />}
       </div>
     </div>
   );
