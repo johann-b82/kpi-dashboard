@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: executing
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-04-12T08:48:01.237Z"
+status: verifying
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-04-12T08:51:42.272Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 Phase: 12 (hr-schema-personio-client) — EXECUTING
 Plan: 2 of 2
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ---
 | Phase 12-hr-schema-personio-client P01 | 6min | 2 tasks | 6 files |
+| Phase 12-hr-schema-personio-client P02 | 8min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 12-hr-schema-personio-client]: Fernet BYTEA storage: ciphertext stored as BYTEA on AppSettings singleton, consistent with logo_data precedent
 - [Phase 12-hr-schema-personio-client]: personio_client_id/secret are Optional in SettingsUpdate (None = preserve existing encrypted value); SettingsRead exposes personio_has_credentials boolean only
 - [Phase 12-hr-schema-personio-client]: DEFAULT_SETTINGS reset comparison uses model_dump(include=_CORE_FIELDS) to exclude Personio Optional fields
+- [Phase 12-hr-schema-personio-client]: PersonioClient token cached in-memory (not DB); proactive refresh at <60s buffer (D-12/D-13)
+- [Phase 12-hr-schema-personio-client]: pytestmark asyncio removed — asyncio_mode=auto in pytest.ini handles async test detection without explicit marks
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T08:48:01.234Z
-**Stopped at:** Completed 12-01-PLAN.md
+**Last session:** 2026-04-12T08:51:42.270Z
+**Stopped at:** Completed 12-02-PLAN.md
 **Resume file:** None

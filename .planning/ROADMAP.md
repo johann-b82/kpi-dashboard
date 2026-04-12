@@ -52,7 +52,7 @@ Requirements: [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
 
 **Milestone Goal:** Extend the app from a Sales-only dashboard to a multi-domain KPI platform — 5 HR KPIs sourced from Personio, configurable auto-sync, and a new HR tab alongside the renamed Sales tab.
 
-- [ ] **Phase 12: HR Schema & Personio Client** — Alembic migration for HR tables, httpx Personio API client, write-only credential storage
+- [x] **Phase 12: HR Schema & Personio Client** — Alembic migration for HR tables, httpx Personio API client, write-only credential storage (completed 2026-04-12)
 - [ ] **Phase 13: Sync Service & Settings Extension** — APScheduler auto-sync, manual sync endpoint, raw data persistence, Settings fields for Personio config
 - [ ] **Phase 14: Navigation & HR Tab Shell** — Rename Sales tab, add HR tab with sync freshness indicator
 - [ ] **Phase 15: HR KPI Cards & Dashboard** — All 5 KPI computations with delta badges, error state handling
@@ -68,10 +68,10 @@ Requirements: [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md)
   1. Alembic migration creates HR tables (personio_employees, personio_attendances, personio_absences, personio_sync_meta) and the app starts cleanly against the migrated schema
   2. Personio client_id and client_secret can be saved in Settings — the values are masked on display and never returned in GET /api/settings responses
   3. The Personio httpx client can authenticate (fetch a bearer token) given valid credentials, and surfaces a clear error when credentials are invalid
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 12-01-PLAN.md — HR models, Alembic migration, Fernet encryption, Settings API credential support
-- [ ] 12-02-PLAN.md — Personio httpx client with token caching, exception hierarchy, and unit tests
+- [x] 12-02-PLAN.md — Personio httpx client with token caching, exception hierarchy, and unit tests
 
 ### Phase 13: Sync Service & Settings Extension
 **Goal**: Users can trigger a Personio data sync (manual or scheduled) and configure all sync parameters from Settings
@@ -133,7 +133,7 @@ Plans:
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete | 2026-04-11 |
 | 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete | 2026-04-12 |
-| 12. HR Schema & Personio Client | v1.3 | 1/2 | In Progress|  |
+| 12. HR Schema & Personio Client | v1.3 | 2/2 | Complete   | 2026-04-12 |
 | 13. Sync Service & Settings Extension | v1.3 | 0/? | Not started | - |
 | 14. Navigation & HR Tab Shell | v1.3 | 0/? | Not started | - |
 | 15. HR KPI Cards & Dashboard | v1.3 | 0/? | Not started | - |
