@@ -9,7 +9,7 @@ Requirements for v1.5 Segmented Controls. Each maps to roadmap phases.
 
 ### Segmented Control
 
-- [ ] **SEG-01**: Reusable SegmentedControl component with pill-shaped container, rounded ends, dark active state, light inactive state
+- [x] **SEG-01**: Reusable SegmentedControl component with pill-shaped container, rounded ends, dark active state, light inactive state
 - [ ] **SEG-02**: Sales/HR tab navigation rendered as segmented control in navbar
 - [ ] **SEG-03**: Date range presets rendered as segmented control in SubHeader
 - [ ] **SEG-04**: Balken/Linie chart type toggle rendered as segmented control
@@ -34,7 +34,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEG-01 | Phase 18 | Pending |
+| SEG-01 | Phase 18 | Complete |
 | SEG-02 | Phase 18 | Pending |
 | SEG-03 | Phase 18 | Pending |
 | SEG-04 | Phase 18 | Pending |

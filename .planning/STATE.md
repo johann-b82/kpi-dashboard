@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Segmented Controls
-status: planning
-stopped_at: Phase 18 UI-SPEC approved
-last_updated: "2026-04-12T17:44:58.658Z"
-last_activity: 2026-04-12 — Roadmap created for v1.5
+status: executing
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-04-12T17:56:58.548Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,17 +27,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.5 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 18 — Segmented Controls
+**Current focus:** Phase 18 — segmented-controls
 
 ---
 
 ## Current Position
 
-Phase: 18 (1 of 1 in v1.5) (Segmented Controls)
-Plan: 0 of ? in current phase
+Phase: 18 (segmented-controls) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.5 Segmented Controls
-**Status:** Ready to plan
-**Last activity:** 2026-04-12 — Roadmap created for v1.5
+**Status:** Ready to execute
+**Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 
 ---
+| Phase 18 P01 | 1min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - **v1.5 design:** Single phase (Phase 18) covering all 6 requirements; coarse granularity — all requirements tightly coupled around one component
 - **v1.4 design:** DateRangeContext for shared filter state; route-aware SubHeader freshness; no SubHeader border
 - **v1.3 constraint:** No time filter on HR tab — HR shows current period only
+- [Phase 18]: Generic typing T extends string enforces type-safe value/onChange at each SegmentedControl consumer
+- [Phase 18]: title prop added to SegmentedControl to support disabled tooltip pattern (NavBar language toggle D-09)
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T17:44:58.655Z
-**Stopped at:** Phase 18 UI-SPEC approved
-**Resume file:** .planning/phases/18-segmented-controls/18-UI-SPEC.md
+**Last session:** 2026-04-12T17:56:58.546Z
+**Stopped at:** Completed 18-01-PLAN.md
+**Resume file:** None

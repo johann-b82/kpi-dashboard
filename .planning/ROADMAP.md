@@ -95,7 +95,7 @@ Requirements: [milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
   5. All segmented control labels display correctly in both DE and EN with no missing or broken translation keys
 **Plans**: 2 plans
 Plans:
-- [ ] 18-01-PLAN.md — Create reusable SegmentedControl component
+- [x] 18-01-PLAN.md — Create reusable SegmentedControl component
 - [ ] 18-02-PLAN.md — Integrate SegmentedControl into all 5 consumers
 **UI hint**: yes
 
@@ -111,4 +111,4 @@ Phase 18 is the sole phase in v1.5.
 | 8–11 | v1.2 | 10/10 | Complete | 2026-04-12 |
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
-| 18 | v1.5 | 0/? | Not started | - |
+| 18 | v1.5 | 1/2 | In Progress|  |
