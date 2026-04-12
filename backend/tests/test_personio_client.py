@@ -15,7 +15,6 @@ from app.services.personio_client import (
     PersonioNetworkError,
 )
 
-pytestmark = pytest.mark.asyncio
 
 
 def _make_client() -> PersonioClient:
