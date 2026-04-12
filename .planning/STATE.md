@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: active
-stopped_at: null
-last_updated: "2026-04-12"
-last_activity: 2026-04-12
+status: planning
+stopped_at: Phase 12 context gathered
+last_updated: "2026-04-12T08:25:29.479Z"
+last_activity: 2026-04-12 — v1.3 roadmap written (Phases 12–16)
 progress:
   total_phases: 5
   completed_phases: 0
@@ -92,6 +92,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12
-**Stopped at:** v1.3 roadmap created — ready to plan Phase 12
-**Resume file:** None
+**Last session:** 2026-04-12T08:25:29.477Z
+**Stopped at:** Phase 12 context gathered
+**Resume file:** .planning/phases/12-hr-schema-personio-client/12-CONTEXT.md
