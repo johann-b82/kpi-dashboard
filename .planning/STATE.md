@@ -4,7 +4,7 @@ milestone: v1.5
 milestone_name: Segmented Controls
 status: completed
 stopped_at: "Completed 18-02-PLAN.md (Task 3 checkpoint:human-verify pending)"
-last_updated: "2026-04-12T18:12:58.316Z"
+last_updated: "2026-04-12T18:15:13.103Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 1
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.5 milestone started)
 Phase: 18
 Plan: Not started
 **Milestone:** v1.5 Segmented Controls
-**Status:** Milestone complete
+**Status:** v1.5 milestone complete
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%

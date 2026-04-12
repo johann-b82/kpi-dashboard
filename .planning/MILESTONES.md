@@ -1,5 +1,16 @@
 # Milestones
 
+## v1.5 Segmented Controls (Shipped: 2026-04-12)
+
+**Phases completed:** 1 phases, 2 plans, 4 tasks
+
+**Key accomplishments:**
+
+- Generic pill-shaped SegmentedControl with bg-foreground active pill, ARIA radiogroup semantics, and disabled state — foundation for all 5 consumer replacements in Phase 18
+- All 5 toggle/tab controls replaced with pill-shaped SegmentedControl — NavBar nav tabs, language toggles (navbar + settings), date range presets, and chart type selector all unified to single component
+
+---
+
 ## v1.4 Navbar & Layout Polish (Shipped: 2026-04-12)
 
 **Phases completed:** 1 phases, 2 plans, 4 tasks

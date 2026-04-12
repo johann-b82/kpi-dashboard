@@ -13,7 +13,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Shipped:** v1.5 Segmented Controls — 2026-04-12
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (164 keys), Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
 **Codebase:** ~9,800 LOC (Python + TypeScript), 6 milestones shipped (v1.0–v1.5).
-**Audit status:** All v1.0–v1.4 requirements satisfied. v1.5: 6/6 requirements satisfied (SEG-01 through SEG-06).
+**Audit status:** All v1.0–v1.5 requirements satisfied.
 
 ## Shipped: v1.5 Segmented Controls (2026-04-12)
 
@@ -94,6 +94,15 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ LAY-02: Sub-header with date presets (left) + route-aware freshness (right) — v1.4
 - ✓ I18N-01: Full DE/EN parity maintained — v1.4
 
+### Validated in v1.5
+
+- ✓ SEG-01: Reusable SegmentedControl component with pill-shaped container, ARIA radiogroup semantics, disabled state — v1.5
+- ✓ SEG-02: Sales/HR tab navigation rendered as segmented control — v1.5
+- ✓ SEG-03: Date range presets rendered as segmented control — v1.5
+- ✓ SEG-04: Chart type toggle rendered as segmented control — v1.5
+- ✓ SEG-05: DE/EN language toggle rendered as segmented control with disabled-when-dirty guard — v1.5
+- ✓ SEG-06: Full DE/EN i18n parity maintained — v1.5
+
 ### Out of Scope
 
 - Authentication/login — deferred to v2 (Authentik OIDC/OAuth2)
@@ -152,6 +161,8 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 | Route-aware SubHeader freshness | HR tab shows sync freshness (last_synced_at), all others show upload freshness — users see domain-relevant timestamp | ✓ v1.4 Phase 17 |
 | Sync button in Settings (not HR page) | User preference — HR page is for viewing KPIs, sync control belongs with Personio configuration | ✓ v1.4 Phase 17 |
 | No SubHeader border (LAY-01 deviation) | User explicitly removed border-b for clean look; bg-card matches page background so border was nearly invisible anyway | ✓ v1.4 Phase 17 |
+| SegmentedControl with primary color + outline | User changed active from bg-foreground to bg-primary, container from bg-muted to bg-background+border-primary during visual verification | ✓ v1.5 Phase 18 |
+| Generic SegmentedControl<T extends string> | Single component serves all 5 consumers with type-safe value/onChange — no per-consumer variants needed | ✓ v1.5 Phase 18 |
 
 ## Evolution
 
@@ -173,4 +184,4 @@ Last updated: 2026-04-12
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v1.5 milestone started*
+*Last updated: 2026-04-12 after v1.5 milestone*
