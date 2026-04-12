@@ -41,7 +41,7 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 - [ ] **Phase 8: Backend — Comparison Aggregation and Chart Overlay API** - Dual-baseline aggregation: summary endpoint returns `previous_period` + `previous_year` objects, chart endpoint gains `comparison` query param with aligned `previous_series`
 - [x] **Phase 9: Frontend — KPI Card Dual Deltas** - Summary cards render two compact delta badges (vs. Vorperiode + vs. Vorjahr) with up/down arrows, locale-aware percentages, and null-baseline em-dash fallbacks
 - [x] **Phase 10: Frontend — Chart Prior-Period Overlay** - `RevenueChart` renders a ghosted second series at reduced opacity with updated legend; default mode driven by selected date filter scope (completed 2026-04-11)
-- [ ] **Phase 11: i18n, Contextual Labels, and Polish** - Full DE/EN parity for new delta strings in informal "du" tone; contextual period labels ("vs. März", "vs. Q1", "vs. Vorwoche") locale-formatted; end-to-end human verification
+- [x] **Phase 11: i18n, Contextual Labels, and Polish** - Full DE/EN parity for new delta strings in informal "du" tone; contextual period labels ("vs. März", "vs. Q1", "vs. Vorwoche") locale-formatted; end-to-end human verification (completed 2026-04-12)
 
 ## Phase Details
 
@@ -101,9 +101,9 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
   3. Period labels ("März" / "March", "Q1", "Vorwoche" / "previous week") are generated via `Intl.DateTimeFormat` with the active i18n language — no new date library added, no hard-coded strings in component source
   4. Switching language via the NavBar `LanguageToggle` re-renders all card delta badges, tooltips, and chart legend entries in the new locale without a hard refresh
   5. Human verification checkpoint passes end-to-end: upload `sample_export.csv`, cycle through all 4 preset date filters ("Dieses Jahr", "Dieses Quartal", "Diesen Monat", "Gesamter Zeitraum"), confirm card deltas + chart overlay + contextual labels behave correctly in both DE and EN, and "Gesamter Zeitraum" shows em-dashes everywhere
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
   - [x] 11-01-PLAN.md — DE locale parity (10 keys from D-15) + periodLabels.ts Intl.DateTimeFormat extraction + persistent check-locale-parity.mts script + verify-phase-11-01.mts
-  - [ ] 11-02-PLAN.md — End-to-end human verification checkpoint: 4 date presets × 2 languages × dual delta badges + chart overlay; milestone sign-off
+  - [x] 11-02-PLAN.md — End-to-end human verification checkpoint: 4 date presets × 2 languages × dual delta badges + chart overlay; milestone sign-off
 **UI hint**: yes
 
 ## Progress
@@ -120,4 +120,4 @@ Requirements: [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 | 8. Backend — Comparison Aggregation and Chart Overlay API | v1.2 | 0/3 | Not started | - |
 | 9. Frontend — KPI Card Dual Deltas | v1.2 | 3/3 | Complete | 2026-04-12 |
 | 10. Frontend — Chart Prior-Period Overlay | v1.2 | 2/2 | Complete    | 2026-04-11 |
-| 11. i18n, Contextual Labels, and Polish | v1.2 | 1/2 | In Progress|  |
+| 11. i18n, Contextual Labels, and Polish | v1.2 | 2/2 | Complete    | 2026-04-12 |
