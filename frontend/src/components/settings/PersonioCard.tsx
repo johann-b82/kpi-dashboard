@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,13 +15,6 @@ interface PersonioCardProps {
   hasCredentials: boolean;
 }
 
-const INTERVAL_OPTIONS: Array<{ value: 0 | 1 | 6 | 24; label: string }> = [
-  { value: 0, label: "Nur manuell" },
-  { value: 1, label: "Stuendlich" },
-  { value: 6, label: "Alle 6 Stunden" },
-  { value: 24, label: "Taeglich" },
-];
-
 /**
  * Personio settings section.
  *
@@ -32,6 +26,15 @@ const INTERVAL_OPTIONS: Array<{ value: 0 | 1 | 6 | 24; label: string }> = [
  * - All fields are saved via the existing shared Speichern button (D-13).
  */
 export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardProps) {
+  const { t } = useTranslation();
+
+  const INTERVAL_OPTIONS: Array<{ value: 0 | 1 | 6 | 24; label: string }> = [
+    { value: 0, label: t("settings.personio.sync_interval.manual") },
+    { value: 1, label: t("settings.personio.sync_interval.hourly") },
+    { value: 6, label: t("settings.personio.sync_interval.every6h") },
+    { value: 24, label: t("settings.personio.sync_interval.daily") },
+  ];
+
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -55,7 +58,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
     } catch (err) {
       setTestResult({
         success: false,
-        error: err instanceof Error ? err.message : "Connection test failed",
+        error: err instanceof Error ? err.message : t("settings.personio.test_connection.error_fallback"),
       });
     } finally {
       setTesting(false);
@@ -63,20 +66,20 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
   };
 
   const dropdownsDisabled = !hasCredentials || optionsLoading || !!options?.error;
-  const noCredentialsHint = !hasCredentials ? "Personio-Zugangsdaten konfigurieren" : null;
+  const noCredentialsHint = !hasCredentials ? t("settings.personio.credentials.configure_hint") : null;
   const optionsError = options?.error ?? null;
 
   return (
     <Card className="mt-6">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Personio</CardTitle>
+        <CardTitle className="text-xl font-semibold">{t("settings.personio.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
 
         {/* Client-ID */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-client-id" className="text-sm font-medium">
-            Client-ID
+            {t("settings.personio.client_id.label")}
           </Label>
           <Input
             id="personio-client-id"
@@ -84,11 +87,11 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             autoComplete="new-password"
             value={draft.personio_client_id}
             onChange={(e) => setField("personio_client_id", e.target.value)}
-            placeholder="Client-ID eingeben"
+            placeholder={t("settings.personio.client_id.placeholder")}
           />
           {hasCredentials && !draft.personio_client_id && (
             <p className="text-xs text-muted-foreground">
-              Gespeichert - zum Aendern neuen Wert eingeben
+              {t("settings.personio.client_id.saved_hint")}
             </p>
           )}
         </div>
@@ -96,7 +99,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
         {/* Client-Secret */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-client-secret" className="text-sm font-medium">
-            Client-Secret
+            {t("settings.personio.client_secret.label")}
           </Label>
           <Input
             id="personio-client-secret"
@@ -104,11 +107,11 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             autoComplete="new-password"
             value={draft.personio_client_secret}
             onChange={(e) => setField("personio_client_secret", e.target.value)}
-            placeholder="Client-Secret eingeben"
+            placeholder={t("settings.personio.client_secret.placeholder")}
           />
           {hasCredentials && !draft.personio_client_secret && (
             <p className="text-xs text-muted-foreground">
-              Gespeichert - zum Aendern neuen Wert eingeben
+              {t("settings.personio.client_secret.saved_hint")}
             </p>
           )}
         </div>
@@ -121,7 +124,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             disabled={testing || (!hasCredentials && !draft.personio_client_id)}
             onClick={handleTestConnection}
           >
-            {testing ? "Teste..." : "Verbindung testen"}
+            {testing ? t("settings.personio.test_connection.testing") : t("settings.personio.test_connection.button")}
           </Button>
           {testResult !== null && (
             <p
@@ -132,8 +135,8 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
               }
             >
               {testResult.success
-                ? "Verbindung erfolgreich"
-                : (testResult.error ?? "Verbindung fehlgeschlagen")}
+                ? t("settings.personio.test_connection.success")
+                : (testResult.error ?? t("settings.personio.test_connection.failure"))}
             </p>
           )}
         </div>
@@ -141,7 +144,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
         {/* Sync-Intervall */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-sync-interval" className="text-sm font-medium">
-            Sync-Intervall
+            {t("settings.personio.sync_interval.label")}
           </Label>
           <select
             id="personio-sync-interval"
@@ -165,7 +168,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
         {/* Krankheitstyp (absence type) */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-sick-leave" className="text-sm font-medium">
-            Krankheitstyp
+            {t("settings.personio.sick_leave_type.label")}
           </Label>
           <select
             id="personio-sick-leave"
@@ -176,7 +179,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             }
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">Abwesenheitstyp waehlen</option>
+            <option value="">{t("settings.personio.sick_leave_type.placeholder")}</option>
             {options?.absence_types.map((at) => (
               <option key={at.id} value={String(at.id)}>
                 {at.name}
@@ -193,7 +196,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
         {/* Produktions-Abteilung */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-dept" className="text-sm font-medium">
-            Produktions-Abteilung
+            {t("settings.personio.production_dept.label")}
           </Label>
           <select
             id="personio-dept"
@@ -204,7 +207,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             }
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">Abteilung waehlen</option>
+            <option value="">{t("settings.personio.production_dept.placeholder")}</option>
             {options?.departments.map((dept) => (
               <option key={dept} value={dept}>
                 {dept}
@@ -221,7 +224,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
         {/* Skill-Attribut-Key */}
         <div className="flex flex-col gap-2 max-w-md">
           <Label htmlFor="personio-skill-key" className="text-sm font-medium">
-            Skill Custom Attribute Key
+            {t("settings.personio.skill_attr_key.label")}
           </Label>
           <Input
             id="personio-skill-key"
@@ -229,7 +232,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             onChange={(e) =>
               setField("personio_skill_attr_key", e.target.value || null)
             }
-            placeholder="z.B. dynamic_12345"
+            placeholder={t("settings.personio.skill_attr_key.placeholder")}
           />
         </div>
 
