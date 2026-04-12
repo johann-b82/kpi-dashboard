@@ -420,6 +420,9 @@ export interface EmployeeRow {
   hire_date: string | null;
   termination_date: string | null;
   weekly_working_hours: number | null;
+  total_hours: number;
+  overtime_hours: number;
+  overtime_ratio: number | null;
 }
 
 export async function fetchEmployees(params?: {

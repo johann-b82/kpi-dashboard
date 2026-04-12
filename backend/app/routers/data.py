@@ -1,11 +1,12 @@
+from calendar import monthrange
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.models import PersonioEmployee, SalesRecord
+from app.models import PersonioAttendance, PersonioEmployee, SalesRecord
 from app.schemas import EmployeeRead, SalesRecordRead
 
 router = APIRouter(prefix="/api/data", tags=["data"])
@@ -59,4 +60,49 @@ async def list_employees(
         )
 
     result = await db.execute(stmt.limit(500))
-    return [EmployeeRead.model_validate(r) for r in result.scalars().all()]
+    employees = [EmployeeRead.model_validate(r) for r in result.scalars().all()]
+
+    # Compute overtime hours for current month per employee
+    today = date.today()
+    first_day = date(today.year, today.month, 1)
+    last_day = date(today.year, today.month, monthrange(today.year, today.month)[1])
+
+    att_stmt = (
+        select(
+            PersonioAttendance.employee_id,
+            PersonioAttendance.start_time,
+            PersonioAttendance.end_time,
+            PersonioAttendance.break_minutes,
+            PersonioEmployee.weekly_working_hours,
+        )
+        .join(PersonioEmployee, PersonioAttendance.employee_id == PersonioEmployee.id)
+        .where(
+            PersonioAttendance.date >= first_day,
+            PersonioAttendance.date <= last_day,
+        )
+    )
+    att_rows = (await db.execute(att_stmt)).all()
+
+    overtime_map: dict[int, float] = {}
+    total_map: dict[int, float] = {}
+    for row in att_rows:
+        if row.start_time is None or row.end_time is None:
+            continue
+        start_min = row.start_time.hour * 60 + row.start_time.minute
+        end_min = row.end_time.hour * 60 + row.end_time.minute
+        worked = (end_min - start_min - (row.break_minutes or 0)) / 60.0
+        if worked <= 0:
+            continue
+        total_map[row.employee_id] = total_map.get(row.employee_id, 0.0) + worked
+        daily_quota = float(row.weekly_working_hours) / 5.0 if row.weekly_working_hours else 8.0
+        ot = max(0.0, worked - daily_quota)
+        overtime_map[row.employee_id] = overtime_map.get(row.employee_id, 0.0) + ot
+
+    for emp in employees:
+        ot = overtime_map.get(emp.id, 0.0)
+        total = total_map.get(emp.id, 0.0)
+        emp.total_hours = round(total, 1)
+        emp.overtime_hours = round(ot, 1)
+        emp.overtime_ratio = round(ot / total, 4) if total > 0 and ot > 0 else None
+
+    return employees

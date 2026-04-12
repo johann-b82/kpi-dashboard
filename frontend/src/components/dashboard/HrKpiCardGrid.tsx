@@ -52,19 +52,21 @@ export function HrKpiCardGrid() {
     kpi: HrKpiValue | undefined,
     label: string,
     formatter: (n: number) => string,
+    subtitle?: string,
   ) {
     if (isLoading) {
-      return <KpiCard label={label} isLoading={true} />;
+      return <KpiCard label={label} subtitle={subtitle} isLoading={true} />;
     }
 
     if (kpi === undefined) {
-      return <KpiCard label={label} value={undefined} isLoading={false} />;
+      return <KpiCard label={label} subtitle={subtitle} value={undefined} isLoading={false} />;
     }
 
     if (!kpi.is_configured) {
       return (
         <KpiCard
           label={label}
+          subtitle={subtitle}
           value={"—"}
           isLoading={false}
           delta={
@@ -82,6 +84,7 @@ export function HrKpiCardGrid() {
     return (
       <KpiCard
         label={label}
+        subtitle={subtitle}
         value={kpi.value !== null ? formatter(kpi.value) : "\u2014"}
         isLoading={false}
         delta={

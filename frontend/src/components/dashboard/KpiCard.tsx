@@ -3,18 +3,13 @@ import { Card } from "@/components/ui/card";
 
 interface KpiCardProps {
   label: string;
+  subtitle?: string;
   value?: string;
   isLoading: boolean;
-  /**
-   * Phase 9 slot. Rendered on the right side of the card, vertically
-   * centered against the value. When undefined or null, the card
-   * renders exactly as v1.1 (no extra DOM, no spacing). KpiCardGrid
-   * in 09-03 populates this with a `<DeltaBadgeStack />` per card.
-   */
   delta?: ReactNode;
 }
 
-export function KpiCard({ label, value, isLoading, delta }: KpiCardProps) {
+export function KpiCard({ label, subtitle, value, isLoading, delta }: KpiCardProps) {
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -28,6 +23,9 @@ export function KpiCard({ label, value, isLoading, delta }: KpiCardProps) {
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
+      {subtitle && (
+        <p className="text-xs text-muted-foreground/70 mt-0.5">{subtitle}</p>
+      )}
       <div className="mt-2 flex items-center justify-between gap-4">
         <p className="text-3xl font-semibold tabular-nums">{value ?? "—"}</p>
         {delta != null && (

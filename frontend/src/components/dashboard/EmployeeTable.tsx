@@ -4,13 +4,17 @@ import { useTranslation } from "react-i18next";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { fetchEmployees } from "@/lib/api";
+import { useSettings } from "@/hooks/useSettings";
 import { useTableState } from "@/hooks/useTableState";
 
 export function EmployeeTable() {
   const { t, i18n } = useTranslation();
+  const { data: settings } = useSettings();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"overtime" | "active" | "all">("overtime");
 
   const { data, isLoading } = useQuery({
     queryKey: ["employees", search],
@@ -26,29 +30,52 @@ export function EmployeeTable() {
     [data]
   );
 
-  const { processed, sortKey, sortDir, toggleSort } =
-    useTableState(rows, { key: "last_name", dir: "asc" });
+  const selectedDepts = settings?.personio_production_dept ?? [];
 
-  const formatDate = (d: string | null) => {
-    if (!d) return "—";
-    return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
-      new Date(d)
-    );
-  };
+  const filtered = useMemo(
+    () => {
+      if (!rows) return rows;
+      let result = rows;
+      // Filter by selected departments from Settings
+      if (selectedDepts.length > 0) {
+        result = result.filter((r) => r.department != null && selectedDepts.includes(r.department));
+      }
+      if (filter === "overtime") return result.filter((r) => r.overtime_hours > 0);
+      if (filter === "active") return result.filter((r) => r.status === "active");
+      return result;
+    },
+    [rows, filter, selectedDepts]
+  );
+
+  const { processed, sortKey, sortDir, toggleSort } =
+    useTableState(filtered, { key: "overtime_hours", dir: "desc" });
 
   const columns = [
     { key: "name", label: t("hr.table.name"), align: "left" as const },
     { key: "department", label: t("hr.table.department"), align: "left" as const },
     { key: "position", label: t("hr.table.position"), align: "left" as const },
     { key: "status", label: t("hr.table.status"), align: "left" as const },
-    { key: "hire_date", label: t("hr.table.hireDate"), align: "left" as const },
     { key: "weekly_working_hours", label: t("hr.table.hours"), align: "right" as const },
+    { key: "total_hours", label: t("hr.table.totalHours"), align: "right" as const },
+    { key: "overtime_hours", label: t("hr.table.overtime"), align: "right" as const },
+    { key: "overtime_ratio", label: t("hr.table.overtimeRatio"), align: "right" as const },
   ];
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xl font-semibold">{t("hr.table.title")}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xl font-semibold">{t("hr.table.title")}</p>
+          <SegmentedControl<"overtime" | "active" | "all">
+            segments={[
+              { value: "overtime", label: t("hr.table.showOvertime") },
+              { value: "active", label: t("hr.table.showActive") },
+              { value: "all", label: t("hr.table.showAll") },
+            ]}
+            value={filter}
+            onChange={setFilter}
+          />
+        </div>
         <div className="relative w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -85,13 +112,13 @@ export function EmployeeTable() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                   {t("hr.table.loading")}
                 </td>
               </tr>
             ) : !processed.length ? (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                   {t("hr.table.empty")}
                 </td>
               </tr>
@@ -112,9 +139,19 @@ export function EmployeeTable() {
                       {row.status ?? "—"}
                     </span>
                   </td>
-                  <td className="px-3 py-2">{formatDate(row.hire_date)}</td>
                   <td className="px-3 py-2 text-right">
                     {row.weekly_working_hours != null ? `${row.weekly_working_hours}h` : "—"}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {row.total_hours > 0 ? `${row.total_hours}h` : "—"}
+                  </td>
+                  <td className={`px-3 py-2 text-right font-medium ${row.overtime_hours > 0 ? "text-destructive" : ""}`}>
+                    {row.overtime_hours > 0 ? `${row.overtime_hours}h` : "—"}
+                  </td>
+                  <td className={`px-3 py-2 text-right font-medium ${row.overtime_ratio != null ? "text-destructive" : ""}`}>
+                    {row.overtime_ratio != null
+                      ? new Intl.NumberFormat(locale, { style: "percent", minimumFractionDigits: 1 }).format(row.overtime_ratio)
+                      : "—"}
                   </td>
                 </tr>
               ))

@@ -280,5 +280,8 @@ class EmployeeRead(BaseModel):
     hire_date: date | None = None
     termination_date: date | None = None
     weekly_working_hours: float | None = None
+    total_hours: float = 0.0
+    overtime_hours: float = 0.0
+    overtime_ratio: float | None = None
 
     model_config = {"from_attributes": True}
