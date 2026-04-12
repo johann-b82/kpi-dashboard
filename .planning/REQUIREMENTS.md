@@ -34,18 +34,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEG-01 | — | Pending |
-| SEG-02 | — | Pending |
-| SEG-03 | — | Pending |
-| SEG-04 | — | Pending |
-| SEG-05 | — | Pending |
-| SEG-06 | — | Pending |
+| SEG-01 | Phase 18 | Pending |
+| SEG-02 | Phase 18 | Pending |
+| SEG-03 | Phase 18 | Pending |
+| SEG-04 | Phase 18 | Pending |
+| SEG-05 | Phase 18 | Pending |
+| SEG-06 | Phase 18 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6
+- Mapped to phases: 6
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-12 after roadmap creation*
