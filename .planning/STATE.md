@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: HR KPI Dashboard & Personio-Integration
-status: planning
-stopped_at: Phase 13 context gathered
-last_updated: "2026-04-12T09:06:59.500Z"
+status: executing
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-04-12T09:28:40.919Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 12 — hr-schema-personio-client
+**Current focus:** Phase 13 — sync-service-settings-extension
 
 ---
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
+Phase: 13 (sync-service-settings-extension) — EXECUTING
+Plan: 2 of 3
 **Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
-**Status:** Ready to plan
+**Status:** Ready to execute
 **Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 ---
 | Phase 12-hr-schema-personio-client P01 | 6min | 2 tasks | 6 files |
 | Phase 12-hr-schema-personio-client P02 | 8min | 1 tasks | 2 files |
+| Phase 13-sync-service-settings-extension P01 | 2m 22s | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 12-hr-schema-personio-client]: DEFAULT_SETTINGS reset comparison uses model_dump(include=_CORE_FIELDS) to exclude Personio Optional fields
 - [Phase 12-hr-schema-personio-client]: PersonioClient token cached in-memory (not DB); proactive refresh at <60s buffer (D-12/D-13)
 - [Phase 12-hr-schema-personio-client]: pytestmark asyncio removed — asyncio_mode=auto in pytest.ini handles async test detection without explicit marks
+- [Phase 13-sync-service-settings-extension]: Adapted _normalize_absence to use actual PersonioAbsence model columns (time_unit + hours) rather than plan template fields (absence_type_name, days_count, status)
+- [Phase 13-sync-service-settings-extension]: Sequential fetches in run_sync() (not asyncio.gather) to maintain FK ordering: employees upserted before attendances and absences
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T09:06:59.498Z
-**Stopped at:** Phase 13 context gathered
-**Resume file:** .planning/phases/13-sync-service-settings-extension/13-CONTEXT.md
+**Last session:** 2026-04-12T09:28:40.917Z
+**Stopped at:** Completed 13-01-PLAN.md
+**Resume file:** None

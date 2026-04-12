@@ -33,10 +33,10 @@ Requirements for HR KPI Dashboard & Personio-Integration milestone. Each maps to
 
 ### Settings Extension
 
-- [ ] **SET-01**: Settings page includes configurable sick leave absence type (auto-discovered dropdown)
-- [ ] **SET-02**: Settings page includes configurable production department name (auto-discovered dropdown)
-- [ ] **SET-03**: Settings page includes configurable skill custom attribute key for KPI #4
-- [ ] **SET-04**: Settings page includes auto-sync interval selector (1h / 6h / 24h / manual-only)
+- [x] **SET-01**: Settings page includes configurable sick leave absence type (auto-discovered dropdown)
+- [x] **SET-02**: Settings page includes configurable production department name (auto-discovered dropdown)
+- [x] **SET-03**: Settings page includes configurable skill custom attribute key for KPI #4
+- [x] **SET-04**: Settings page includes auto-sync interval selector (1h / 6h / 24h / manual-only)
 
 ### Internationalization
 
@@ -94,10 +94,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HRKPI-04 | Phase 15 | Pending |
 | HRKPI-05 | Phase 15 | Pending |
 | HRKPI-06 | Phase 15 | Pending |
-| SET-01 | Phase 13 | Pending |
-| SET-02 | Phase 13 | Pending |
-| SET-03 | Phase 13 | Pending |
-| SET-04 | Phase 13 | Pending |
+| SET-01 | Phase 13 | Complete |
+| SET-02 | Phase 13 | Complete |
+| SET-03 | Phase 13 | Complete |
+| SET-04 | Phase 13 | Complete |
 | I18N-01 | Phase 16 | Pending |
 
 **Coverage:**
