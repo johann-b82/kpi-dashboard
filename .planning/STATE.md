@@ -1,46 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Period-over-Period Deltas
-status: completed
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-12T07:33:33.065Z"
+milestone: v1.3
+milestone_name: HR KPI Dashboard & Personio-Integration
+status: active
+stopped_at: null
+last_updated: "2026-04-12"
 last_activity: 2026-04-12
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: KPI Light
 
-**Last updated:** 2026-04-11
-**Session:** v1.1 Branding & Settings — roadmap created
+**Last updated:** 2026-04-12
+**Session:** v1.3 HR KPI Dashboard & Personio-Integration — milestone started
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-11 after v1.0 milestone shipped)
+See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.3 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 11 — i18n-contextual-labels-and-polish
+**Current focus:** Defining requirements for v1.3
 
 ---
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-**Milestone:** v1.2 Period-over-Period Deltas — IN PROGRESS (Phases 8 + 9 of 11 complete)
-**Next phase:** 10 — Frontend Chart Prior-Period Overlay
-**Status:** v1.2 milestone complete
-**Last activity:** 2026-04-12
-
-Progress: [██████████] 100% (19/19 plans in current scope)
+Phase: Not started (defining requirements)
+Plan: —
+**Milestone:** v1.3 HR KPI Dashboard & Personio-Integration
+**Status:** Defining requirements
+**Last activity:** 2026-04-12 — Milestone v1.3 started
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Dockerized web application for uploading tab-delimited ERP export files (38-column sales data) into PostgreSQL and visualizing revenue KPIs on a bilingual (DE/EN) interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
+A Dockerized web application for uploading tab-delimited ERP export files (38-column sales data) into PostgreSQL and visualizing KPIs on a bilingual (DE/EN) interactive dashboard. Expanding from Sales-only to multi-domain KPI platform with HR metrics sourced from Personio. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
 
 ## Core Value
 
@@ -14,6 +14,24 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity (119 keys), Intl.DateTimeFormat for locale-aware month names.
 **Scope delivered in v1.2:** dual delta badges on all 3 KPI cards (vs. Vorperiode + vs. Vorjahr), ghosted amber prior-period chart overlay, contextual period labels via Intl.DateTimeFormat (month names, quarter tags), full DE/EN i18n parity for all v1.2 strings, persistent locale parity check script, em-dash fallback for no-baseline cases (allTime, thisYear prev-period), live language switch re-renders without refresh.
 **Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
+
+## Current Milestone: v1.3 HR KPI Dashboard & Personio-Integration
+
+**Goal:** Extend the app from a Sales-only dashboard to a multi-domain KPI platform with a new HR tab — 5 KPIs calculated from Personio raw data, configurable auto-sync, and cross-source revenue-per-employee metric.
+
+**Target features:**
+- Rename existing "Dashboard" tab to "Sales", add "HR" tab alongside
+- Personio API integration: fetch raw data (time entries, absences, employee list), store in PostgreSQL
+- 5 HR KPIs calculated from raw data:
+  1. Überstunden im Vergleich Gesamtstunden Belegschaft
+  2. Krankheit im Vergleich Gesamtstunden Belegschaft
+  3. Fluktuation (MA-Abgänge vs. gesamt MA)
+  4. MA Entwicklung (Anzahl MA mit neuer Fertigkeit)
+  5. Produktions-Mitarbeiterumsatz (Auftrags-DB Umsatz / Produktions-MA aus Personio)
+- HR dashboard with KPI cards + delta badges (vs. Vorperiode / vs. Vorjahr), no time filter
+- Manual "Daten aktualisieren" button on HR tab
+- Configurable auto-sync interval in Settings
+- Personio API token configurable in Settings
 
 ## Shipped: v1.2 Period-over-Period Deltas (2026-04-12)
 
@@ -124,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — v1.2 Period-over-Period Deltas milestone complete and archived*
+*Last updated: 2026-04-12 — v1.3 HR KPI Dashboard & Personio-Integration milestone started*
