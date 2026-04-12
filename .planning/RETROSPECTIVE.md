@@ -153,6 +153,50 @@
 
 ---
 
+## Milestone: v1.4 — Navbar & Layout Polish
+
+**Shipped:** 2026-04-12
+**Phases:** 1 (17) | **Plans:** 2 | **Tasks:** 4
+**Scope:** Frontend-only, 6 files changed, ~100 net LOC
+
+### What Was Built
+
+- **DateRangeContext** — shared filter state extracted from DashboardPage, mirroring SettingsDraftContext pattern; consumed by both SubHeader and DashboardPage
+- **NavBar overhaul** — 32px logo (down from 56px), upload tab removed, upload icon (lucide-react) in action area with active state, FreshnessIndicator removed from navbar
+- **SubHeader** — fixed bar below navbar with route-aware freshness (HR sync on /hr, upload on other routes), DateRangeFilter conditionally rendered on Sales tab only
+- **Sync button relocation** — moved from HRPage to PersonioCard in Settings per user feedback during visual checkpoint
+- **Layout spacing** — 32px navbar→sub-header gap, reduced page top padding for tighter sub-header→content spacing
+
+### What Worked
+
+- **Visual checkpoint caught real UX issues** — user iteratively refined: removed border, requested HR-specific freshness, relocated sync button, tuned spacing. 5 fix commits during checkpoint, all user-validated.
+- **Single-phase milestone executed cleanly** — 2 waves, 2 plans, no cross-phase dependencies. Fastest milestone yet.
+- **Context pattern reuse** — DateRangeContext exactly mirrored SettingsDraftContext (same createContext/useContext/Provider shape), making the new file predictable.
+
+### What Was Inefficient
+
+- **Worktree merge conflict** — Plan 01 worktree branch had a merge conflict in NavBar.tsx due to diverged history. Manual resolution needed. **Lesson:** worktree branches should be based on the latest main to minimize merge conflicts.
+- **LAY-01 requirement defined, then user rejected** — the "horizontal separator line" requirement was planned, implemented (border-b), shown to user, then removed. Then shadow-sm was tried and also rejected. Net: 3 commits for a feature that ended up being "no border". **Lesson:** for visual UX requirements, validate mockups before defining requirements.
+
+### Patterns Established
+
+- **Route-aware SubHeader** — `useLocation()` to conditionally render domain-specific content in a shared layout component. Works for freshness indicator routing (HR sync vs upload).
+- **Context-driven filter state** — DateRangeContext enables any component to read/write filter state without prop drilling. SubHeader writes, DashboardPage reads.
+
+### Key Lessons
+
+1. **Visual checkpoints are high-value for layout phases.** The 5 iterative fixes during the Plan 02 checkpoint produced a better result than any pre-planned spec could have.
+2. **Requirements should describe intent, not implementation.** "LAY-01: Horizontal separator line" was too prescriptive — the user's actual intent was visual separation, which ended up being achieved by spacing alone.
+3. **Frontend-only milestones are fast and low-risk.** No backend changes, no migrations, no API contract negotiations. Good candidate for single-session execution.
+
+### Cost Observations
+
+- Model mix: sonnet for executor + verifier, opus for orchestration
+- Sessions: 1 (single session, ~30 min total)
+- Notable: Checkpoint iteration (5 fix commits) used more context than the planned execution. Interactive refinement is token-expensive but produces better UX outcomes.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -162,6 +206,7 @@
 | v1.0 MVP | 1 | 3 | Initial baseline |
 | v1.2 Deltas | 2 | 4 | Backend-first contract, persistent i18n infra |
 | v1.3 HR+Personio | 1 | 5 | Domain-boundary decomposition, encrypted credentials |
+| v1.4 Nav Polish | 1 | 1 | Visual checkpoint iteration, route-aware SubHeader |
 
 ### Cumulative Quality
 
@@ -170,6 +215,7 @@
 | v1.0 MVP | 0 automated | Manual curl + human-UAT | 0 (first milestone) |
 | v1.2 Deltas | verify scripts + integration | Script-based + human 4×2 matrix | 0 (Intl.DateTimeFormat built-in) |
 | v1.3 HR+Personio | parity script + tsc | Automated verification + audit | httpx, APScheduler, cryptography |
+| v1.4 Nav Polish | tsc + visual UAT | Human checkpoint with iterative fixes | 0 (lucide-react already installed) |
 
 ### Top Lessons (Verified Across Milestones)
 
