@@ -131,6 +131,9 @@ class SettingsUpdate(BaseModel):
     color_destructive: OklchColor
     app_name: Annotated[str, Field(min_length=1, max_length=100)]
     default_language: Literal["DE", "EN"]
+    # Personio credentials — Optional; None means "don't change existing value" (D-03)
+    personio_client_id: str | None = None
+    personio_client_secret: str | None = None
 
 
 class SettingsRead(BaseModel):
@@ -146,5 +149,7 @@ class SettingsRead(BaseModel):
     default_language: Literal["DE", "EN"]
     logo_url: str | None
     logo_updated_at: datetime | None
+    # Personio write-only — only expose boolean, never raw credentials (D-03, PERS-01)
+    personio_has_credentials: bool = False
 
     model_config = {"from_attributes": True}

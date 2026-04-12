@@ -16,6 +16,7 @@ from app.database import get_async_db_session
 from app.defaults import DEFAULT_SETTINGS
 from app.models import AppSettings
 from app.schemas import SettingsRead, SettingsUpdate
+from app.security.fernet import encrypt_credential
 from app.security.logo_validation import SvgRejected, sanitize_svg, sniff_mime
 
 router = APIRouter(prefix="/api/settings")
@@ -43,6 +44,10 @@ def _build_read(row: AppSettings) -> SettingsRead:
     if row.logo_data is not None and row.logo_updated_at is not None:
         ts = int(row.logo_updated_at.timestamp())
         logo_url = f"/api/settings/logo?v={ts}"
+    personio_has_credentials = (
+        row.personio_client_id_enc is not None
+        and row.personio_client_secret_enc is not None
+    )
     return SettingsRead(
         color_primary=row.color_primary,
         color_accent=row.color_accent,
@@ -54,6 +59,7 @@ def _build_read(row: AppSettings) -> SettingsRead:
         default_language=row.default_language,
         logo_url=logo_url,
         logo_updated_at=row.logo_updated_at,
+        personio_has_credentials=personio_has_credentials,
     )
 
 
@@ -87,10 +93,18 @@ async def put_settings(
     row.app_name = payload.app_name
     row.default_language = payload.default_language
 
+    # Personio credential guard — None means "don't change" (D-03, Pitfall 3)
+    if payload.personio_client_id is not None:
+        row.personio_client_id_enc = encrypt_credential(payload.personio_client_id)
+    if payload.personio_client_secret is not None:
+        row.personio_client_secret_enc = encrypt_credential(payload.personio_client_secret)
+
     # D-07: if the payload exactly matches canonical defaults, this is a
     # "reset to defaults" — also wipe the logo trio. A non-default PUT
     # (e.g. changing only app_name) preserves the logo.
-    if payload.model_dump() == DEFAULT_SETTINGS:
+    # Compare only the core settings fields (exclude Personio optional fields).
+    _CORE_FIELDS = set(DEFAULT_SETTINGS.keys())
+    if payload.model_dump(include=_CORE_FIELDS) == DEFAULT_SETTINGS:
         row.logo_data = None
         row.logo_mime = None
         row.logo_updated_at = None
