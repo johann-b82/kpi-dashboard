@@ -5,7 +5,7 @@ Decisions:
   D-03: Upsert by Personio ID via INSERT ... ON CONFLICT DO UPDATE.
   D-04: Sync results persisted to personio_sync_meta singleton.
 """
-from datetime import datetime, timezone
+from datetime import date as date_type, datetime, time as time_type, timezone
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -88,41 +88,93 @@ async def run_sync(session: AsyncSession) -> SyncResult:
 # ---------------------------------------------------------------------------
 
 
+def _parse_time(val) -> time_type | None:
+    """Parse a time string like '13:28' into a time object.
+
+    Handles '24:00' (Personio uses it for end-of-day) by clamping to 23:59.
+    """
+    if val is None:
+        return None
+    if isinstance(val, time_type):
+        return val
+    if isinstance(val, str):
+        parts = val.split(":")
+        h, m = int(parts[0]), int(parts[1])
+        if h >= 24:
+            h, m = 23, 59
+        return time_type(h, m)
+    return None
+
+
+def _parse_date(val) -> date_type | None:
+    """Parse a date from various Personio formats (ISO timestamp, date string, or None)."""
+    if val is None:
+        return None
+    if isinstance(val, date_type):
+        return val
+    if isinstance(val, str):
+        return date_type.fromisoformat(val[:10])
+    return None
+
+
+def _attr_val(attrs: dict, key: str):
+    """Extract value from a Personio attribute field.
+
+    Personio wraps every field as {label, value, type, universal_id}.
+    Some fields are flat scalars in certain endpoint responses.
+    """
+    field = attrs.get(key)
+    if isinstance(field, dict) and "value" in field:
+        return field["value"]
+    return field
+
+
 def _normalize_employee(raw: dict) -> dict:
-    """Extract flat fields from nested Personio employee response."""
+    """Extract flat fields from nested Personio employee response.
+
+    Real shape: {type: "Employee", attributes: {id: {value: 123}, first_name: {value: "..."}, department: {value: {type: "Department", attributes: {name: "..."}}}}}
+    """
     attrs = raw.get("attributes", {})
+    dept_val = _attr_val(attrs, "department")
+    if isinstance(dept_val, dict):
+        dept_name = dept_val.get("attributes", {}).get("name")
+    elif isinstance(dept_val, str):
+        dept_name = dept_val
+    else:
+        dept_name = None
     return {
-        "id": raw["id"],
-        "first_name": attrs.get("first_name", {}).get("value"),
-        "last_name": attrs.get("last_name", {}).get("value"),
-        "status": attrs.get("status", {}).get("value"),
-        "department": attrs.get("department", {}).get("value"),
-        "position": attrs.get("position", {}).get("value"),
-        "hire_date": attrs.get("hire_date", {}).get("value"),
-        "termination_date": attrs.get("termination_date", {}).get("value"),
-        "weekly_working_hours": attrs.get("weekly_working_hours", {}).get("value"),
+        "id": _attr_val(attrs, "id") or raw.get("id"),
+        "first_name": _attr_val(attrs, "first_name"),
+        "last_name": _attr_val(attrs, "last_name"),
+        "status": _attr_val(attrs, "status"),
+        "department": dept_name,
+        "position": _attr_val(attrs, "position"),
+        "hire_date": _parse_date(_attr_val(attrs, "hire_date")),
+        "termination_date": _parse_date(_attr_val(attrs, "termination_date")),
+        "weekly_working_hours": _attr_val(attrs, "weekly_working_hours"),
         "synced_at": datetime.now(timezone.utc),
         "raw_json": raw,
     }
 
 
 def _normalize_attendance(raw: dict) -> dict:
-    """Extract flat fields from nested Personio attendance response."""
+    """Extract flat fields from nested Personio attendance response.
+
+    Real shape: {id: 545436417, type: "AttendancePeriod", attributes: {employee: 22933156, date: "2025-03-27", start_time: "13:28", end_time: "13:28", break: 0, is_holiday: false}}
+    Attendance attributes are flat scalars (not wrapped in {value:}).
+    """
     attrs = raw.get("attributes", {})
-    # employee reference can be a nested dict or a direct id field
-    employee_val = attrs.get("employee", {}).get("value")
-    if isinstance(employee_val, dict):
-        employee_id = employee_val.get("id")
-    else:
-        employee_id = attrs.get("employee_id", {}).get("value")
+    employee_id = _attr_val(attrs, "employee")
+    if isinstance(employee_id, dict):
+        employee_id = employee_id.get("attributes", {}).get("id", {}).get("value") or employee_id.get("id")
     return {
-        "id": raw["id"],
+        "id": raw.get("id") or _attr_val(attrs, "id"),
         "employee_id": employee_id,
-        "date": attrs.get("date", {}).get("value"),
-        "start_time": attrs.get("start_time", {}).get("value"),
-        "end_time": attrs.get("end_time", {}).get("value"),
-        "break_minutes": attrs.get("break", {}).get("value", 0),
-        "is_holiday": attrs.get("is_holiday", {}).get("value", False),
+        "date": _parse_date(_attr_val(attrs, "date")),
+        "start_time": _parse_time(_attr_val(attrs, "start_time")),
+        "end_time": _parse_time(_attr_val(attrs, "end_time")),
+        "break_minutes": _attr_val(attrs, "break") or 0,
+        "is_holiday": _attr_val(attrs, "is_holiday") or False,
         "synced_at": datetime.now(timezone.utc),
         "raw_json": raw,
     }
@@ -131,29 +183,51 @@ def _normalize_attendance(raw: dict) -> dict:
 def _normalize_absence(raw: dict) -> dict:
     """Extract flat fields from nested Personio absence response.
 
-    Maps to PersonioAbsence model columns: id, employee_id, absence_type_id,
-    start_date, end_date, time_unit, hours, synced_at, raw_json.
+    Real shape: {type: "AbsencePeriod", attributes: {id: "uuid", measurement_unit: "hour",
+    effective_duration: 300, employee: {type: "Employee", attributes: {id: {value: 123}, ...}},
+    time_off_type: {type: "TimeOffType", attributes: {id: 568239, ...}},
+    start_date: "2025-01-01T...", end_date: "2025-01-02T..."}}
     """
     attrs = raw.get("attributes", {})
-    # employee_id can be a direct int or a nested dict reference
-    employee_id_val = attrs.get("employee_id", {}).get("value")
-    if not isinstance(employee_id_val, int):
-        employee_ref = attrs.get("employee", {}).get("value")
-        employee_id_val = employee_ref.get("id") if isinstance(employee_ref, dict) else None
-    # absence_type_id from type.value.id or type_id.value
-    type_val = attrs.get("type", {}).get("value")
-    if isinstance(type_val, dict):
-        absence_type_id = type_val.get("id")
+
+    # Absence ID — UUID string in attributes
+    absence_id = str(attrs.get("id") or raw.get("id"))
+
+    # Employee ID — nested employee object with deeply wrapped id
+    employee_ref = attrs.get("employee")
+    if isinstance(employee_ref, dict):
+        emp_attrs = employee_ref.get("attributes", {})
+        emp_id_field = emp_attrs.get("id")
+        if isinstance(emp_id_field, dict):
+            employee_id = emp_id_field.get("value")
+        else:
+            employee_id = emp_id_field
+    elif isinstance(employee_ref, int):
+        employee_id = employee_ref
     else:
-        absence_type_id = attrs.get("type_id", {}).get("value")
+        employee_id = _attr_val(attrs, "employee_id")
+
+    # Absence type ID — from absence_type.attributes.time_off_type_id (integer)
+    type_ref = attrs.get("absence_type") or attrs.get("time_off_type") or attrs.get("type")
+    absence_type_id = None
+    if isinstance(type_ref, dict):
+        type_attrs = type_ref.get("attributes", {})
+        absence_type_id = type_attrs.get("time_off_type_id") or type_attrs.get("id")
+        if not isinstance(absence_type_id, int):
+            absence_type_id = None
+
+    # Dates — real API uses "start"/"end" (ISO timestamps), not "start_date"/"end_date"
+    start_raw = attrs.get("start") or _attr_val(attrs, "start_date")
+    end_raw = attrs.get("end") or _attr_val(attrs, "end_date")
+
     return {
-        "id": raw["id"],
-        "employee_id": employee_id_val,
+        "id": absence_id,
+        "employee_id": employee_id,
         "absence_type_id": absence_type_id,
-        "start_date": attrs.get("start_date", {}).get("value"),
-        "end_date": attrs.get("end_date", {}).get("value"),
-        "time_unit": attrs.get("time_unit", {}).get("value") or "days",
-        "hours": attrs.get("hours", {}).get("value"),
+        "start_date": _parse_date(start_raw),
+        "end_date": _parse_date(end_raw),
+        "time_unit": attrs.get("measurement_unit") or _attr_val(attrs, "time_unit") or "days",
+        "hours": attrs.get("effective_duration") or _attr_val(attrs, "hours"),
         "synced_at": datetime.now(timezone.utc),
         "raw_json": raw,
     }
@@ -167,24 +241,29 @@ def _normalize_absence(raw: dict) -> dict:
 async def _upsert(session: AsyncSession, model, rows: list[dict]) -> int:
     """Generic INSERT ... ON CONFLICT DO UPDATE upsert for Personio models.
 
+    Batches in chunks of 500 to stay under asyncpg's 32767 parameter limit.
     Returns the number of rows affected (inserted + updated).
     """
     if not rows:
         return 0
-    stmt = pg_insert(model).values(rows)
-    # All columns except the PK "id"
-    update_cols = {
-        col.name: stmt.excluded[col.name]
-        for col in model.__table__.columns
-        if col.name != "id"
-    }
-    upsert_stmt = stmt.on_conflict_do_update(
-        index_elements=["id"],
-        set_=update_cols,
-    )
-    result = await session.execute(upsert_stmt)
+    total = 0
+    batch_size = 500
+    for i in range(0, len(rows), batch_size):
+        batch = rows[i : i + batch_size]
+        stmt = pg_insert(model).values(batch)
+        update_cols = {
+            col.name: stmt.excluded[col.name]
+            for col in model.__table__.columns
+            if col.name != "id"
+        }
+        upsert_stmt = stmt.on_conflict_do_update(
+            index_elements=["id"],
+            set_=update_cols,
+        )
+        result = await session.execute(upsert_stmt)
+        total += result.rowcount
     await session.commit()
-    return result.rowcount
+    return total
 
 
 async def _update_sync_meta(

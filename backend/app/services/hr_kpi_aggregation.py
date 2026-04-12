@@ -124,9 +124,11 @@ async def _overtime_ratio(
     overtime_hours = 0.0
 
     for row in rows:
+        if row.start_time is None or row.end_time is None:
+            continue
         start_minutes = row.start_time.hour * 60 + row.start_time.minute
         end_minutes = row.end_time.hour * 60 + row.end_time.minute
-        worked = (end_minutes - start_minutes - row.break_minutes) / 60.0
+        worked = (end_minutes - start_minutes - (row.break_minutes or 0)) / 60.0
         if worked <= 0:
             continue
 
@@ -276,7 +278,7 @@ async def _revenue_per_production_employee(
     last_day: date,
     production_dept: str,
 ) -> float | None:
-    """HRKPI-05: total monthly revenue / production dept headcount (D-12, D-13, D-14).
+    """HRKPI-05: total monthly revenue / production dept headcount.
 
     Revenue numerator reuses aggregate_kpi_summary (same SQL as Sales dashboard).
     Denominator is production-department headcount at end of month.

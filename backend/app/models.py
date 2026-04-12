@@ -191,8 +191,8 @@ class PersonioAttendance(Base):
         Integer, ForeignKey("personio_employees.id"), nullable=False
     )
     date: Mapped[date] = mapped_column(Date, nullable=False)
-    start_time: Mapped[time] = mapped_column(Time, nullable=False)
-    end_time: Mapped[time] = mapped_column(Time, nullable=False)
+    start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     break_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_holiday: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -215,11 +215,11 @@ class PersonioAbsence(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
     employee_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("personio_employees.id"), nullable=False
     )
-    absence_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    absence_type_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
     time_unit: Mapped[str] = mapped_column(String(10), nullable=False)

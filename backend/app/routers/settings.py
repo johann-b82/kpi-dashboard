@@ -111,17 +111,26 @@ async def get_personio_options(
         for t in absence_types_raw:
             try:
                 attrs = t.get("attributes", {})
-                name = attrs.get("name", {}).get("value") if isinstance(attrs.get("name"), dict) else attrs.get("name")
-                if t.get("id") is not None and name:
-                    absence_types.append(AbsenceTypeOption(id=t["id"], name=name))
+                type_id = attrs.get("id") if attrs.get("id") is not None else t.get("id")
+                name = attrs.get("name") if isinstance(attrs.get("name"), str) else None
+                if type_id is not None and name:
+                    absence_types.append(AbsenceTypeOption(id=type_id, name=name))
             except (KeyError, TypeError):
-                continue  # Skip malformed entries (Pitfall 7)
+                continue
 
-        departments = sorted({
-            e.get("attributes", {}).get("department", {}).get("value")
-            for e in employees_raw
-            if e.get("attributes", {}).get("department", {}).get("value")
-        })
+        dept_names: set[str] = set()
+        for e in employees_raw:
+            dept = e.get("attributes", {}).get("department", {})
+            val = dept.get("value") if isinstance(dept, dict) else None
+            if isinstance(val, dict):
+                name = val.get("attributes", {}).get("name")
+            elif isinstance(val, str):
+                name = val
+            else:
+                continue
+            if name:
+                dept_names.add(name)
+        departments = sorted(dept_names)
 
         return PersonioOptions(
             absence_types=absence_types,

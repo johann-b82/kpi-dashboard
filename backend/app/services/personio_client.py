@@ -177,8 +177,22 @@ class PersonioClient:
             offset += limit
         return results
 
-    async def fetch_attendances(self) -> list[dict]:
-        """Paginated GET /company/attendances. Returns list of raw attendance dicts."""
+    async def fetch_attendances(
+        self,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> list[dict]:
+        """Paginated GET /company/attendances. Returns list of raw attendance dicts.
+
+        Personio requires start_date and end_date (YYYY-MM-DD). Defaults to a
+        13-month rolling window to cover current + previous month + previous year
+        for KPI delta comparisons.
+        """
+        if not start_date or not end_date:
+            from datetime import date, timedelta
+            today = date.today()
+            end_date = today.isoformat()
+            start_date = (today.replace(day=1) - timedelta(days=395)).isoformat()
         token = await self._get_valid_token()
         headers = {"Authorization": f"Bearer {token}"}
         results: list[dict] = []
@@ -189,7 +203,12 @@ class PersonioClient:
                 resp = await self._http.get(
                     "/company/attendances",
                     headers=headers,
-                    params={"limit": limit, "offset": offset},
+                    params={
+                        "limit": limit,
+                        "offset": offset,
+                        "start_date": start_date,
+                        "end_date": end_date,
+                    },
                 )
             except httpx.TimeoutException as exc:
                 raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
@@ -242,15 +261,16 @@ class PersonioClient:
         return results
 
     async def fetch_absence_types(self) -> list[dict]:
-        """Non-paginated GET /company/absence-types. Returns list of absence type dicts.
+        """Paginated GET /company/time-off-types. Returns list of absence type dicts.
 
-        Single request — typically fewer than 20 items.
+        Uses the correct v1 endpoint path (not /company/absence-types, which
+        returns 404).
         """
         token = await self._get_valid_token()
         headers = {"Authorization": f"Bearer {token}"}
         try:
             resp = await self._http.get(
-                "/company/absence-types",
+                "/company/time-off-types",
                 headers=headers,
             )
         except httpx.TimeoutException as exc:
