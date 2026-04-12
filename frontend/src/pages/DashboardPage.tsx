@@ -9,7 +9,7 @@ export function DashboardPage() {
   const endDate = toApiDate(range.to);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8">
       <KpiCardGrid
         startDate={startDate}
         endDate={endDate}
