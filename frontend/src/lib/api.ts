@@ -329,3 +329,28 @@ export async function triggerSync(): Promise<SyncResult> {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Phase 15 — HR KPIs
+// ---------------------------------------------------------------------------
+
+export interface HrKpiValue {
+  value: number | null;
+  is_configured: boolean;
+  previous_period: number | null;
+  previous_year: number | null;
+}
+
+export interface HrKpiResponse {
+  overtime_ratio: HrKpiValue;
+  sick_leave_ratio: HrKpiValue;
+  fluctuation: HrKpiValue;
+  skill_development: HrKpiValue;
+  revenue_per_production_employee: HrKpiValue;
+}
+
+export async function fetchHrKpis(): Promise<HrKpiResponse> {
+  const res = await fetch("/api/hr/kpis");
+  if (!res.ok) throw new Error("Failed to fetch HR KPIs");
+  return res.json();
+}

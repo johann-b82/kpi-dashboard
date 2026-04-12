@@ -35,3 +35,7 @@ export const kpiKeys = {
 export const syncKeys = {
   meta: () => ["sync", "meta"] as const,
 };
+
+export const hrKpiKeys = {
+  all: () => ["hr", "kpis"] as const,
+};
