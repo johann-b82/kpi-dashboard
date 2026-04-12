@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Segmented Controls
-status: active
-stopped_at: null
-last_updated: "2026-04-12"
-last_activity: 2026-04-12
+status: planning
+stopped_at: Phase 18 context gathered
+last_updated: "2026-04-12T17:39:22.909Z"
+last_activity: 2026-04-12 — Roadmap created for v1.5
 progress:
   total_phases: 1
   completed_phases: 0
@@ -92,6 +92,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12
-**Stopped at:** Roadmap created for v1.5 Segmented Controls
-**Resume file:** None
+**Last session:** 2026-04-12T17:39:22.901Z
+**Stopped at:** Phase 18 context gathered
+**Resume file:** .planning/phases/18-segmented-controls/18-CONTEXT.md
