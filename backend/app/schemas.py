@@ -191,6 +191,7 @@ class AbsenceTypeOption(BaseModel):
 class PersonioOptions(BaseModel):
     absence_types: list[AbsenceTypeOption]
     departments: list[str]
+    skill_attributes: list[str] = []
     error: str | None = None
 
 

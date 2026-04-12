@@ -95,6 +95,7 @@ async def get_personio_options(
         return PersonioOptions(
             absence_types=[],
             departments=[],
+            skill_attributes=[],
             error="Personio-Zugangsdaten nicht konfiguriert",
         )
     try:
@@ -132,15 +133,25 @@ async def get_personio_options(
                 dept_names.add(name)
         departments = sorted(dept_names)
 
+        attr_keys: set[str] = set()
+        for e in employees_raw:
+            attrs = e.get("attributes", {})
+            for key, val in attrs.items():
+                if val is not None and val != "" and val != []:
+                    attr_keys.add(key)
+        skill_attributes = sorted(attr_keys)
+
         return PersonioOptions(
             absence_types=absence_types,
             departments=departments,
+            skill_attributes=skill_attributes,
             error=None,
         )
     except PersonioAPIError as exc:
         return PersonioOptions(
             absence_types=[],
             departments=[],
+            skill_attributes=[],
             error=str(exc),
         )
 
