@@ -56,6 +56,54 @@
 
 ---
 
+## Milestone: v1.2 — Period-over-Period Deltas
+
+**Shipped:** 2026-04-12
+**Phases:** 4 (8–11) | **Plans:** 10 | **Tasks:** 16
+
+### What Was Built
+
+- **Backend dual-baseline aggregation** — `summary` endpoint returns `previous_period` + `previous_year` comparison objects; `chart` endpoint gains `comparison` query param with aligned `previous_series`; SQL interval math (leap-year safe), null-safe for missing windows
+- **Dual delta badges on all 3 KPI cards** — `▲ +12,4 %` (DE) / `▲ +12.4%` (EN) with up/down arrows, semantic colors, em-dash fallback + tooltip for null baselines
+- **Contextual secondary labels** — "vs. März", "vs. Q1", "vs. 2025" driven by filter scope via `formatPrevPeriodLabel` + `formatPrevYearLabel`
+- **Chart prior-period overlay** — amber second series at full opacity alongside blue current, Recharts Legend with contextual labels, null-gap handling
+- **Full DE/EN i18n parity** — 119 keys in both locales, `getLocalizedMonthName` via `Intl.DateTimeFormat` (no new deps), persistent `check-locale-parity.mts` script
+- **Live language switch** — all delta badges, tooltips, chart legend re-render on LanguageToggle without page refresh
+
+### What Worked
+
+- **Phase 8 backend-first approach** — having curl-testable endpoints before any frontend work meant Phase 9/10 executors never had to debug backend issues. Clean contract boundary.
+- **Intl.DateTimeFormat over new dependencies** — zero new packages for locale-aware month names. The year-2000 seed date avoids DST edge cases. Simple, correct, zero-cost.
+- **Persistent locale parity script** — `check-locale-parity.mts` catches key drift immediately. Should have existed since Phase 7 (v1.1 i18n).
+- **Human checkpoint as final phase** — Phase 11-02's 4×2 matrix walkthrough caught no regressions, which validates the automated verification pipeline's thoroughness.
+- **t() injection pattern for periodLabels** — keeping `periodLabels.ts` free of direct i18next imports makes it unit-testable with fake `t()` functions. Clean separation.
+
+### What Was Inefficient
+
+- **REQUIREMENTS.md traceability table went stale** — checkboxes in the requirements section were checked, but the traceability table at the bottom still showed "Not started" for CHART-04..06 and I18N-DELTA-01..02. The CLI's `phase complete` didn't update the table rows for phases that were already marked complete before the CLI ran. **Lesson:** traceability table should be updated at each phase completion, not just at milestone end.
+- **Phase 8 roadmap progress row stayed at "0/3 Not started"** — same stale-progress issue from v1.0. The `roadmap update-plan-progress` tool was called correctly for later phases but Phase 8's row wasn't updated. Still a minor cosmetic issue.
+
+### Patterns Established
+
+- **`getLocalizedMonthName(monthIndex, locale)` with year-2000 seed** — standard pattern for Intl.DateTimeFormat month lookups. Avoids DST/timezone edge cases.
+- **`ChartLabelT` injection** — pure functions accept a `t: (key, opts?) => string` parameter instead of importing i18next directly. Enables fake-t testing.
+- **Persistent locale parity script** — `check-locale-parity.mts` as infrastructure, not a per-phase throwaway.
+- **"vs." as locale-invariant loanword** — German keeps the "vs." prefix in delta labels; no separate translation key needed.
+
+### Key Lessons
+
+1. **Backend-first for data-driven features pays off.** Phase 8's clean API contract made Phases 9–11 straightforward — no "oh the API doesn't return that" surprises.
+2. **Persistent infrastructure scripts > per-phase verify scripts.** `check-locale-parity.mts` will catch regressions in future milestones; per-phase `verify-phase-X.mts` scripts are throwaway. Build more of the former.
+3. **Human walkthrough at milestone end is sufficient when automated verification covers the middle.** Phase 11-02's checkpoint found zero issues — the automated gates in 8–11 were thorough enough.
+
+### Cost Observations
+
+- Model mix: sonnet for all executor + verifier agents, opus for orchestration
+- Sessions: 2 (Phase 8–10 in session 1, Phase 11 + milestone completion in session 2)
+- Notable: Phase 11 was lightweight — 2 plans, 1 autonomous + 1 checkpoint. The i18n polish phase was intentionally small to minimize risk at milestone end.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -63,15 +111,18 @@
 | Milestone | Sessions | Phases | Key Change |
 |-----------|----------|--------|------------|
 | v1.0 MVP | 1 | 3 | Initial baseline |
+| v1.2 Deltas | 2 | 4 | Backend-first contract, persistent i18n infra |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Coverage | Zero-Dep Additions |
 |-----------|-------|----------|-------------------|
 | v1.0 MVP | 0 automated | Manual curl + human-UAT | 0 (first milestone) |
-
-**Note:** v1.0 shipped with no automated test suite — verification was curl-based + human UAT. v1.1 should establish an automated test baseline before adding new features.
+| v1.2 Deltas | verify scripts + integration | Script-based + human 4×2 matrix | 0 (Intl.DateTimeFormat built-in) |
 
 ### Top Lessons (Verified Across Milestones)
 
-*(Will populate as additional milestones complete. Single-milestone lessons live in the v1.0 section above.)*
+1. **Backend-first for data features** — clean API contract before frontend work prevents mid-execution surprises (v1.2 confirmed v1.0 pattern)
+2. **Persistent infra scripts > throwaway verify scripts** — `check-locale-parity.mts` catches regressions across milestones; per-phase scripts are single-use (v1.2)
+3. **Deferred human-UAT rots** — close visual verification same-day or it never gets done (v1.0, still relevant)
+4. **Pre-phase design contracts pay for themselves** — zero mid-execution scope drift when plans are fully specified (v1.0, confirmed in v1.2)

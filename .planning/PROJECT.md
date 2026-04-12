@@ -15,25 +15,9 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Scope delivered in v1.2:** dual delta badges on all 3 KPI cards (vs. Vorperiode + vs. Vorjahr), ghosted amber prior-period chart overlay, contextual period labels via Intl.DateTimeFormat (month names, quarter tags), full DE/EN i18n parity for all v1.2 strings, persistent locale parity check script, em-dash fallback for no-baseline cases (allTime, thisYear prev-period), live language switch re-renders without refresh.
 **Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
 
-## Current Milestone: v1.2 Period-over-Period Deltas
+## Shipped: v1.2 Period-over-Period Deltas (2026-04-12)
 
-**Goal:** Show at-a-glance growth signals on the dashboard — each summary card gains two delta badges (vs. previous period + vs. prior year), and the chart gains a ghosted prior-period overlay.
-
-**Target features:**
-- Backend `summary` + `chart` endpoints return current values plus *two* baselines: same-length window immediately before + calendar-matched prior year. Null-safe.
-- All 3 summary cards (revenue, AOV, orders) render dual delta badges — `▲ +12,4 %` (vs. Vorperiode) and `▲ +8,1 %` (vs. Vorjahr) below the value, colored via existing semantic tokens (green positive, destructive negative, grayscale em-dash for no-baseline).
-- Delta labels are contextual to the selected date range: "vs. März" for "Dieses Jahr", "vs. Q1" for "Dieses Quartal", etc.
-- Chart gains a ghosted (low-opacity) prior-period series — second `Line`/`Bar` layer, legend updates, default baseline is "vs. Vorperiode".
-- Zero-baseline / first-month-of-data / "Gesamter Zeitraum" all show `—` (no bogus ∞% or +100%).
-- Full DE/EN i18n for new strings, informal "du" tone continued.
-
-**Key context:**
-- Extends v1.0 dashboard (Phases 2–3) — existing async aggregation endpoints (`summary`, `chart`, `latest-upload`) expand in-place; not a rewrite.
-- "Gesamter Zeitraum" is a graceful-degradation case: no prior window exists, so deltas render `—`.
-- Two deltas per card adds ~1 vertical line — card layout needs absorb spacing without breaking responsive grid.
-- "vs. Vorjahr" needs ≥12 months of data; fresh installs display `—` until data ages in. Expected, not a bug.
-- Chart overlay is a second data series, not a recolor — TanStack Query response shape changes, Recharts composition updates.
-- Still pre-auth — deltas are global, matching v1.0/v1.1 model.
+At-a-glance growth signals on the dashboard — dual delta badges on every KPI card (vs. Vorperiode + vs. Vorjahr), ghosted amber chart overlay for prior-period comparison, contextual period labels via Intl.DateTimeFormat, full DE/EN i18n parity (119 keys), em-dash fallback for no-baseline cases. Human-verified across 4 presets × 2 languages.
 
 ## Deferred to Later Milestones
 
@@ -57,9 +41,19 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 - ✓ Freshness indicator shows timestamp of latest upload — Phase 3
 - ✓ Auto-refresh after upload via TanStack Query invalidation — Phase 3
 
-### Active (v1.1)
+### Validated in v1.1
 
-_(to be populated by REQUIREMENTS.md during this milestone)_
+- ✓ Settings page with semantic color tokens, logo upload, app name — v1.1
+- ✓ ThemeProvider live-preview + branding persistence across rebuilds — v1.1
+- ✓ NavBar LanguageToggle persists language choice — v1.1
+- ✓ Full DE/EN locale parity in informal "du" tone — v1.1
+
+### Validated in v1.2
+
+- ✓ Summary + chart endpoints return previous_period + previous_year baselines (DELTA-01..05, CHART-01..03) — v1.2
+- ✓ Dual delta badges on all 3 KPI cards with locale-correct formatting (CARD-01..05) — v1.2
+- ✓ Chart prior-period overlay with contextual legend (CHART-04..06) — v1.2
+- ✓ Full DE/EN parity for all v1.2 strings + Intl.DateTimeFormat period labels (I18N-DELTA-01..02) — v1.2
 
 ### Out of Scope
 
@@ -106,6 +100,11 @@ _(to be populated by REQUIREMENTS.md during this milestone)_
 | DASH-02 shipped monthly-only (granularity toggle removed) | User-directed post-verification UX cleanup — chart simplicity valued over granularity control | ⚠️ Revisit (backend still supports daily/weekly/monthly — cheap to re-add) |
 | Recharts over Tremor/Chart.js | SVG-native, React-composable, directly styleable with Tailwind/CSS vars | ✓ Phase 3 |
 | CSV/TXT only for v1.0 (Excel deferred) | openpyxl dependency kept; v1.0 scope focused on ERP tab-delimited export the user actually has | ✓ v1.0 |
+| SQL-computed comparison windows | `previous_period` + `previous_year` via interval math in SQL, not Python — timezone-safe against UTC Postgres | ✓ v1.2 Phase 8 |
+| Dual delta badges (not inline sparklines) | Two compact badges per card — simpler than sparklines, covers the "at-a-glance growth" use case | ✓ v1.2 Phase 9 |
+| Intl.DateTimeFormat over date-fns/luxon | Zero new dependencies for locale-aware month names; `getLocalizedMonthName` with year-2000 seed | ✓ v1.2 Phase 11 |
+| "vs." as locale-invariant loanword | German keeps "vs." prefix (not "ggü.") — matches informal tone, consistent with existing DE strings | ✓ v1.2 Phase 11 |
+| No manual comparison mode toggle | Default driven by filter scope (short→prev-period, year→prev-year); manual toggle deferred to v1.3+ | ✓ v1.2 (deliberate scope cut) |
 
 ## Evolution
 
@@ -125,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 — Phase 11 (i18n Contextual Labels & Polish) complete — v1.2 milestone approved*
+*Last updated: 2026-04-12 — v1.2 Period-over-Period Deltas milestone complete and archived*

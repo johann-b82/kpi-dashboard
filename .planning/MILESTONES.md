@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.2 Period-over-Period Deltas (Shipped: 2026-04-12)
+
+**Phases completed:** 4 phases, 10 plans, 16 tasks
+
+**Key accomplishments:**
+
+- 08-02 (summary endpoint)
+- Found during:
+- `frontend/src/lib/api.ts`
+- Dual-delta KPI card foundation: null-safe computeDelta, preset-aware computePrevBounds, Intl-based formatPrevPeriodLabel/formatPrevYearLabel, to-date getPresetRange migration, and extended KpiSummary / fetchKpiSummary / kpiKeys.summary carrying the Phase 8 prev_period / prev_year contract.
+- Pure, prop-driven DeltaBadge + DeltaBadgeStack + KpiCard.delta slot + 6 EN delta locale keys — zero data coupling, ready for 09-03 dashboard wiring.
+- DashboardPage now owns preset+range, KpiCardGrid wires the full prev-bounds → delta → contextual-label → DeltaBadgeStack pipeline, and the dashboard ships with right-side delta badges + a right-aligned preset bar (no custom range picker, no ZEITRAUM label).
+- `selectComparisonMode`
+- RevenueChart gains a full-opacity amber (#f59e0b) prior-period overlay series alongside a blue (#2563eb) current series, with a Recharts Legend showing contextual labels; preset+range threaded from DashboardPage drives lock-step refetch.
+- DE locale reaches parity with EN at 119 keys; periodLabels.ts gains `getLocalizedMonthName` via Intl.DateTimeFormat + routes all custom/generic period-label branches through the injected t() function, eliminating every hardcoded EN/DE string.
+- v1.2 milestone approved — 4×2 matrix (4 presets × 2 languages) passed with correct delta badges, chart overlay, contextual labels, and em-dash fallbacks
+
+---
+
 ## v1.1 Branding & Settings (Shipped: 2026-04-11)
 
 **Phases completed:** 4 phases (4–7), 19 plans, 30 tasks
