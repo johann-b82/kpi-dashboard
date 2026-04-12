@@ -6,6 +6,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CheckboxList } from "@/components/settings/CheckboxList";
+import type { CheckboxOption } from "@/components/settings/CheckboxList";
 import { fetchPersonioOptions, testPersonioConnection, triggerSync } from "@/lib/api";
 import { syncKeys, hrKpiKeys } from "@/lib/queryKeys";
 import type { DraftFields } from "@/hooks/useSettingsDraft";
@@ -218,76 +220,52 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
           )}
         </div>
 
-        {/* Krankheitstyp (absence type) */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-sick-leave" className="text-sm font-medium">
-            {t("settings.personio.sick_leave_type.label")}
-          </Label>
-          <select
-            id="personio-sick-leave"
-            value={String(draft.personio_sick_leave_type_id ?? "")}
-            disabled={dropdownsDisabled}
-            onChange={(e) =>
-              setField("personio_sick_leave_type_id", e.target.value ? Number(e.target.value) : null)
-            }
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">{t("settings.personio.sick_leave_type.placeholder")}</option>
-            {options?.absence_types.map((at) => (
-              <option key={at.id} value={String(at.id)}>
-                {at.name}
-              </option>
-            ))}
-          </select>
-          {(noCredentialsHint || optionsError) && (
-            <p className="text-xs text-muted-foreground">
-              {noCredentialsHint ?? optionsError}
-            </p>
-          )}
-        </div>
+        {/* Krankheitstyp (absence type) — multi-select checkbox list per UI-01 */}
+        <CheckboxList
+          id="personio-sick-leave"
+          label={t("settings.personio.sick_leave_type.label")}
+          options={(options?.absence_types ?? []).map((at): CheckboxOption => ({
+            value: String(at.id),
+            label: at.name,
+          }))}
+          selected={draft.personio_sick_leave_type_id.map(String)}
+          onChange={(vals) =>
+            setField("personio_sick_leave_type_id", vals.map(Number))
+          }
+          disabled={dropdownsDisabled}
+          loading={hasCredentials && optionsLoading}
+          hint={noCredentialsHint ?? optionsError}
+        />
 
-        {/* Produktions-Abteilung */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-dept" className="text-sm font-medium">
-            {t("settings.personio.production_dept.label")}
-          </Label>
-          <select
-            id="personio-dept"
-            value={draft.personio_production_dept ?? ""}
-            disabled={dropdownsDisabled}
-            onChange={(e) =>
-              setField("personio_production_dept", e.target.value || null)
-            }
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">{t("settings.personio.production_dept.placeholder")}</option>
-            {options?.departments.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
-          {(noCredentialsHint || optionsError) && (
-            <p className="text-xs text-muted-foreground">
-              {noCredentialsHint ?? optionsError}
-            </p>
-          )}
-        </div>
+        {/* Produktions-Abteilung — multi-select checkbox list per UI-01 */}
+        <CheckboxList
+          id="personio-dept"
+          label={t("settings.personio.production_dept.label")}
+          options={(options?.departments ?? []).map((dept): CheckboxOption => ({
+            value: dept,
+            label: dept,
+          }))}
+          selected={draft.personio_production_dept}
+          onChange={(vals) => setField("personio_production_dept", vals)}
+          disabled={dropdownsDisabled}
+          loading={hasCredentials && optionsLoading}
+          hint={noCredentialsHint ?? optionsError}
+        />
 
-        {/* Skill-Attribut-Key */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-skill-key" className="text-sm font-medium">
-            {t("settings.personio.skill_attr_key.label")}
-          </Label>
-          <Input
-            id="personio-skill-key"
-            value={draft.personio_skill_attr_key ?? ""}
-            onChange={(e) =>
-              setField("personio_skill_attr_key", e.target.value || null)
-            }
-            placeholder={t("settings.personio.skill_attr_key.placeholder")}
-          />
-        </div>
+        {/* Skill-Attribut-Key — multi-select checkbox list per UI-01, D-01 */}
+        <CheckboxList
+          id="personio-skill-key"
+          label={t("settings.personio.skill_attr_key.label")}
+          options={(options?.skill_attributes ?? []).map((key): CheckboxOption => ({
+            value: key,
+            label: key,
+          }))}
+          selected={draft.personio_skill_attr_key}
+          onChange={(vals) => setField("personio_skill_attr_key", vals)}
+          disabled={dropdownsDisabled}
+          loading={hasCredentials && optionsLoading}
+          hint={noCredentialsHint ?? optionsError}
+        />
 
       </CardContent>
     </Card>

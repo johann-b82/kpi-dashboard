@@ -11,6 +11,12 @@ export const DEFAULT_SETTINGS: Settings = {
   default_language: "EN",
   logo_url: null,
   logo_updated_at: null,
+  // Phase 13 Personio fields — defaults used for reset-to-defaults
+  personio_has_credentials: false,
+  personio_sync_interval_h: 1,
+  personio_sick_leave_type_id: [],
+  personio_production_dept: [],
+  personio_skill_attr_key: [],
 };
 
 export const THEME_TOKEN_MAP = {
