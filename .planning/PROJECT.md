@@ -16,6 +16,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Audit status:** 13/13 v1.0 + 17/17 v1.1 + v1.2 requirements I18N-DELTA-01/02 satisfied. v1.2 human walkthrough (4 presets × 2 languages) approved.
 **Phase 12 complete (2026-04-12):** HR database schema (4 Personio tables), Fernet credential encryption, Settings API write-only credential storage, async PersonioClient with token caching and exception hierarchy — foundation for Phase 13 sync service.
 **Phase 13 complete (2026-04-12):** Sync service with data-fetch methods (employees, attendances, absences, absence types), APScheduler-based periodic sync, API routes (POST /api/sync, POST /api/sync/test, GET /api/settings/personio-options), frontend PersonioCard with credential inputs, sync interval selector, live-populated dropdowns, and connection test — all Personio configuration UI complete.
+**Phase 14 complete (2026-04-12):** Navigation tabs (Dashboard→Sales rename, HR tab), HR page shell with Personio sync freshness indicator and manual sync trigger, GET /api/sync/meta endpoint, full EN/DE i18n for all new strings — multi-tab navigation ready for HR KPI cards.
 
 ## Current Milestone: v1.3 HR KPI Dashboard & Personio-Integration
 
