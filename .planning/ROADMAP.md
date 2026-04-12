@@ -105,7 +105,7 @@ Requirements: [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
   5. An HR KPI returns `is_configured=false` only when its array field is empty or null; a single-element array produces a KPI value
 **Plans**: 2 plans
 Plans:
-- [ ] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
+- [x] 19-01-PLAN.md — Alembic migration + model + schema + router (arrays)
 - [ ] 19-02-PLAN.md — KPI aggregation IN/OR filters
 
 ### Phase 20: Frontend — Checkbox List UI and i18n
@@ -133,5 +133,5 @@ Plans:
 | 12–16 | v1.3 | 10/10 | Complete | 2026-04-12 |
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
-| 19 | v1.6 | 0/2 | Not started | - |
+| 19 | v1.6 | 1/2 | In Progress|  |
 | 20 | v1.6 | 0/TBD | Not started | - |

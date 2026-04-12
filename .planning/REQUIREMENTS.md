@@ -9,12 +9,12 @@ Requirements for v1.6 Multi-Select HR Criteria. Each maps to roadmap phases.
 
 ### Schema & Migration
 
-- [ ] **MIG-01**: Database migration converts `personio_sick_leave_type_id` (int), `personio_production_dept` (str), and `personio_skill_attr_key` (str) to JSON array columns, preserving existing single values as single-element arrays
+- [x] **MIG-01**: Database migration converts `personio_sick_leave_type_id` (int), `personio_production_dept` (str), and `personio_skill_attr_key` (str) to JSON array columns, preserving existing single values as single-element arrays
 
 ### Backend API
 
-- [ ] **API-01**: Settings GET/PUT endpoints accept and return arrays for all 3 Personio config fields
-- [ ] **API-02**: Personio options endpoint continues to return available absence types, departments, and skill attributes for the checklist UI
+- [x] **API-01**: Settings GET/PUT endpoints accept and return arrays for all 3 Personio config fields
+- [x] **API-02**: Personio options endpoint continues to return available absence types, departments, and skill attributes for the checklist UI
 
 ### HR KPI Aggregation
 
@@ -47,9 +47,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MIG-01 | Phase 19 | Pending |
-| API-01 | Phase 19 | Pending |
-| API-02 | Phase 19 | Pending |
+| MIG-01 | Phase 19 | Complete |
+| API-01 | Phase 19 | Complete |
+| API-02 | Phase 19 | Complete |
 | KPI-01 | Phase 19 | Pending |
 | KPI-02 | Phase 19 | Pending |
 | KPI-03 | Phase 19 | Pending |

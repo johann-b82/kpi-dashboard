@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Select HR Criteria
-status: planning
-stopped_at: Phase 19 context gathered
-last_updated: "2026-04-12T18:33:55.314Z"
-last_activity: 2026-04-12 — Roadmap created (Phases 19–20)
+status: executing
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-04-12T18:50:33.751Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,17 +27,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.6 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 19 — Backend Array Migration, API, and KPI Aggregation
+**Current focus:** Phase 19 — backend-array-migration-api-and-kpi-aggregation
 
 ---
 
 ## Current Position
 
-Phase: 19 (not started)
-Plan: —
+Phase: 19 (backend-array-migration-api-and-kpi-aggregation) — EXECUTING
+Plan: 2 of 2
 **Milestone:** v1.6 Multi-Select HR Criteria
-**Status:** Roadmap ready — awaiting phase planning
-**Last activity:** 2026-04-12 — Roadmap created (Phases 19–20)
+**Status:** Ready to execute
+**Last activity:** 2026-04-12
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 
 ---
+| Phase 19 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase 18]: Generic typing T extends string enforces type-safe value/onChange at each SegmentedControl consumer
 - [Phase 18]: title prop added to SegmentedControl to support disabled tooltip pattern
 - [Phase 18]: navigate destructured from useLocation() for SegmentedControl onChange in NavBar (wouter pattern)
+- [Phase 19]: JSONB chosen for 3 Personio config array columns — consistent with existing raw_json usage; NULL preserved as NULL not [null] in migration CASE expressions; PUT guard stays 'is not None' so [] (clear) is distinct from None (skip)
 
 ### Pending Todos
 
@@ -101,6 +103,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T18:33:55.311Z
-**Stopped at:** Phase 19 context gathered
-**Resume file:** .planning/phases/19-backend-array-migration-api-and-kpi-aggregation/19-CONTEXT.md
+**Last session:** 2026-04-12T18:50:33.749Z
+**Stopped at:** Completed 19-01-PLAN.md
+**Resume file:** None
