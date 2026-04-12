@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { fetchSyncMeta, triggerSync } from "@/lib/api";
-import { syncKeys } from "@/lib/queryKeys";
+import { syncKeys, hrKpiKeys } from "@/lib/queryKeys";
+import { HrKpiCardGrid } from "@/components/dashboard/HrKpiCardGrid";
 
 export function HRPage() {
   const { t, i18n } = useTranslation();
@@ -22,6 +23,7 @@ export function HRPage() {
     mutationFn: triggerSync,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: syncKeys.meta() });
+      queryClient.invalidateQueries({ queryKey: hrKpiKeys.all() });
       setSyncFeedback("success");
       setTimeout(() => setSyncFeedback("idle"), 3000);
     },
@@ -89,8 +91,8 @@ export function HRPage() {
         )}
       </div>
 
-      {/* Placeholder for future KPI cards */}
-      <p className="text-sm text-muted-foreground">{t("hr.placeholder")}</p>
+      {/* HR KPI card grid */}
+      <HrKpiCardGrid />
     </div>
   );
 }
