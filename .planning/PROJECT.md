@@ -8,11 +8,25 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.9 Dark Mode & Contrast
+
+**Goal:** Add dark mode with navbar toggle and optimize contrast across all UI surfaces.
+
+**Target features:**
+- Dark mode theme with proper background, text, card, and border colors
+- Two-way segmented control (Light/Dark) in navbar next to DE/EN toggle
+- System preference detection — defaults to OS setting, user can override
+- User preference persisted in localStorage (same pattern as language)
+- Contrast optimization — verify WCAG AA on all text/background combos
+- Brand accent color stays the same in both modes, only surface colors change
+- Charts (Recharts) and all shadcn/ui components adapt to dark mode
+
 ## Current State
 
-**Shipped:** v1.6 Multi-Select HR Criteria — 2026-04-12
+**Shipped:** v1.8 — 2026-04-12
+**In progress:** v1.9 — Dark Mode & Contrast
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
-**Codebase:** ~10,000 LOC (Python + TypeScript), 7 milestones shipped (v1.0–v1.6).
+**Codebase:** ~10,000 LOC (Python + TypeScript), 8 versions shipped (v1.0–v1.8).
 **Audit status:** All v1.0–v1.6 requirements satisfied.
 
 ## Shipped: v1.6 Multi-Select HR Criteria (2026-04-12)
@@ -182,4 +196,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-12 after v1.6 milestone completed*
+*Last updated: 2026-04-13 after v1.9 milestone started*
