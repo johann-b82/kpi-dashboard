@@ -48,21 +48,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DM-01 | — | Not started |
-| DM-02 | — | Not started |
-| DM-03 | — | Not started |
-| DM-04 | — | Not started |
-| DM-05 | — | Not started |
-| DM-06 | — | Not started |
-| DM-07 | — | Not started |
-| DM-08 | — | Not started |
-| DM-09 | — | Not started |
-| DM-10 | — | Not started |
+| DM-01 | Phase 21 | Not started |
+| DM-02 | Phase 21 | Not started |
+| DM-03 | Phase 21 | Not started |
+| DM-04 | Phase 21 | Not started |
+| DM-05 | Phase 22 | Not started |
+| DM-06 | Phase 22 | Not started |
+| DM-07 | Phase 22 | Not started |
+| DM-08 | Phase 22 | Not started |
+| DM-09 | Phase 23 | Not started |
+| DM-10 | Phase 23 | Not started |
 
 **Coverage:**
 - v1.9 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-13*

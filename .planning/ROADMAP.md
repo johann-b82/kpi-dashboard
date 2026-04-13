@@ -9,6 +9,7 @@
 - ✅ **v1.4 Navbar & Layout Polish** — Phase 17 (shipped 2026-04-12) — [archive](milestones/v1.4-ROADMAP.md)
 - ✅ **v1.5 Segmented Controls** — Phase 18 (shipped 2026-04-12) — [archive](milestones/v1.5-ROADMAP.md)
 - ✅ **v1.6 Multi-Select HR Criteria** — Phases 19–20 (shipped 2026-04-12) — [archive](milestones/v1.6-ROADMAP.md)
+- 🚧 **v1.9 Dark Mode & Contrast** — Phases 21–23 (in progress)
 
 ## Phases
 
@@ -97,6 +98,53 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 
 </details>
 
+### 🚧 v1.9 Dark Mode & Contrast (In Progress)
+
+**Milestone Goal:** Add dark mode with navbar toggle and optimize contrast across all UI surfaces.
+
+- [ ] **Phase 21: Dark Mode Theme Infrastructure** - Wire dark color tokens into ThemeProvider and all components
+- [ ] **Phase 22: Dark Mode Toggle & Preference** - Add navbar Light/Dark control with system preference and localStorage
+- [ ] **Phase 23: Contrast Audit & Fix** - Verify and fix WCAG AA compliance across both modes
+
+## Phase Details
+
+### Phase 21: Dark Mode Theme Infrastructure
+**Goal**: Every UI surface renders correctly in dark mode — dark backgrounds, light text, adapted charts and shadcn components — with brand accent unchanged
+**Depends on**: Phase 20
+**Requirements**: DM-01, DM-02, DM-03, DM-04
+**Success Criteria** (what must be TRUE):
+  1. Toggling to dark mode shows dark backgrounds and light text on all pages (Sales, HR, Settings, Upload)
+  2. All shadcn/ui components (cards, buttons, inputs, dialogs, toasts) render with readable contrast in dark mode
+  3. Recharts charts show dark-mode-appropriate colors for axes, gridlines, tooltips, and legends
+  4. Brand accent color (set in Settings) appears identical in both light and dark mode
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 22: Dark Mode Toggle & Preference
+**Goal**: Users can switch between Light and Dark mode from the navbar, the app remembers their choice, and first-visit defaults to OS preference
+**Depends on**: Phase 21
+**Requirements**: DM-05, DM-06, DM-07, DM-08
+**Success Criteria** (what must be TRUE):
+  1. A Light/Dark segmented control appears in the navbar next to the DE/EN toggle
+  2. Clicking a mode in the toggle immediately switches the entire app to that mode
+  3. On first visit (no stored preference), the app matches the OS dark/light setting
+  4. After choosing a mode, refreshing the browser restores the chosen mode rather than falling back to OS preference
+  5. Toggle labels display correctly in both German and English
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 23: Contrast Audit & Fix
+**Goal**: All text and interactive elements meet WCAG AA contrast in both light and dark mode
+**Depends on**: Phase 22
+**Requirements**: DM-09, DM-10
+**Success Criteria** (what must be TRUE):
+  1. All body text and UI labels pass 4.5:1 contrast ratio against their backgrounds in both modes
+  2. All large text and interactive component labels pass 3:1 contrast ratio in both modes
+  3. Delta badges (positive/negative) remain clearly legible with distinct colors in both modes
+  4. Status badges and colored indicators (sync status, upload status) are legible in both modes
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -108,3 +156,6 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19–20 | v1.6 | 4/4 | Complete | 2026-04-12 |
+| 21 | v1.9 | 0/TBD | Not started | - |
+| 22 | v1.9 | 0/TBD | Not started | - |
+| 23 | v1.9 | 0/TBD | Not started | - |

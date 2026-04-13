@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: planning
-stopped_at: "Milestone v1.9 started — defining requirements"
-last_updated: "2026-04-13T17:30:00.000Z"
+status: ready_to_plan
+stopped_at: "Roadmap created — Phase 21 ready to plan"
+last_updated: "2026-04-13T00:00:00.000Z"
 last_activity: 2026-04-13
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,28 +16,28 @@ progress:
 
 # Project State: KPI Light
 
-**Last updated:** 2026-04-12
-**Session:** v1.6 Multi-Select HR Criteria — roadmap created, ready for planning
+**Last updated:** 2026-04-13
+**Session:** v1.9 Dark Mode & Contrast — roadmap created, Phase 21 ready to plan
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-12 after v1.6 milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 20 — frontend-checkbox-list-ui-and-i18n
+**Current focus:** Phase 21 — dark-mode-theme-infrastructure
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 21 of 23 (Dark Mode Theme Infrastructure)
 Plan: —
 **Milestone:** v1.9 Dark Mode & Contrast
-**Status:** Defining requirements
-**Last activity:** 2026-04-13 — Milestone v1.9 started
+**Status:** Ready to plan
+**Last activity:** 2026-04-13 — Roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -45,53 +45,32 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity (v1.3–v1.5):**
+**Velocity (v1.3–v1.6):**
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
-| 12 P01 | HR schema | 6min | 2 | 6 |
-| 12 P02 | Personio client | 8min | 1 | 2 |
-| 13 P01 | Sync service | 2m 22s | 2 | 5 |
-| 13 P02 | Settings ext | 2min | 2 | 4 |
-| 13 P03 | Frontend sync | 8min | 2 | 4 |
-| 14 P01 | Nav data layer | 5min | 2 | 6 |
-| 14 P02 | Nav components | 10min | 2 | 3 |
-| 15 P01 | HR KPI backend | 3min | 2 | 4 |
-| 15 P02 | HR KPI frontend | 3min | 2 | 6 |
-| 17 P01 | Navbar/layout | 15min | 2 | 4 |
 | 18 P01 | SegmentedControl component | 1min | 1 | 1 |
 | 18 P02 | SegmentedControl consumers | 4min | 2 | 5 |
+| 19 P01 | Array migration + API | 3min | 2 | 4 |
+| 19 P02 | KPI aggregation | 2min | 1 | 1 |
+| 20 P01 | CheckboxList component | 3min | 2 | 6 |
+| 20 P02 | PersonioCard + i18n | 5min | 2 | 4 |
 
 *Updated after each plan completion*
 
 ---
-| Phase 19 P01 | 3min | 2 tasks | 4 files |
-| Phase 19-backend-array-migration-api-and-kpi-aggregation P02 | 2min | 1 tasks | 1 files |
-| Phase 20 P01 | 3min | 2 tasks | 6 files |
-| Phase 20 P02 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Recent decisions affecting current work:
-
-- **v1.6 scope:** Backend + Frontend milestone — convert 3 Personio config fields from single-select to multi-select (JSON arrays in DB, arrays in API, IN-filter KPI aggregation, checkbox list UI)
-- **v1.6 design:** 2 phases (coarse granularity) — Phase 19 covers all backend changes (tightly coupled: migration + API + KPI all need array support), Phase 20 covers frontend UI + i18n
-- **Phase 19 scope:** MIG-01, API-01, API-02, KPI-01, KPI-02, KPI-03, KPI-04 — all backend changes ship together so the DB and API contract is consistent before the frontend is updated
-- **Phase 20 scope:** UI-01, UI-02, UI-03 — PersonioCard checkbox lists, array state persistence, i18n labels
-
-- **v1.5 design:** Single phase (Phase 18) covering all 6 requirements; coarse granularity — all requirements tightly coupled around one component
-- **v1.4 design:** DateRangeContext for shared filter state; route-aware SubHeader freshness; no SubHeader border
-- **v1.3 constraint:** No time filter on HR tab — HR shows current period only
-- [Phase 18]: Generic typing T extends string enforces type-safe value/onChange at each SegmentedControl consumer
-- [Phase 18]: title prop added to SegmentedControl to support disabled tooltip pattern
-- [Phase 18]: navigate destructured from useLocation() for SegmentedControl onChange in NavBar (wouter pattern)
-- [Phase 19]: JSONB chosen for 3 Personio config array columns — consistent with existing raw_json usage; NULL preserved as NULL not [null] in migration CASE expressions; PUT guard stays 'is not None' so [] (clear) is distinct from None (skip)
-- [Phase 19-backend-array-migration-api-and-kpi-aggregation]: or_(*(...)) generator idiom for JSONB multi-key skill development filter — single WHERE clause scales to N keys without N separate .where() chains
-- [Phase 19-backend-array-migration-api-and-kpi-aggregation]: truthiness guard (if x:) replaces is not None — empty list [] from NULL normalization correctly produces is_configured=False per D-06
-- [Phase 20]: skill_attributes extracted from employee raw_json attributes; draftToPutPayload sends arrays directly without guard; shallowEqualDraft uses JSON.stringify for array equality
-- [Phase 20]: Used @base-ui/react/checkbox for Checkbox primitive — consistent with project's existing base-ui primitive pattern
+- **v1.9 scope:** Frontend-only milestone — no backend changes needed
+- **v1.9 design:** 3 phases — Phase 21 (theme tokens + component adaptation), Phase 22 (toggle + preference persistence), Phase 23 (contrast audit)
+- **Phase 21 scope:** DM-01, DM-02, DM-03, DM-04 — theme infrastructure must land before toggle is useful
+- **Phase 22 scope:** DM-05, DM-06, DM-07, DM-08 — reuse SegmentedControl; mirror localStorage pattern from language preference
+- **Phase 23 scope:** DM-09, DM-10 — WCAG AA audit after both modes are functional
+- **Tailwind v4:** Use class strategy for dark mode (add/remove `dark` class on `<html>`) — CSS-first config, no tailwind.config.js
+- **ThemeProvider:** Existing provider already injects CSS variables; extend it to also manage dark class toggle and localStorage key
 
 ### Pending Todos
 
@@ -110,6 +89,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-12T19:30:12.217Z
-**Stopped at:** Completed 20-02-PLAN.md
+**Last session:** 2026-04-13
+**Stopped at:** Roadmap written — ready to plan Phase 21
 **Resume file:** None
