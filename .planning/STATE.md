@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: defining_requirements
-stopped_at: Milestone v1.11 scope confirmed — moving to requirements
-last_updated: "2026-04-14T16:00:00.000Z"
+status: executing
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-04-14T20:35:50.932Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.11 — defining requirements for Outline wiki + Dex OIDC
+**Current focus:** Phase 26 — npm-hostnames
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-14 — Milestone v1.11 started
+Phase: 26 (npm-hostnames) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-04-14
 
 Progress: [          ] 0%
 
@@ -70,6 +70,7 @@ Progress: [          ] 0%
 | Phase 25-page-layout-parity P02 | 2min | 1 tasks | 1 files |
 | Phase 25-page-layout-parity P01 | 1min | 1 tasks | 1 files |
 | Phase 25-page-layout-parity P03 | 30min | 1 tasks | 7 files |
+| Phase 26-npm-hostnames P01 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Progress: [          ] 0%
 - [Phase 25-page-layout-parity]: UAT approved UC-10: all four pages pass container parity, delta label survival DE/EN, no dashboard regressions
 - [Phase 25-page-layout-parity]: embedded prop pattern established: PersonioCard and HrTargetsCard accept embedded=true to render as section subsections instead of standalone Card components
 - [Phase 25-page-layout-parity]: sessionStorage lastDashboard tracking in NavBar: back button navigates to known last dashboard with contextual label (Back to Sales / Back to HR)
+- [Phase 26-npm-hostnames]: Plan 26-01: NPM pinned to jc21/nginx-proxy-manager:2.11.3; single SAN mkcert cert for all *.internal hostnames; frontend healthcheck uses busybox wget --spider (alpine has no curl); depends_on.frontend.service_healthy gates NPM to close the 502 window on cold boot; certs/ gitignored, npm_data+npm_letsencrypt named volumes for persistence
 
 ### Pending Todos
 
@@ -121,6 +123,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T15:42:14.558Z
-**Stopped at:** Completed 25-03-uat-layout-parity-PLAN.md
+**Last session:** 2026-04-14T20:35:40.862Z
+**Stopped at:** Completed 26-01-PLAN.md
 **Resume file:** None
