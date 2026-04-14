@@ -69,7 +69,7 @@ export function SettingsPage() {
   }
   if (isError || !draft) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8">
         <h1 className="text-3xl font-semibold">
           {t("settings.error.heading")}
         </h1>
@@ -149,7 +149,7 @@ export function SettingsPage() {
   ) => setField(field, value);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 pt-4 pb-32">
+    <div className="max-w-7xl mx-auto px-6 pt-4 pb-32 space-y-8">
       {/* pb-32 reserves vertical space so the sticky ActionBar never overlaps the last card */}
       <header className="mb-12">
         <h1 className="text-3xl font-semibold leading-tight">
