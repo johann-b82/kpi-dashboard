@@ -19,11 +19,11 @@
 ### Dex OIDC Identity Provider (DEX)
 
 - [ ] **DEX-01**: Dex (`ghcr.io/dexidp/dex:v2.43.0`) runs as a docker-compose service with SQLite storage on a named volume and is reachable as `https://auth.internal` via NPM
-- [ ] **DEX-02**: Dex exposes a valid OIDC discovery endpoint at `https://auth.internal/dex/.well-known/openid-configuration`, with `issuer` matching the browser-reachable URL exactly
-- [ ] **DEX-03**: Dex is configured with two OIDC clients: `kpi-light` (redirect URI `https://kpi.internal/api/auth/callback`) and `outline` (redirect URI `https://wiki.internal/auth/oidc.callback`)
-- [ ] **DEX-04**: Dex `staticPasswords` block contains at least two seeded users (one admin, one regular); bcrypt hash workflow for adding new users is documented in the repo
-- [ ] **DEX-05**: Access token TTL ≤ 1 hour (bounds the single-logout gap since Dex lacks RP-initiated logout — documented limitation)
-- [ ] **DEX-06**: Dex supports `offline_access` scope so refresh tokens work for both clients
+- [x] **DEX-02**: Dex exposes a valid OIDC discovery endpoint at `https://auth.internal/dex/.well-known/openid-configuration`, with `issuer` matching the browser-reachable URL exactly
+- [x] **DEX-03**: Dex is configured with two OIDC clients: `kpi-light` (redirect URI `https://kpi.internal/api/auth/callback`) and `outline` (redirect URI `https://wiki.internal/auth/oidc.callback`)
+- [x] **DEX-04**: Dex `staticPasswords` block contains at least two seeded users (one admin, one regular); bcrypt hash workflow for adding new users is documented in the repo
+- [x] **DEX-05**: Access token TTL ≤ 1 hour (bounds the single-logout gap since Dex lacks RP-initiated logout — documented limitation)
+- [x] **DEX-06**: Dex supports `offline_access` scope so refresh tokens work for both clients
 
 ### KPI Light OIDC Integration (KPO)
 
@@ -138,11 +138,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | INF-04 | Phase 26 | Complete |
 | INF-05 | Phase 26 | Complete |
 | DEX-01 | Phase 27 | Pending |
-| DEX-02 | Phase 27 | Pending |
-| DEX-03 | Phase 27 | Pending |
-| DEX-04 | Phase 27 | Pending |
-| DEX-05 | Phase 27 | Pending |
-| DEX-06 | Phase 27 | Pending |
+| DEX-02 | Phase 27 | Complete |
+| DEX-03 | Phase 27 | Complete |
+| DEX-04 | Phase 27 | Complete |
+| DEX-05 | Phase 27 | Complete |
+| DEX-06 | Phase 27 | Complete |
 | KPO-01 | Phase 28 | Pending |
 | KPO-02 | Phase 28 | Pending |
 | KPO-03 | Phase 28 | Pending |

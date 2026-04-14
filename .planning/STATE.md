@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: verifying
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-04-14T21:18:13.390Z"
+status: executing
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-04-14T21:55:56.570Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 0
 ---
 
@@ -27,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 26 — npm-hostnames
+**Current focus:** Phase 27 — dex-idp-setup
 
 ---
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 27 (dex-idp-setup) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-14
 
 Progress: [          ] 0%
@@ -73,6 +73,7 @@ Progress: [          ] 0%
 | Phase 26-npm-hostnames P01 | 15min | 2 tasks | 4 files |
 | Phase 26-npm-hostnames P02 | 10min | 2 tasks | 2 files |
 | Phase 26-npm-hostnames P03 | 2min | 2 tasks | 2 files |
+| Phase 27-dex-idp-setup P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,7 @@ Progress: [          ] 0%
 - [Phase 26-npm-hostnames]: Plan 26-02: placeholder wiki.internal/auth.internal proxy hosts forward to api:8000 over http — yields working TLS padlock plus reachable 404, proves end-to-end DNS+TLS+docker-DNS, makes Phases 27/29 a one-field repoint.
 - [Phase 26-npm-hostnames]: Plan 26-02 deviation: busybox wget in alpine resolves 'localhost' to ::1 first; frontend healthcheck switched to 127.0.0.1 (fix eab26c7 scoped to 26-01 where it originated). Loopback-healthcheck rule codified for future alpine-based services.
 - [Phase 26-npm-hostnames]: Plan 26-03: docs/setup.md runbook + README Quickstart landed; preserved existing README content, updated stale :5173/:8000 Quick Start to NPM-edge reality (classed as Rule 2 correctness fix). All 5 INF requirements (01-05) have documented verification paths.
+- [Phase 27-dex-idp-setup]: Plan 27-01: Issuer comment moved above the issuer line (not trailing) to satisfy exact-match verification regex; placeholders for bcrypt hashes, UUIDs, and client secrets intentionally left for plan 27-02 to substitute.
 
 ### Pending Todos
 
@@ -130,6 +132,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T21:14:28.736Z
-**Stopped at:** Completed 26-03-PLAN.md
+**Last session:** 2026-04-14T21:55:56.567Z
+**Stopped at:** Completed 27-01-PLAN.md
 **Resume file:** None
