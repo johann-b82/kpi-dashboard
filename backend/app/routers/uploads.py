@@ -9,8 +9,12 @@ from app.database import get_async_db_session
 from app.models import SalesRecord, UploadBatch
 from app.parsing.erp_parser import parse_erp_file
 from app.schemas import UploadBatchSummary, UploadResponse, ValidationErrorDetail
+from app.security.auth import get_current_user
 
-router = APIRouter(prefix="/api")
+router = APIRouter(
+    prefix="/api",
+    dependencies=[Depends(get_current_user)],
+)
 
 ALLOWED_EXTENSIONS = {".csv", ".txt"}
 

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.models import AppSettings, PersonioSyncMeta
 from app.schemas import SyncMetaRead, SyncResult, SyncTestResult
+from app.security.auth import get_current_user
 from app.security.fernet import decrypt_credential
 from app.services.personio_client import (
     PersonioAPIError,
@@ -19,7 +20,10 @@ from app.services.personio_client import (
     PersonioNetworkError,
 )
 
-router = APIRouter(prefix="/api/sync")
+router = APIRouter(
+    prefix="/api/sync",
+    dependencies=[Depends(get_current_user)],
+)
 
 
 async def _get_credentials(db: AsyncSession) -> tuple[str, str]:

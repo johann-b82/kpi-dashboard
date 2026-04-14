@@ -16,11 +16,15 @@ from app.database import get_async_db_session
 from app.defaults import DEFAULT_SETTINGS
 from app.models import AppSettings
 from app.schemas import AbsenceTypeOption, PersonioOptions, SettingsRead, SettingsUpdate
+from app.security.auth import get_current_user
 from app.security.fernet import decrypt_credential, encrypt_credential
 from app.security.logo_validation import SvgRejected, sanitize_svg, sniff_mime
 from app.services.personio_client import PersonioAPIError, PersonioClient
 
-router = APIRouter(prefix="/api/settings")
+router = APIRouter(
+    prefix="/api/settings",
+    dependencies=[Depends(get_current_user)],
+)
 
 ALLOWED_LOGO_EXTENSIONS = {".png", ".svg"}
 MAX_LOGO_BYTES = 1 * 1024 * 1024  # 1 MB — D-16

@@ -8,8 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.models import PersonioAttendance, PersonioEmployee, SalesRecord
 from app.schemas import EmployeeRead, SalesRecordRead
+from app.security.auth import get_current_user
 
-router = APIRouter(prefix="/api/data", tags=["data"])
+router = APIRouter(
+    prefix="/api/data",
+    tags=["data"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/sales", response_model=list[SalesRecordRead])

@@ -15,11 +15,16 @@ from app.schemas import (
     KpiSummaryComparison,
     LatestUploadResponse,
 )
+from app.security.auth import get_current_user
 from app.services.kpi_aggregation import aggregate_kpi_summary
 
 _TRUNC_MAP: dict[str, str] = {"daily": "day", "weekly": "week", "monthly": "month"}
 
-router = APIRouter(prefix="/api/kpis", tags=["kpis"])
+router = APIRouter(
+    prefix="/api/kpis",
+    tags=["kpis"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=KpiSummary)
