@@ -13,11 +13,16 @@ import { DeltaBadgeStack } from "./DeltaBadgeStack";
 import { computeDelta } from "@/lib/delta";
 import { fetchHrKpis, type HrKpiValue } from "@/lib/api";
 import { hrKpiKeys } from "@/lib/queryKeys";
+import { formatHrDeltaLabels } from "@/lib/periodLabels";
 
 export function HrKpiCardGrid() {
   const { t, i18n } = useTranslation();
   const shortLocale: "de" | "en" = i18n.language === "de" ? "de" : "en";
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
+
+  // Phase 24 follow-up: concrete prior-period labels — anchored at today
+  // since HR has no preset/date-range filter. E.g. "vs. März 2026" + "vs. 2025".
+  const hrDeltaLabels = formatHrDeltaLabels(shortLocale, t);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: hrKpiKeys.all(),
@@ -99,8 +104,8 @@ export function HrKpiCardGrid() {
                 ? computeDelta(kpi.value, kpi.previous_year)
                 : null
             }
-            prevPeriodLabel={t("kpi.delta.prevMonth")}
-            prevYearLabel={t("kpi.delta.prevYear")}
+            prevPeriodLabel={hrDeltaLabels.prevPeriod}
+            prevYearLabel={hrDeltaLabels.prevYear}
             locale={shortLocale}
             noBaselineTooltip={t("hr.kpi.noBaselineTooltip")}
           />

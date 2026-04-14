@@ -18,6 +18,7 @@ import {
 import { kpiKeys } from "@/lib/queryKeys";
 import { computePrevBounds } from "@/lib/prevBounds";
 import { computeDelta } from "@/lib/delta";
+import { formatPrevPeriodDeltaLabels } from "@/lib/periodLabels";
 import type { Preset } from "@/lib/dateUtils";
 
 interface KpiCardGridProps {
@@ -25,15 +26,6 @@ interface KpiCardGridProps {
   endDate?: string;
   preset: Preset | null;
   range: DateRangeValue;
-}
-
-// Phase 24 D-11: granularity -> relative i18n key.
-// Returns null for allTime / custom range — caller hides the badges (D-12).
-function prevPeriodLabelKey(preset: Preset | null): string | null {
-  if (preset === "thisMonth") return "kpi.delta.prevMonth";
-  if (preset === "thisQuarter") return "kpi.delta.prevQuarter";
-  if (preset === "thisYear") return "kpi.delta.prevYear";
-  return null;
 }
 
 export function KpiCardGrid({
@@ -64,11 +56,12 @@ export function KpiCardGrid({
   const formatCount = (n: number) =>
     new Intl.NumberFormat(locale).format(n);
 
-  const labelKey = prevPeriodLabelKey(preset);
-  const prevPeriodLabel = labelKey ? t(labelKey) : null;
-  // Per follow-up decision: keep duplicate "vs. prev. year" row on thisYear preset
-  // (preserves current two-badge behavior — no conditional collapse).
-  const prevYearLabel = labelKey ? t("kpi.delta.prevYear") : null;
+  // Phase 24 follow-up: concrete prior-period labels (e.g. "vs. Februar 2026"
+  // / "vs. Q1 2026" / "vs. 2025") instead of generic "vs. prev. month".
+  // Returns null for allTime / custom range — caller hides the badges.
+  const deltaLabels = formatPrevPeriodDeltaLabels(preset, range, shortLocale, t);
+  const prevPeriodLabel = deltaLabels?.prevPeriod ?? null;
+  const prevYearLabel = deltaLabels?.prevYear ?? null;
 
   const noBaselineTooltip = t("dashboard.delta.noBaselineTooltip");
 
