@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.10 UI Consistency Pass (Shipped: 2026-04-14)
+
+**Phases completed:** 2 phases, 4 plans, 8 tasks
+
+**Key accomplishments:**
+
+- 1. Concrete prior-period labels on bottom row
+- Task 1: Swap outer wrapper to dashboard container and restructure body into two-column grid
+- SettingsPage outer wrappers upgraded from max-w-5xl to max-w-7xl dashboard-parity container with pb-32 ActionBar clearance and space-y-8 vertical rhythm
+- Human UAT approved UC-10 — all four pages pass container parity, delta label survival (DE/EN, month/quarter/year), and zero dashboard regressions; UAT session also produced Settings card consolidation and NavBar contextual back button
+
+---
+
 ## v1.9 Dark Mode & Contrast (Shipped: 2026-04-14)
 
 **Delivered:** Full dark mode across every surface with OS-preference-aware initial theme, localStorage override, and WCAG-AA-targeted contrast via deterministic token fixes.

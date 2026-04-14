@@ -8,21 +8,21 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.10 UI Consistency Pass
+## Current Milestone
 
-**Goal:** Align delta-badge labeling and page layout conventions across Sales, HR, Upload, and Settings so every surface looks and reads the same.
-
-**Target features:**
-- ✅ Unified delta labeling (Phase 24, 2026-04-14) — Sales + HR share `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names (e.g. `vs. April 2025`, `vs. Q2 2025`), DE/EN parity. `periodLabels.ts` delta formatters retired; `formatChartSeriesLabel` retained for RevenueChart. thisYear collapsed to single YTD-vs-YTD row.
-- ✅ Page width parity (Phase 25, 2026-04-14) — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`). `/upload` restructures body into responsive two-column DropZone + UploadHistory grid with full-width ErrorList above. `/settings` keeps `pb-32` for sticky ActionBar. During UAT the operator also requested: merged Appearance card (Identity + Colors), HR card wrapper embedding Personio + Sollwerte as subsections, 6-column logo row (name 2/6, thumb 1/6, dropzone 3/6), contextual back button with sessionStorage-tracked last dashboard, NavBar showing logo + app name together, and `SALES`/`VERTRIEB` uppercase in nav.
+_None — v1.10 shipped. Run `/gsd:new-milestone` to scope v1.11._
 
 ## Current State
 
-**Shipped:** v1.9 — 2026-04-14
-**In progress:** v1.10 — UI Consistency Pass
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
-**Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
-**Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.10 — 2026-04-14 (10 versions, v1.0–v1.10)
+**In progress:** None — awaiting next milestone scope
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity and unified `kpi.delta.*` namespace, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. All four pages (Sales, HR, Upload, Settings) share the `max-w-7xl` container with contextual back-button navigation.
+**Codebase:** ~10,000 LOC (Python + TypeScript), 10 versions shipped (v1.0–v1.10).
+**Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute). v1.10 shipped with both phase verifications passing cleanly (24: 8/8 must-haves, 25: 13/13 must-haves); no formal milestone audit ran.
+
+## Shipped: v1.10 UI Consistency Pass (2026-04-14)
+
+Unified delta labeling + page layout parity across every surface. Sales + HR KPI cards now share `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names (e.g. `vs. April 2025`, `vs. Q2 2025`), DE/EN parity; `periodLabels.ts` delta formatters retired. `/upload` and `/settings` adopt the dashboard `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8` container; `/upload` body restructured to responsive two-column DropZone + UploadHistory grid with full-width ErrorList above; `/settings` keeps `pb-32` for sticky ActionBar. UAT session also produced: merged Appearance card (Identity + Colors), HR card wrapper embedding Personio + Sollwerte as subsections, 6-column logo row, contextual back button with sessionStorage-tracked last dashboard, NavBar co-displaying logo + app name, `SALES`/`VERTRIEB` uppercase.
 
 ## Shipped: v1.9 Dark Mode & Contrast (2026-04-14)
 
