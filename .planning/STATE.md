@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: verifying
+status: planning
 stopped_at: Completed 21-04-PLAN.md (UAT acceptance gate for Phase 21)
-last_updated: "2026-04-14T05:18:32.788Z"
+last_updated: "2026-04-14T05:24:50.543Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 3
@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 
 ## Current Position
 
-Phase: 21 (dark-mode-theme-infrastructure) — EXECUTING
-Plan: 4 of 4
+Phase: 22
+Plan: Not started
 **Milestone:** v1.9 Dark Mode & Contrast
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-04-14
 
 Progress: [░░░░░░░░░░] 0%

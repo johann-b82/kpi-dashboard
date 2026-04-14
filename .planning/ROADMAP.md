@@ -160,6 +160,6 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19–20 | v1.6 | 4/4 | Complete | 2026-04-12 |
-| 21 | v1.9 | 4/4 | Complete   | 2026-04-14 |
+| 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
 | 22 | v1.9 | 0/TBD | Not started | - |
 | 23 | v1.9 | 0/TBD | Not started | - |
