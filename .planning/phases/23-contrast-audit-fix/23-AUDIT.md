@@ -37,8 +37,23 @@
 | `/settings` | (skipped) | (skipped) |
 | **Total**   | (skipped) | (skipped) |
 
+## WebAIM Manual Verification
+
+**Status:** SKIPPED by operator on 2026-04-14.
+
+Neither automated (Plan 23-03 axe) nor manual (Plan 23-04 WebAIM) verification was performed. Phase 23's DM-09/DM-10 acceptance now rests entirely on:
+1. The deterministic token/component fixes in Plans 23-01 and 23-02 (pre-computed to pass from RESEARCH.md).
+2. Grep cleanliness check in Plan 23-05.
+3. Operator's trust-based signoff.
+
+This is a documented **D-12 waiver** — phase ships without automated or manual contrast evidence.
+
+## Residuals to Fix
+
+None enumerated — no verification pass was run. Any residual contrast failures discovered post-v1.9 must be fixed in a future phase.
+
 ## Notes
 
-- Automated audit skipped at operator request; Plan 23-05 must either re-run axe to close D-12 or the phase closes with a documented waiver.
-- Plan 23-04 (manual WebAIM verification + Recharts SVG check) is now the primary evidence for DM-10 badge legibility on this run.
-- Recharts SVG text elements may not be fully covered by axe regardless — Plan 23-04 includes a manual WebAIM pass on chart text.
+- Both automated (Plan 23-03) and manual (Plan 23-04) passes skipped at operator request.
+- Plan 23-05 becomes a code-cleanliness + trust gate rather than a contrast-evidence gate.
+- Pre-computed ratios from RESEARCH.md §9 remain the strongest evidence that Plan 23-01's fixes land correctly.
