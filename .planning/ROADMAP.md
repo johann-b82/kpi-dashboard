@@ -149,7 +149,12 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
   2. All large text and interactive component labels pass 3:1 contrast ratio in both modes
   3. Delta badges (positive/negative) remain clearly legible with distinct colors in both modes
   4. Status badges and colored indicators (sync status, upload status) are legible in both modes
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 23-01-PLAN.md — Pre-confirmed token + badge fixes (success token darken, EmployeeTable, StatusBadge verify) (DM-09, DM-10)
+- [ ] 23-02-PLAN.md — Bootstrap-splash dark-mode fix via IIFE-set CSS variables (DM-09)
+- [ ] 23-03-PLAN.md — Automated axe DevTools audit across 4 routes × 2 modes → 23-AUDIT.md (DM-09, DM-10)
+- [ ] 23-04-PLAN.md — Manual WebAIM verification for badges + Recharts, fix residuals (DM-09, DM-10)
+- [ ] 23-05-PLAN.md — Final grep + UAT acceptance gate (DM-09, DM-10)
 **UI hint**: yes
 
 ## Progress
