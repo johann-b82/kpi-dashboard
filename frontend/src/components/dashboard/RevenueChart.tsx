@@ -15,6 +15,15 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import {
+  axisProps,
+  gridProps,
+  legendWrapperStyle,
+  tooltipCursorProps,
+  tooltipItemStyle,
+  tooltipLabelStyle,
+  tooltipStyle,
+} from "@/lib/chartDefaults";
 import { fetchChartData } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
 import { selectComparisonMode } from "@/lib/chartComparisonMode";
@@ -175,31 +184,27 @@ export function RevenueChart({
               data={rows}
               margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-              />
+              <CartesianGrid {...gridProps} />
               <XAxis
                 dataKey="date"
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
+                {...axisProps}
+                tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={formatXAxis}
               />
               <YAxis
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
+                {...axisProps}
+                tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={(v: number) => formatCurrency(v)}
               />
               <Tooltip
-                contentStyle={{
-                  background: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "6px",
-                }}
+                contentStyle={tooltipStyle}
+                labelStyle={tooltipLabelStyle}
+                itemStyle={tooltipItemStyle}
+                cursor={tooltipCursorProps}
                 labelFormatter={(label) => formatXAxis(String(label))}
                 formatter={(v) => formatCurrency(Number(v))}
               />
-              <Legend />
+              <Legend wrapperStyle={legendWrapperStyle} />
               <Bar
                 dataKey="revenue"
                 fill="var(--color-chart-current)"
@@ -218,31 +223,27 @@ export function RevenueChart({
               data={rows}
               margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-              />
+              <CartesianGrid {...gridProps} />
               <XAxis
                 dataKey="date"
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
+                {...axisProps}
+                tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={formatXAxis}
               />
               <YAxis
-                stroke="var(--color-muted-foreground)"
-                tick={{ fontSize: 12 }}
+                {...axisProps}
+                tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={(v: number) => formatCurrency(v)}
               />
               <Tooltip
-                contentStyle={{
-                  background: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "6px",
-                }}
+                contentStyle={tooltipStyle}
+                labelStyle={tooltipLabelStyle}
+                itemStyle={tooltipItemStyle}
+                cursor={tooltipCursorProps}
                 labelFormatter={(label) => formatXAxis(String(label))}
                 formatter={(v) => formatCurrency(Number(v))}
               />
-              <Legend />
+              <Legend wrapperStyle={legendWrapperStyle} />
               <Area
                 type="monotone"
                 dataKey="revenue"

@@ -16,6 +16,14 @@ import {
 import { Card } from "@/components/ui/card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useSettings } from "@/hooks/useSettings";
+import {
+  axisProps,
+  gridProps,
+  tooltipCursorProps,
+  tooltipItemStyle,
+  tooltipLabelStyle,
+  tooltipStyle,
+} from "@/lib/chartDefaults";
 import { fetchHrKpiHistory } from "@/lib/api";
 
 const CHART_HEIGHT = 220;
@@ -47,26 +55,19 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
     return new Intl.DateTimeFormat(locale, { month: "short" }).format(d);
   };
 
-  const tooltipStyle = {
-    background: "var(--color-popover)",
-    border: "1px solid var(--color-border)",
-    borderRadius: "6px",
-    fontSize: "12px",
-  };
-
   const commonXAxis = (
     <XAxis
       dataKey="month"
-      stroke="var(--color-muted-foreground)"
-      tick={{ fontSize: 11 }}
+      {...axisProps}
+      tick={{ ...axisProps.tick, fontSize: 11 }}
       tickFormatter={formatMonth}
     />
   );
 
   const commonYAxis = (
     <YAxis
-      stroke="var(--color-muted-foreground)"
-      tick={{ fontSize: 11 }}
+      {...axisProps}
+      tick={{ ...axisProps.tick, fontSize: 11 }}
       tickFormatter={(v: number) => formatValue(v)}
       width={60}
     />
@@ -99,11 +100,14 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         {chartType === "area" ? (
           <AreaChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <CartesianGrid {...gridProps} />
             {commonXAxis}
             {commonYAxis}
             <Tooltip
               contentStyle={tooltipStyle}
+              labelStyle={tooltipLabelStyle}
+              itemStyle={tooltipItemStyle}
+              cursor={tooltipCursorProps}
               labelFormatter={formatMonth}
               formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
             />
@@ -120,11 +124,14 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
           </AreaChart>
         ) : (
           <BarChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <CartesianGrid {...gridProps} />
             {commonXAxis}
             {commonYAxis}
             <Tooltip
               contentStyle={tooltipStyle}
+              labelStyle={tooltipLabelStyle}
+              itemStyle={tooltipItemStyle}
+              cursor={tooltipCursorProps}
               labelFormatter={formatMonth}
               formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
             />
