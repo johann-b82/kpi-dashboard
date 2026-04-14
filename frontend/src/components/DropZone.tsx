@@ -82,11 +82,11 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
     "flex flex-col items-center justify-center gap-3 min-h-[160px] rounded-md border-2 border-dashed transition-colors p-6";
 
   if (mutation.isPending) {
-    containerClass += " bg-slate-100 border-slate-300 cursor-not-allowed";
+    containerClass += " bg-muted border-border cursor-not-allowed";
   } else if (isDragActive) {
-    containerClass += " bg-blue-50 border-solid border-blue-600";
+    containerClass += " bg-primary/5 border-solid border-primary";
   } else {
-    containerClass += " bg-slate-100 border-slate-300";
+    containerClass += " bg-muted border-border";
   }
 
   return (
@@ -97,33 +97,32 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
 
           {mutation.isPending ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="text-sm text-slate-500">{t("processing")}</span>
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">{t("processing")}</span>
             </div>
           ) : (
             <>
               <p
-                className={`text-sm font-medium ${isDragActive ? "text-blue-600" : "text-slate-600"}`}
+                className={`text-sm font-medium ${isDragActive ? "text-primary" : "text-muted-foreground"}`}
               >
                 {t("dropzone_prompt")}
               </p>
-              <p className="text-xs text-slate-400">{t("dropzone_or")}</p>
+              <p className="text-xs text-muted-foreground">{t("dropzone_or")}</p>
               <Button
                 type="button"
                 variant="default"
                 size="sm"
                 onClick={open}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {t("browse_button")}
               </Button>
-              <p className="text-xs text-slate-400">{t("accepted_formats")}</p>
+              <p className="text-xs text-muted-foreground">{t("accepted_formats")}</p>
             </>
           )}
         </div>
 
         {rejectedExt && (
-          <p className="px-4 py-2 text-sm text-red-600">
+          <p className="px-4 py-2 text-sm text-destructive">
             {t("invalid_file_type", { ext: rejectedExt })}
           </p>
         )}

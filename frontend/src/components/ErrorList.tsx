@@ -13,8 +13,8 @@ export function ErrorList({ errors }: ErrorListProps) {
   }
 
   return (
-    <div className="border-l-4 border-red-600 pl-4 py-2">
-      <p className="text-sm font-semibold text-red-600 mb-2">
+    <div className="border-l-4 border-destructive pl-4 py-2">
+      <p className="text-sm font-semibold text-destructive mb-2">
         {t("error_heading", { count: errors.length })}
       </p>
       <ul
@@ -22,7 +22,7 @@ export function ErrorList({ errors }: ErrorListProps) {
         aria-label={t("error_heading", { count: errors.length })}
       >
         {errors.map((e, idx) => (
-          <li key={idx} className="text-sm text-slate-700">
+          <li key={idx} className="text-sm text-foreground">
             {e.column
               ? t("error_row_format", { row: e.row, column: e.column, message: e.message })
               : t("error_row_no_col_format", { row: e.row, message: e.message })}

@@ -19,21 +19,21 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 function StatusBadge({ status }: { status: UploadBatchSummary["status"] }) {
   if (status === "success") {
     return (
-      <Badge className="bg-green-600 text-white hover:bg-green-600">
+      <Badge className="bg-[var(--color-success)] text-white hover:bg-[var(--color-success)]">
         {status}
       </Badge>
     );
   }
   if (status === "partial") {
     return (
-      <Badge className="bg-yellow-400 text-slate-900 hover:bg-yellow-400">
+      <Badge className="bg-[var(--color-warning)] text-foreground hover:bg-[var(--color-warning)]">
         {status}
       </Badge>
     );
   }
   // failed
   return (
-    <Badge className="bg-red-600 text-white hover:bg-red-600">
+    <Badge className="bg-destructive text-destructive-foreground hover:bg-destructive">
       {status}
     </Badge>
   );
@@ -56,7 +56,7 @@ export function UploadHistory() {
     },
   });
 
-  const columnHeaderClass = "uppercase text-xs tracking-wider text-slate-500";
+  const columnHeaderClass = "uppercase text-xs tracking-wider text-muted-foreground";
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ export function UploadHistory() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-10 w-full rounded animate-pulse bg-slate-200"
+            className="h-10 w-full rounded animate-pulse bg-muted"
           />
         ))}
       </div>
@@ -74,10 +74,10 @@ export function UploadHistory() {
   if (!uploads || uploads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <p className="text-base font-semibold text-slate-700">
+        <p className="text-base font-semibold text-foreground">
           {t("empty_title")}
         </p>
-        <p className="text-sm text-slate-500">{t("empty_body")}</p>
+        <p className="text-sm text-muted-foreground">{t("empty_body")}</p>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export function UploadHistory() {
           {uploads.map((batch) => (
             <TableRow key={batch.id}>
               <TableCell className="text-sm font-medium">{batch.filename}</TableCell>
-              <TableCell className="text-sm text-slate-500">
+              <TableCell className="text-sm text-muted-foreground">
                 {new Date(batch.uploaded_at).toLocaleString()}
               </TableCell>
               <TableCell className="text-sm">{batch.row_count}</TableCell>
@@ -107,7 +107,7 @@ export function UploadHistory() {
                 <StatusBadge status={batch.status} />
               </TableCell>
               <TableCell
-                className={`text-sm ${batch.error_count === 0 ? "text-slate-400" : "text-slate-700"}`}
+                className={`text-sm ${batch.error_count === 0 ? "text-muted-foreground" : "text-foreground"}`}
               >
                 {batch.error_count}
               </TableCell>
@@ -117,7 +117,7 @@ export function UploadHistory() {
                   size="icon"
                   onClick={() => setSelectedBatch(batch)}
                   aria-label={t("delete_title")}
-                  className="hover:text-red-600 hover:bg-red-50"
+                  className="hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
