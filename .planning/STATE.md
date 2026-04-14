@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: verifying
-stopped_at: "Completed 27-03-runbook-PLAN.md — Phase 27 ready for /gsd:verify-phase"
-last_updated: "2026-04-14T22:24:20.174Z"
+stopped_at: Phase 28 context gathered
+last_updated: "2026-04-14T22:32:26.617Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
@@ -139,6 +139,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T22:20:28.767Z
-**Stopped at:** Completed 27-03-runbook-PLAN.md — Phase 27 ready for /gsd:verify-phase
-**Resume file:** None
+**Last session:** 2026-04-14T22:32:26.600Z
+**Stopped at:** Phase 28 context gathered
+**Resume file:** .planning/phases/28-kpi-light-oidc-integration/28-CONTEXT.md
