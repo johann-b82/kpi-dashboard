@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 28-01-PLAN.md
-last_updated: "2026-04-14T22:59:00.251Z"
+stopped_at: Completed 28-03-PLAN.md
+last_updated: "2026-04-14T23:03:15.046Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 ## Current Position
 
 Phase: 28 (kpi-light-oidc-integration) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -78,6 +78,7 @@ Progress: [          ] 0%
 | Phase 27-dex-idp-setup P03 | 2min | 2 tasks | 2 files |
 | Phase 28-kpi-light-oidc-integration P04 | 7min | 3 tasks | 7 files |
 | Phase 28-kpi-light-oidc-integration P01 | 8min | 3 tasks | 9 files |
+| Phase 28-kpi-light-oidc-integration P03 | 3min | 1 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,7 @@ Progress: [          ] 0%
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-04: Dual flat+nested auth.logout i18n key because i18n.ts runs with keySeparator:false; flat key drives t() lookup, nested object satisfies plan acceptance grep and documents namespace intent
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-04: ProtectedRoute wraps NavBar+SubHeader+main+Switch as single mount inside DateRangeProvider, outside <Switch> per Pitfall 9
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-01: down_revision chained from a1b2c3d4e5f7; DEX_CLIENT_SECRET reads DEX_KPI_SECRET via validation_alias (no env rename); pydantic-settings added to requirements.txt
+- [Phase 28-kpi-light-oidc-integration]: Plan 28-03: Router-level dependencies=[Depends(get_current_user)] guards all six business routers; /health stays on app (not router) and /api/auth/* stays public per D-18; GET /api/sync returns 405 before deps run but POST (real method) returns 401.
 
 ### Pending Todos
 
@@ -144,6 +146,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T22:59:00.248Z
-**Stopped at:** Completed 28-01-PLAN.md
+**Last session:** 2026-04-14T23:03:15.040Z
+**Stopped at:** Completed 28-03-PLAN.md
 **Resume file:** None

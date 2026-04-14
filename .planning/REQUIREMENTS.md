@@ -33,7 +33,7 @@
 - [ ] **KPO-04**: `/api/auth/logout` clears the session cookie and returns a redirect back to `/`
 - [ ] **KPO-05**: `DISABLE_AUTH=true` env var bypasses OIDC entirely and injects a synthetic dev user — startup emits a warning when this flag is active so it's obvious in production logs
 - [x] **KPO-06**: New `app_users` table (SQLAlchemy model + Alembic migration) stores `(id, sub, email, name, created_at, last_seen_at)` upserted on every successful callback keyed by `sub`
-- [ ] **KPO-07**: All existing API routes (`/api/settings`, `/api/uploads`, `/api/kpis`, `/api/hr/*`, `/api/sync`, `/api/data/*`) require authentication via a FastAPI `Depends(get_current_user)` dependency — or return `401` with a clear response
+- [x] **KPO-07**: All existing API routes (`/api/settings`, `/api/uploads`, `/api/kpis`, `/api/hr/*`, `/api/sync`, `/api/data/*`) require authentication via a FastAPI `Depends(get_current_user)` dependency — or return `401` with a clear response
 - [x] **KPO-08**: React frontend has a `useCurrentUser()` TanStack Query hook (`GET /api/auth/me`) and a `<ProtectedRoute>` component that redirects to `/api/auth/login` via `window.location.href` when unauthenticated
 - [x] **KPO-09**: NavBar displays the logged-in user's name (or email if name missing) and a logout button; logout submits a `POST` form to `/api/auth/logout`
 
@@ -149,7 +149,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | KPO-04 | Phase 28 | Pending |
 | KPO-05 | Phase 28 | Pending |
 | KPO-06 | Phase 28 | Complete |
-| KPO-07 | Phase 28 | Pending |
+| KPO-07 | Phase 28 | Complete |
 | KPO-08 | Phase 28 | Complete |
 | KPO-09 | Phase 28 | Complete |
 | WIK-01 | Phase 29 | Pending |
