@@ -124,6 +124,13 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ SEG-05: DE/EN language toggle rendered as segmented control with disabled-when-dirty guard — v1.5
 - ✓ SEG-06: Full DE/EN i18n parity maintained — v1.5
 
+### Validated in v1.9 (in progress)
+
+- ✓ DM-05: Dark mode toggle visible in navbar — Phase 22 (shipped as single sun/moon icon button, deviation from segmented control approved during UAT)
+- ✓ DM-06: OS prefers-color-scheme drives initial theme + live-tracks until first user click — Phase 22
+- ✓ DM-07: localStorage.theme persists user choice across reloads and overrides OS preference — Phase 22
+- ✓ DM-08: DE/EN i18n keys for theme toggle (aria-label Theme/Farbschema) — Phase 22
+
 ### Validated in v1.6
 
 - ✓ MIG-01: Database migration converts 3 Personio config columns to JSON array columns — v1.6
@@ -196,4 +203,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after v1.9 milestone started*
+*Last updated: 2026-04-14 after Phase 22 (dark mode toggle) completion*
