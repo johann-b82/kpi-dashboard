@@ -87,3 +87,17 @@ Result: `0`
 **Unexpected literals:** NONE
 
 All `.tsx` component files outside the documented exceptions use token classes (`text-foreground`, `bg-card`, `var(--color-*)`) exclusively. Codebase is grep-clean.
+
+## Phase Pass
+
+**Signed off:** 2026-04-14
+**Method:** Deterministic token fixes (pre-computed ratios RESEARCH.md §4/§9) + grep cleanliness (Plan 23-05 Task 1) + operator waiver (Plans 23-03/04 skipped)
+
+| Acceptance Criterion (D-12) | Status |
+|-----------------------------|--------|
+| axe reports 0 contrast violations across all routes in both modes | WAIVED — deterministic fix evidence accepted (RESEARCH.md §4/§9 pre-computed ratios) |
+| WebAIM manual verification of badges + Recharts text in both modes | WAIVED — Plans 23-03/04 skipped at operator request |
+| No hardcoded color literals in component files (grep clean except documented exceptions) | PASS — Plan 23-05 Task 1 verification grep returned 0 |
+| Bootstrap-splash respects theme (no white flash in dark mode) | PASS — Plan 23-02 IIFE fix confirmed; CSS variables set before splash style parsed |
+
+Phase 23 closes the v1.9 milestone accessibility loop as a documented D-12 waiver.
