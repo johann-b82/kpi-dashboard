@@ -5,14 +5,19 @@ Decisions:
   D-06: Interval changes take effect immediately via reschedule.
   D-07: manual-only (interval_h == 0) removes the scheduled job.
 """
+import logging
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from sqlalchemy import select
 
+from app.config import settings
 from app.database import AsyncSessionLocal
 from app.models import AppSettings
+from app.services.users import upsert_user
+
+logger = logging.getLogger("app.auth")
 
 scheduler = AsyncIOScheduler()
 SYNC_JOB_ID = "personio_sync"
@@ -40,6 +45,16 @@ async def _run_scheduled_sync() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPI lifespan — starts/stops APScheduler."""
+    if settings.DISABLE_AUTH:
+        # D-15: loud, both to app logger AND stderr so `docker compose logs api | head` catches it.
+        logger.warning(
+            "⚠ DISABLE_AUTH=true — authentication is bypassed. DO NOT use in production."
+        )
+        # D-14: upsert synthetic dev user once at startup so app_users reflects the bypass.
+        async with AsyncSessionLocal() as session:
+            await upsert_user(
+                session, sub="dev-user", email="dev@localhost", name="Dev User"
+            )
     app.state.scheduler = scheduler
     interval_h = await _load_sync_interval()
     if interval_h > 0:
