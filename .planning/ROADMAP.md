@@ -110,6 +110,39 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 
 </details>
 
+### v1.10 UI Consistency Pass (In Progress)
+
+- [ ] **Phase 24: Delta Label Unification** — Consolidate relative delta labels across Sales and HR into a single shared i18n namespace
+- [ ] **Phase 25: Page Layout Parity** — Align `/upload` and `/settings` page containers to match the dashboard layout convention
+
+## Phase Details
+
+### Phase 24: Delta Label Unification
+**Goal**: Both Sales and HR dashboards read delta badges from a single shared `kpi.delta.*` i18n namespace, covering month / quarter / year granularities with full DE/EN parity, and `periodLabels.ts` is simplified or retired.
+**Depends on**: Phase 23
+**Requirements**: UC-01, UC-02, UC-03, UC-04, UC-05
+**Success Criteria** (what must be TRUE):
+  1. Sales KPI card delta badges display `vs. prev. month` / `vs. Vormonat`, `vs. prev. quarter` / `vs. Vorquartal`, and `vs. prev. year` / `vs. Vorjahr` — matching the HR dashboard style exactly
+  2. Quarter granularity delta labels appear correctly on both the Sales and HR dashboards in both DE and EN
+  3. `KpiCardGrid` and `HrKpiCardGrid` both resolve their delta label strings from the same `kpi.delta.*` keys — no duplicate or divergent label logic exists in either component
+  4. `scripts/check-locale-parity.mts` exits with code 0 (no missing keys between `en.json` and `de.json`)
+  5. `frontend/src/lib/periodLabels.ts` contains no unreferenced absolute-period formatters — either the file is deleted or only referenced code remains
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 25: Page Layout Parity
+**Goal**: `/upload` and `/settings` use the same `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8` container as the dashboards, with the `/upload` body restructured for the wider canvas and padding rhythm aligned across all pages.
+**Depends on**: Phase 24
+**Requirements**: UC-06, UC-07, UC-08, UC-09, UC-10
+**Success Criteria** (what must be TRUE):
+  1. `/upload` page outer wrapper uses `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8` — visually indistinguishable container width from the Sales and HR dashboards
+  2. `/settings` page outer wrapper uses `max-w-7xl mx-auto px-6 pt-4 space-y-8 pb-32` — sticky ActionBar clearance preserved and container width matches dashboards
+  3. The `/upload` body layout (DropZone + UploadHistory) uses the wider canvas sensibly — either side-by-side or appropriately max-width-constrained, not stretched to 80rem unstyled
+  4. Padding rhythm (`pt-4 pb-8`) and vertical spacing (`space-y-8`) are consistent across `/`, `/hr`, `/upload`, and `/settings` — no page feels visually tighter or looser than the others
+  5. Human UAT confirms no visual regressions on Sales or HR dashboards, that delta labels read correctly in DE and EN across all three granularities, and that `/upload` and `/settings` feel consistent with the dashboards
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -124,3 +157,5 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 | 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
+| 24 | v1.10 | 0/? | Not started | - |
+| 25 | v1.10 | 0/? | Not started | - |

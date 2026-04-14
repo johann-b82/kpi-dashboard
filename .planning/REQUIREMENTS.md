@@ -50,20 +50,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UC-01 | TBD | Not started |
-| UC-02 | TBD | Not started |
-| UC-03 | TBD | Not started |
-| UC-04 | TBD | Not started |
-| UC-05 | TBD | Not started |
-| UC-06 | TBD | Not started |
-| UC-07 | TBD | Not started |
-| UC-08 | TBD | Not started |
-| UC-09 | TBD | Not started |
-| UC-10 | TBD | Not started |
+| UC-01 | Phase 24 | Not started |
+| UC-02 | Phase 24 | Not started |
+| UC-03 | Phase 24 | Not started |
+| UC-04 | Phase 24 | Not started |
+| UC-05 | Phase 24 | Not started |
+| UC-06 | Phase 25 | Not started |
+| UC-07 | Phase 25 | Not started |
+| UC-08 | Phase 25 | Not started |
+| UC-09 | Phase 25 | Not started |
+| UC-10 | Phase 25 | Not started |
 
 **Coverage:**
 - v1.10 requirements: 10 total
-- Mapped to phases: 0 (pending roadmap creation)
+- Mapped to phases: 10/10 (Phase 24: UC-01..UC-05, Phase 25: UC-06..UC-10)
 
 ---
 *Requirements defined: 2026-04-14*
