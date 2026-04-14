@@ -56,7 +56,7 @@ services:
     # readiness semantics for the Vite dev server (no /health endpoint exists).
     # start_period: 30s covers `npm install` + Vite cold-start on first boot.
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:5173 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
