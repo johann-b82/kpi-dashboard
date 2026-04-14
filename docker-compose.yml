@@ -47,6 +47,46 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    # node:22-alpine ships busybox `wget` but NOT `curl`. wget --spider returns
+    # exit 0 on 2xx/3xx and nonzero on connection failure / 4xx/5xx — correct
+    # readiness semantics for the Vite dev server (no /health endpoint exists).
+    # start_period: 30s covers `npm install` + Vite cold-start on first boot.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5173 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  npm:
+    image: jc21/nginx-proxy-manager:2.11.3
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"  # admin UI (D-09)
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+      # Read-only bind mount so NPM proxy hosts can reference the
+      # mkcert-generated cert+key (D-04). Read-only prevents NPM writing
+      # into the host cert dir.
+      - ./certs:/etc/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:81 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # INF-05: gate NPM on BOTH api and frontend being healthy so we never
+    # serve a 502 window while Vite is still compiling on first boot.
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  npm_data:
+  npm_letsencrypt:
