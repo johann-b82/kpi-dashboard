@@ -164,7 +164,12 @@ export function formatPrevPeriodDeltaLabels(
         quarter: priorQ,
         year: priorQYear,
       }),
-      prevYear: prevYearLabel,
+      // Bottom row for thisQuarter: SAME quarter, PRIOR year (e.g. Q2 2026 → Q2 2025).
+      // Not "vs. {priorYear}" — users want quarter-over-quarter YoY comparability.
+      prevYear: t("kpi.delta.vsQuarter", {
+        quarter: currentQ,
+        year: priorYear,
+      }),
     };
   }
 
