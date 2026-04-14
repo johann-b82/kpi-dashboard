@@ -13,7 +13,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Goal:** Align delta-badge labeling and page layout conventions across Sales, HR, Upload, and Settings so every surface looks and reads the same.
 
 **Target features:**
-- Unified delta labeling — Sales adopts HR's relative style (`vs. prev. month` / `vs. prev. quarter` / `vs. prev. year`); `lib/periodLabels.ts` simplified or retired; both dashboards consume the same i18n keys with full DE/EN parity
+- ✅ Unified delta labeling (Phase 24, 2026-04-14) — Sales + HR share `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names (e.g. `vs. April 2025`, `vs. Q2 2025`), DE/EN parity. `periodLabels.ts` delta formatters retired; `formatChartSeriesLabel` retained for RevenueChart. thisYear collapsed to single YTD-vs-YTD row.
 - Page width parity — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`); `/settings` keeps `pb-32` for sticky ActionBar; `/upload` restructures its body to use the full width
 
 ## Current State
