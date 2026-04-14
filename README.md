@@ -42,6 +42,8 @@ Details: [docs/setup.md](docs/setup.md).
 
 Setup runbook: [docs/setup.md](docs/setup.md). Architecture and planning history live in `.planning/`.
 
+- **Dex IdP**: identity provider at `https://auth.internal/dex`. First-login + add-user workflow → see `docs/setup.md` "Dex first-login".
+
 ---
 
 ## Features
