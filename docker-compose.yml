@@ -95,6 +95,11 @@ services:
   dex:
     image: ghcr.io/dexidp/dex:v2.43.0   # D-20: pinned to GHCR (avoids Docker Hub rate limits)
     restart: unless-stopped              # D-24
+    # Rule 1 fix (27-02 Task 3): image default user is 1001:1001 but the named
+    # volume /data mounts as root-owned — sqlite3 cannot create /data/dex.db.
+    # Internal-tool scope makes root acceptable here; the alternative is a
+    # chown init sidecar. Revisit when the stack hardens.
+    user: root
     command: dex serve /etc/dex/config.yaml
     # D-22: no host port binding — NPM is the edge (Phase 26 D-07 convention).
     # Uncomment for direct curl/debug bypassing NPM. Matches frontend/api hatch.
