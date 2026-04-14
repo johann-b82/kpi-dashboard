@@ -9,10 +9,10 @@ Requirements for v1.9 Dark Mode & Contrast. Each maps to roadmap phases.
 
 ### Dark Mode Theme
 
-- [ ] **DM-01**: App has a dark color scheme with dark backgrounds, light text, and appropriate card/border colors
+- [x] **DM-01**: App has a dark color scheme with dark backgrounds, light text, and appropriate card/border colors
 - [ ] **DM-02**: All shadcn/ui components render correctly in dark mode (cards, buttons, inputs, dialogs, toasts)
-- [ ] **DM-03**: Recharts charts (bar, line, overlay) use dark-mode-appropriate colors for axes, grid, tooltips, and legends
-- [ ] **DM-04**: Brand accent color (from Settings) stays the same in both light and dark mode
+- [x] **DM-03**: Recharts charts (bar, line, overlay) use dark-mode-appropriate colors for axes, grid, tooltips, and legends
+- [x] **DM-04**: Brand accent color (from Settings) stays the same in both light and dark mode
 
 ### Toggle & Preference
 

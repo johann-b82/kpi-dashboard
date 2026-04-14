@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: planning
-stopped_at: Phase 21 context gathered
-last_updated: "2026-04-14T04:27:04.153Z"
-last_activity: 2026-04-13 — Roadmap created
+status: executing
+stopped_at: Completed 21-02-PLAN.md (Recharts token defaults)
+last_updated: "2026-04-14T05:11:25.563Z"
+last_activity: 2026-04-14
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 2
   percent: 0
 ---
 
@@ -33,11 +33,11 @@ See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 
 ## Current Position
 
-Phase: 21 of 23 (Dark Mode Theme Infrastructure)
-Plan: —
+Phase: 21 (dark-mode-theme-infrastructure) — EXECUTING
+Plan: 3 of 4
 **Milestone:** v1.9 Dark Mode & Contrast
-**Status:** Ready to plan
-**Last activity:** 2026-04-13 — Roadmap created
+**Status:** Ready to execute
+**Last activity:** 2026-04-14
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 
 ---
+| Phase 21 P01 | 5min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,10 @@ Progress: [░░░░░░░░░░] 0%
 - **Phase 23 scope:** DM-09, DM-10 — WCAG AA audit after both modes are functional
 - **Tailwind v4:** Use class strategy for dark mode (add/remove `dark` class on `<html>`) — CSS-first config, no tailwind.config.js
 - **ThemeProvider:** Existing provider already injects CSS variables; extend it to also manage dark class toggle and localStorage key
+- [Phase 21]: Surface tokens removed as inline styles in dark mode so .dark CSS block wins; accent tokens always applied inline per DM-04
+- [Phase 21]: MutationObserver on document.documentElement class attribute chosen for external .dark class detection
+- [Phase 21]: chartDefaults.ts uses var(--color-*) form to match existing chart code convention
+- [Phase 21]: axisProps spread with tick override pattern preserves per-component font sizes
 
 ### Pending Todos
 
@@ -89,6 +94,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T04:27:04.144Z
-**Stopped at:** Phase 21 context gathered
-**Resume file:** .planning/phases/21-dark-mode-theme-infrastructure/21-CONTEXT.md
+**Last session:** 2026-04-14T05:11:25.560Z
+**Stopped at:** Completed 21-02-PLAN.md (Recharts token defaults)
+**Resume file:** None
