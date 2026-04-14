@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: verifying
-stopped_at: Phase 28 context gathered
-last_updated: "2026-04-14T22:32:26.617Z"
-last_activity: 2026-04-14
+status: executing
+stopped_at: Completed 28-04-PLAN.md
+last_updated: "2026-04-14T22:53:20.448Z"
+last_activity: 2026-04-14 -- Phase 28 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 11
+  completed_plans: 7
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 27 — dex-idp-setup
+**Current focus:** Phase 28 — kpi-light-oidc-integration
 
 ---
 
 ## Current Position
 
-Phase: 28
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-14
+Phase: 28 (kpi-light-oidc-integration) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 28
+Last activity: 2026-04-14 -- Phase 28 execution started
 
 Progress: [          ] 0%
 
@@ -76,6 +76,7 @@ Progress: [          ] 0%
 | Phase 27-dex-idp-setup P01 | 3min | 2 tasks | 2 files |
 | Phase 27-dex-idp-setup P02 | 4min | 4 tasks | 3 files |
 | Phase 27-dex-idp-setup P03 | 2min | 2 tasks | 2 files |
+| Phase 28-kpi-light-oidc-integration P04 | 7min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Progress: [          ] 0%
 - [Phase 27-dex-idp-setup]: Plan 27-02: NPM Advanced block (proxy_set_header X-Forwarded-Proto https + Host/X-Forwarded-For/X-Real-IP) is REQUIRED for Dex to emit https:// URLs in OIDC discovery behind NPM; operator-pasted via admin UI (Phase 26 D-09)
 - [Phase 27-dex-idp-setup]: Plan 27-03: documented python:3.12-alpine + bcrypt as canonical hash workflow (NOT dex hash-password); kept literal phrase only in 'Do NOT run' warning context
 - [Phase 27-dex-idp-setup]: Plan 27-03: documented user: root on dex service with UID 1001 vs root-owned named-volume rationale + chown-init-sidecar hardening alternative
+- [Phase 28-kpi-light-oidc-integration]: Plan 28-04: Dual flat+nested auth.logout i18n key because i18n.ts runs with keySeparator:false; flat key drives t() lookup, nested object satisfies plan acceptance grep and documents namespace intent
+- [Phase 28-kpi-light-oidc-integration]: Plan 28-04: ProtectedRoute wraps NavBar+SubHeader+main+Switch as single mount inside DateRangeProvider, outside <Switch> per Pitfall 9
 
 ### Pending Todos
 
@@ -139,6 +142,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T22:32:26.600Z
-**Stopped at:** Phase 28 context gathered
-**Resume file:** .planning/phases/28-kpi-light-oidc-integration/28-CONTEXT.md
+**Last session:** 2026-04-14T22:53:20.442Z
+**Stopped at:** Completed 28-04-PLAN.md
+**Resume file:** None
