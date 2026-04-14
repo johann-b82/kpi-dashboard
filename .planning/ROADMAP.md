@@ -183,7 +183,7 @@ Plans:
   6. The `app_users` table in the database is upserted on each successful Dex callback — sub, email, name, and last_seen_at are current
 **Plans**: 5 plans
 Plans:
-- [ ] 28-01-PLAN.md — Backend auth foundation: config, SessionMiddleware, authlib OIDC client, app_users model + Alembic migration, upsert service, get_current_user dep (KPO-01, KPO-06)
+- [x] 28-01-PLAN.md — Backend auth foundation: config, SessionMiddleware, authlib OIDC client, app_users model + Alembic migration, upsert service, get_current_user dep (KPO-01, KPO-06)
 - [ ] 28-02-PLAN.md — /api/auth/{login,callback,me,logout} router + DISABLE_AUTH startup warning + dev-user upsert (KPO-02, KPO-03, KPO-04, KPO-05)
 - [ ] 28-03-PLAN.md — Guard six business routers with Depends(get_current_user) (KPO-07)
 - [x] 28-04-PLAN.md — Frontend: useCurrentUser hook, AuthSplash, ProtectedRoute wrap, NavBar user+logout, i18n (KPO-08, KPO-09)
@@ -252,7 +252,7 @@ Plans:
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
-| 28 | v1.11 | 1/5 | In Progress|  |
+| 28 | v1.11 | 2/5 | In Progress|  |
 | 29 | v1.11 | 0/? | Not started | - |
 | 30 | v1.11 | 0/? | Not started | - |
 | 31 | v1.11 | 0/? | Not started | - |

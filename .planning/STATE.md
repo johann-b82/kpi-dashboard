@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 28-04-PLAN.md
-last_updated: "2026-04-14T22:53:20.448Z"
-last_activity: 2026-04-14 -- Phase 28 execution started
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-04-14T22:59:00.251Z"
+last_activity: 2026-04-14
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -34,9 +34,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 ## Current Position
 
 Phase: 28 (kpi-light-oidc-integration) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 28
-Last activity: 2026-04-14 -- Phase 28 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-14
 
 Progress: [          ] 0%
 
@@ -77,6 +77,7 @@ Progress: [          ] 0%
 | Phase 27-dex-idp-setup P02 | 4min | 4 tasks | 3 files |
 | Phase 27-dex-idp-setup P03 | 2min | 2 tasks | 2 files |
 | Phase 28-kpi-light-oidc-integration P04 | 7min | 3 tasks | 7 files |
+| Phase 28-kpi-light-oidc-integration P01 | 8min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ Progress: [          ] 0%
 - [Phase 27-dex-idp-setup]: Plan 27-03: documented user: root on dex service with UID 1001 vs root-owned named-volume rationale + chown-init-sidecar hardening alternative
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-04: Dual flat+nested auth.logout i18n key because i18n.ts runs with keySeparator:false; flat key drives t() lookup, nested object satisfies plan acceptance grep and documents namespace intent
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-04: ProtectedRoute wraps NavBar+SubHeader+main+Switch as single mount inside DateRangeProvider, outside <Switch> per Pitfall 9
+- [Phase 28-kpi-light-oidc-integration]: Plan 28-01: down_revision chained from a1b2c3d4e5f7; DEX_CLIENT_SECRET reads DEX_KPI_SECRET via validation_alias (no env rename); pydantic-settings added to requirements.txt
 
 ### Pending Todos
 
@@ -142,6 +144,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T22:53:20.442Z
-**Stopped at:** Completed 28-04-PLAN.md
+**Last session:** 2026-04-14T22:59:00.248Z
+**Stopped at:** Completed 28-01-PLAN.md
 **Resume file:** None

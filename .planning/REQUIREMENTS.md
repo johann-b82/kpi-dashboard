@@ -27,12 +27,12 @@
 
 ### KPI Light OIDC Integration (KPO)
 
-- [ ] **KPO-01**: FastAPI backend uses `authlib >= 1.6.0` to register Dex as an OIDC provider via `server_metadata_url`
+- [x] **KPO-01**: FastAPI backend uses `authlib >= 1.6.0` to register Dex as an OIDC provider via `server_metadata_url`
 - [ ] **KPO-02**: `/api/auth/login` redirects to Dex; `/api/auth/callback` completes the authorization code + PKCE flow and sets an `httpOnly; SameSite=Lax; Secure` session cookie containing only `{sub, email, name}` (no raw tokens)
 - [ ] **KPO-03**: `/api/auth/me` returns `{sub, email, name}` for the authenticated user or `401` if unauthenticated
 - [ ] **KPO-04**: `/api/auth/logout` clears the session cookie and returns a redirect back to `/`
 - [ ] **KPO-05**: `DISABLE_AUTH=true` env var bypasses OIDC entirely and injects a synthetic dev user — startup emits a warning when this flag is active so it's obvious in production logs
-- [ ] **KPO-06**: New `app_users` table (SQLAlchemy model + Alembic migration) stores `(id, sub, email, name, created_at, last_seen_at)` upserted on every successful callback keyed by `sub`
+- [x] **KPO-06**: New `app_users` table (SQLAlchemy model + Alembic migration) stores `(id, sub, email, name, created_at, last_seen_at)` upserted on every successful callback keyed by `sub`
 - [ ] **KPO-07**: All existing API routes (`/api/settings`, `/api/uploads`, `/api/kpis`, `/api/hr/*`, `/api/sync`, `/api/data/*`) require authentication via a FastAPI `Depends(get_current_user)` dependency — or return `401` with a clear response
 - [x] **KPO-08**: React frontend has a `useCurrentUser()` TanStack Query hook (`GET /api/auth/me`) and a `<ProtectedRoute>` component that redirects to `/api/auth/login` via `window.location.href` when unauthenticated
 - [x] **KPO-09**: NavBar displays the logged-in user's name (or email if name missing) and a logout button; logout submits a `POST` form to `/api/auth/logout`
@@ -143,12 +143,12 @@ Explicitly excluded. Documented to prevent scope creep.
 | DEX-04 | Phase 27 | Complete |
 | DEX-05 | Phase 27 | Complete |
 | DEX-06 | Phase 27 | Complete |
-| KPO-01 | Phase 28 | Pending |
+| KPO-01 | Phase 28 | Complete |
 | KPO-02 | Phase 28 | Pending |
 | KPO-03 | Phase 28 | Pending |
 | KPO-04 | Phase 28 | Pending |
 | KPO-05 | Phase 28 | Pending |
-| KPO-06 | Phase 28 | Pending |
+| KPO-06 | Phase 28 | Complete |
 | KPO-07 | Phase 28 | Pending |
 | KPO-08 | Phase 28 | Complete |
 | KPO-09 | Phase 28 | Complete |
