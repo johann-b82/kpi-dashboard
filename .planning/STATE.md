@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: planning
-stopped_at: Completed 21-04-PLAN.md (UAT acceptance gate for Phase 21)
-last_updated: "2026-04-14T05:24:50.543Z"
+status: executing
+stopped_at: Completed 22-01-PLAN.md (pre-hydration script + i18n keys)
+last_updated: "2026-04-14T07:36:33.583Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 21 — dark-mode-theme-infrastructure
+**Current focus:** Phase 22 — dark-mode-toggle-preference
 
 ---
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
+Phase: 22 (dark-mode-toggle-preference) — EXECUTING
+Plan: 2 of 3
 **Milestone:** v1.9 Dark Mode & Contrast
-**Status:** Ready to plan
+**Status:** Ready to execute
 **Last activity:** 2026-04-14
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 21 P01 | 5min | 1 tasks | 1 files |
 | Phase 21 P03 | 4min | 2 tasks | 5 files |
 | Phase 21 P04 | 0 | 1 tasks | 0 files |
+| Phase 22-dark-mode-toggle-preference P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 21]: axisProps spread with tick override pattern preserves per-component font sizes
 - [Phase 21]: SalesTable.tsx build errors are pre-existing (out of scope for plan 03) — deferred to future plan
 - [Phase 21]: UAT confirmed: all UI surfaces render correctly in dark mode; DM-04 and D-09 invariance checks passed; audit greps clean — Phase 21 complete
+- [Phase 22-dark-mode-toggle-preference]: Pre-hydration inline IIFE in <head> before <style> eliminates FOUT; try/catch handles sandboxed localStorage
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T05:18:32.785Z
-**Stopped at:** Completed 21-04-PLAN.md (UAT acceptance gate for Phase 21)
+**Last session:** 2026-04-14T07:36:28.611Z
+**Stopped at:** Completed 22-01-PLAN.md (pre-hydration script + i18n keys)
 **Resume file:** None
