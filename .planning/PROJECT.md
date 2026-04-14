@@ -8,10 +8,18 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.10 UI Consistency Pass
+
+**Goal:** Align delta-badge labeling and page layout conventions across Sales, HR, Upload, and Settings so every surface looks and reads the same.
+
+**Target features:**
+- Unified delta labeling — Sales adopts HR's relative style (`vs. prev. month` / `vs. prev. quarter` / `vs. prev. year`); `lib/periodLabels.ts` simplified or retired; both dashboards consume the same i18n keys with full DE/EN parity
+- Page width parity — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`); `/settings` keeps `pb-32` for sticky ActionBar; `/upload` restructures its body to use the full width
+
 ## Current State
 
 **Shipped:** v1.9 — 2026-04-14
-**In progress:** Next milestone TBD
+**In progress:** v1.10 — UI Consistency Pass
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
@@ -206,4 +214,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after v1.9 milestone completion*
+*Last updated: 2026-04-14 — v1.10 UI Consistency Pass milestone started*
