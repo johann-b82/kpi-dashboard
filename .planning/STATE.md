@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: executing
-stopped_at: Completed 23-04-manual-verify-and-fix-residuals-PLAN.md
-last_updated: "2026-04-14T12:00:00.000Z"
+status: complete
+stopped_at: Completed 23-05-final-verification-uat-PLAN.md
+last_updated: "2026-04-14T13:00:00.000Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 10
-  percent: 0
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State: KPI Light
 
-**Last updated:** 2026-04-13
-**Session:** v1.9 Dark Mode & Contrast — roadmap created, Phase 21 ready to plan
+**Last updated:** 2026-04-14
+**Session:** v1.9 Dark Mode & Contrast — Phase 23 complete, milestone closed
 
 ---
 
@@ -27,19 +27,19 @@ See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 23 — contrast-audit-fix
+**Current focus:** v1.9 milestone complete — Phase 23 closed with D-12 waiver signoff
 
 ---
 
 ## Current Position
 
-Phase: 23 (contrast-audit-fix) — EXECUTING
-Plan: 5 of 5
-**Milestone:** v1.9 Dark Mode & Contrast
-**Status:** Ready to execute
+Phase: 23 (contrast-audit-fix) — COMPLETE
+Plan: 5 of 5 (all plans complete)
+**Milestone:** v1.9 Dark Mode & Contrast — COMPLETE
+**Status:** Milestone closed
 **Last activity:** 2026-04-14
 
-Progress: [█████████░] 80%
+Progress: [██████████] 100%
 
 ---
 
@@ -93,6 +93,7 @@ Progress: [█████████░] 80%
 - [Phase 23-contrast-audit-fix]: EmployeeTable active badge: text-foreground per D-06 (same-color-on-tinted-self cannot pass 4.5:1 at any shade)
 - [Phase 23-contrast-audit-fix P03]: axe DevTools run skipped by operator on 2026-04-14 — recorded waiver in 23-AUDIT.md; D-12 automated-tool criterion deferred to Plan 23-05 re-run or final waiver; Plan 23-04 is now primary DM-10 evidence
 - [Phase 23-contrast-audit-fix P04]: Both WebAIM manual verification (Task 1) and residual-fix pass (Task 2) waived by operator on 2026-04-14 — D-12 acceptance rests on deterministic fixes (Plans 23-01/02) + operator trust; phase proceeds to Plan 23-05 (code-cleanliness gate)
+- [Phase 23-contrast-audit-fix P05]: Grep-clean gate passed (0 unexpected hex literals); Phase Pass section appended to 23-AUDIT.md with D-12 waiver — two criteria PASS (grep clean, splash IIFE), two WAIVED (axe, WebAIM); Phase 23 and v1.9 milestone closed
 
 ### Pending Todos
 

@@ -104,7 +104,7 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 
 - [x] **Phase 21: Dark Mode Theme Infrastructure** - Wire dark color tokens into ThemeProvider and all components (completed 2026-04-14)
 - [x] **Phase 22: Dark Mode Toggle & Preference** - Add navbar Light/Dark control with system preference and localStorage (completed 2026-04-14)
-- [ ] **Phase 23: Contrast Audit & Fix** - Verify and fix WCAG AA compliance across both modes
+- [x] **Phase 23: Contrast Audit & Fix** - Verify and fix WCAG AA compliance across both modes (completed 2026-04-14)
 
 ## Phase Details
 
@@ -170,4 +170,4 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 | 19–20 | v1.6 | 4/4 | Complete | 2026-04-12 |
 | 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
-| 23 | v1.9 | 4/5 | In Progress|  |
+| 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
