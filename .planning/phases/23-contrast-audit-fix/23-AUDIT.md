@@ -57,3 +57,33 @@ None enumerated — no verification pass was run. Any residual contrast failures
 - Both automated (Plan 23-03) and manual (Plan 23-04) passes skipped at operator request.
 - Plan 23-05 becomes a code-cleanliness + trust gate rather than a contrast-evidence gate.
 - Pre-computed ratios from RESEARCH.md §9 remain the strongest evidence that Plan 23-01's fixes land correctly.
+
+## Final Grep
+
+**Run date:** 2026-04-14
+**Commands:**
+```
+grep -rEn "#[0-9a-fA-F]{3,8}|rgb\(|hsl\(|text-white|bg-white|text-black|bg-black" frontend/src --include="*.tsx" --include="*.ts" --include="*.css"
+grep -rEn "#[0-9a-fA-F]{3,8}" frontend/index.html
+```
+
+**Verification (unexpected hex literals in .tsx/.ts outside color.ts and ColorPicker.tsx):**
+```
+grep -rEn "#[0-9a-fA-F]{6}" frontend/src --include="*.tsx" --include="*.ts" | grep -vE "(color\.ts|ColorPicker\.tsx)" | wc -l
+```
+Result: `0`
+
+**Acceptable exceptions:**
+
+| File | Line | Literal | Reason |
+|------|------|---------|--------|
+| `frontend/src/lib/color.ts` | 26, 30, 32 | `#000000` | Functional fallback in color parser — not a UI color |
+| `frontend/src/components/ui/dialog.tsx` | 32 | `bg-black/10` | Decorative scrim (shadcn-generated) — not a text contrast element |
+| `frontend/src/components/settings/ColorPicker.tsx` | 75 | `#0066FF` | HTML placeholder attribute on hex input — not rendered as color |
+| `frontend/src/index.css` | 9–14 | `#2563eb`, `#dc2626`, `#15803d`, `#facc15` | Token definitions in `@theme` block — the canonical source, not hardcoded UI usage |
+| `frontend/src/components/UploadHistory.tsx` | 22 | `text-white` | On darkened success token `#15803d`; white-on-#15803d = 5.02:1 (WCAG AA PASS) — intentional |
+| `frontend/index.html` | 26–27 | `#1a1a1a`, `#94a3b8`, `#ffffff`, `#64748b` | IIFE splash literals read by theme script; CSS var fallbacks in style block — intended per Plan 23-02 |
+
+**Unexpected literals:** NONE
+
+All `.tsx` component files outside the documented exceptions use token classes (`text-foreground`, `bg-card`, `var(--color-*)`) exclusively. Codebase is grep-clean.
