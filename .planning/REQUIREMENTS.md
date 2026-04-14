@@ -23,7 +23,7 @@ Requirements for v1.9 Dark Mode & Contrast. Each maps to roadmap phases.
 
 ### Contrast
 
-- [ ] **DM-09**: All text/background combinations meet WCAG AA contrast ratio (4.5:1 for normal text, 3:1 for large text)
+- [x] **DM-09**: All text/background combinations meet WCAG AA contrast ratio (4.5:1 for normal text, 3:1 for large text)
 - [ ] **DM-10**: Delta badges, status badges, and colored indicators remain legible in both modes
 
 ## Future Requirements
