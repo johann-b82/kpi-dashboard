@@ -142,8 +142,8 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
   4. Padding rhythm (`pt-4 pb-8`) and vertical spacing (`space-y-8`) are consistent across `/`, `/hr`, `/upload`, and `/settings` — no page feels visually tighter or looser than the others
   5. Human UAT confirms no visual regressions on Sales or HR dashboards, that delta labels read correctly in DE and EN across all three granularities, and that `/upload` and `/settings` feel consistent with the dashboards
 **Plans**: 3 plans
-- [ ] 25-01-upload-container-and-grid-PLAN.md — Swap /upload to dashboard container token and restructure DropZone + UploadHistory into responsive two-column grid
-- [ ] 25-02-settings-container-PLAN.md — Swap /settings main and error-state wrappers to max-w-7xl container, preserve pb-32 ActionBar clearance and max-w-md input constraints
+- [x] 25-01-upload-container-and-grid-PLAN.md — Swap /upload to dashboard container token and restructure DropZone + UploadHistory into responsive two-column grid
+- [x] 25-02-settings-container-PLAN.md — Swap /settings main and error-state wrappers to max-w-7xl container, preserve pb-32 ActionBar clearance and max-w-md input constraints
 - [ ] 25-03-uat-layout-parity-PLAN.md — Human UAT across all four pages in DE/EN, wide/narrow viewports, to signoff UC-10
 **UI hint**: yes
 
@@ -162,4 +162,4 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete    | 2026-04-14 |
-| 25 | v1.10 | 0/3 | Not started | - |
+| 25 | v1.10 | 2/3 | In Progress|  |
