@@ -151,7 +151,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             <p
               className={
                 testResult.success
-                  ? "text-sm text-green-600 dark:text-green-400"
+                  ? "text-sm text-[var(--color-success)]"
                   : "text-sm text-destructive"
               }
             >
@@ -205,7 +205,7 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
               </>
             ) : syncFeedback === "success" ? (
               <>
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
                 {t("hr.sync.success")}
               </>
             ) : (

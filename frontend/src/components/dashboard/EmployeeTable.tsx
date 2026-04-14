@@ -132,8 +132,8 @@ export function EmployeeTable() {
                     <span
                       className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                         row.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-[var(--color-success)]/20 text-[var(--color-success)]"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {row.status ?? "—"}
