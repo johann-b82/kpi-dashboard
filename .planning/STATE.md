@@ -4,7 +4,7 @@ milestone: v1.9
 milestone_name: Dark Mode & Contrast
 status: executing
 stopped_at: Completed 23-02-bootstrap-splash-dark-mode-PLAN.md
-last_updated: "2026-04-14T10:46:38.978Z"
+last_updated: "2026-04-14T10:46:45.215Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 3
@@ -39,7 +39,7 @@ Plan: 3 of 5
 **Status:** Ready to execute
 **Last activity:** 2026-04-14
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 75%
 
 ---
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 22-dark-mode-toggle-preference P02 | 1min | 2 tasks | 2 files |
 | Phase 22-dark-mode-toggle-preference P03 | 3min | 2 tasks | 0 files |
 | Phase 23-contrast-audit-fix P02 | 2min | 1 tasks | 1 files |
+| Phase 23-contrast-audit-fix P01 | 40s | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 22-dark-mode-toggle-preference]: ThemeToggle self-manages state (no context); matchMedia listener gated by localStorage presence so localStorage wins permanently after first click (D-07); toggle mutates only .dark class, ThemeProvider MutationObserver (Phase 21) handles token re-application unchanged (D-13)
 - [Phase 22-dark-mode-toggle-preference]: UAT approved: ThemeToggle redesigned from SegmentedControl to single Moon/Sun icon button during UAT (commit 40dc4ab); LanguageToggle bundled as UX follow-up (commits 517ac26, 5f8d4a6); DM-05 functional intent preserved though literal 'highlighted segment' sub-check retired
 - [Phase 23-contrast-audit-fix]: Extend existing IIFE (not add a new one) to set --splash-bg and --splash-dot on documentElement before splash <style> is parsed — single source of truth for theme resolution
+- [Phase 23-contrast-audit-fix]: --color-success token darkened to #15803d (green-700) — same hue, one shade darker, mode-invariant, white-on-color 5.02:1 PASS
+- [Phase 23-contrast-audit-fix]: EmployeeTable active badge: text-foreground per D-06 (same-color-on-tinted-self cannot pass 4.5:1 at any shade)
 
 ### Pending Todos
 
