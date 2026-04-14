@@ -89,8 +89,35 @@ services:
         condition: service_healthy
       frontend:
         condition: service_healthy
+      dex:
+        condition: service_healthy
+
+  dex:
+    image: ghcr.io/dexidp/dex:v2.43.0   # D-20: pinned to GHCR (avoids Docker Hub rate limits)
+    restart: unless-stopped              # D-24
+    command: dex serve /etc/dex/config.yaml
+    # D-22: no host port binding — NPM is the edge (Phase 26 D-07 convention).
+    # Uncomment for direct curl/debug bypassing NPM. Matches frontend/api hatch.
+    # ports:
+    #   - "5556:5556"
+    volumes:
+      - ./dex/config.yaml:/etc/dex/config.yaml:ro   # D-17: read-only bind mount
+      - dex_data:/data                              # D-18: SQLite persistence
+    environment:
+      DEX_KPI_SECRET: "${DEX_KPI_SECRET}"           # D-13: $VAR substitution into config.yaml
+      DEX_OUTLINE_SECRET: "${DEX_OUTLINE_SECRET}"
+    healthcheck:
+      # 127.0.0.1 not localhost — busybox IPv6 (D-21, Phase 26 commit eab26c7).
+      # Path is /dex/healthz (not /healthz) because issuer is path-prefixed (D-01).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5556/dex/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # D-23: no depends_on (SQLite is in-container; no DB or Redis dependency)
 
 volumes:
   postgres_data:
   npm_data:
   npm_letsencrypt:
+  dex_data:
