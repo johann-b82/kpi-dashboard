@@ -435,3 +435,95 @@ docker compose up -d dex
 - **No RP-initiated logout.** Dex does not expose an `end_session_endpoint` (upstream issue [dexidp/dex#1697](https://github.com/dexidp/dex/issues/1697)). Per-app logout works — the app clears its own cookie. Cross-app SSO-wide logout does not exist. Mitigation: the 1h ID-token TTL (D-07) bounds how long an unused session can linger.
 - **Config reload requires restart.** There is no file-watcher; every change to `dex/config.yaml` needs `docker compose restart dex`. Restart is <2 s and safe.
 - **`userID` is permanent.** Never regenerate the `userID:` UUID for an existing user. It is the OIDC `sub` claim that downstream apps (KPI Light in Phase 28, Outline in Phase 29) store in their own user tables; rotating it orphans every stored reference (Pitfall 4).
+
+---
+
+## Phase 28 — KPI Light login via Dex
+
+This section adds one-time setup and the day-2 verification steps for KPI Light's OIDC integration. It assumes Phases 26 (NPM + hostnames) and 27 (Dex) are already verified.
+
+### One-time: generate SESSION_SECRET
+
+KPI Light signs its session cookie (`kpi_session`) with a secret defined in `.env`:
+
+```bash
+# Generate a real 64-hex-char value:
+openssl rand -hex 32
+
+# (Alternative if openssl is unavailable:)
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Paste the output into `.env`:
+
+```env
+SESSION_SECRET=<paste the 64 hex chars here>
+```
+
+Rotate this value to invalidate every existing session. Never commit `.env`.
+
+### One-time: confirm Dex client secret is shared
+
+The api service reads the Phase 27 `DEX_KPI_SECRET` directly — no rename required. Confirm `.env` contains a real value for `DEX_KPI_SECRET` (from the Phase 27 runbook section). The api service also reads (with defaults baked into `backend/app/config.py`):
+
+- `DEX_ISSUER=https://auth.internal/dex`
+- `DEX_CLIENT_ID=kpi-light`
+- `DEX_REDIRECT_URI=https://kpi.internal/api/auth/callback`
+
+Override in `.env` only if you change the NPM hostname layout.
+
+### First login walkthrough (E2E-02)
+
+1. `docker compose up --build` — wait for `api`, `frontend`, `dex`, `npm`, `db` to be healthy.
+2. Open `https://kpi.internal` in a browser. You should see the KPI Light splash for ~100–300 ms, then the browser redirects to `https://auth.internal/dex/auth?...`.
+3. Log in with a Dex static user (see Phase 27 section for seeding users / bcrypt workflow).
+4. Dex redirects to `https://kpi.internal/api/auth/callback?code=...&state=...` which lands you on `/` (dashboard). The NavBar shows your display name (or email if `name` claim is absent).
+5. Reload the page — session persists (cookie `kpi_session`, 8 h absolute TTL).
+6. Click **Log out** in the NavBar. The browser is redirected back to `/`, the splash appears, and you are bounced to Dex again.
+
+### Known limitation: Dex SSO lingers ~1 h after logout
+
+Dex v2.43.0 does not support RP-initiated logout (`end_session_endpoint` is not implemented — upstream issue #1697). KPI Light's logout only clears its own `kpi_session` cookie. If you click **Log out** in KPI Light and then click **Log in** again within ~1 h, Dex still has its own SSO cookie on `auth.internal` and re-signs you in silently (no password prompt). This is expected, not a bug — documented in decision D-08 / D-09.
+
+### DISABLE_AUTH=true dev bypass (E2E-06)
+
+Pure-frontend iteration without Dex running:
+
+1. In `.env` set `DISABLE_AUTH=true`.
+2. `docker compose up -d api frontend db` (Dex and NPM still required for TLS; skipping Dex is fine because no Dex calls will be made).
+3. `docker compose logs api | head` — you MUST see the line:
+
+   ```
+   ⚠ DISABLE_AUTH=true — authentication is bypassed. DO NOT use in production.
+   ```
+
+4. Open `https://kpi.internal` — no redirect to Dex. NavBar shows `Dev User`.
+5. `curl -sk https://kpi.internal/api/auth/me` returns `{"sub":"dev-user","email":"dev@localhost","name":"Dev User"}`.
+6. `curl -sk -o /dev/null -w "%{http_code}" https://kpi.internal/api/auth/login` returns `503` — auth endpoints are explicitly disabled in bypass mode so a production misconfiguration is loud.
+7. Flip `DISABLE_AUTH=false` and restart `api` to return to real Dex auth.
+
+### Guarded routes reference
+
+All six business routers require a valid `kpi_session`:
+
+- `/api/settings/*`
+- `/api/uploads/*`
+- `/api/kpis/*`
+- `/api/hr/*`
+- `/api/sync/*`
+- `/api/data/*`
+
+Unprotected (must stay reachable):
+
+- `/health` — liveness probe for Docker healthcheck
+- `/api/auth/login`, `/api/auth/callback`, `/api/auth/logout`, `/api/auth/me`
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| `/api/auth/login` 500 with `issuer` mismatch | `DEX_ISSUER` has trailing slash or wrong host | Use exactly `https://auth.internal/dex` (no trailing slash) |
+| Browser shows `Set-Cookie` but session doesn't persist | Serving over plain HTTP (e.g. `http://localhost:8000`) | Always go through NPM at `https://kpi.internal` — `Secure` cookies require TLS |
+| Callback 400 "state mismatch" | User took >5 min at Dex login page, or cookie was dropped | Retry the login flow |
+| After logout, login re-auths without a password | Expected — Dex SSO cookie persists ~1 h (see limitation above) | — |
+| api startup: missing `SESSION_SECRET` | `.env` not regenerated | Run `openssl rand -hex 32` and paste into `.env` |
