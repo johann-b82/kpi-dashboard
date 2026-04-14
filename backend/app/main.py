@@ -4,6 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import engine
+from app.routers.auth import router as auth_router
 from app.routers.kpis import router as kpis_router
 from app.routers.settings import router as settings_router
 from app.routers.sync import router as sync_router
@@ -25,6 +26,7 @@ app.add_middleware(
     https_only=True,                # D-02 Secure flag
 )
 
+app.include_router(auth_router)
 app.include_router(uploads_router)
 app.include_router(kpis_router)
 app.include_router(settings_router)
