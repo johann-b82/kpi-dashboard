@@ -14,7 +14,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 **Target features:**
 - ✅ Unified delta labeling (Phase 24, 2026-04-14) — Sales + HR share `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names (e.g. `vs. April 2025`, `vs. Q2 2025`), DE/EN parity. `periodLabels.ts` delta formatters retired; `formatChartSeriesLabel` retained for RevenueChart. thisYear collapsed to single YTD-vs-YTD row.
-- Page width parity — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`); `/settings` keeps `pb-32` for sticky ActionBar; `/upload` restructures its body to use the full width
+- ✅ Page width parity (Phase 25, 2026-04-14) — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`). `/upload` restructures body into responsive two-column DropZone + UploadHistory grid with full-width ErrorList above. `/settings` keeps `pb-32` for sticky ActionBar. During UAT the operator also requested: merged Appearance card (Identity + Colors), HR card wrapper embedding Personio + Sollwerte as subsections, 6-column logo row (name 2/6, thumb 1/6, dropzone 3/6), contextual back button with sessionStorage-tracked last dashboard, NavBar showing logo + app name together, and `SALES`/`VERTRIEB` uppercase in nav.
 
 ## Current State
 
