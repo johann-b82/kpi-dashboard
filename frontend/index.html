@@ -5,6 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontend</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var isDark;
+          if (stored === 'dark') {
+            isDark = true;
+          } else if (stored === 'light') {
+            isDark = false;
+          } else {
+            // No explicit choice OR invalid value (D-10, D-11) — fall back to OS
+            isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {
+          // localStorage access can throw in privacy mode / sandboxed iframes — fail silent, default light
+        }
+      })();
+    </script>
     <style>
       #root > .bootstrap-splash {
         position: fixed;
