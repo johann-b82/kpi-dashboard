@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 26-01-PLAN.md
-last_updated: "2026-04-14T20:35:50.932Z"
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-04-14T21:09:13.514Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 ## Current Position
 
 Phase: 26 (npm-hostnames) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -71,6 +71,7 @@ Progress: [          ] 0%
 | Phase 25-page-layout-parity P01 | 1min | 1 tasks | 1 files |
 | Phase 25-page-layout-parity P03 | 30min | 1 tasks | 7 files |
 | Phase 26-npm-hostnames P01 | 15min | 2 tasks | 4 files |
+| Phase 26-npm-hostnames P02 | 10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,10 @@ Progress: [          ] 0%
 - [Phase 25-page-layout-parity]: embedded prop pattern established: PersonioCard and HrTargetsCard accept embedded=true to render as section subsections instead of standalone Card components
 - [Phase 25-page-layout-parity]: sessionStorage lastDashboard tracking in NavBar: back button navigates to known last dashboard with contextual label (Back to Sales / Back to HR)
 - [Phase 26-npm-hostnames]: Plan 26-01: NPM pinned to jc21/nginx-proxy-manager:2.11.3; single SAN mkcert cert for all *.internal hostnames; frontend healthcheck uses busybox wget --spider (alpine has no curl); depends_on.frontend.service_healthy gates NPM to close the 502 window on cold boot; certs/ gitignored, npm_data+npm_letsencrypt named volumes for persistence
+- [Phase 26-npm-hostnames]: Plan 26-02: Vite HMR-over-WSS requires clientPort=443 + protocol='wss' + host=kpi.internal together in server.hmr; all three needed to reconnect through NPM. allowedHosts kept as explicit array (not true) to preserve Vite SSRF protection.
+- [Phase 26-npm-hostnames]: Plan 26-02: host port bindings for frontend/api commented (not deleted) in docker-compose.yml — preserves zero-NPM debug hatch with inline why. NPM is now sole edge; dev matches prod (D-07).
+- [Phase 26-npm-hostnames]: Plan 26-02: placeholder wiki.internal/auth.internal proxy hosts forward to api:8000 over http — yields working TLS padlock plus reachable 404, proves end-to-end DNS+TLS+docker-DNS, makes Phases 27/29 a one-field repoint.
+- [Phase 26-npm-hostnames]: Plan 26-02 deviation: busybox wget in alpine resolves 'localhost' to ::1 first; frontend healthcheck switched to 127.0.0.1 (fix eab26c7 scoped to 26-01 where it originated). Loopback-healthcheck rule codified for future alpine-based services.
 
 ### Pending Todos
 
@@ -123,6 +128,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T20:35:40.862Z
-**Stopped at:** Completed 26-01-PLAN.md
+**Last session:** 2026-04-14T21:09:06.674Z
+**Stopped at:** Completed 26-02-PLAN.md
 **Resume file:** None

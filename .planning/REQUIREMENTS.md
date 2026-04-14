@@ -11,7 +11,7 @@
 ### Infrastructure & Networking (INF)
 
 - [x] **INF-01**: Nginx Proxy Manager (NPM) runs as a docker-compose service and terminates all HTTPS traffic to downstream services (Dex, Outline, KPI Light frontend+API)
-- [ ] **INF-02**: Three hostnames route to distinct services via NPM: `kpi.internal` → KPI Light frontend (with `/api/*` proxied to the `api` container), `wiki.internal` → Outline, `auth.internal` → Dex
+- [x] **INF-02**: Three hostnames route to distinct services via NPM: `kpi.internal` → KPI Light frontend (with `/api/*` proxied to the `api` container), `wiki.internal` → Outline, `auth.internal` → Dex
 - [ ] **INF-03**: `/etc/hosts` entries for `kpi.internal`, `wiki.internal`, `auth.internal` are documented in README for developers and for the single-VM production deployment
 - [x] **INF-04**: NPM terminates TLS using a self-signed certificate (development) and supports Let's Encrypt DNS-01 for future real-domain rollout (production hook documented, not activated in v1.11)
 - [x] **INF-05**: Docker compose stack brings up all services (`db`, `migrate`, `api`, `frontend`, `npm`, `dex`, `outline`, `outline-db`, `outline-redis`) in the correct healthcheck-gated dependency order with a single `docker compose up --build`
@@ -133,7 +133,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INF-01 | Phase 26 | Complete |
-| INF-02 | Phase 26 | Pending |
+| INF-02 | Phase 26 | Complete |
 | INF-03 | Phase 26 | Pending |
 | INF-04 | Phase 26 | Complete |
 | INF-05 | Phase 26 | Complete |
