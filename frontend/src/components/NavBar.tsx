@@ -17,6 +17,7 @@ function getLastDashboard(): Dashboard {
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSettings } from "@/hooks/useSettings";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
@@ -110,8 +111,36 @@ export function NavBar() {
           >
             <SettingsIcon className="h-5 w-5" />
           </Link>
+          <UserChunk />
         </div>
       </div>
     </nav>
+  );
+}
+
+/**
+ * Rightmost NavBar cluster: signed-in user display name + native POST-form
+ * logout button (D-23 / KPO-09: MUST be a real <form>, not a fetch).
+ * Display label prefers user.name; falls back to user.email per D-12.
+ */
+function UserChunk() {
+  const { t } = useTranslation();
+  const { data: user } = useCurrentUser();
+  if (!user) return null;
+  const label = user.name ?? user.email; // D-12 fallback
+  return (
+    <div className="flex items-center gap-2 ml-3">
+      <span className="text-sm text-foreground" aria-label="Signed in as">
+        {label}
+      </span>
+      <form method="POST" action="/api/auth/logout">
+        <button
+          type="submit"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          {t("auth.logout")}
+        </button>
+      </form>
+    </div>
   );
 }
