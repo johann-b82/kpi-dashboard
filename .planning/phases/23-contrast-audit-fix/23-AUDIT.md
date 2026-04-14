@@ -14,65 +14,31 @@
 
 ## Findings
 
-### Route: `/` (Sales dashboard) — Light mode
+**Status:** Automated axe DevTools pass SKIPPED by operator on 2026-04-14. D-12's automated-tool criterion is therefore deferred to Plan 23-05's final re-run (or explicitly waived there). Manual WebAIM verification in Plan 23-04 and the final grep/re-run in Plan 23-05 become the primary acceptance evidence for DM-09/DM-10 on this run.
 
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/` (Sales dashboard) — Dark mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/hr` (HR dashboard) — Light mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/hr` (HR dashboard) — Dark mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/upload` — Light mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/upload` — Dark mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/settings` — Light mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
-
-### Route: `/settings` — Dark mode
-
-| Element | Selector | FG color | BG color | Ratio | Required | Status |
-|---------|----------|----------|----------|-------|----------|--------|
-|         |          |          |          |       |          |        |
+| Pass | Route | Mode | Result |
+|------|-------|------|--------|
+| 1 | `/`         | Light | (skipped) |
+| 2 | `/`         | Dark  | (skipped) |
+| 3 | `/hr`       | Light | (skipped) |
+| 4 | `/hr`       | Dark  | (skipped) |
+| 5 | `/upload`   | Light | (skipped) |
+| 6 | `/upload`   | Dark  | (skipped) |
+| 7 | `/settings` | Light | (skipped) |
+| 8 | `/settings` | Dark  | (skipped) |
 
 ## Summary
 
 | Route | Light violations | Dark violations |
 |-------|-----------------|----------------|
-| `/`        |  |  |
-| `/hr`      |  |  |
-| `/upload`  |  |  |
-| `/settings`|  |  |
-| **Total**  |  |  |
+| `/`         | (skipped) | (skipped) |
+| `/hr`       | (skipped) | (skipped) |
+| `/upload`   | (skipped) | (skipped) |
+| `/settings` | (skipped) | (skipped) |
+| **Total**   | (skipped) | (skipped) |
 
 ## Notes
 
-- All findings here will be addressed in Plan 23-04 (manual WebAIM verification + residual fixes).
-- Recharts SVG text elements may not be fully covered by axe — Plan 23-04 includes manual WebAIM pass on chart text.
+- Automated audit skipped at operator request; Plan 23-05 must either re-run axe to close D-12 or the phase closes with a documented waiver.
+- Plan 23-04 (manual WebAIM verification + Recharts SVG check) is now the primary evidence for DM-10 badge legibility on this run.
+- Recharts SVG text elements may not be fully covered by axe regardless — Plan 23-04 includes a manual WebAIM pass on chart text.
