@@ -1,10 +1,11 @@
 ---
 phase: 21
 slug: dark-mode-theme-infrastructure
-status: draft
+status: approved
 shadcn_initialized: true
 preset: shadcn/tailwind.css (Tailwind v4 CSS-first, no components.json)
 created: 2026-04-14
+reviewed_at: 2026-04-14
 ---
 
 # Phase 21 — UI Design Contract
