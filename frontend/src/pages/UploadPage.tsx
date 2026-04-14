@@ -11,25 +11,25 @@ export function UploadPage() {
   const [errors, setErrors] = useState<ValidationErrorDetail[]>([]);
 
   return (
-    <div className="max-w-[800px] mx-auto px-4 py-12">
-      <h1 className="text-xl font-semibold mb-6">{t("page_title")}</h1>
+    <div className="max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8">
+      <h1 className="text-xl font-semibold">{t("page_title")}</h1>
 
-      <DropZone
-        onUploadSuccess={() => setErrors([])}
-        onUploadError={(data) => setErrors(data.errors)}
-      />
-
-      {errors.length > 0 && (
-        <div className="mt-4">
-          <ErrorList errors={errors} />
-        </div>
-      )}
+      {errors.length > 0 && <ErrorList errors={errors} />}
 
       <Separator className="my-8" />
 
-      <h2 className="text-xl font-semibold mb-4">{t("history_title")}</h2>
-
-      <UploadHistory />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <DropZone
+            onUploadSuccess={() => setErrors([])}
+            onUploadError={(data) => setErrors(data.errors)}
+          />
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">{t("history_title")}</h2>
+          <UploadHistory />
+        </div>
+      </div>
     </div>
   );
 }
