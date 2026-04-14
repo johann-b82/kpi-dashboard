@@ -8,6 +8,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 import { SubHeader } from "./components/SubHeader";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
 import { DateRangeProvider } from "./contexts/DateRangeContext";
 import { queryClient } from "./queryClient";
@@ -18,16 +19,18 @@ function App() {
       <ThemeProvider>
         <SettingsDraftProvider>
           <DateRangeProvider>
-            <NavBar />
-            <SubHeader />
-            <main className="pt-28">
-              <Switch>
-                <Route path="/" component={DashboardPage} />
-                <Route path="/upload" component={UploadPage} />
-                <Route path="/hr" component={HRPage} />
-                <Route path="/settings" component={SettingsPage} />
-              </Switch>
-            </main>
+            <ProtectedRoute>
+              <NavBar />
+              <SubHeader />
+              <main className="pt-28">
+                <Switch>
+                  <Route path="/" component={DashboardPage} />
+                  <Route path="/upload" component={UploadPage} />
+                  <Route path="/hr" component={HRPage} />
+                  <Route path="/settings" component={SettingsPage} />
+                </Switch>
+              </main>
+            </ProtectedRoute>
           </DateRangeProvider>
         </SettingsDraftProvider>
       </ThemeProvider>
