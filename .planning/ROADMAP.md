@@ -158,5 +158,5 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 | 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
-| 24 | v1.10 | 1/1 | Complete   | 2026-04-14 |
+| 24 | v1.10 | 1/1 | Complete    | 2026-04-14 |
 | 25 | v1.10 | 0/? | Not started | - |
