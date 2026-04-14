@@ -1,3 +1,8 @@
+# SECURITY NOTE: admin and dev users were seeded with placeholder passwords
+# by plan 27-02. The placeholder passwords MUST be rotated before any human
+# shares credentials. See docs/setup.md "Dex first-login" for the rotation
+# workflow. Real passwords are NOT recorded here.
+#
 # ./dex/config.yaml — Dex v2.43.x — see .planning/phases/27-dex-idp-setup/27-RESEARCH.md
 # Static-password connector, SQLite storage, two OIDC clients (kpi-light, outline)
 # Source skeleton: https://github.com/dexidp/dex/blob/v2.43.0/config.yaml.dist
@@ -36,15 +41,15 @@ enablePasswordDB: true
 
 staticPasswords:
   - email: "admin@acm.local"
-    # Generate: docker compose run --rm dex dex hash-password
-    hash: "$2a$10$REPLACE_WITH_ADMIN_BCRYPT_HASH"
+    # bcrypt cost 10; generated 2026-04-14 by plan 27-02 (placeholder password rotated per SECURITY NOTE)
+    hash: '$2b$10$jrBtTsBhou/EuibDxxT6L.pqdSaabW.Xnk01zEjyAoEdHuvhL5jjS'
     username: "admin"
-    userID: "REPLACE_WITH_UUID_GENERATED_BY_uuidgen"   # D-05: stable UUID
+    userID: "e988b9b7-06b1-4a2e-9ca4-1e2927fd59bf"   # D-05: stable UUID
 
   - email: "dev@acm.local"
-    hash: "$2a$10$REPLACE_WITH_DEV_BCRYPT_HASH"
+    hash: '$2b$10$uaALbZW56YTG3sMEdJWeLOz6Rq7wJiWYGiQdAlXoFlnMLp/PL5IBq'
     username: "dev"
-    userID: "REPLACE_WITH_UUID_GENERATED_BY_uuidgen"
+    userID: "b9ded53c-3aaf-4e76-a942-14aef9bfe922"
 
 staticClients:
   - id: kpi-light
