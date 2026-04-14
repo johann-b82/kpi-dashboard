@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: executing
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-04-14T21:09:13.514Z"
+status: verifying
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-04-14T21:14:28.739Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 Phase: 26 (npm-hostnames) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-14
 
 Progress: [          ] 0%
@@ -72,6 +72,7 @@ Progress: [          ] 0%
 | Phase 25-page-layout-parity P03 | 30min | 1 tasks | 7 files |
 | Phase 26-npm-hostnames P01 | 15min | 2 tasks | 4 files |
 | Phase 26-npm-hostnames P02 | 10min | 2 tasks | 2 files |
+| Phase 26-npm-hostnames P03 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,7 @@ Progress: [          ] 0%
 - [Phase 26-npm-hostnames]: Plan 26-02: host port bindings for frontend/api commented (not deleted) in docker-compose.yml — preserves zero-NPM debug hatch with inline why. NPM is now sole edge; dev matches prod (D-07).
 - [Phase 26-npm-hostnames]: Plan 26-02: placeholder wiki.internal/auth.internal proxy hosts forward to api:8000 over http — yields working TLS padlock plus reachable 404, proves end-to-end DNS+TLS+docker-DNS, makes Phases 27/29 a one-field repoint.
 - [Phase 26-npm-hostnames]: Plan 26-02 deviation: busybox wget in alpine resolves 'localhost' to ::1 first; frontend healthcheck switched to 127.0.0.1 (fix eab26c7 scoped to 26-01 where it originated). Loopback-healthcheck rule codified for future alpine-based services.
+- [Phase 26-npm-hostnames]: Plan 26-03: docs/setup.md runbook + README Quickstart landed; preserved existing README content, updated stale :5173/:8000 Quick Start to NPM-edge reality (classed as Rule 2 correctness fix). All 5 INF requirements (01-05) have documented verification paths.
 
 ### Pending Todos
 
@@ -128,6 +130,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T21:09:06.674Z
-**Stopped at:** Completed 26-02-PLAN.md
+**Last session:** 2026-04-14T21:14:28.736Z
+**Stopped at:** Completed 26-03-PLAN.md
 **Resume file:** None

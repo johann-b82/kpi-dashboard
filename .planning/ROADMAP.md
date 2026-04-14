@@ -125,7 +125,7 @@ Requirements: [milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.m
 
 ### v1.11 Outline Wiki + Shared Auth (Dex) — IN PROGRESS
 
-- [ ] **Phase 26: NPM + Hostnames** — Nginx Proxy Manager with HTTPS and three hostname routes as the shared network foundation
+- [x] **Phase 26: NPM + Hostnames** — Nginx Proxy Manager with HTTPS and three hostname routes as the shared network foundation (completed 2026-04-14)
 - [ ] **Phase 27: Dex IdP Setup** — Dex OIDC identity provider deployed and verified in isolation
 - [ ] **Phase 28: KPI Light OIDC Integration** — KPI Light backend and frontend gated behind Dex login
 - [ ] **Phase 29: Outline Wiki Deployment** — Outline running with its own Postgres + Redis, authenticating via Dex
@@ -148,7 +148,7 @@ Requirements: [milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.m
 Plans:
 - [x] 26-01-PLAN.md — Cert generation script + NPM compose service (INF-01, INF-04, INF-05)
 - [x] 26-02-PLAN.md — Vite HMR-over-HTTPS config + kpi.internal edge wiring (INF-01, INF-02)
-- [ ] 26-03-PLAN.md — Setup runbook (docs/setup.md) + README quickstart (INF-03, INF-04)
+- [x] 26-03-PLAN.md — Setup runbook (docs/setup.md) + README quickstart (INF-03, INF-04)
 
 ---
 
@@ -240,7 +240,7 @@ Plans:
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
-| 26 | v1.11 | 2/3 | In Progress|  |
+| 26 | v1.11 | 3/3 | Complete   | 2026-04-14 |
 | 27 | v1.11 | 0/? | Not started | - |
 | 28 | v1.11 | 0/? | Not started | - |
 | 29 | v1.11 | 0/? | Not started | - |
