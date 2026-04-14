@@ -112,7 +112,7 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 
 ### v1.10 UI Consistency Pass (In Progress)
 
-- [ ] **Phase 24: Delta Label Unification** — Consolidate relative delta labels across Sales and HR into a single shared i18n namespace
+- [x] **Phase 24: Delta Label Unification** — Consolidate relative delta labels across Sales and HR into a single shared i18n namespace (completed 2026-04-14)
 - [ ] **Phase 25: Page Layout Parity** — Align `/upload` and `/settings` page containers to match the dashboard layout convention
 
 ## Phase Details
@@ -128,7 +128,7 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
   4. `scripts/check-locale-parity.mts` exits with code 0 (no missing keys between `en.json` and `de.json`)
   5. `frontend/src/lib/periodLabels.ts` contains no unreferenced absolute-period formatters — either the file is deleted or only referenced code remains
 **Plans**: 1 plan
-- [ ] 24-01-delta-label-unification-PLAN.md — Migrate Sales + HR delta badges to shared `kpi.delta.*` namespace; strip `periodLabels.ts` formatters; add `prevQuarter`; cleanup orphan keys
+- [x] 24-01-delta-label-unification-PLAN.md — Migrate Sales + HR delta badges to shared `kpi.delta.*` namespace; strip `periodLabels.ts` formatters; add `prevQuarter`; cleanup orphan keys
 **UI hint**: yes
 
 ### Phase 25: Page Layout Parity
@@ -158,5 +158,5 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 | 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
-| 24 | v1.10 | 0/? | Not started | - |
+| 24 | v1.10 | 1/1 | Complete   | 2026-04-14 |
 | 25 | v1.10 | 0/? | Not started | - |

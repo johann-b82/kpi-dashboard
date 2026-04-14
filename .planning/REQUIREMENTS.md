@@ -9,11 +9,11 @@ Requirements for v1.10 UI Consistency Pass. Each maps to roadmap phases.
 
 ### Unified Delta Labeling
 
-- [ ] **UC-01**: Sales KPI card delta badges (SummaryCards, `KpiCardGrid`) read as relative labels matching HR — month granularity shows `vs. prev. month` / `vs. Vormonat`, year granularity shows `vs. prev. year` / `vs. Vorjahr`
-- [ ] **UC-02**: Quarter granularity uses a new relative label — `vs. prev. quarter` / `vs. Vorquartal` — on both Sales and HR dashboards
-- [ ] **UC-03**: All four delta labels (`prev.month`, `prev.quarter`, `prev.year`, any existing `allTime` / null-preset handling) live under a single shared i18n namespace (e.g. `kpi.delta.*`) consumed by both `KpiCardGrid` and `HrKpiCardGrid`
-- [ ] **UC-04**: `frontend/src/lib/periodLabels.ts` is simplified — absolute-period formatters (`Intl.DateTimeFormat` month names, `Q${n} ${year}` fallbacks) removed if no consumer remains; or retired entirely if all call sites migrate to i18n keys
-- [ ] **UC-05**: Full DE/EN parity maintained — new keys added to both `locales/en.json` and `locales/de.json`; `scripts/check-locale-parity.mts` passes
+- [x] **UC-01**: Sales KPI card delta badges (SummaryCards, `KpiCardGrid`) read as relative labels matching HR — month granularity shows `vs. prev. month` / `vs. Vormonat`, year granularity shows `vs. prev. year` / `vs. Vorjahr`
+- [x] **UC-02**: Quarter granularity uses a new relative label — `vs. prev. quarter` / `vs. Vorquartal` — on both Sales and HR dashboards
+- [x] **UC-03**: All four delta labels (`prev.month`, `prev.quarter`, `prev.year`, any existing `allTime` / null-preset handling) live under a single shared i18n namespace (e.g. `kpi.delta.*`) consumed by both `KpiCardGrid` and `HrKpiCardGrid`
+- [x] **UC-04**: `frontend/src/lib/periodLabels.ts` is simplified — absolute-period formatters (`Intl.DateTimeFormat` month names, `Q${n} ${year}` fallbacks) removed if no consumer remains; or retired entirely if all call sites migrate to i18n keys
+- [x] **UC-05**: Full DE/EN parity maintained — new keys added to both `locales/en.json` and `locales/de.json`; `scripts/check-locale-parity.mts` passes
 
 ### Page Width & Layout Parity
 
