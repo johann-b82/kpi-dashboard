@@ -13,7 +13,7 @@ import { subMonths } from "date-fns";
 import type { DateRangeValue } from "../components/dashboard/DateRangeFilter.tsx";
 import type { Preset } from "./dateUtils.ts";
 
-type SupportedLocale = "de" | "en";
+export type SupportedLocale = "de" | "en";
 
 type ChartLabelT = (
   key: string,
@@ -103,5 +103,95 @@ export function formatChartSeriesLabel(
   return {
     current: t("dashboard.chart.series.revenue"),
     prior: "",
+  };
+}
+
+/**
+ * Phase 24 follow-up — concrete prior-period delta-badge labels.
+ *
+ * The KPI delta badges previously showed generic strings ("vs. prev. month").
+ * Per user feedback the badges must name the concrete prior period, e.g.
+ * "vs. February 2026" / "vs. Februar 2026", "vs. Q1 2026", "vs. 2025".
+ *
+ * Returns `{ prevPeriod, prevYear }` strings resolved via the injected
+ * `t()` function. Returns `null` for `allTime` / null preset — caller
+ * hides the badge row entirely (D-12).
+ *
+ * Decision table (mirrors formatChartSeriesLabel anchoring):
+ *   thisMonth   → prevPeriod = "vs. <prior month name> <prior month year>"
+ *                 prevYear   = "vs. <prior year>"
+ *   thisQuarter → prevPeriod = "vs. Q<prior quarter> <prior quarter year>"
+ *                 prevYear   = "vs. <prior year>"
+ *   thisYear    → prevPeriod = "vs. <prior year>"  (intentional duplicate)
+ *                 prevYear   = "vs. <prior year>"
+ *   allTime/null → null      (caller hides badges)
+ */
+export interface DeltaPeriodLabels {
+  prevPeriod: string;
+  prevYear: string;
+}
+
+export function formatPrevPeriodDeltaLabels(
+  preset: Preset | null,
+  range: DateRangeValue,
+  locale: SupportedLocale,
+  t: ChartLabelT,
+): DeltaPeriodLabels | null {
+  if (preset === null || preset === "allTime") return null;
+
+  const anchor = range.to ?? new Date();
+  const currentYear = anchor.getFullYear();
+  const priorYear = currentYear - 1;
+  const prevYearLabel = t("kpi.delta.vsYear", { year: priorYear });
+
+  if (preset === "thisMonth") {
+    const priorMonthDate = subMonths(anchor, 1);
+    return {
+      prevPeriod: t("kpi.delta.vsMonth", {
+        month: getLocalizedMonthName(priorMonthDate.getMonth(), locale),
+        year: priorMonthDate.getFullYear(),
+      }),
+      prevYear: prevYearLabel,
+    };
+  }
+
+  if (preset === "thisQuarter") {
+    const currentQ = Math.floor(anchor.getMonth() / 3) + 1;
+    const priorQ = currentQ === 1 ? 4 : currentQ - 1;
+    const priorQYear = currentQ === 1 ? currentYear - 1 : currentYear;
+    return {
+      prevPeriod: t("kpi.delta.vsQuarter", {
+        quarter: priorQ,
+        year: priorQYear,
+      }),
+      prevYear: prevYearLabel,
+    };
+  }
+
+  // preset === "thisYear" — both rows show prior year (intentional duplicate)
+  return {
+    prevPeriod: prevYearLabel,
+    prevYear: prevYearLabel,
+  };
+}
+
+/**
+ * HR variant — HR dashboard has no preset/range; comparisons are always
+ * "vs. previous month" (anchored at today) and "vs. previous year".
+ * Returns concrete labels, e.g. "vs. March 2026" + "vs. 2025".
+ */
+export function formatHrDeltaLabels(
+  locale: SupportedLocale,
+  t: ChartLabelT,
+  today: Date = new Date(),
+): DeltaPeriodLabels {
+  const priorMonthDate = subMonths(today, 1);
+  const priorYear = today.getFullYear() - 1;
+  return {
+    prevPeriod: t("kpi.delta.vsMonth", {
+      month: getLocalizedMonthName(priorMonthDate.getMonth(), locale),
+      year: priorMonthDate.getFullYear(),
+    }),
+    prevYear: t("kpi.delta.vsYear", { year: priorYear }),
   };
 }
