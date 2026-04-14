@@ -23,6 +23,10 @@
           } else {
             document.documentElement.classList.remove('dark');
           }
+          var splashBg = isDark ? '#1a1a1a' : '#ffffff';
+          var splashDot = isDark ? '#94a3b8' : '#64748b';
+          document.documentElement.style.setProperty('--splash-bg', splashBg);
+          document.documentElement.style.setProperty('--splash-dot', splashDot);
         } catch (e) {
           // localStorage access can throw in privacy mode / sandboxed iframes — fail silent, default light
         }
@@ -37,8 +41,8 @@
         justify-content: center;
         font-family: system-ui, -apple-system, sans-serif;
         font-size: 0.875rem;
-        color: #64748b;
-        background: #ffffff;
+        color: var(--splash-dot, #64748b);
+        background: var(--splash-bg, #ffffff);
       }
       .bootstrap-splash__dot {
         width: 8px;
