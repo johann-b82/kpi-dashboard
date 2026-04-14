@@ -25,7 +25,9 @@ export interface DeltaBadgeStackProps {
   prevPeriodDelta: number | null;
   prevYearDelta: number | null;
   prevPeriodLabel: string;
-  prevYearLabel: string;
+  // null = hide the bottom badge row entirely (used by thisYear preset,
+  // which collapses to a single top-row YTD-vs-YTD badge).
+  prevYearLabel: string | null;
   locale: DeltaLocale;
   noBaselineTooltip: string;
 }
@@ -48,14 +50,16 @@ export function DeltaBadgeStack({
         />
         <span className="text-xs text-muted-foreground">{prevPeriodLabel}</span>
       </div>
-      <div className="flex items-baseline gap-2">
-        <DeltaBadge
-          value={prevYearDelta}
-          locale={locale}
-          noBaselineTooltip={noBaselineTooltip}
-        />
-        <span className="text-xs text-muted-foreground">{prevYearLabel}</span>
-      </div>
+      {prevYearLabel !== null && (
+        <div className="flex items-baseline gap-2">
+          <DeltaBadge
+            value={prevYearDelta}
+            locale={locale}
+            noBaselineTooltip={noBaselineTooltip}
+          />
+          <span className="text-xs text-muted-foreground">{prevYearLabel}</span>
+        </div>
+      )}
     </div>
   );
 }

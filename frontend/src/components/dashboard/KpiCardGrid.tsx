@@ -91,20 +91,37 @@ export function KpiCardGrid({
     );
   }
 
-  const revenueDeltas = kpiDeltas(
+  const rawRevenueDeltas = kpiDeltas(
     "total_revenue",
     data ? Number(data.total_revenue) : undefined,
   );
-  const aovDeltas = kpiDeltas(
+  const rawAovDeltas = kpiDeltas(
     "avg_order_value",
     data ? Number(data.avg_order_value) : undefined,
   );
-  const ordersDeltas = kpiDeltas(
+  const rawOrdersDeltas = kpiDeltas(
     "total_orders",
     data ? Number(data.total_orders) : undefined,
   );
 
-  const showBadges = prevPeriodLabel !== null && prevYearLabel !== null;
+  // thisYear collapses to a single top-row badge showing the YTD-vs-YTD delta
+  // labeled "vs. <prior year>". Remap prevYearDelta into the top slot for
+  // that preset only; all other presets keep the original dual-baseline
+  // semantics. prevYearLabel is null for thisYear (DeltaBadgeStack hides the
+  // bottom row), so the unused bottom value is inert.
+  const remap = (d: { prevPeriodDelta: number | null; prevYearDelta: number | null }) =>
+    preset === "thisYear"
+      ? { prevPeriodDelta: d.prevYearDelta, prevYearDelta: null }
+      : d;
+
+  const revenueDeltas = remap(rawRevenueDeltas);
+  const aovDeltas = remap(rawAovDeltas);
+  const ordersDeltas = remap(rawOrdersDeltas);
+
+  // Gate is prevPeriodLabel only — prevYearLabel is intentionally null for
+  // thisYear (collapsed single-row). deltaLabels itself is null for
+  // allTime / null preset, which already sets both locals to null.
+  const showBadges = prevPeriodLabel !== null;
 
   return (
     <div>
@@ -119,7 +136,7 @@ export function KpiCardGrid({
                 prevPeriodDelta={revenueDeltas.prevPeriodDelta}
                 prevYearDelta={revenueDeltas.prevYearDelta}
                 prevPeriodLabel={prevPeriodLabel!}
-                prevYearLabel={prevYearLabel!}
+                prevYearLabel={prevYearLabel}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />
@@ -138,7 +155,7 @@ export function KpiCardGrid({
                 prevPeriodDelta={aovDeltas.prevPeriodDelta}
                 prevYearDelta={aovDeltas.prevYearDelta}
                 prevPeriodLabel={prevPeriodLabel!}
-                prevYearLabel={prevYearLabel!}
+                prevYearLabel={prevYearLabel}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />
@@ -155,7 +172,7 @@ export function KpiCardGrid({
                 prevPeriodDelta={ordersDeltas.prevPeriodDelta}
                 prevYearDelta={ordersDeltas.prevYearDelta}
                 prevPeriodLabel={prevPeriodLabel!}
-                prevYearLabel={prevYearLabel!}
+                prevYearLabel={prevYearLabel}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />

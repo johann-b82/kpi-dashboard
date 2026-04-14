@@ -122,13 +122,16 @@ export function formatChartSeriesLabel(
  *                 prevYear   = "vs. <prior year>"
  *   thisQuarter → prevPeriod = "vs. Q<prior quarter> <prior quarter year>"
  *                 prevYear   = "vs. <prior year>"
- *   thisYear    → prevPeriod = "vs. <prior year>"  (intentional duplicate)
- *                 prevYear   = "vs. <prior year>"
+ *   thisYear    → prevPeriod = "vs. <prior year>"  (top row — caller maps the
+ *                                                    YTD-vs-YTD delta here)
+ *                 prevYear   = null                 (bottom row hidden)
  *   allTime/null → null      (caller hides badges)
  */
 export interface DeltaPeriodLabels {
   prevPeriod: string;
-  prevYear: string;
+  // null = hide the bottom badge row entirely (thisYear collapses to a
+  // single top-row YTD-vs-YTD badge per user request, 24-01 follow-up).
+  prevYear: string | null;
 }
 
 export function formatPrevPeriodDeltaLabels(
@@ -179,10 +182,12 @@ export function formatPrevPeriodDeltaLabels(
     };
   }
 
-  // preset === "thisYear" — both rows show prior year (intentional duplicate)
+  // preset === "thisYear" — collapse to a single top-row badge labeled
+  // "vs. <prior year>". Bottom row is suppressed (null). KpiCardGrid maps
+  // the YTD-vs-YTD delta (prevYearDelta) into the top slot for this preset.
   return {
     prevPeriod: prevYearLabel,
-    prevYear: prevYearLabel,
+    prevYear: null,
   };
 }
 
