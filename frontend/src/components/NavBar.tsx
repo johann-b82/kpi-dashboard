@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -63,6 +64,7 @@ export function NavBar() {
         )}
 
         <div className="ml-auto flex items-center gap-4">
+          <ThemeToggle />
           <LanguageToggle />
           <Link
             href="/upload"
