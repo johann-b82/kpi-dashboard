@@ -1,37 +1,39 @@
 # KPI
 
-A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files into PostgreSQL for Sales KPIs, and syncs Personio HR data for HR KPIs -- all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use.
+A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files into PostgreSQL for Sales KPIs, and syncs Personio HR data for HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard with dark mode. Built for internal team use.
 
-**Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard -- zero friction from raw data to insight.
+**Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
 ---
 
 ## Features
 
 ### Sales Dashboard
-- **KPI Cards** -- Total revenue, average order value, total orders with dual delta badges (vs. prev month + vs. prev year)
-- **Revenue Chart** -- Monthly bar or area chart with prior-period overlay; X-axis shows month names or calendar weeks depending on selected date range
-- **Sales Data Table** -- Sortable columns (order #, customer, project, date, total, remaining) with global search
-- **Date Range Filter** -- This month, this quarter, this year, all time (fixed SubHeader below navbar)
+- **KPI Cards** — Total revenue, average order value, total orders with concrete period-over-period delta badges (e.g. `vs. March 2025`, `vs. Q1 2025`, `vs. 2024`)
+- **Revenue Chart** — Monthly bar or area chart with prior-period overlay; X-axis shows month names or calendar weeks depending on selected date range
+- **Sales Data Table** — Sortable columns (order #, customer, project, date, total, remaining) with global search
+- **Date Range Filter** — This month, this quarter, this year, all time (fixed SubHeader below navbar)
 
 ### HR Dashboard
-- **5 HR KPI Cards** -- Overtime ratio, sick leave ratio, fluctuation, skill development, revenue per production employee; each with dual delta badges
-- **12-Month Trend Charts** -- Area or bar charts (toggle) for overtime, sick leave, fluctuation, revenue/employee with configurable target reference lines (Sollwerte)
-- **Employee Table** -- Filtered by departments selected in Personio settings; shows total worked hours, overtime hours, and overtime ratio per employee for the current month
-- **Employee Filters** -- Segmented toggle: with overtime / active / all
+- **5 HR KPI Cards** — Overtime ratio, sick leave ratio, fluctuation, skill development, revenue per production employee; each with concrete delta badges matching the Sales ramp
+- **12-Month Trend Charts** — Area or bar charts (toggle) for overtime, sick leave, fluctuation, revenue/employee with configurable target reference lines (Sollwerte)
+- **Employee Table** — Filtered by departments selected in Personio settings; shows total worked hours, overtime hours, and overtime ratio per employee for the current month
+- **Employee Filters** — Segmented toggle: with overtime / active / all
 
 ### Settings
-- **Branding** -- 6 semantic color tokens (oklch), logo upload (SVG/PNG/JPG/WebP), app name
-- **Personio Integration** -- Fernet-encrypted API credentials, configurable sync interval (manual/1h/6h/24h), auto-sync via APScheduler
-- **Multi-Select Config** -- Checkbox lists for sick leave absence types, production departments, and skill attribute keys
-- **HR KPI Targets** -- Set target values (Sollwerte) displayed as dashed reference lines on HR trend charts
-- **Language** -- DE/EN toggle stored in localStorage (no server round-trip)
+- **Appearance** — App name, logo upload (SVG/PNG/JPG/WebP), 6 semantic color tokens (oklch) with live WCAG contrast badges
+- **Personio Integration** — Fernet-encrypted API credentials, configurable sync interval (manual/1h/6h/24h), auto-sync via APScheduler, credential test, on-demand refresh
+- **Multi-Select Config** — Checkbox lists for sick leave absence types, production departments, and skill attribute keys
+- **HR KPI Targets** — Set target values (Sollwerte) displayed as dashed reference lines on HR trend charts
+- **Language** — DE/EN toggle stored in localStorage (no server round-trip)
+- **Dark Mode** — Sun/moon toggle in navbar; OS `prefers-color-scheme` default + localStorage override; pre-hydration IIFE avoids flash-of-unstyled-content
 
 ### General
-- **Bilingual** -- Full DE/EN i18n parity with informal "du" tone for German
-- **Theming** -- Settings-driven color palette applied via CSS custom properties; chart colors follow primary/muted tokens
-- **Context-Aware Navigation** -- Sales/HR segmented toggle on dashboard pages, back arrow on Settings and Upload pages
-- **Auto-Refresh** -- Dashboard re-fetches all queries after successful upload via TanStack Query prefix invalidation
+- **Bilingual** — Full DE/EN i18n parity with informal "du" tone for German
+- **Theming** — Settings-driven color palette applied via CSS custom properties; chart colors follow primary/muted tokens; class-strategy dark mode via Tailwind v4
+- **Unified Layout** — Sales, HR, Upload, and Settings share the same `max-w-7xl` page container; contextual back button remembers the last visited dashboard (Sales or HR)
+- **Context-Aware Navigation** — Sales/HR segmented toggle on dashboard pages; labeled back button on Settings and Upload
+- **Auto-Refresh** — Dashboard re-fetches all queries after successful upload or Personio sync via TanStack Query prefix invalidation
 
 ---
 
@@ -44,12 +46,13 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 | Migrations | Alembic |
 | Parsing | pandas 3.0 with German locale handling |
 | Frontend | React 19, TypeScript, Vite 8 |
-| Styling | Tailwind CSS 4, shadcn/ui (base-ui primitives) |
+| Styling | Tailwind CSS 4 (class-strategy dark mode), shadcn/ui (base-ui primitives) |
 | Routing | wouter |
 | Charts | Recharts |
 | State | TanStack Query v5 |
 | i18n | react-i18next (flat dotted keys, `keySeparator: false`) |
 | Scheduler | APScheduler (in-process) |
+| External | Personio API (employees, attendances, absences) |
 | Infrastructure | Docker Compose v2 |
 
 ---
@@ -130,10 +133,11 @@ kpi-light/
 │       ├── pages/               # DashboardPage, HRPage, UploadPage, SettingsPage
 │       ├── components/
 │       │   ├── dashboard/       # KpiCard, RevenueChart, HrKpiCharts, SalesTable, EmployeeTable
-│       │   ├── settings/        # PersonioCard, CheckboxList, HrTargetsCard, ColorPicker
+│       │   ├── settings/        # PersonioCard, CheckboxList, HrTargetsCard, ColorPicker, LogoUpload, ActionBar
+│       │   ├── NavBar.tsx, ThemeProvider.tsx, DropZone.tsx
 │       │   └── ui/              # shadcn primitives (checkbox, segmented-control, etc.)
-│       ├── hooks/               # useSettings, useSettingsDraft, useTableState
-│       ├── lib/                 # api.ts, queryKeys.ts, dateUtils.ts, defaults.ts
+│       ├── hooks/               # useSettings, useSettingsDraft, useTableState, useUnsavedGuard
+│       ├── lib/                 # api.ts, queryKeys.ts, color.ts, dateUtils.ts, defaults.ts
 │       └── locales/             # en.json, de.json
 │
 ├── docker-compose.yml
@@ -175,7 +179,7 @@ docker compose build migrate
 docker compose up migrate
 ```
 
-> **Important:** Never call `Base.metadata.create_all()` -- always go through Alembic.
+> **Important:** Never call `Base.metadata.create_all()` — always go through Alembic.
 
 ---
 
@@ -194,10 +198,36 @@ docker compose exec db psql -U kpi_user -d kpi_db   # database shell
 
 ---
 
+## Testing
+
+### Backend unit/integration tests
+
+```bash
+docker compose exec api pytest
+```
+
+### End-to-end rebuild persistence smoke test
+
+Prereq (one-shot, after any `@playwright/test` version bump):
+```bash
+cd frontend && npx playwright install chromium
+```
+
+Run the full rebuild persistence harness (seeds settings, rebuilds the stack, asserts persistence, visual check via Playwright):
+```bash
+./scripts/smoke-rebuild.sh
+```
+
+Exits 0 on success; non-zero and prints the failing step on failure. The harness preserves `postgres_data` (it uses `docker compose down`, NOT `down -v`).
+
+---
+
 ## Version History
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.10 | 2026-04-14 | UI Consistency Pass — unified delta labeling (concrete period names, DE/EN parity) + page layout parity across Sales/HR/Upload/Settings; merged Appearance card; contextual back button |
+| v1.9 | 2026-04-14 | Dark Mode & Contrast — Tailwind v4 class-strategy dark mode, CSS-variable tokens, WCAG AA audit, no theme-flash pre-hydration IIFE |
 | v1.8 | 2026-04-12 | Employee table: worked hours, overtime ratio, department filter, active/all toggle |
 | v1.7 | 2026-04-12 | Data tables, HR KPI 12-month trend charts, chart colors from settings, area charts, UI polish |
 | v1.6 | 2026-04-12 | Multi-select checkbox lists for Personio config, JSONB array migration, language moved to localStorage |
@@ -206,10 +236,10 @@ docker compose exec db psql -U kpi_user -d kpi_db   # database shell
 | v1.3 | 2026-04-12 | HR KPI dashboard, Personio integration with encrypted credentials, auto-sync |
 | v1.2 | 2026-04-12 | Period-over-period delta badges, chart prior-period overlay |
 | v1.1 | 2026-04-11 | Branding, settings page, ThemeProvider, i18n bootstrap |
-| v1.0 | 2026-04-11 | MVP -- Docker stack, ERP file upload, sales dashboard |
+| v1.0 | 2026-04-11 | MVP — Docker stack, ERP file upload, sales dashboard |
 
 ---
 
 ## License
 
-Internal tool -- not currently licensed for external distribution.
+Internal tool — not currently licensed for external distribution.
