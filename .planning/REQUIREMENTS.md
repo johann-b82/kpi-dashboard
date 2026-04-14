@@ -1,0 +1,70 @@
+# Requirements: KPI Light
+
+**Defined:** 2026-04-14
+**Core Value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
+
+## v1.10 Requirements
+
+Requirements for v1.10 UI Consistency Pass. Each maps to roadmap phases.
+
+### Unified Delta Labeling
+
+- [ ] **UC-01**: Sales KPI card delta badges (SummaryCards, `KpiCardGrid`) read as relative labels matching HR — month granularity shows `vs. prev. month` / `vs. Vormonat`, year granularity shows `vs. prev. year` / `vs. Vorjahr`
+- [ ] **UC-02**: Quarter granularity uses a new relative label — `vs. prev. quarter` / `vs. Vorquartal` — on both Sales and HR dashboards
+- [ ] **UC-03**: All four delta labels (`prev.month`, `prev.quarter`, `prev.year`, any existing `allTime` / null-preset handling) live under a single shared i18n namespace (e.g. `kpi.delta.*`) consumed by both `KpiCardGrid` and `HrKpiCardGrid`
+- [ ] **UC-04**: `frontend/src/lib/periodLabels.ts` is simplified — absolute-period formatters (`Intl.DateTimeFormat` month names, `Q${n} ${year}` fallbacks) removed if no consumer remains; or retired entirely if all call sites migrate to i18n keys
+- [ ] **UC-05**: Full DE/EN parity maintained — new keys added to both `locales/en.json` and `locales/de.json`; `scripts/check-locale-parity.mts` passes
+
+### Page Width & Layout Parity
+
+- [ ] **UC-06**: `/upload` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`
+- [ ] **UC-07**: `/settings` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 space-y-8` with `pb-32` preserved for sticky ActionBar space
+- [ ] **UC-08**: `/upload` body restructured to use the wider container sensibly — DropZone and UploadHistory laid out for max-w-7xl (side-by-side on wide viewports or stacked with appropriate max-widths, not stretched to full 80rem unstyled)
+- [ ] **UC-09**: Other structural differences between `/upload`, `/settings`, and dashboard pages audited and aligned — padding rhythm (`pt-4 pb-8`), vertical spacing (`space-y-8`), and any inconsistent heading/section wrappers
+
+### Visual QA Signoff
+
+- [ ] **UC-10**: Human UAT confirming no visual regressions on Sales or HR dashboards, that new labels read correctly in both DE and EN across all three granularities (month / quarter / year), and that `/upload` and `/settings` feel consistent with the dashboards
+
+## Future Requirements
+
+- Authentication/login via OIDC identity provider (Authentik, AUTH-01)
+- Role-based access control (admin vs viewer)
+- Active Directory integration (via Authentik)
+- Export filtered data as CSV (DASH-07)
+- Duplicate upload detection (UPLD-07)
+- Per-upload drill-down view (DASH-08)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Backend changes | v1.10 is frontend-only UI polish; no API surface changes |
+| Sales "all time" and null-preset relabeling beyond the four canonical cases | Existing fallbacks remain; only month/quarter/year/prev-period cases are normalized |
+| New granularities (weekly, daily, YTD) | Existing three granularities stay; new ones deferred |
+| Restructuring dashboards | Dashboards are the reference; only /upload and /settings change layout |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| UC-01 | TBD | Not started |
+| UC-02 | TBD | Not started |
+| UC-03 | TBD | Not started |
+| UC-04 | TBD | Not started |
+| UC-05 | TBD | Not started |
+| UC-06 | TBD | Not started |
+| UC-07 | TBD | Not started |
+| UC-08 | TBD | Not started |
+| UC-09 | TBD | Not started |
+| UC-10 | TBD | Not started |
+
+**Coverage:**
+- v1.10 requirements: 10 total
+- Mapped to phases: 0 (pending roadmap creation)
+
+---
+*Requirements defined: 2026-04-14*
+*Last updated: 2026-04-14*
