@@ -27,7 +27,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ## Current State
 
 **Shipped:** v1.10 — 2026-04-14 (10 versions, v1.0–v1.10)
-**In progress:** v1.11 Outline Wiki + Shared Auth (Dex) — scoping
+**In progress:** v1.11 Outline Wiki + Shared Auth (Dex) — Phase 26 complete (NPM edge + kpi.internal/wiki.internal/auth.internal hostnames + mkcert cert tooling + setup runbook)
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity and unified `kpi.delta.*` namespace, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. All four pages (Sales, HR, Upload, Settings) share the `max-w-7xl` container with contextual back-button navigation.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 10 versions shipped (v1.0–v1.10).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute). v1.10 shipped with both phase verifications passing cleanly (24: 8/8 must-haves, 25: 13/13 must-haves); no formal milestone audit ran.
@@ -226,4 +226,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 — v1.10 UI Consistency Pass milestone started*
+*Last updated: 2026-04-14 — v1.11 Phase 26 (npm-hostnames) complete*
