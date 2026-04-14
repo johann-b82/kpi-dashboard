@@ -120,7 +120,7 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 **Plans**: 4 plans
 - [x] 21-01-PLAN.md — Extend ThemeProvider with mode-aware token application + MutationObserver (DM-01, DM-04)
 - [x] 21-02-PLAN.md — Create chartDefaults.ts and close Recharts token gaps in RevenueChart + HrKpiCharts (DM-03)
-- [ ] 21-03-PLAN.md — Convert hardcoded Tailwind colors to tokens across UploadHistory, DropZone, ErrorList, EmployeeTable, PersonioCard (DM-01, DM-02)
+- [x] 21-03-PLAN.md — Convert hardcoded Tailwind colors to tokens across UploadHistory, DropZone, ErrorList, EmployeeTable, PersonioCard (DM-01, DM-02)
 - [ ] 21-04-PLAN.md — Human-verify dark mode across all pages (acceptance gate)
 **UI hint**: yes
 
@@ -160,6 +160,6 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 | 17 | v1.4 | 2/2 | Complete | 2026-04-12 |
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19–20 | v1.6 | 4/4 | Complete | 2026-04-12 |
-| 21 | v1.9 | 2/4 | In Progress|  |
+| 21 | v1.9 | 3/4 | In Progress|  |
 | 22 | v1.9 | 0/TBD | Not started | - |
 | 23 | v1.9 | 0/TBD | Not started | - |
