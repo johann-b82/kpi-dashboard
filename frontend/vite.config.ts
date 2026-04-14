@@ -12,6 +12,12 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
+    allowedHosts: ["kpi.internal", "localhost"],
+    hmr: {
+      clientPort: 443,
+      protocol: "wss",
+      host: "kpi.internal",
+    },
     proxy: {
       "/api": {
         target: process.env.VITE_API_TARGET || "http://api:8000",
