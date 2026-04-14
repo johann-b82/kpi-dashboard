@@ -23,6 +23,13 @@ services:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file: .env
+    environment:
+      DEX_ISSUER: https://auth.internal/dex
+      DEX_CLIENT_ID: kpi-light
+      DEX_KPI_SECRET: ${DEX_KPI_SECRET}
+      DEX_REDIRECT_URI: https://kpi.internal/api/auth/callback
+      SESSION_SECRET: ${SESSION_SECRET}
+      DISABLE_AUTH: ${DISABLE_AUTH:-false}
     # Host binding removed in Phase 26 — NPM routes /api/* via kpi.internal.
     # Uncomment for direct curl/debug access bypassing NPM.
     # ports:
