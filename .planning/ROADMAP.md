@@ -181,7 +181,13 @@ Plans:
   4. All existing API routes (`/api/settings`, `/api/uploads`, `/api/kpis`, `/api/hr/*`, `/api/sync`, `/api/data/*`) return `401` when called without a valid session cookie
   5. `DISABLE_AUTH=true` starts the app without Dex, injects a synthetic dev user visible in the NavBar, and emits a startup warning in the API logs
   6. The `app_users` table in the database is upserted on each successful Dex callback — sub, email, name, and last_seen_at are current
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 28-01-PLAN.md — Backend auth foundation: config, SessionMiddleware, authlib OIDC client, app_users model + Alembic migration, upsert service, get_current_user dep (KPO-01, KPO-06)
+- [ ] 28-02-PLAN.md — /api/auth/{login,callback,me,logout} router + DISABLE_AUTH startup warning + dev-user upsert (KPO-02, KPO-03, KPO-04, KPO-05)
+- [ ] 28-03-PLAN.md — Guard six business routers with Depends(get_current_user) (KPO-07)
+- [ ] 28-04-PLAN.md — Frontend: useCurrentUser hook, AuthSplash, ProtectedRoute wrap, NavBar user+logout, i18n (KPO-08, KPO-09)
+- [ ] 28-05-PLAN.md — docs/setup.md Phase 28 runbook extension (E2E-02, E2E-06)
 **UI hint**: yes
 
 ---
