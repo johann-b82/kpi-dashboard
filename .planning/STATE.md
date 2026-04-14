@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Dark Mode & Contrast
-status: complete
-stopped_at: Completed 23-05-final-verification-uat-PLAN.md
-last_updated: "2026-04-14T13:00:00.000Z"
+status: completed
+stopped_at: Completed 23-04-manual-verify-and-fix-residuals-PLAN.md
+last_updated: "2026-04-14T11:19:08.803Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 3
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-13 after v1.9 milestone started)
 Phase: 23 (contrast-audit-fix) — COMPLETE
 Plan: 5 of 5 (all plans complete)
 **Milestone:** v1.9 Dark Mode & Contrast — COMPLETE
-**Status:** Milestone closed
+**Status:** v1.9 milestone complete
 **Last activity:** 2026-04-14
 
 Progress: [██████████] 100%

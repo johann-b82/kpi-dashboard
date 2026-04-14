@@ -8,30 +8,24 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.9 Dark Mode & Contrast
-
-**Goal:** Add dark mode with navbar toggle and optimize contrast across all UI surfaces.
-
-**Target features:**
-- Dark mode theme with proper background, text, card, and border colors
-- Two-way segmented control (Light/Dark) in navbar next to DE/EN toggle
-- System preference detection — defaults to OS setting, user can override
-- User preference persisted in localStorage (same pattern as language)
-- Contrast optimization — verify WCAG AA on all text/background combos
-- Brand accent color stays the same in both modes, only surface colors change
-- Charts (Recharts) and all shadcn/ui components adapt to dark mode
-
 ## Current State
 
-**Shipped:** v1.8 — 2026-04-12
-**In progress:** v1.9 — Dark Mode & Contrast
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync.
-**Codebase:** ~10,000 LOC (Python + TypeScript), 8 versions shipped (v1.0–v1.8).
-**Audit status:** All v1.0–v1.6 requirements satisfied.
+**Shipped:** v1.9 — 2026-04-14
+**In progress:** Next milestone TBD
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
+**Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
+**Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
 
-## Shipped: v1.6 Multi-Select HR Criteria (2026-04-12)
+## Shipped: v1.9 Dark Mode & Contrast (2026-04-14)
+
+Full dark mode across every surface — Tailwind v4 class-strategy theme with `:root`/`.dark` CSS-variable tokens, Recharts chart defaults driven by the same tokens, brand accent + amber warning color invariant across modes (semantic consistency). Sun/moon icon toggle in navbar (simplified from segmented control during UAT), OS `prefers-color-scheme` default with localStorage override, pre-hydration IIFE that sets theme class *and* splash CSS variables before first paint (no white flash on reload). WCAG AA via deterministic token fixes: `--color-success` darkened to `#15803d` (5.02:1 white PASS), EmployeeTable active badge moved to `text-foreground` to escape same-color-on-tinted-self contrast ceiling, grep-verified zero hardcoded color literals outside documented exceptions.
+
+<details>
+<summary>v1.6 Multi-Select HR Criteria (2026-04-12)</summary>
 
 All 3 Personio config fields converted from single-select dropdowns to multi-select checkbox lists. Database columns migrated to JSONB arrays via Alembic. HR KPI aggregation uses IN/OR filters. Reusable CheckboxList component with scrollable container, loading/empty/disabled states. Language preference moved from database to localStorage.
+
+</details>
 
 <details>
 <summary>v1.5 Segmented Controls (2026-04-12)</summary>
@@ -124,12 +118,15 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ SEG-05: DE/EN language toggle rendered as segmented control with disabled-when-dirty guard — v1.5
 - ✓ SEG-06: Full DE/EN i18n parity maintained — v1.5
 
-### Validated in v1.9 (in progress)
+### Validated in v1.9
 
+- ✓ DM-01..04: Dark theme with adapted surface tokens, shadcn components, Recharts colors, brand-accent invariance — Phase 21
 - ✓ DM-05: Dark mode toggle visible in navbar — Phase 22 (shipped as single sun/moon icon button, deviation from segmented control approved during UAT)
 - ✓ DM-06: OS prefers-color-scheme drives initial theme + live-tracks until first user click — Phase 22
 - ✓ DM-07: localStorage.theme persists user choice across reloads and overrides OS preference — Phase 22
 - ✓ DM-08: DE/EN i18n keys for theme toggle (aria-label Theme/Farbschema) — Phase 22
+- ✓ DM-09: WCAG AA contrast via deterministic token fixes (`--color-success` darkened, grep-clean codebase) — Phase 23 (D-12 waiver on automated/manual verification)
+- ✓ DM-10: Delta/status badges legible in both modes via EmployeeTable `text-foreground` override + token shade adjustment — Phase 23 (D-12 waiver on WebAIM spot-check)
 
 ### Validated in v1.6
 
@@ -184,6 +181,12 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 | JSONB arrays for multi-select config | Alembic CASE-WHEN migration preserves existing values; `or []` normalization at read time | ✓ v1.6 Phase 19 |
 | Language in localStorage (not DB) | Language is a per-browser preference, not shared state; eliminates API round-trip on switch | ✓ v1.6 Phase 20 |
 | Reusable CheckboxList component | Single component serves all 3 Personio config fields with consistent UX | ✓ v1.6 Phase 20 |
+| Tailwind v4 class strategy for dark mode | CSS-first config (no `tailwind.config.js`); `:root`/`.dark` blocks define token values; single source of truth | ✓ v1.9 Phase 21 |
+| Chart tokens via `var(--color-*)` in chartDefaults.ts | Recharts consumes same tokens as rest of UI — mode switches automatically without per-component overrides | ✓ v1.9 Phase 21 |
+| Semantic color invariance (brand accent + amber + status badges identical across modes) | Meaning stays stable (green=good, red=bad); only surface lightness changes between modes | ✓ v1.9 Phase 21/23 |
+| Pre-hydration IIFE sets theme class + splash CSS variables before first paint | Eliminates theme flash and white-splash flash on reload in dark mode | ✓ v1.9 Phase 22/23 |
+| D-12 waiver on axe + WebAIM verification for v1.9 | Operator accepted deterministic fix evidence (RESEARCH.md pre-computed ratios + grep cleanliness) in lieu of automated/manual audit | ⚠️ Revisit if real-world contrast feedback surfaces |
+| Sun/moon icon button over segmented control for theme toggle | Simpler affordance next to DE/EN toggle; UAT approval reshaped scope mid-phase | ✓ v1.9 Phase 22 (UAT-approved deviation) |
 
 ## Evolution
 
@@ -203,4 +206,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after Phase 22 (dark mode toggle) completion*
+*Last updated: 2026-04-14 after v1.9 milestone completion*

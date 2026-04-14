@@ -197,6 +197,52 @@
 
 ---
 
+## Milestone: v1.9 — Dark Mode & Contrast
+
+**Shipped:** 2026-04-14
+**Phases:** 3 (21, 22, 23) | **Plans:** 12 | **Tasks:** 13 | **Timeline:** ~1 day
+**Git range:** `0a382a1` → `ecb0832` (50 commits, +6659/-151 LOC across 55 files)
+
+### What Was Built
+
+- Tailwind v4 class-strategy theme with `:root`/`.dark` CSS-variable tokens (Phase 21)
+- Mode-aware `ThemeProvider` + `MutationObserver` for external class-attribute detection (Phase 21)
+- `chartDefaults.ts` — Recharts axes/grid/tooltip/legend driven by the same tokens (Phase 21)
+- Token migration across UploadHistory, DropZone, ErrorList, EmployeeTable, PersonioCard (Phase 21)
+- Sun/moon icon theme toggle in navbar (UAT-approved simplification from segmented control), OS `prefers-color-scheme` default, localStorage override, DE/EN i18n parity (Phase 22)
+- Pre-hydration IIFE sets theme class **and** splash CSS variables before first paint — eliminates theme flash + Phase 22 UAT Scenario E white-splash regression (Phases 22/23)
+- Deterministic contrast fixes: `--color-success` darkened to `#15803d` (5.02:1 PASS), EmployeeTable active badge → `text-foreground` per-component override; grep-clean codebase (Phase 23)
+
+### What Worked
+
+- **Context-first planning paid off on Phase 23** — RESEARCH.md pre-computed the three confirmed contrast failures with exact hex values, letting Plan 23-01 ship as pure deterministic edits instead of discovery work. Token-first strategy (D-05) meant a single `@theme` block edit propagated to 3 downstream consumers automatically.
+- **Pre-hydration IIFE pattern** — extending the existing IIFE (not adding a parallel one) to also set splash CSS variables kept theme resolution centralized and fixed the Phase 22 UAT regression inside Phase 23's scope without new infrastructure.
+- **Semantic invariance as a design constraint** — deciding up front that brand accent, amber warning, and status badges stay bit-identical across modes (D-07/D-09 from Phase 21) eliminated whole classes of per-mode tuning and let Phase 23 focus on genuine contrast failures rather than aesthetic drift.
+
+### What Was Inefficient
+
+- **Two human-action checkpoints waived mid-phase** — Plans 23-03 (axe) and 23-04 (WebAIM) both required browser work the operator opted to skip, forcing Plan 23-05 to ship as a weaker code-cleanliness + trust gate. Post-hoc, it would have been cheaper to either (a) run WebAIM spot-check on the pre-computed risk items only, or (b) not plan the axe/WebAIM passes at all and lean on deterministic fixes + grep from the start. Either path avoids generating SUMMARY.md files that mostly document the skip.
+- **Plan 23-01 metadata commit failed under parallel executor** — intermittent `Bash` permission denial during concurrent wave-1 execution left SUMMARY.md + STATE.md unstaged; orchestrator had to commit them manually after agent return. Minor, but suggests parallel-execution commit contention is still a lurking issue even with `--no-verify`.
+
+### Patterns Established
+
+- **Operator-waiver signoff** — When verification work is skipped, record an explicit WAIVED/PASS status matrix in the audit artifact (`23-AUDIT.md ## Phase Pass` table) rather than silently closing the plan. Makes the tradeoff auditable at milestone-review time.
+- **D-12-style acceptance gates** — Multi-criterion signoff tables ("this PASSED, this WAIVED, here's why") beat binary signoffs when a phase has heterogeneous evidence (automated + manual + code-cleanliness).
+
+### Key Lessons
+
+1. **Pre-computed ratios > open-ended audits** when the failure surface is small and known. Phase 23's first two plans shipped confirmed fixes in minutes; the later audit plans produced little beyond waivers.
+2. **Plan the verification you'll actually run.** Planning axe + WebAIM made the plan structure look rigorous but just created skip-and-document overhead once the operator declined to run them. Leaner planning (grep + deterministic fixes only) would have shipped identical code in fewer plans.
+3. **Tailwind v4 CSS-first config + class-strategy dark mode is low-ceremony for internal tools.** No `tailwind.config.js`, no `next-themes`, one IIFE, one `.dark` block. Fast to build, easy to reason about.
+
+### Cost Observations
+
+- Model mix: sonnet-heavy (executors + researcher + checker); opus only for planner + orchestrator
+- Sessions: ~1 primary session for all 3 phases
+- Notable: Phase 23 spent more tokens closing waived checkpoints than implementing actual fixes — the 40-second Plan 23-01 execution shipped the most ratio-impacting change of the entire phase
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -207,6 +253,7 @@
 | v1.2 Deltas | 2 | 4 | Backend-first contract, persistent i18n infra |
 | v1.3 HR+Personio | 1 | 5 | Domain-boundary decomposition, encrypted credentials |
 | v1.4 Nav Polish | 1 | 1 | Visual checkpoint iteration, route-aware SubHeader |
+| v1.9 Dark Mode | 1 | 3 | Pre-computed contrast ratios in research, D-12 operator-waiver pattern |
 
 ### Cumulative Quality
 
@@ -216,6 +263,7 @@
 | v1.2 Deltas | verify scripts + integration | Script-based + human 4×2 matrix | 0 (Intl.DateTimeFormat built-in) |
 | v1.3 HR+Personio | parity script + tsc | Automated verification + audit | httpx, APScheduler, cryptography |
 | v1.4 Nav Polish | tsc + visual UAT | Human checkpoint with iterative fixes | 0 (lucide-react already installed) |
+| v1.9 Dark Mode | grep + pre-computed ratios | Deterministic + D-12 operator waiver | 0 (Tailwind v4 CSS-first, no new deps) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -225,3 +273,4 @@
 4. **Pre-phase design contracts pay for themselves** — zero mid-execution scope drift when plans are fully specified (v1.0, v1.2, v1.3)
 5. **Domain-boundary phase decomposition scales** — mapping phases to domain concepts (schema→service→UI→polish) creates clean dependency chains with minimal cross-cutting concerns (v1.3)
 6. **Recurring CLI bugs need upstream fixes, not workarounds** — ROADMAP.md stale progress appeared in v1.0, v1.2, and v1.3 (all milestones)
+7. **Plan the verification you'll actually run** — over-planning automated + manual + UAT passes creates waiver-cleanup overhead when the operator opts out; leaner scopes with deterministic fixes + targeted spot-checks ship identical code faster (v1.9)

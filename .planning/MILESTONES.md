@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.9 Dark Mode & Contrast (Shipped: 2026-04-14)
+
+**Delivered:** Full dark mode across every surface with OS-preference-aware initial theme, localStorage override, and WCAG-AA-targeted contrast via deterministic token fixes.
+
+**Phases completed:** 3 phases, 12 plans, 13 tasks
+
+**Git range:** `0a382a1` → `ecb0832` (50 commits, 55 files, +6659/-151 LOC)
+**Timeline:** 2026-04-13 → 2026-04-14 (~1 day)
+
+**Key accomplishments:**
+
+- Tailwind v4 class-strategy theme with `:root`/`.dark` CSS-variable tokens — single source of truth for both modes (Phase 21)
+- `chartDefaults.ts` wires Recharts to the same token system; axes, grid, tooltip, legend adapt automatically (Phase 21)
+- Hardcoded Tailwind colors migrated to tokens across UploadHistory, DropZone, ErrorList, EmployeeTable, PersonioCard (Phase 21)
+- Sun/moon icon toggle in navbar (UAT-approved deviation from segmented control); OS `prefers-color-scheme` default with localStorage override; full DE/EN i18n parity (Phase 22)
+- Pre-hydration IIFE sets theme class **and** splash CSS variables before first paint — eliminates theme flash and the Phase 22 UAT "white splash in dark mode" regression (Phases 22+23)
+- Deterministic contrast fixes: `--color-success` darkened to `#15803d` (5.02:1 white PASS), EmployeeTable active badge → `text-foreground` (D-06 per-component override); grep-clean codebase with 0 unexpected hex literals (Phase 23)
+- Semantic color invariance preserved: brand accent, amber warning, and status badges identical across modes
+
+**Known Gaps:**
+
+- **D-12 waiver** — automated axe DevTools audit (Plan 23-03) and manual WebAIM verification (Plan 23-04) skipped at operator request. DM-09/DM-10 acceptance rests on RESEARCH.md pre-computed ratios + grep cleanliness + Plan 23-02 splash fix. If real-world contrast feedback surfaces, run `/gsd:verify-work` against Phase 23 or open a follow-up contrast-regression phase.
+
+---
+
 ## v1.6 Multi-Select HR Criteria (Shipped: 2026-04-12)
 
 **Phases completed:** 2 phases, 4 plans, 8 tasks
