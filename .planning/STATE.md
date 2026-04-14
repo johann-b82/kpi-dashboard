@@ -1,42 +1,42 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10
-milestone_name: UI Consistency Pass
-status: verifying
-stopped_at: Completed 25-03-uat-layout-parity-PLAN.md
-last_updated: "2026-04-14T15:59:34.711Z"
+milestone: v1.11
+milestone_name: Outline Wiki + Shared Auth (Dex)
+status: defining_requirements
+stopped_at: Milestone v1.11 scope confirmed — moving to requirements
+last_updated: "2026-04-14T16:00:00.000Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
 # Project State: KPI Light
 
 **Last updated:** 2026-04-14
-**Session:** v1.10 UI Consistency Pass — milestone started, defining requirements
+**Session:** v1.11 Outline Wiki + Shared Auth (Dex) — milestone started, defining requirements
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.10 milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 25 — page-layout-parity
+**Current focus:** v1.11 — defining requirements for Outline wiki + Dex OIDC
 
 ---
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-14
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-14 — Milestone v1.11 started
 
 Progress: [          ] 0%
 

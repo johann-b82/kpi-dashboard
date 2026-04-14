@@ -2,20 +2,32 @@
 
 ## What This Is
 
-A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files (38-column sales data) into PostgreSQL for Sales KPIs, and syncs Personio HR data (employees, attendances, absences) for 5 HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
+A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files (38-column sales data) into PostgreSQL for Sales KPIs, and syncs Personio HR data (employees, attendances, absences) for 5 HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use, with planned integration into a lightweight Dex-based OIDC identity provider (v1.11) shared with a companion Outline wiki for developer + user documentation.
 
 ## Core Value
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone
+## Current Milestone: v1.11 Outline Wiki + Shared Auth (Dex)
 
-_None — v1.10 shipped. Run `/gsd:new-milestone` to scope v1.11._
+**Goal:** Deploy an Outline wiki instance alongside KPI Light as reusable multi-project documentation infrastructure, secured by a lightweight Dex OIDC IdP that both apps trust, and seed the wiki with KPI Light's developer + user docs.
+
+**Target features:**
+- **Dex OIDC IdP** — lightweight Go-based identity provider, config-file driven, containerized; single source of truth for user accounts; both KPI Light and Outline authenticate through it
+- **Outline wiki instance** — new compose services (`outline`, `outline-db` second Postgres container, `outline-redis`, `minio` for S3-compatible storage); multi-project structure via collections so future internal projects can share the same wiki
+- **KPI Light SSO integration** — FastAPI augmented with OIDC login endpoint; existing auth-less "internal tool" mode preserved for local dev without Dex
+- **Nav icon linking to the wiki** — new icon in NavBar opens the wiki origin
+- **Seeded KPI Light docs** — local dev setup, Docker Compose architecture, API reference (from FastAPI OpenAPI), Personio sync runbook, Sales + HR dashboard user guide, Settings walkthrough
+
+**Key context:**
+- Compose stack grows from 4 to ~8 services; healthcheck dependencies extend accordingly
+- Auth is the risky bit — Dex ↔ Outline ↔ KPI Light is three integrations that must all work end-to-end
+- **Out of scope:** Authentik and Authelia (ruled out based on prior operator experience); external SSO providers (Google, Slack); team-collaboration features beyond basic auth
 
 ## Current State
 
 **Shipped:** v1.10 — 2026-04-14 (10 versions, v1.0–v1.10)
-**In progress:** None — awaiting next milestone scope
+**In progress:** v1.11 Outline Wiki + Shared Auth (Dex) — scoping
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity and unified `kpi.delta.*` namespace, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. All four pages (Sales, HR, Upload, Settings) share the `max-w-7xl` container with contextual back-button navigation.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 10 versions shipped (v1.0–v1.10).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute). v1.10 shipped with both phase verifications passing cleanly (24: 8/8 must-haves, 25: 13/13 must-haves); no formal milestone audit ran.
