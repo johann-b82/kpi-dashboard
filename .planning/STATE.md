@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: UI Consistency Pass
-status: executing
-stopped_at: Completed 25-01-upload-container-and-grid-PLAN.md
-last_updated: "2026-04-14T14:35:08.722Z"
+status: verifying
+stopped_at: Completed 25-03-uat-layout-parity-PLAN.md
+last_updated: "2026-04-14T15:42:14.562Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.10 milestone started)
 
 Phase: 25 (page-layout-parity) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-14
 
 Progress: [          ] 0%
@@ -69,6 +69,7 @@ Progress: [          ] 0%
 | Phase 24-delta-label-unification P01 | 3h | 9 tasks | 5 files |
 | Phase 25-page-layout-parity P02 | 2min | 1 tasks | 1 files |
 | Phase 25-page-layout-parity P01 | 1min | 1 tasks | 1 files |
+| Phase 25-page-layout-parity P03 | 30min | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Progress: [          ] 0%
 - [Phase 24-delta-label-unification]: Scope expansion: concrete prior-period labels (vsMonth/vsQuarter/vsYear templates) replace generic vs. prev. year on bottom row; thisYear collapsed to single top-slot YTD row; both approved during UAT
 - [Phase 25-page-layout-parity]: Error-state fallback uses pb-8 not pb-32: no sticky ActionBar present in error state so 32-unit clearance is unnecessary
 - [Phase 25-page-layout-parity]: Pre-existing HrKpiCharts.tsx + SalesTable.tsx build errors confirmed out-of-scope for plan 25-01; tsc --noEmit passes; build failures deferred to separate plan
+- [Phase 25-page-layout-parity]: UAT approved UC-10: all four pages pass container parity, delta label survival DE/EN, no dashboard regressions
+- [Phase 25-page-layout-parity]: embedded prop pattern established: PersonioCard and HrTargetsCard accept embedded=true to render as section subsections instead of standalone Card components
+- [Phase 25-page-layout-parity]: sessionStorage lastDashboard tracking in NavBar: back button navigates to known last dashboard with contextual label (Back to Sales / Back to HR)
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T14:35:08.706Z
-**Stopped at:** Completed 25-01-upload-container-and-grid-PLAN.md
+**Last session:** 2026-04-14T15:42:14.558Z
+**Stopped at:** Completed 25-03-uat-layout-parity-PLAN.md
 **Resume file:** None

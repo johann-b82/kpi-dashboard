@@ -113,7 +113,7 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 ### v1.10 UI Consistency Pass (In Progress)
 
 - [x] **Phase 24: Delta Label Unification** — Consolidate relative delta labels across Sales and HR into a single shared i18n namespace (completed 2026-04-14)
-- [ ] **Phase 25: Page Layout Parity** — Align `/upload` and `/settings` page containers to match the dashboard layout convention
+- [x] **Phase 25: Page Layout Parity** — Align `/upload` and `/settings` page containers to match the dashboard layout convention (completed 2026-04-14)
 
 ## Phase Details
 
@@ -144,7 +144,7 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 **Plans**: 3 plans
 - [x] 25-01-upload-container-and-grid-PLAN.md — Swap /upload to dashboard container token and restructure DropZone + UploadHistory into responsive two-column grid
 - [x] 25-02-settings-container-PLAN.md — Swap /settings main and error-state wrappers to max-w-7xl container, preserve pb-32 ActionBar clearance and max-w-md input constraints
-- [ ] 25-03-uat-layout-parity-PLAN.md — Human UAT across all four pages in DE/EN, wide/narrow viewports, to signoff UC-10
+- [x] 25-03-uat-layout-parity-PLAN.md — Human UAT across all four pages in DE/EN, wide/narrow viewports, to signoff UC-10
 **UI hint**: yes
 
 ## Progress
@@ -162,4 +162,4 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 | 22 | v1.9 | 3/3 | Complete    | 2026-04-14 |
 | 23 | v1.9 | 5/5 | Complete   | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete    | 2026-04-14 |
-| 25 | v1.10 | 2/3 | In Progress|  |
+| 25 | v1.10 | 3/3 | Complete   | 2026-04-14 |

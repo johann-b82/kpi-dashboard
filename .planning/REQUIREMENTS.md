@@ -24,7 +24,7 @@ Requirements for v1.10 UI Consistency Pass. Each maps to roadmap phases.
 
 ### Visual QA Signoff
 
-- [ ] **UC-10**: Human UAT confirming no visual regressions on Sales or HR dashboards, that new labels read correctly in both DE and EN across all three granularities (month / quarter / year), and that `/upload` and `/settings` feel consistent with the dashboards
+- [x] **UC-10**: Human UAT confirming no visual regressions on Sales or HR dashboards, that new labels read correctly in both DE and EN across all three granularities (month / quarter / year), and that `/upload` and `/settings` feel consistent with the dashboards
 
 ## Future Requirements
 
