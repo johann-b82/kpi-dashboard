@@ -130,65 +130,63 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INF-01 | TBD | Pending |
-| INF-02 | TBD | Pending |
-| INF-03 | TBD | Pending |
-| INF-04 | TBD | Pending |
-| INF-05 | TBD | Pending |
-| DEX-01 | TBD | Pending |
-| DEX-02 | TBD | Pending |
-| DEX-03 | TBD | Pending |
-| DEX-04 | TBD | Pending |
-| DEX-05 | TBD | Pending |
-| DEX-06 | TBD | Pending |
-| KPO-01 | TBD | Pending |
-| KPO-02 | TBD | Pending |
-| KPO-03 | TBD | Pending |
-| KPO-04 | TBD | Pending |
-| KPO-05 | TBD | Pending |
-| KPO-06 | TBD | Pending |
-| KPO-07 | TBD | Pending |
-| KPO-08 | TBD | Pending |
-| KPO-09 | TBD | Pending |
-| WIK-01 | TBD | Pending |
-| WIK-02 | TBD | Pending |
-| WIK-03 | TBD | Pending |
-| WIK-04 | TBD | Pending |
-| WIK-05 | TBD | Pending |
-| WIK-06 | TBD | Pending |
-| WIK-07 | TBD | Pending |
-| WMP-01 | TBD | Pending |
-| WMP-02 | TBD | Pending |
-| WMP-03 | TBD | Pending |
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| NAV-03 | TBD | Pending |
-| DOC-01 | TBD | Pending |
-| DOC-02 | TBD | Pending |
-| DOC-03 | TBD | Pending |
-| DOC-04 | TBD | Pending |
-| DOC-05 | TBD | Pending |
-| DOC-06 | TBD | Pending |
-| DOC-07 | TBD | Pending |
-| DOC-08 | TBD | Pending |
-| DOC-09 | TBD | Pending |
-| E2E-01 | TBD | Pending |
-| E2E-02 | TBD | Pending |
-| E2E-03 | TBD | Pending |
-| E2E-04 | TBD | Pending |
-| E2E-05 | TBD | Pending |
-| E2E-06 | TBD | Pending |
+| INF-01 | Phase 26 | Pending |
+| INF-02 | Phase 26 | Pending |
+| INF-03 | Phase 26 | Pending |
+| INF-04 | Phase 26 | Pending |
+| INF-05 | Phase 26 | Pending |
+| DEX-01 | Phase 27 | Pending |
+| DEX-02 | Phase 27 | Pending |
+| DEX-03 | Phase 27 | Pending |
+| DEX-04 | Phase 27 | Pending |
+| DEX-05 | Phase 27 | Pending |
+| DEX-06 | Phase 27 | Pending |
+| KPO-01 | Phase 28 | Pending |
+| KPO-02 | Phase 28 | Pending |
+| KPO-03 | Phase 28 | Pending |
+| KPO-04 | Phase 28 | Pending |
+| KPO-05 | Phase 28 | Pending |
+| KPO-06 | Phase 28 | Pending |
+| KPO-07 | Phase 28 | Pending |
+| KPO-08 | Phase 28 | Pending |
+| KPO-09 | Phase 28 | Pending |
+| WIK-01 | Phase 29 | Pending |
+| WIK-02 | Phase 29 | Pending |
+| WIK-03 | Phase 29 | Pending |
+| WIK-04 | Phase 29 | Pending |
+| WIK-05 | Phase 29 | Pending |
+| WIK-06 | Phase 29 | Pending |
+| WIK-07 | Phase 29 | Pending |
+| WMP-01 | Phase 31 | Pending |
+| WMP-02 | Phase 31 | Pending |
+| WMP-03 | Phase 31 | Pending |
+| NAV-01 | Phase 30 | Pending |
+| NAV-02 | Phase 30 | Pending |
+| NAV-03 | Phase 30 | Pending |
+| DOC-01 | Phase 31 | Pending |
+| DOC-02 | Phase 31 | Pending |
+| DOC-03 | Phase 31 | Pending |
+| DOC-04 | Phase 31 | Pending |
+| DOC-05 | Phase 31 | Pending |
+| DOC-06 | Phase 31 | Pending |
+| DOC-07 | Phase 31 | Pending |
+| DOC-08 | Phase 31 | Pending |
+| DOC-09 | Phase 31 | Pending |
+| E2E-01 | Phase 31 | Pending |
+| E2E-02 | Phase 28 | Pending |
+| E2E-03 | Phase 31 | Pending |
+| E2E-04 | Phase 31 | Pending |
+| E2E-05 | Phase 31 | Pending |
+| E2E-06 | Phase 28 | Pending |
 
 **Coverage:**
 - v1.11 requirements: 47 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 47 ⚠️ (expected — gsd-roadmapper will resolve)
+- Mapped to phases: 47/47 ✓
+- Unmapped: 0
 
 ---
 
 *Requirements defined: 2026-04-14*
-*Last updated: 2026-04-14 after initial definition*
+*Last updated: 2026-04-14 — traceability populated by gsd-roadmapper*
