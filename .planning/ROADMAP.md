@@ -165,7 +165,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 27-01-PLAN.md — dex/config.yaml skeleton + .env.example secret block (DEX-02, DEX-03, DEX-04, DEX-05, DEX-06)
-- [ ] 27-02-PLAN.md — dex compose service + bcrypt/UUID/secret bootstrap + NPM proxy-host repoint (DEX-01, DEX-02, DEX-04, DEX-06)
+- [x] 27-02-PLAN.md — dex compose service + bcrypt/UUID/secret bootstrap + NPM proxy-host repoint (DEX-01, DEX-02, DEX-04, DEX-06)
 - [ ] 27-03-PLAN.md — docs/setup.md Dex first-login + add-user runbook (DEX-01, DEX-04)
 
 ---

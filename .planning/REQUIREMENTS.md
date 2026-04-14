@@ -18,7 +18,7 @@
 
 ### Dex OIDC Identity Provider (DEX)
 
-- [ ] **DEX-01**: Dex (`ghcr.io/dexidp/dex:v2.43.0`) runs as a docker-compose service with SQLite storage on a named volume and is reachable as `https://auth.internal` via NPM
+- [x] **DEX-01**: Dex (`ghcr.io/dexidp/dex:v2.43.0`) runs as a docker-compose service with SQLite storage on a named volume and is reachable as `https://auth.internal` via NPM
 - [x] **DEX-02**: Dex exposes a valid OIDC discovery endpoint at `https://auth.internal/dex/.well-known/openid-configuration`, with `issuer` matching the browser-reachable URL exactly
 - [x] **DEX-03**: Dex is configured with two OIDC clients: `kpi-light` (redirect URI `https://kpi.internal/api/auth/callback`) and `outline` (redirect URI `https://wiki.internal/auth/oidc.callback`)
 - [x] **DEX-04**: Dex `staticPasswords` block contains at least two seeded users (one admin, one regular); bcrypt hash workflow for adding new users is documented in the repo
@@ -137,7 +137,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | INF-03 | Phase 26 | Complete |
 | INF-04 | Phase 26 | Complete |
 | INF-05 | Phase 26 | Complete |
-| DEX-01 | Phase 27 | Pending |
+| DEX-01 | Phase 27 | Complete |
 | DEX-02 | Phase 27 | Complete |
 | DEX-03 | Phase 27 | Complete |
 | DEX-04 | Phase 27 | Complete |

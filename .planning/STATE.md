@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-04-14T21:55:56.570Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-04-14T22:16:02.474Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 ## Current Position
 
 Phase: 27 (dex-idp-setup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-14
 
@@ -74,6 +74,7 @@ Progress: [          ] 0%
 | Phase 26-npm-hostnames P02 | 10min | 2 tasks | 2 files |
 | Phase 26-npm-hostnames P03 | 2min | 2 tasks | 2 files |
 | Phase 27-dex-idp-setup P01 | 3min | 2 tasks | 2 files |
+| Phase 27-dex-idp-setup P02 | 4min | 4 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,9 @@ Progress: [          ] 0%
 - [Phase 26-npm-hostnames]: Plan 26-02 deviation: busybox wget in alpine resolves 'localhost' to ::1 first; frontend healthcheck switched to 127.0.0.1 (fix eab26c7 scoped to 26-01 where it originated). Loopback-healthcheck rule codified for future alpine-based services.
 - [Phase 26-npm-hostnames]: Plan 26-03: docs/setup.md runbook + README Quickstart landed; preserved existing README content, updated stale :5173/:8000 Quick Start to NPM-edge reality (classed as Rule 2 correctness fix). All 5 INF requirements (01-05) have documented verification paths.
 - [Phase 27-dex-idp-setup]: Plan 27-01: Issuer comment moved above the issuer line (not trailing) to satisfy exact-match verification regex; placeholders for bcrypt hashes, UUIDs, and client secrets intentionally left for plan 27-02 to substitute.
+- [Phase 27-dex-idp-setup]: Plan 27-02: Dex v2.43.0 removed the hash-password subcommand — canonical bcrypt workflow is now python:3.12-alpine + bcrypt library (cost 10, $2b$10$ prefix); plan 27-03 runbook must inherit this
+- [Phase 27-dex-idp-setup]: Plan 27-02: Dex service runs as user: root to work around UID 1001 vs root-owned named-volume mismatch for /data/dex.db; chown init sidecar deferred as optional hardening
+- [Phase 27-dex-idp-setup]: Plan 27-02: NPM Advanced block (proxy_set_header X-Forwarded-Proto https + Host/X-Forwarded-For/X-Real-IP) is REQUIRED for Dex to emit https:// URLs in OIDC discovery behind NPM; operator-pasted via admin UI (Phase 26 D-09)
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T21:55:56.567Z
-**Stopped at:** Completed 27-01-PLAN.md
+**Last session:** 2026-04-14T22:15:11.682Z
+**Stopped at:** Completed 27-02-PLAN.md
 **Resume file:** None
