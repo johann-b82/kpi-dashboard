@@ -127,7 +127,8 @@ Requirements: [milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
   3. `KpiCardGrid` and `HrKpiCardGrid` both resolve their delta label strings from the same `kpi.delta.*` keys — no duplicate or divergent label logic exists in either component
   4. `scripts/check-locale-parity.mts` exits with code 0 (no missing keys between `en.json` and `de.json`)
   5. `frontend/src/lib/periodLabels.ts` contains no unreferenced absolute-period formatters — either the file is deleted or only referenced code remains
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 24-01-delta-label-unification-PLAN.md — Migrate Sales + HR delta badges to shared `kpi.delta.*` namespace; strip `periodLabels.ts` formatters; add `prevQuarter`; cleanup orphan keys
 **UI hint**: yes
 
 ### Phase 25: Page Layout Parity
