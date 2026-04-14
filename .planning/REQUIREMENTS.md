@@ -17,9 +17,9 @@ Requirements for v1.10 UI Consistency Pass. Each maps to roadmap phases.
 
 ### Page Width & Layout Parity
 
-- [ ] **UC-06**: `/upload` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`
+- [x] **UC-06**: `/upload` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`
 - [x] **UC-07**: `/settings` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 space-y-8` with `pb-32` preserved for sticky ActionBar space
-- [ ] **UC-08**: `/upload` body restructured to use the wider container sensibly — DropZone and UploadHistory laid out for max-w-7xl (side-by-side on wide viewports or stacked with appropriate max-widths, not stretched to full 80rem unstyled)
+- [x] **UC-08**: `/upload` body restructured to use the wider container sensibly — DropZone and UploadHistory laid out for max-w-7xl (side-by-side on wide viewports or stacked with appropriate max-widths, not stretched to full 80rem unstyled)
 - [x] **UC-09**: Other structural differences between `/upload`, `/settings`, and dashboard pages audited and aligned — padding rhythm (`pt-4 pb-8`), vertical spacing (`space-y-8`), and any inconsistent heading/section wrappers
 
 ### Visual QA Signoff
