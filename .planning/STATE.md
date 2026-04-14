@@ -4,7 +4,7 @@ milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: verifying
 stopped_at: "Completed 27-03-runbook-PLAN.md — Phase 27 ready for /gsd:verify-phase"
-last_updated: "2026-04-14T22:20:28.769Z"
+last_updated: "2026-04-14T22:24:20.174Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 6
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 ## Current Position
 
-Phase: 27 (dex-idp-setup) — EXECUTING
-Plan: 3 of 3
+Phase: 28
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-14
 
