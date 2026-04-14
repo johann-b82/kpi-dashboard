@@ -270,6 +270,18 @@ class HrKpiHistoryPoint(BaseModel):
     revenue_per_production_employee: float | None = None
 
 
+class CurrentUser(BaseModel):
+    """Session-backed authenticated user (Phase 28, D-11).
+
+    Populated from `request.session['user']` after successful OIDC callback,
+    or from SYNTHETIC_USER when DISABLE_AUTH=true (dev bypass, D-13).
+    """
+
+    sub: str
+    email: str
+    name: str | None = None
+
+
 class EmployeeRead(BaseModel):
     id: int
     first_name: str | None = None

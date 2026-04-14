@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     Time,
+    func,
 )
 from sqlalchemy.dialects.postgresql import BYTEA, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -233,6 +234,28 @@ class PersonioAbsence(Base):
     employee: Mapped["PersonioEmployee"] = relationship(
         "PersonioEmployee",
         back_populates="absences",
+    )
+
+
+class AppUser(Base):
+    """OIDC-authenticated user row (Phase 28, KPO-06).
+
+    Upserted on every successful OIDC login via `app.services.users.upsert_user`.
+    `sub` (OIDC subject) is the stable identity key; `email` / `name` are
+    refreshed from claims on each login; `last_seen_at` tracks activity.
+    """
+
+    __tablename__ = "app_users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    sub: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 
