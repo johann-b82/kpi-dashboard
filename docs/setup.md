@@ -265,3 +265,173 @@ The mkcert + `internal-wildcard` custom cert is the v1.11 default — it works o
 When a real DNS domain becomes available (v2), the same NPM container can issue and auto-renew a real Let's Encrypt certificate via the DNS-01 challenge directly from the **SSL Certificates** admin UI. The `npm_letsencrypt` Docker volume is already mounted in anticipation — no compose changes needed to migrate. At that point you'd switch each proxy host's SSL cert from `internal-wildcard` to the new Let's Encrypt cert, and the dashboard would be reachable on a public hostname with a globally-trusted padlock.
 
 Self-signed via mkcert remains the default for single-VM v1.11 internal deployments (see D-04 in the phase planning notes).
+
+---
+
+## Dex first-login
+
+Dex is the OIDC identity provider that KPI Light and (later) Outline wiki both trust. Follow this section the first time you bring Dex up on a machine, and any time you rebuild from scratch with a fresh `dex_data` volume.
+
+### 1. Generate Dex client secrets
+
+```bash
+openssl rand -hex 32   # paste into .env as DEX_KPI_SECRET=
+openssl rand -hex 32   # paste into .env as DEX_OUTLINE_SECRET=
+```
+
+`dex/config.yaml` is git-tracked and references these values via `$DEX_KPI_SECRET` / `$DEX_OUTLINE_SECRET`. Never edit `config.yaml` to hardcode a client secret — Dex performs native `$VAR` substitution at startup, and committing a secret defeats the whole point of the env-var indirection.
+
+### 2. Bring Dex up
+
+```bash
+docker compose up -d dex
+docker compose ps dex   # STATUS must be "healthy" within 30 s
+```
+
+The Dex service runs as `user: root` in `docker-compose.yml`. This is deliberate: the `dex_data` named Docker volume mounts `/data` with root ownership at creation, and the upstream Dex image's default UID 1001 cannot write `/data/dex.db` into that volume. Running the container as root is the simplest fix for an internal-tools-scope service. A hardened alternative is an init sidecar that `chown 1001:1001 /data` and exits before `dex` starts — noted here so anyone rebuilding understands why the `user: root` line exists.
+
+### 3. Configure NPM to route `auth.internal` to Dex
+
+This is a one-time operator action per environment. Proxy-host config persists in the `npm_data` volume across restarts (Phase 26 D-09 locks NPM edits to the admin UI).
+
+- Open <http://localhost:81> → **Hosts → Proxy Hosts** → edit the `auth.internal` row (created as a placeholder in Phase 26).
+- **Details tab:**
+  - Forward Hostname / IP: `dex`
+  - Forward Port: `5556`
+  - Scheme: `http`
+  - Block Common Exploits: ON
+  - Websockets Support: ON
+- **SSL tab:**
+  - SSL Certificate: `internal-wildcard` (created in §4.2)
+  - Force SSL: ON
+  - HTTP/2 Support: ON
+- **Advanced tab** — paste this block exactly:
+
+  ```nginx
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Proto https;
+  proxy_set_header X-Forwarded-For $remote_addr;
+  proxy_set_header X-Real-IP $remote_addr;
+  ```
+
+  Without `X-Forwarded-Proto https`, Dex emits `http://` URLs in its discovery document and every downstream OIDC client will refuse to complete the auth flow. This is a non-optional paste.
+
+- Save.
+
+### 4. Verify the issuer end-to-end
+
+From a host shell:
+
+```bash
+curl -sk https://auth.internal/dex/.well-known/openid-configuration | python3 -m json.tool
+# Expect: "issuer": "https://auth.internal/dex"
+# Expect: "authorization_endpoint" starts with "https://"
+# Expect: "scopes_supported" contains "offline_access"
+```
+
+Strict single-line assertion:
+
+```bash
+test "$(curl -sk https://auth.internal/dex/.well-known/openid-configuration | python3 -c 'import sys,json; print(json.load(sys.stdin)["issuer"])')" = "https://auth.internal/dex" && echo OK || echo FAIL
+```
+
+### 5. Verify a seeded user can log in
+
+```bash
+open 'https://auth.internal/dex/auth?client_id=kpi-light&redirect_uri=https://kpi.internal/api/auth/callback&response_type=code&scope=openid+email+profile+offline_access&state=test'
+```
+
+Log in as `admin@acm.local` (the placeholder password is documented at the top of `dex/config.yaml` under SECURITY NOTE, and in `.planning/phases/27-dex-idp-setup/27-02-SUMMARY.md`). Dex redirects to `https://kpi.internal/api/auth/callback?code=...` — the 404 there is expected until Phase 28 wires the callback endpoint; the presence of `code=` in the URL proves Dex issued an Authorization Code.
+
+### 6. SECRET ROTATION (do this before sharing access)
+
+The placeholder passwords seeded by plan 27-02 (`ChangeMe!2026-admin` and `ChangeMe!2026-dev`) are documented in git history and MUST be rotated before anyone other than the original operator uses the IdP. Follow "Add or rotate a Dex user" below to set new passwords for both `admin@acm.local` and `dev@acm.local`. Keep their `userID:` UUIDs unchanged — only rewrite the `hash:` line.
+
+---
+
+## Add or rotate a Dex user
+
+This is the canonical workflow any operator can follow to add a new team member, change a password, or remove an account.
+
+### 1. Generate a bcrypt hash
+
+Dex v2.43.0 **does not ship a `hash-password` subcommand** — it was removed upstream. The canonical replacement uses the public `python:3.12-alpine` image and the `bcrypt` library:
+
+```bash
+docker run --rm python:3.12-alpine sh -c \
+  "pip install -q bcrypt && python -c 'import bcrypt; print(bcrypt.hashpw(b\"PASSWORD\", bcrypt.gensalt(rounds=10)).decode())'"
+```
+
+Replace `PASSWORD` with the new user's password. Output is a 60-character string beginning with `$2b$10$...` — copy the entire string. Both `$2a$10$` and `$2b$10$` prefixes are supported by Dex's bcrypt verifier at login time; the `$2b` prefix produced by Python's `bcrypt` is functionally identical to the `$2a` prefix Dex used to produce itself.
+
+Do NOT run `docker compose run --rm dex dex hash-password` — that subcommand no longer exists in Dex v2.43.0 and will fail with `Error: unknown command "hash-password" for "dex"`.
+
+### 2. Generate a stable UUID (NEW users only)
+
+Existing users keep their `userID:` forever — it becomes the `sub` claim in every OIDC token downstream apps store, so regenerating it would orphan every stored reference. Only run this for a brand-new user:
+
+```bash
+uuidgen | tr 'A-Z' 'a-z'
+# macOS / Linux. Windows: powershell -Command "[guid]::NewGuid()"
+```
+
+### 3. Edit `dex/config.yaml`
+
+Under `staticPasswords:`, either append a new entry (new user) or REPLACE just the `hash:` line (rotation):
+
+```yaml
+- email: "newuser@acm.local"
+  hash: '$2b$10$...paste hash from step 1...'
+  username: "newuser"
+  userID: "...paste uuid from step 2..."
+```
+
+**Use single quotes around the `hash:` value.** The literal `$` characters in `$2b$10$...` collide with Dex's native `$VAR` env-var substitution, and single quotes bypass YAML's parsing of them without needing `$$` escaping.
+
+### 4. Restart Dex
+
+```bash
+docker compose restart dex
+docker compose ps dex   # back to healthy within ~2 s
+```
+
+Dex has no in-process config file-watcher; restart is the only reload path. It's fast (under 2 seconds) and does not interrupt other services.
+
+### 5. Verify the new user can log in
+
+Repeat §"Dex first-login" step 5 (the `open 'https://auth.internal/dex/auth?...'` URL) using the new user's email and password. A `code=...` redirect proves the entry took effect.
+
+### 6. Removing a user
+
+Delete the entry from `dex/config.yaml` and `docker compose restart dex`. Existing refresh tokens for that user become invalid on next use because Dex can no longer match the `sub` claim against a `staticPasswords` entry. For **immediate** revocation of ALL sessions for ALL users (the nuclear option, D-16), wipe the volume:
+
+```bash
+docker compose down dex
+docker volume rm <project>_dex_data   # substitute your compose project name
+docker compose up -d dex
+```
+
+---
+
+## Dex storage and persistence
+
+- Dex stores its SQLite database at `/data/dex.db` inside the container, backed by the `dex_data` named Docker volume (D-18).
+- The database contains auth codes, refresh tokens, and offline sessions. It **survives** `docker compose restart dex` and `docker compose down`. It is **wiped** by `docker compose down -v`.
+- To inspect:
+  ```bash
+  docker compose exec dex sh -c 'ls -la /data/'
+  ```
+- To back up manually:
+  ```bash
+  docker run --rm -v <project>_dex_data:/data -v "$PWD":/backup alpine \
+    tar czf /backup/dex_data.tgz /data
+  ```
+  A v2.x admin runbook (Phase 31) automates this; for v1.11 a manual snapshot is sufficient.
+
+---
+
+## Known limitations
+
+- **No RP-initiated logout.** Dex does not expose an `end_session_endpoint` (upstream issue [dexidp/dex#1697](https://github.com/dexidp/dex/issues/1697)). Per-app logout works — the app clears its own cookie. Cross-app SSO-wide logout does not exist. Mitigation: the 1h ID-token TTL (D-07) bounds how long an unused session can linger.
+- **Config reload requires restart.** There is no file-watcher; every change to `dex/config.yaml` needs `docker compose restart dex`. Restart is <2 s and safe.
+- **`userID` is permanent.** Never regenerate the `userID:` UUID for an existing user. It is the OIDC `sub` claim that downstream apps (KPI Light in Phase 28, Outline in Phase 29) store in their own user tables; rotating it orphans every stored reference (Pitfall 4).
