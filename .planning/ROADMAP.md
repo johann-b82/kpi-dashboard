@@ -127,7 +127,7 @@ Requirements: [milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.m
 
 - [x] **Phase 26: NPM + Hostnames** — Nginx Proxy Manager with HTTPS and three hostname routes as the shared network foundation (completed 2026-04-14)
 - [x] **Phase 27: Dex IdP Setup** — Dex OIDC identity provider deployed and verified in isolation (completed 2026-04-14)
-- [ ] **Phase 28: KPI Light OIDC Integration** — KPI Light backend and frontend gated behind Dex login
+- [x] **Phase 28: KPI Light OIDC Integration** — KPI Light backend and frontend gated behind Dex login (completed 2026-04-14)
 - [ ] **Phase 29: Outline Wiki Deployment** — Outline running with its own Postgres + Redis, authenticating via Dex
 - [ ] **Phase 30: Wiki NavBar Link** — KPI Light NavBar gains a wiki icon linking to Outline
 - [ ] **Phase 31: Seed Outline Docs** — KPI Light documentation collection authored and published in Outline
@@ -187,7 +187,7 @@ Plans:
 - [x] 28-02-PLAN.md — /api/auth/{login,callback,me,logout} router + DISABLE_AUTH startup warning + dev-user upsert (KPO-02, KPO-03, KPO-04, KPO-05)
 - [x] 28-03-PLAN.md — Guard six business routers with Depends(get_current_user) (KPO-07)
 - [x] 28-04-PLAN.md — Frontend: useCurrentUser hook, AuthSplash, ProtectedRoute wrap, NavBar user+logout, i18n (KPO-08, KPO-09)
-- [ ] 28-05-PLAN.md — docs/setup.md Phase 28 runbook extension (E2E-02, E2E-06)
+- [x] 28-05-PLAN.md — docs/setup.md Phase 28 runbook extension (E2E-02, E2E-06)
 **UI hint**: yes
 
 ---
@@ -252,7 +252,7 @@ Plans:
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
-| 28 | v1.11 | 4/5 | In Progress|  |
+| 28 | v1.11 | 5/5 | Complete   | 2026-04-14 |
 | 29 | v1.11 | 0/? | Not started | - |
 | 30 | v1.11 | 0/? | Not started | - |
 | 31 | v1.11 | 0/? | Not started | - |

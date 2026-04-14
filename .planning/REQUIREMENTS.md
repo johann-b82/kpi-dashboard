@@ -74,11 +74,11 @@
 ### End-to-End Acceptance (E2E)
 
 - [ ] **E2E-01**: Human UAT: fresh `docker compose up --build` on a clean VM produces a working stack — all three hostnames resolve, NPM serves HTTPS, Dex login page loads at `https://auth.internal`
-- [ ] **E2E-02**: Human UAT: logging into KPI Light via Dex persists across refresh, logout clears the session, `/api/auth/me` returns correctly pre/post login
+- [x] **E2E-02**: Human UAT: logging into KPI Light via Dex persists across refresh, logout clears the session, `/api/auth/me` returns correctly pre/post login
 - [ ] **E2E-03**: Human UAT: logging into Outline via Dex creates a new user JIT, user can create a document in the "KPI Light" collection and edit it
 - [ ] **E2E-04**: Human UAT: NavBar wiki icon from KPI Light opens Outline; user is already logged in (Dex SSO session shared)
 - [ ] **E2E-05**: Human UAT: all 8 seeded docs are legible, cross-linked, and reflect v1.10 state of KPI Light (not stale)
-- [ ] **E2E-06**: Human UAT: `DISABLE_AUTH=true` local dev flow works without Dex running (synthetic user visible in NavBar)
+- [x] **E2E-06**: Human UAT: `DISABLE_AUTH=true` local dev flow works without Dex running (synthetic user visible in NavBar)
 
 ---
 
@@ -175,11 +175,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | DOC-08 | Phase 31 | Pending |
 | DOC-09 | Phase 31 | Pending |
 | E2E-01 | Phase 31 | Pending |
-| E2E-02 | Phase 28 | Pending |
+| E2E-02 | Phase 28 | Complete |
 | E2E-03 | Phase 31 | Pending |
 | E2E-04 | Phase 31 | Pending |
 | E2E-05 | Phase 31 | Pending |
-| E2E-06 | Phase 28 | Pending |
+| E2E-06 | Phase 28 | Complete |
 
 **Coverage:**
 - v1.11 requirements: 47 total
