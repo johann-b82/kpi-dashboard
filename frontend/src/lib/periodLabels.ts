@@ -151,7 +151,13 @@ export function formatPrevPeriodDeltaLabels(
         month: getLocalizedMonthName(priorMonthDate.getMonth(), locale),
         year: priorMonthDate.getFullYear(),
       }),
-      prevYear: prevYearLabel,
+      // Bottom row for thisMonth: SAME month, PRIOR year (e.g. April 2026 → April 2025).
+      // Not "vs. {priorYear}" — users want month-over-month YoY comparability,
+      // matching the thisQuarter same-quarter-prior-year pattern below.
+      prevYear: t("kpi.delta.vsMonth", {
+        month: getLocalizedMonthName(anchor.getMonth(), locale),
+        year: priorYear,
+      }),
     };
   }
 
@@ -197,6 +203,11 @@ export function formatHrDeltaLabels(
       month: getLocalizedMonthName(priorMonthDate.getMonth(), locale),
       year: priorMonthDate.getFullYear(),
     }),
-    prevYear: t("kpi.delta.vsYear", { year: priorYear }),
+    // Bottom row: SAME month, PRIOR year (e.g. April 2026 → April 2025).
+    // Matches Sales thisMonth pattern for month-over-month YoY comparability.
+    prevYear: t("kpi.delta.vsMonth", {
+      month: getLocalizedMonthName(today.getMonth(), locale),
+      year: priorYear,
+    }),
   };
 }
