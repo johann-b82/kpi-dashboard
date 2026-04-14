@@ -155,52 +155,47 @@ export function SettingsPage() {
         <h1 className="text-3xl font-semibold leading-tight">
           {t("settings.page_title")}
         </h1>
-        <p className="mt-2 text-base text-muted-foreground">
-          {t("settings.page_subtitle")}
-        </p>
       </header>
 
-      {/* Identity Card */}
-      <Card className="mb-6">
+      {/* General Card — merges identity + colors as subsections */}
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl font-semibold">
             {t("settings.identity.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col gap-2 max-w-md">
-            <Label htmlFor="app-name" className="text-sm font-medium">
-              {t("settings.identity.app_name.label")}
-            </Label>
-            <Input
-              id="app-name"
-              value={draft.app_name}
-              onChange={(e) => setDraftField("app_name", e.target.value)}
-              placeholder={t("settings.identity.app_name.placeholder")}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t("settings.identity.app_name.help")}
-            </p>
+        <CardContent className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <Label htmlFor="app-name" className="text-sm font-medium">
+                {t("settings.identity.app_name.label")}
+              </Label>
+              <Input
+                id="app-name"
+                value={draft.app_name}
+                onChange={(e) => setDraftField("app_name", e.target.value)}
+                placeholder={t("settings.identity.app_name.placeholder")}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("settings.identity.app_name.help")}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 md:col-span-4">
+              <Label className="text-sm font-medium">
+                {t("settings.identity.logo.label")}
+              </Label>
+              <LogoUpload logoUrl={settingsData?.logo_url ?? null} />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-sm font-medium">
-              {t("settings.identity.logo.label")}
-            </Label>
-            <LogoUpload logoUrl={settingsData?.logo_url ?? null} />
-          </div>
-        </CardContent>
-      </Card>
+          <hr className="border-border" />
 
-      {/* Colors Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">
-            {t("settings.colors.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="space-y-4">
+            <h3 className="text-base font-semibold">
+              {t("settings.colors.title")}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <ColorPicker
               label={t("settings.colors.primary")}
               value={draft.color_primary}
@@ -255,19 +250,29 @@ export function SettingsPage() {
                 />
               }
             />
-          </div>
+            </div>
+          </section>
         </CardContent>
       </Card>
 
-      {/* Personio Card — D-11, D-12 */}
-      <PersonioCard
-        draft={draft}
-        setField={setField}
-        hasCredentials={settingsData?.personio_has_credentials ?? false}
-      />
-
-      {/* HR KPI Targets */}
-      <HrTargetsCard draft={draft} setField={setField} />
+      {/* HR Card — embeds Personio + Sollwerte as subsections */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">
+            {t("settings.hr.title")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <PersonioCard
+            draft={draft}
+            setField={setField}
+            hasCredentials={settingsData?.personio_has_credentials ?? false}
+            embedded
+          />
+          <hr className="border-border" />
+          <HrTargetsCard draft={draft} setField={setField} embedded />
+        </CardContent>
+      </Card>
 
       <ActionBar
         isDirty={isDirty}

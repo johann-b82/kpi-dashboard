@@ -7,6 +7,8 @@ import type { DraftFields } from "@/hooks/useSettingsDraft";
 interface HrTargetsCardProps {
   draft: DraftFields;
   setField: <K extends keyof DraftFields>(field: K, value: DraftFields[K]) => void;
+  /** When true, render without a Card wrapper — as a subsection inside a parent card. */
+  embedded?: boolean;
 }
 
 const TARGET_FIELDS = [
@@ -16,21 +18,12 @@ const TARGET_FIELDS = [
   { key: "target_revenue_per_employee" as const, labelKey: "settings.targets.revenue", isPercent: false },
 ];
 
-export function HrTargetsCard({ draft, setField }: HrTargetsCardProps) {
+export function HrTargetsCard({ draft, setField, embedded = false }: HrTargetsCardProps) {
   const { t } = useTranslation();
 
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          {t("settings.targets.title")}
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {t("settings.targets.description")}
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+  const body = (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {TARGET_FIELDS.map(({ key, labelKey, isPercent }) => {
             const raw = draft[key];
             // Display: ratio → percent for display, raw number for currency
@@ -67,8 +60,37 @@ export function HrTargetsCard({ draft, setField }: HrTargetsCardProps) {
               </div>
             );
           })}
+      </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-base font-semibold">
+            {t("settings.targets.title")}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.targets.description")}
+          </p>
         </div>
-      </CardContent>
+        {body}
+      </section>
+    );
+  }
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">
+          {t("settings.targets.title")}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {t("settings.targets.description")}
+        </p>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
     </Card>
   );
 }

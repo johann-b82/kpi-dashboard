@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, PlugZap, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { CheckboxList } from "@/components/settings/CheckboxList";
 import type { CheckboxOption } from "@/components/settings/CheckboxList";
 import { fetchPersonioOptions, testPersonioConnection, triggerSync } from "@/lib/api";
@@ -17,6 +16,8 @@ interface PersonioCardProps {
   setField: <K extends keyof DraftFields>(field: K, value: DraftFields[K]) => void;
   /** True when the backend reports Personio credentials are stored (personio_has_credentials). */
   hasCredentials: boolean;
+  /** When true, render without a Card wrapper — as a subsection inside a parent card. */
+  embedded?: boolean;
 }
 
 /**
@@ -29,7 +30,7 @@ interface PersonioCardProps {
  *   They are disabled until credentials exist (D-10).
  * - All fields are saved via the existing shared Speichern button (D-13).
  */
-export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardProps) {
+export function PersonioCard({ draft, setField, hasCredentials, embedded = false }: PersonioCardProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -90,63 +91,119 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
   const noCredentialsHint = !hasCredentials ? t("settings.personio.credentials.configure_hint") : null;
   const optionsError = options?.error ?? null;
 
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">{t("settings.personio.title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+  const body = (
+    <div className="space-y-8">
+        {/* Credentials row: Client-ID | Client-Secret | Sync-Intervall (narrow, right) */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_12rem] gap-x-6 gap-y-6">
+          {/* Client-ID */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="personio-client-id" className="text-sm font-medium">
+              {t("settings.personio.client_id.label")}
+            </Label>
+            <Input
+              id="personio-client-id"
+              type="password"
+              autoComplete="new-password"
+              value={draft.personio_client_id}
+              onChange={(e) => setField("personio_client_id", e.target.value)}
+              placeholder={t("settings.personio.client_id.placeholder")}
+            />
+            {hasCredentials && !draft.personio_client_id && (
+              <p className="text-xs text-muted-foreground">
+                {t("settings.personio.client_id.saved_hint")}
+              </p>
+            )}
+          </div>
 
-        {/* Client-ID */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-client-id" className="text-sm font-medium">
-            {t("settings.personio.client_id.label")}
-          </Label>
-          <Input
-            id="personio-client-id"
-            type="password"
-            autoComplete="new-password"
-            value={draft.personio_client_id}
-            onChange={(e) => setField("personio_client_id", e.target.value)}
-            placeholder={t("settings.personio.client_id.placeholder")}
-          />
-          {hasCredentials && !draft.personio_client_id && (
-            <p className="text-xs text-muted-foreground">
-              {t("settings.personio.client_id.saved_hint")}
-            </p>
-          )}
+          {/* Client-Secret */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="personio-client-secret" className="text-sm font-medium">
+              {t("settings.personio.client_secret.label")}
+            </Label>
+            <Input
+              id="personio-client-secret"
+              type="password"
+              autoComplete="new-password"
+              value={draft.personio_client_secret}
+              onChange={(e) => setField("personio_client_secret", e.target.value)}
+              placeholder={t("settings.personio.client_secret.placeholder")}
+            />
+            {hasCredentials && !draft.personio_client_secret && (
+              <p className="text-xs text-muted-foreground">
+                {t("settings.personio.client_secret.saved_hint")}
+              </p>
+            )}
+          </div>
+
+          {/* Sync-Intervall (narrow, far right) */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="personio-sync-interval" className="text-sm font-medium">
+              {t("settings.personio.sync_interval.label")}
+            </Label>
+            <select
+              id="personio-sync-interval"
+              value={String(draft.personio_sync_interval_h)}
+              onChange={(e) =>
+                setField(
+                  "personio_sync_interval_h",
+                  Number(e.target.value) as 0 | 1 | 6 | 24,
+                )
+              }
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {INTERVAL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={String(opt.value)}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Client-Secret */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-client-secret" className="text-sm font-medium">
-            {t("settings.personio.client_secret.label")}
-          </Label>
-          <Input
-            id="personio-client-secret"
-            type="password"
-            autoComplete="new-password"
-            value={draft.personio_client_secret}
-            onChange={(e) => setField("personio_client_secret", e.target.value)}
-            placeholder={t("settings.personio.client_secret.placeholder")}
-          />
-          {hasCredentials && !draft.personio_client_secret && (
-            <p className="text-xs text-muted-foreground">
-              {t("settings.personio.client_secret.saved_hint")}
-            </p>
-          )}
-        </div>
-
-        {/* Verbindung testen */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={testing || (!hasCredentials && !draft.personio_client_id)}
-            onClick={handleTestConnection}
-          >
-            {testing ? t("settings.personio.test_connection.testing") : t("settings.personio.test_connection.button")}
-          </Button>
+        {/* Test connection + Refresh (above separator) */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={testing || (!hasCredentials && !draft.personio_client_id)}
+              onClick={handleTestConnection}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
+            >
+              {testing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PlugZap className="h-4 w-4" />
+              )}
+              {testing ? t("settings.personio.test_connection.testing") : t("settings.personio.test_connection.button")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSyncFeedback("idle");
+                setSyncError(null);
+                syncMutation.mutate();
+              }}
+              disabled={syncMutation.isPending || !hasCredentials}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
+            >
+              {syncMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("hr.sync.button")}
+                </>
+              ) : syncFeedback === "success" ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
+                  {t("hr.sync.success")}
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  {t("hr.sync.button")}
+                </>
+              )}
+            </button>
+          </div>
           {testResult !== null && (
             <p
               className={
@@ -160,58 +217,6 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
                 : (testResult.error ?? t("settings.personio.test_connection.failure"))}
             </p>
           )}
-        </div>
-
-        {/* Sync-Intervall */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <Label htmlFor="personio-sync-interval" className="text-sm font-medium">
-            {t("settings.personio.sync_interval.label")}
-          </Label>
-          <select
-            id="personio-sync-interval"
-            value={String(draft.personio_sync_interval_h)}
-            onChange={(e) =>
-              setField(
-                "personio_sync_interval_h",
-                Number(e.target.value) as 0 | 1 | 6 | 24,
-              )
-            }
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            {INTERVAL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={String(opt.value)}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sync now */}
-        <div className="flex flex-col gap-2 max-w-md">
-          <button
-            type="button"
-            onClick={() => {
-              setSyncFeedback("idle");
-              setSyncError(null);
-              syncMutation.mutate();
-            }}
-            disabled={syncMutation.isPending || !hasCredentials}
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50 w-fit"
-          >
-            {syncMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t("hr.sync.button")}
-              </>
-            ) : syncFeedback === "success" ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
-                {t("hr.sync.success")}
-              </>
-            ) : (
-              t("hr.sync.button")
-            )}
-          </button>
           {syncFeedback === "error" && (
             <p className="text-xs text-destructive">
               {t("hr.sync.error")}
@@ -219,6 +224,11 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
             </p>
           )}
         </div>
+
+        <hr className="border-border" />
+
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
 
         {/* Krankheitstyp (absence type) — multi-select checkbox list per UI-01 */}
         <CheckboxList
@@ -267,7 +277,28 @@ export function PersonioCard({ draft, setField, hasCredentials }: PersonioCardPr
           hint={noCredentialsHint ?? optionsError}
         />
 
-      </CardContent>
+          </div>
+        </div>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <section className="space-y-4">
+        <h3 className="text-base font-semibold">
+          {t("settings.personio.title")}
+        </h3>
+        {body}
+      </section>
+    );
+  }
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">{t("settings.personio.title")}</CardTitle>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
     </Card>
   );
 }

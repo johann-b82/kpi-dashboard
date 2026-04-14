@@ -81,20 +81,20 @@ export function LogoUpload({ logoUrl }: LogoUploadProps) {
     : t("settings.identity.logo.dropzone_empty");
 
   return (
-    <div className="flex flex-col sm:flex-row items-start gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-4 items-stretch gap-4">
       {logoUrl && (
-        <div className="flex-shrink-0">
+        <div className="sm:col-span-1 flex items-stretch">
           <img
             src={logoUrl}
             alt="Current logo"
-            className="w-[120px] h-[120px] object-contain rounded-md border border-border bg-background"
+            className="w-full aspect-square object-contain rounded-md border border-border bg-background"
           />
         </div>
       )}
       <div
         {...getRootProps({
           className: [
-            "flex-1 min-h-[120px] rounded-md border-2 border-dashed flex items-center justify-center p-6 transition-colors cursor-pointer",
+            (logoUrl ? "sm:col-span-3" : "sm:col-span-4") + " min-h-[120px] rounded-md border-2 border-dashed flex items-center justify-center p-6 transition-colors cursor-pointer",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             isDragActive
               ? "bg-primary/5 border-primary"
