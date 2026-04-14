@@ -1,8 +1,46 @@
-# KPI
+# KPI Light
 
 A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files into PostgreSQL for Sales KPIs, and syncs Personio HR data for HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard with dark mode. Built for internal team use.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
+
+---
+
+## Quickstart
+
+```bash
+# One-time (per machine)
+brew install mkcert nss          # macOS — or: apt install libnss3-tools + mkcert binary
+mkcert -install
+echo "127.0.0.1 kpi.internal wiki.internal auth.internal" | sudo tee -a /etc/hosts
+
+# Per checkout
+cp .env.example .env
+./scripts/generate-certs.sh
+docker compose up --build -d
+```
+
+Then open <http://localhost:81> to finish the one-time NPM proxy-host setup. Full walkthrough — including SSL cert upload, proxy-host field values, and troubleshooting — lives in [docs/setup.md](docs/setup.md).
+
+### Prerequisites
+
+- Docker and Docker Compose v2
+- [mkcert](https://github.com/FiloSottile/mkcert) (locally-trusted dev CA for the green padlock on `https://kpi.internal`)
+- A modern browser
+
+Details: [docs/setup.md](docs/setup.md).
+
+### Hostnames
+
+| Hostname                 | Serves                                     | Since     |
+| ------------------------ | ------------------------------------------ | --------- |
+| `https://kpi.internal`   | KPI Light frontend + `/api/*`              | Phase 26  |
+| `https://wiki.internal`  | Outline wiki (placeholder until Phase 29)  | Phase 29  |
+| `https://auth.internal`  | Dex OIDC (placeholder until Phase 27)      | Phase 27  |
+
+### Documentation
+
+Setup runbook: [docs/setup.md](docs/setup.md). Architecture and planning history live in `.planning/`.
 
 ---
 
@@ -57,31 +95,18 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 ---
 
-## Quick Start
+## Detailed Setup
 
-```bash
-# 1. Clone the repo
-git clone https://github.com/johann-b82/kpi-dashboard.git
-cd kpi-dashboard
+For a first-run walkthrough including mkcert, `/etc/hosts`, and NPM proxy-host bootstrap, see [docs/setup.md](docs/setup.md).
 
-# 2. Create your .env file from the template
-cp .env.example .env
-# Edit .env with your credentials
+Once the stack is up and NPM is configured, the app is reached at:
 
-# 3. Bring the stack up
-docker compose up --build
-```
+- **Dashboard:** https://kpi.internal
+- **API:** https://kpi.internal/api/* (single origin, proxied by NPM)
+- **OpenAPI docs:** https://kpi.internal/api/docs
+- **NPM admin UI:** http://localhost:81 (proxy-host configuration, not for day-to-day use)
 
-Once containers are healthy:
-
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
-- **OpenAPI docs:** http://localhost:8000/docs
-
-### Prerequisites
-
-- Docker and Docker Compose v2
-- Personio API credentials (optional, for HR features)
+The direct `:5173` and `:8000` host ports are commented-out debug hatches in `docker-compose.yml` — uncomment a single line to bypass NPM if needed during debugging.
 
 ### Environment Variables
 
@@ -99,11 +124,18 @@ Once containers are healthy:
 ```
 docker compose up
   |
-  +-- db       (postgres:17-alpine)           --> internal :5432
-  +-- migrate  (alembic upgrade head)         --> exits after migration
-  +-- api      (uvicorn + FastAPI)            --> :8000
-  +-- frontend (vite dev server)              --> :5173 (proxies /api to :8000)
+  +-- db       (postgres:17-alpine)                 --> internal :5432
+  +-- migrate  (alembic upgrade head)               --> exits after migration
+  +-- api      (uvicorn + FastAPI)                  --> internal :8000
+  +-- frontend (vite dev server)                    --> internal :5173
+  +-- npm      (jc21/nginx-proxy-manager:2.11.3)    --> host :80/:443/:81
+                  |
+                  +-- https://kpi.internal   --> frontend:5173 (+ /api --> api:8000)
+                  +-- https://wiki.internal  --> placeholder (Outline in Phase 29)
+                  +-- https://auth.internal  --> placeholder (Dex in Phase 27)
 ```
+
+Boot order is healthcheck-gated: `db → migrate → api → frontend → npm`. Each service waits for the previous one to be healthy before starting, which closes the 502 window on cold boot.
 
 ### Project Structure
 
