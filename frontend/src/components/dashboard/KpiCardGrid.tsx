@@ -1,13 +1,13 @@
 /**
  * KpiCardGrid — dashboard KPI summary with dual-baseline delta badges.
  *
- * Implements CARD-01 (dual badges on all 3 cards) and CARD-05 (contextual
- * labels from filter scope), plus wires CARD-02/03/04 via DeltaBadge.
+ * Phase 24 — delta labels unified under the shared kpi.delta.* i18n
+ * namespace; allTime / custom-range presets hide the delta badge row
+ * entirely (per D-12 — no em-dash, no placeholder).
  */
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { differenceInDays } from "date-fns";
 import { KpiCard } from "./KpiCard";
 import { DeltaBadgeStack } from "./DeltaBadgeStack";
 import type { DateRangeValue } from "./DateRangeFilter";
@@ -18,10 +18,6 @@ import {
 import { kpiKeys } from "@/lib/queryKeys";
 import { computePrevBounds } from "@/lib/prevBounds";
 import { computeDelta } from "@/lib/delta";
-import {
-  formatPrevPeriodLabel,
-  formatPrevYearLabel,
-} from "@/lib/periodLabels";
 import type { Preset } from "@/lib/dateUtils";
 
 interface KpiCardGridProps {
@@ -29,6 +25,15 @@ interface KpiCardGridProps {
   endDate?: string;
   preset: Preset | null;
   range: DateRangeValue;
+}
+
+// Phase 24 D-11: granularity -> relative i18n key.
+// Returns null for allTime / custom range — caller hides the badges (D-12).
+function prevPeriodLabelKey(preset: Preset | null): string | null {
+  if (preset === "thisMonth") return "kpi.delta.prevMonth";
+  if (preset === "thisQuarter") return "kpi.delta.prevQuarter";
+  if (preset === "thisYear") return "kpi.delta.prevYear";
+  return null;
 }
 
 export function KpiCardGrid({
@@ -59,27 +64,11 @@ export function KpiCardGrid({
   const formatCount = (n: number) =>
     new Intl.NumberFormat(locale).format(n);
 
-  // Compute contextual labels once per render (shared across all 3 cards).
-  const prevPeriodStartDate = prevBounds.prev_period_start
-    ? new Date(prevBounds.prev_period_start)
-    : null;
-  const prevYearStartDate = prevBounds.prev_year_start
-    ? new Date(prevBounds.prev_year_start)
-    : null;
-
-  const rangeLengthDays =
-    range.from && range.to
-      ? differenceInDays(range.to, range.from) + 1
-      : undefined;
-
-  const prevPeriodLabel = formatPrevPeriodLabel(
-    preset,
-    prevPeriodStartDate,
-    shortLocale,
-    t,
-    rangeLengthDays,
-  );
-  const prevYearLabel = formatPrevYearLabel(prevYearStartDate, shortLocale);
+  const labelKey = prevPeriodLabelKey(preset);
+  const prevPeriodLabel = labelKey ? t(labelKey) : null;
+  // Per follow-up decision: keep duplicate "vs. prev. year" row on thisYear preset
+  // (preserves current two-badge behavior — no conditional collapse).
+  const prevYearLabel = labelKey ? t("kpi.delta.prevYear") : null;
 
   const noBaselineTooltip = t("dashboard.delta.noBaselineTooltip");
 
@@ -122,6 +111,8 @@ export function KpiCardGrid({
     data ? Number(data.total_orders) : undefined,
   );
 
+  const showBadges = prevPeriodLabel !== null && prevYearLabel !== null;
+
   return (
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -130,12 +121,12 @@ export function KpiCardGrid({
           value={data ? formatCurrency(Number(data.total_revenue)) : undefined}
           isLoading={isLoading}
           delta={
-            data ? (
+            data && showBadges ? (
               <DeltaBadgeStack
                 prevPeriodDelta={revenueDeltas.prevPeriodDelta}
                 prevYearDelta={revenueDeltas.prevYearDelta}
-                prevPeriodLabel={prevPeriodLabel}
-                prevYearLabel={prevYearLabel}
+                prevPeriodLabel={prevPeriodLabel!}
+                prevYearLabel={prevYearLabel!}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />
@@ -149,12 +140,12 @@ export function KpiCardGrid({
           }
           isLoading={isLoading}
           delta={
-            data ? (
+            data && showBadges ? (
               <DeltaBadgeStack
                 prevPeriodDelta={aovDeltas.prevPeriodDelta}
                 prevYearDelta={aovDeltas.prevYearDelta}
-                prevPeriodLabel={prevPeriodLabel}
-                prevYearLabel={prevYearLabel}
+                prevPeriodLabel={prevPeriodLabel!}
+                prevYearLabel={prevYearLabel!}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />
@@ -166,12 +157,12 @@ export function KpiCardGrid({
           value={data ? formatCount(Number(data.total_orders)) : undefined}
           isLoading={isLoading}
           delta={
-            data ? (
+            data && showBadges ? (
               <DeltaBadgeStack
                 prevPeriodDelta={ordersDeltas.prevPeriodDelta}
                 prevYearDelta={ordersDeltas.prevYearDelta}
-                prevPeriodLabel={prevPeriodLabel}
-                prevYearLabel={prevYearLabel}
+                prevPeriodLabel={prevPeriodLabel!}
+                prevYearLabel={prevYearLabel!}
                 locale={shortLocale}
                 noBaselineTooltip={noBaselineTooltip}
               />
