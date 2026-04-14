@@ -16,9 +16,9 @@ Requirements for v1.9 Dark Mode & Contrast. Each maps to roadmap phases.
 
 ### Toggle & Preference
 
-- [ ] **DM-05**: A Light/Dark segmented control in the navbar (next to DE/EN toggle) switches between modes
+- [x] **DM-05**: A Light/Dark segmented control in the navbar (next to DE/EN toggle) switches between modes
 - [x] **DM-06**: App defaults to OS system preference (prefers-color-scheme) on first visit
-- [ ] **DM-07**: User's mode choice is persisted in localStorage and overrides system preference on subsequent visits
+- [x] **DM-07**: User's mode choice is persisted in localStorage and overrides system preference on subsequent visits
 - [x] **DM-08**: Full DE/EN i18n parity for dark mode toggle labels
 
 ### Contrast

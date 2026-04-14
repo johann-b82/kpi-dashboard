@@ -136,7 +136,7 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
   5. Toggle labels display correctly in both German and English
 **Plans**: 3 plans
 - [x] 22-01-PLAN.md — Pre-hydration script + i18n keys (DM-06, DM-08)
-- [ ] 22-02-PLAN.md — ThemeToggle component + NavBar mount (DM-05, DM-06, DM-07, DM-08)
+- [x] 22-02-PLAN.md — ThemeToggle component + NavBar mount (DM-05, DM-06, DM-07, DM-08)
 - [ ] 22-03-PLAN.md — Human UAT acceptance gate (DM-05…DM-08)
 **UI hint**: yes
 
@@ -164,5 +164,5 @@ Requirements: [milestones/v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
 | 18 | v1.5 | 2/2 | Complete | 2026-04-12 |
 | 19–20 | v1.6 | 4/4 | Complete | 2026-04-12 |
 | 21 | v1.9 | 4/4 | Complete    | 2026-04-14 |
-| 22 | v1.9 | 1/3 | In Progress|  |
+| 22 | v1.9 | 2/3 | In Progress|  |
 | 23 | v1.9 | 0/TBD | Not started | - |
