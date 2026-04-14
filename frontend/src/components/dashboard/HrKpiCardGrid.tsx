@@ -99,8 +99,8 @@ export function HrKpiCardGrid() {
                 ? computeDelta(kpi.value, kpi.previous_year)
                 : null
             }
-            prevPeriodLabel={t("hr.kpi.delta.prevMonth")}
-            prevYearLabel={t("hr.kpi.delta.prevYear")}
+            prevPeriodLabel={t("kpi.delta.prevMonth")}
+            prevYearLabel={t("kpi.delta.prevYear")}
             locale={shortLocale}
             noBaselineTooltip={t("hr.kpi.noBaselineTooltip")}
           />
