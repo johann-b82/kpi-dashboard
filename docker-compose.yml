@@ -23,8 +23,10 @@ services:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file: .env
-    ports:
-      - "8000:8000"
+    # Host binding removed in Phase 26 — NPM routes /api/* via kpi.internal.
+    # Uncomment for direct curl/debug access bypassing NPM.
+    # ports:
+    #   - "8000:8000"
     volumes:
       - ./backend:/app
     depends_on:
@@ -39,8 +41,10 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - "5173:5173"
+    # Host binding removed in Phase 26 — NPM is the edge (https://kpi.internal).
+    # Uncomment for direct-to-Vite debugging when NPM is not running.
+    # ports:
+    #   - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
