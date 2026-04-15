@@ -25,7 +25,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ## Current State
 
 **Shipped:** v1.10 — 2026-04-14
-**In progress:** v1.11-directus — Directus Pivot (baseline reset from abandoned v1.12). Phase 29 complete — login page, role-aware UI, and apiClient migration live; AUTH-02/03/06 and RBAC-03 satisfied.
+**In progress:** v1.11-directus — Directus Pivot (baseline reset from abandoned v1.12). Phase 30 complete — `docs/setup.md` tutorial, Docker Compose backup sidecar with nightly pg_dump + 14-day retention, `scripts/restore.sh`, and README v1.11 version entry; DOCS-01/02/03/04 satisfied. Phase 29 previously landed login page, role-aware UI, and apiClient migration (AUTH-02/03/06, RBAC-03).
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
@@ -229,4 +229,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 — Phase 29 complete (frontend login + role-aware UI)*
+*Last updated: 2026-04-15 — Phase 30 complete (bring-up docs + backup sidecar)*
