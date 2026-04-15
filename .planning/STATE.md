@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 27-01-auth-dependency-foundation-PLAN.md
-last_updated: "2026-04-15T18:10:59.463Z"
+status: verifying
+stopped_at: Completed 27-02-router-wiring-and-env-PLAN.md
+last_updated: "2026-04-15T18:16:49.608Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 Phase: 27 (fastapi-directus-auth-dependency) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -62,6 +62,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 26 P02 | 2min | 2 tasks | 2 files |
 | Phase 26 P03 | 15min | 3 tasks | 0 files |
 | Phase 27 P01 | 321s | 3 tasks | 7 files |
+| Phase 27 P02 | 6min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 26]: Custom role 'Admin' coexists with Directus built-in 'Administrator'; Phase 27 require_role must be explicit about which to match
 - [Phase 26]: Directus 11 'schema apply' does not handle roles; replaced with directus/bootstrap-roles.sh REST-API bootstrap script
 - [Phase 27]: placeholder-email-domain: Use {uuid}@directus.example.com not @directus.local — pydantic-email-validator rejects .local TLD
+- [Phase 27]: directus-filter-workaround: Directus v11 /roles?filter[name][_eq]=Administrator returned empty; used jq select(.name=="Administrator") client-side
 
 ### Pending Todos
 
@@ -98,8 +100,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T18:10:59.461Z
-**Stopped at:** Completed 27-01-auth-dependency-foundation-PLAN.md
+**Last session:** 2026-04-15T18:16:49.605Z
+**Stopped at:** Completed 27-02-router-wiring-and-env-PLAN.md
 **Resume file:** None
 
 ---

@@ -98,7 +98,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 ### v1.11-directus Directus Pivot (In Progress)
 
 - [x] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured (completed 2026-04-15)
-- [ ] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401
+- [x] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401 (completed 2026-04-15)
 - [ ] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix
 - [ ] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session
 - [ ] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure
@@ -163,7 +163,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   5. `backend/app/config.py` reads `DIRECTUS_SECRET` from env with a clear error if unset
 **Plans**: 2 plans
 - [x] 27-01-auth-dependency-foundation-PLAN.md — config.py (Pydantic BaseSettings), Role enum, CurrentUser schema, get_current_user dependency (HS256 verify + UUID→Role map), 8 unit tests
-- [ ] 27-02-router-wiring-and-env-PLAN.md — Fetch Administrator UUID from running Directus, populate .env/.env.example, wire dependencies=[Depends(get_current_user)] on all 6 routers, e2e tests
+- [x] 27-02-router-wiring-and-env-PLAN.md — Fetch Administrator UUID from running Directus, populate .env/.env.example, wire dependencies=[Depends(get_current_user)] on all 6 routers, e2e tests
 
 ### Phase 28: RBAC Enforcement on All Routes
 **Goal**: Every FastAPI read route is open to both roles and every mutation route requires `role == 'Admin'`, returning 403 with a machine-readable body for Viewer users. Role changes made in Directus admin UI take effect on next JWT refresh.
@@ -218,7 +218,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 27 | v1.11-directus | 1/2 | In Progress|  |
+| 27 | v1.11-directus | 2/2 | Complete   | 2026-04-15 |
 | 28 | v1.11-directus | 0/? | Not started | — |
 | 29 | v1.11-directus | 0/? | Not started | — |
 | 30 | v1.11-directus | 0/? | Not started | — |
