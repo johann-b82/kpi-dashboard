@@ -53,13 +53,13 @@ staticPasswords:
 
 staticClients:
   - id: kpi-light
-    secret: $DEX_KPI_SECRET         # D-13: env-var substitution (no quotes)
-    name: "KPI Light"
+    secret: ${DEX_KPI_SECRET}         # D-13: env-var substitution (no quotes)
+    name: "KPI Dashboard"
     redirectURIs:
       - https://kpi.internal/api/auth/callback       # D-25
 
   - id: outline
-    secret: $DEX_OUTLINE_SECRET
+    secret: ${DEX_OUTLINE_SECRET}
     name: "Outline Wiki"
     redirectURIs:
       - https://wiki.internal/auth/oidc.callback     # D-25 (note the DOT)
