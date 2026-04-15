@@ -1,7 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS, THEME_TOKEN_MAP } from "@/lib/defaults";
 import type { Settings } from "@/lib/api";
@@ -45,16 +44,17 @@ function applyTheme(settings: Settings) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { data, isLoading, error } = useSettings();
+  const { data, error } = useSettings();
   const { t } = useTranslation();
   const errorToastFired = useRef(false);
 
-  // Effective settings: data when present, DEFAULT_SETTINGS on error, undefined while loading
-  const effective: Settings | undefined =
-    data ?? (error ? DEFAULT_SETTINGS : undefined);
+  // Render children immediately with defaults; apply real settings when they
+  // arrive. Blocking on isLoading deadlocks unauthenticated cold-loads where
+  // /api/settings 401s before the user reaches /login (Phase 28 gated the
+  // endpoint on auth).
+  const effective: Settings = data ?? DEFAULT_SETTINGS;
 
   useEffect(() => {
-    if (!effective) return;
     applyTheme(effective);
 
     // D-14: Watch for external .dark class changes (devtools in Phase 21, toggle in Phase 22)
@@ -74,20 +74,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       errorToastFired.current = true;
     }
   }, [error, t]);
-
-  if (isLoading) {
-    // Neutral skeleton — NO text, NO brand, NO children (D-02)
-    // bg-muted maps to --muted which starts at oklch(0.97 0 0) in index.css defaults
-    return (
-      <div
-        className="fixed inset-0 flex items-center justify-center bg-muted"
-        aria-hidden="true"
-        data-testid="theme-skeleton"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return <>{children}</>;
 }

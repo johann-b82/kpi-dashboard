@@ -82,29 +82,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setAuthFailureHandler(null);
   }, [clearLocalAuth]);
 
-  // Initial hydration.
+  // Initial hydration. hydratedRef guarantees single-run across StrictMode's
+  // mount/unmount/remount; no cancellation guard — the first run's cleanup
+  // would otherwise block its own setState calls, leaving isLoading true
+  // forever.
   useEffect(() => {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
-    let cancelled = false;
     (async () => {
       try {
         const refreshed = await trySilentRefresh();
         if (!refreshed) {
-          if (!cancelled) setUser(null);
+          setUser(null);
           return;
         }
         const me = await apiClient<MeResponse>("/api/me");
-        if (!cancelled) setUser(me);
+        setUser(me);
       } catch {
-        if (!cancelled) setUser(null);
+        setUser(null);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const signIn = useCallback(
