@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 29-01-backend-me-endpoint-and-cors-PLAN.md
-last_updated: "2026-04-15T21:15:38.708Z"
+stopped_at: Completed 29-02-auth-infrastructure-PLAN.md
+last_updated: "2026-04-15T21:20:27.183Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 ## Current Position
 
 Phase: 29 (frontend-login-role-aware-ui) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -66,6 +66,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 28 P01 | 5min | 2 tasks | 4 files |
 | Phase 28 P02 | 10min | 2 tasks | 2 files |
 | Phase 29 P01 | 5min | 2 tasks | 4 files |
+| Phase 29 P02 | 8min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 28]: require_admin is sync (not async) — FastAPI awaits dep chain; per-route enforcement via dependencies=[] on decorator
 - [Phase 28]: Import _mint from test_directus_auth.py to keep JWT minting DRY across test files
 - [Phase 29]: Role StrEnum values already lowercase; /api/me uses .value defensively
+- [Phase 29]: Plan 02: Access token kept in apiClient module singleton (not React state) to avoid re-rendering consumers on every refresh
+- [Phase 29]: Plan 02: shadcn Form primitive adapted for @base-ui/react stack (React.cloneElement, no Radix Slot dep)
 
 ### Pending Todos
 
@@ -106,8 +109,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T21:15:38.705Z
-**Stopped at:** Completed 29-01-backend-me-endpoint-and-cors-PLAN.md
+**Last session:** 2026-04-15T21:20:27.181Z
+**Stopped at:** Completed 29-02-auth-infrastructure-PLAN.md
 **Resume file:** None
 
 ---

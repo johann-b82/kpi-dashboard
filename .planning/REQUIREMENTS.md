@@ -34,7 +34,7 @@
 
 - [x] **RBAC-01**: Read endpoints (`GET /api/kpis`, `/api/hr/kpis`, `/api/data/*`, `GET /api/settings`) return data for both `Admin` and `Viewer` roles.
 - [x] **RBAC-02**: Mutation endpoints (`POST /api/uploads/*`, `POST /api/sync/personio`, `PUT /api/settings`, any `DELETE /api/data/*`) require `role == 'Admin'`; return 403 for `Viewer` with body `{"detail": "admin role required"}`.
-- [ ] **RBAC-03**: Frontend hides admin-only UI actions (upload button, sync trigger, settings save, delete controls) when `useAuth().role === 'Viewer'`.
+- [x] **RBAC-03**: Frontend hides admin-only UI actions (upload button, sync trigger, settings save, delete controls) when `useAuth().role === 'Viewer'`.
 - [x] **RBAC-04**: Admin can promote a Viewer to Admin via the Directus admin UI (role assignment) and the change takes effect on the user's next JWT refresh (≤ token TTL).
 - [x] **RBAC-05**: API contract documents the Admin-vs-Viewer matrix; 403 responses carry the machine-readable reason above.
 
