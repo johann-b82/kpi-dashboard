@@ -1,4 +1,4 @@
-# KPI Light
+# KPI Dashboard
 
 ## What This Is
 
@@ -6,22 +6,22 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 ## Core Value
 
-Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
+Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload. Formerly called KPI Light (renamed 2026-04-15, Phase 30.1).
 
 ## Current Milestone: v1.11 Outline Wiki + Shared Auth (Dex)
 
-**Goal:** Deploy an Outline wiki instance alongside KPI Light as reusable multi-project documentation infrastructure, secured by a lightweight Dex OIDC IdP that both apps trust, and seed the wiki with KPI Light's developer + user docs.
+**Goal:** Deploy an Outline wiki instance alongside KPI Dashboard as reusable multi-project documentation infrastructure, secured by a lightweight Dex OIDC IdP that both apps trust, and seed the wiki with KPI Dashboard's developer + user docs.
 
 **Target features:**
-- **Dex OIDC IdP** — lightweight Go-based identity provider, config-file driven, containerized; single source of truth for user accounts; both KPI Light and Outline authenticate through it
+- **Dex OIDC IdP** — lightweight Go-based identity provider, config-file driven, containerized; single source of truth for user accounts; both KPI Dashboard and Outline authenticate through it
 - **Outline wiki instance** — new compose services (`outline`, `outline-db` second Postgres container, `outline-redis`, `minio` for S3-compatible storage); multi-project structure via collections so future internal projects can share the same wiki
-- **KPI Light SSO integration** — FastAPI augmented with OIDC login endpoint; existing auth-less "internal tool" mode preserved for local dev without Dex
+- **KPI Dashboard SSO integration** — FastAPI augmented with OIDC login endpoint; existing auth-less "internal tool" mode preserved for local dev without Dex
 - **Nav icon linking to the wiki** — new icon in NavBar opens the wiki origin
-- **Seeded KPI Light docs** — local dev setup, Docker Compose architecture, API reference (from FastAPI OpenAPI), Personio sync runbook, Sales + HR dashboard user guide, Settings walkthrough
+- **Seeded KPI Dashboard docs** — local dev setup, Docker Compose architecture, API reference (from FastAPI OpenAPI), Personio sync runbook, Sales + HR dashboard user guide, Settings walkthrough
 
 **Key context:**
 - Compose stack grows from 4 to ~8 services; healthcheck dependencies extend accordingly
-- Auth is the risky bit — Dex ↔ Outline ↔ KPI Light is three integrations that must all work end-to-end
+- Auth is the risky bit — Dex ↔ Outline ↔ KPI Dashboard is three integrations that must all work end-to-end
 - **Out of scope:** Authentik and Authelia (ruled out based on prior operator experience); external SSO providers (Google, Slack); team-collaboration features beyond basic auth
 
 ## Current State
@@ -229,4 +229,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 — v1.11 Phase 27 (dex-idp-setup) complete*
+*Last updated: 2026-04-15 — v1.11 Phase 30.1 (rebrand KPI Light → KPI Dashboard) complete*
