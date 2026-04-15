@@ -1,7 +1,7 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**KPI Light**
+**KPI Dashboard**
 
 A Dockerized web application for uploading sales/revenue data files (CSV, TXT, Excel) into a PostgreSQL database and visualizing KPIs on an interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
 
