@@ -1,70 +1,90 @@
-# Requirements: KPI Light
+# Milestone v1.11-supabase — Requirements
 
-**Defined:** 2026-04-14
-**Core Value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
+**Milestone goal:** Replace local Postgres + (abandoned Dex/oauth2-proxy) with self-hosted Supabase, consolidating DB + auth + RBAC for up to 150 users across Admin and Viewer roles.
 
-## v1.10 Requirements
+**Source of truth:** `.planning/SUPABASE-PIVOT.md` (locked decisions, risk register).
 
-Requirements for v1.10 UI Consistency Pass. Each maps to roadmap phases.
+---
 
-### Unified Delta Labeling
+## Active Requirements
 
-- [x] **UC-01**: Sales KPI card delta badges (SummaryCards, `KpiCardGrid`) read as relative labels matching HR — month granularity shows `vs. prev. month` / `vs. Vormonat`, year granularity shows `vs. prev. year` / `vs. Vorjahr`
-- [x] **UC-02**: Quarter granularity uses a new relative label — `vs. prev. quarter` / `vs. Vorquartal` — on both Sales and HR dashboards
-- [x] **UC-03**: All four delta labels (`prev.month`, `prev.quarter`, `prev.year`, any existing `allTime` / null-preset handling) live under a single shared i18n namespace (e.g. `kpi.delta.*`) consumed by both `KpiCardGrid` and `HrKpiCardGrid`
-- [x] **UC-04**: `frontend/src/lib/periodLabels.ts` is simplified — absolute-period formatters (`Intl.DateTimeFormat` month names, `Q${n} ${year}` fallbacks) removed if no consumer remains; or retired entirely if all call sites migrate to i18n keys
-- [x] **UC-05**: Full DE/EN parity maintained — new keys added to both `locales/en.json` and `locales/de.json`; `scripts/check-locale-parity.mts` passes
+### Infrastructure (INFRA)
 
-### Page Width & Layout Parity
+- [ ] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots Supabase (postgres, kong, gotrue, postgrest, studio) plus api + frontend, no manual steps between commands.
+- [ ] **INFRA-02**: Old `db` service is removed from `docker-compose.yml` — Supabase's `postgres` is the only Postgres container running.
+- [ ] **INFRA-03**: Developer can reach Supabase Studio at `http://localhost:54323` and see the single Postgres instance's `public` and `auth` schemas.
+- [ ] **INFRA-04**: Developer can reach the GoTrue API at `http://localhost:54321/auth/v1/*` (via kong gateway) for login / JWT endpoints.
+- [ ] **INFRA-05**: All Supabase service secrets (JWT secret, anon key, service-role key, DB password) live in `.env` with clear `.env.example` entries and generation commands.
 
-- [x] **UC-06**: `/upload` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`
-- [x] **UC-07**: `/settings` wrapper uses the dashboard container — `max-w-7xl mx-auto px-6 pt-4 space-y-8` with `pb-32` preserved for sticky ActionBar space
-- [x] **UC-08**: `/upload` body restructured to use the wider container sensibly — DropZone and UploadHistory laid out for max-w-7xl (side-by-side on wide viewports or stacked with appropriate max-widths, not stretched to full 80rem unstyled)
-- [x] **UC-09**: Other structural differences between `/upload`, `/settings`, and dashboard pages audited and aligned — padding rhythm (`pt-4 pb-8`), vertical spacing (`space-y-8`), and any inconsistent heading/section wrappers
+### Data Layer (DATA)
 
-### Visual QA Signoff
+- [ ] **DATA-01**: Alembic is re-pointed at Supabase's Postgres via `DATABASE_URL` (`postgresql://postgres:...@supabase-db:5432/postgres`); `alembic upgrade head` runs cleanly against a fresh Supabase stack.
+- [ ] **DATA-02**: All existing KPI tables (sales data, HR snapshots, upload history, settings) recreate successfully in Supabase's Postgres `public` schema without schema drift.
+- [ ] **DATA-03**: A new `profiles` table references `auth.users(id)` with columns `role` (enum `admin` | `viewer`, default `viewer`), `full_name`, `locale` (default `de`), plus standard timestamps.
+- [ ] **DATA-04**: A signup trigger (`handle_new_user`) auto-creates a `profiles` row on every new `auth.users` insert, defaulting `role` to `viewer`.
+- [ ] **DATA-05**: FastAPI code paths use the Supabase Postgres for all reads/writes; no residual references to the removed `db` service.
 
-- [x] **UC-10**: Human UAT confirming no visual regressions on Sales or HR dashboards, that new labels read correctly in both DE and EN across all three granularities (month / quarter / year), and that `/upload` and `/settings` feel consistent with the dashboards
+### Authentication (AUTH)
 
-## Future Requirements
+- [ ] **AUTH-01**: User can sign up via email/password (or via Studio-seeded invite) and receives a valid session on first sign-in.
+- [ ] **AUTH-02**: User can sign in via the web UI with email/password; invalid credentials show an inline error and do not grant a session.
+- [ ] **AUTH-03**: Frontend persists the Supabase session via `@supabase/supabase-js`, auto-refreshing the access token before expiry.
+- [ ] **AUTH-04**: FastAPI validates every `/api/*` request's `Authorization: Bearer <jwt>` against GoTrue's JWKS (RS256) and rejects expired/invalid tokens with 401.
+- [ ] **AUTH-05**: `current_user` FastAPI dependency resolves `{ id, email, role }` from the verified JWT + `profiles` lookup; available to all protected routes.
+- [ ] **AUTH-06**: User can sign out; session is cleared and subsequent API calls return 401.
 
-- Authentication/login via OIDC identity provider (Authentik, AUTH-01)
-- Role-based access control (admin vs viewer)
-- Active Directory integration (via Authentik)
-- Export filtered data as CSV (DASH-07)
-- Duplicate upload detection (UPLD-07)
-- Per-upload drill-down view (DASH-08)
+### Role-Based Access Control (RBAC)
 
-## Out of Scope
+- [ ] **RBAC-01**: Read endpoints (`GET /api/kpis`, `/api/hr/kpis`, `/api/data/*`, `GET /api/settings`) return data for both Admin and Viewer roles.
+- [ ] **RBAC-02**: Mutation endpoints (`POST /api/uploads/*`, `POST /api/sync/personio`, `PUT /api/settings`, any `DELETE /api/data/*`) require `role == 'admin'`; return 403 for Viewer.
+- [ ] **RBAC-03**: Frontend hides admin-only UI actions (upload button, sync trigger, settings save, delete controls) when `useAuth().role === 'viewer'`.
+- [ ] **RBAC-04**: Admin can promote a Viewer to Admin via a single SQL statement and the change takes effect on the next JWT refresh (≤ token TTL).
+- [ ] **RBAC-05**: API contract documents the Admin-vs-Viewer matrix; 403 responses carry a machine-readable reason (`{"detail": "admin role required"}`).
 
-| Feature | Reason |
-|---------|--------|
-| Backend changes | v1.10 is frontend-only UI polish; no API surface changes |
-| Sales "all time" and null-preset relabeling beyond the four canonical cases | Existing fallbacks remain; only month/quarter/year/prev-period cases are normalized |
-| New granularities (weekly, daily, YTD) | Existing three granularities stay; new ones deferred |
-| Restructuring dashboards | Dashboards are the reference; only /upload and /settings change layout |
+### Bring-up & Operations (DOCS)
+
+- [ ] **DOCS-01**: `docs/setup.md` covers first-time bring-up: clone → copy `.env.example` → generate secrets → `docker compose up -d` → bootstrap first admin user via Studio or seed SQL.
+- [ ] **DOCS-02**: `docs/setup.md` documents the promote-viewer-to-admin flow.
+- [ ] **DOCS-03**: A nightly `pg_dump` backup is runnable (cron sidecar or host script); backups land in `./backups/`; `docs/setup.md` includes the restore procedure.
+- [ ] **DOCS-04**: `README.md` v1.11-supabase version-history entry summarizes the pivot (what replaced what, why Dex was dropped, what Outline dropping means).
+
+---
+
+## Future Requirements (deferred, not in v1.11)
+
+- SSO/OIDC external providers (Google, M365) — add when HR asks.
+- Email verification + password reset via SMTP — enable when SMTP provisioned.
+- Row-Level Security (RLS) policies — add when a feature bypasses FastAPI.
+- Audit logging beyond Supabase's built-in auth logs.
+- Realtime / Storage / Analytics Supabase services — not used this milestone.
+- Export filtered data as CSV (DASH-07) — carried over from v1.0 backlog.
+- Duplicate upload detection (UPLD-07) — carried over.
+- Per-upload drill-down view (DASH-08) — carried over.
+
+---
+
+## Out of Scope (v1.11)
+
+- **Outline wiki** — dropped entirely in the pivot.
+- **Dex + oauth2-proxy + NPM auth_request layer** — abandoned; preserved on `archive/v1.12-phase32-abandoned` for reference only.
+- **Active Directory / LDAP integration** — not planned.
+- **Multi-tenant / multi-app user management** — single app this milestone.
+- **Silent cross-app SSO** — moot (only one app).
+- **Migrating existing dev data** — fresh DB; ERP re-upload + Personio re-sync acceptable.
+
+---
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+| REQ-ID | Phase | Plan | Status |
+|--------|-------|------|--------|
+| INFRA-01..05 | TBD | — | Not started |
+| DATA-01..05 | TBD | — | Not started |
+| AUTH-01..06 | TBD | — | Not started |
+| RBAC-01..05 | TBD | — | Not started |
+| DOCS-01..04 | TBD | — | Not started |
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| UC-01 | Phase 24 | Not started |
-| UC-02 | Phase 24 | Not started |
-| UC-03 | Phase 24 | Not started |
-| UC-04 | Phase 24 | Not started |
-| UC-05 | Phase 24 | Not started |
-| UC-06 | Phase 25 | Not started |
-| UC-07 | Phase 25 | Not started |
-| UC-08 | Phase 25 | Not started |
-| UC-09 | Phase 25 | Not started |
-| UC-10 | Phase 25 | Not started |
-
-**Coverage:**
-- v1.10 requirements: 10 total
-- Mapped to phases: 10/10 (Phase 24: UC-01..UC-05, Phase 25: UC-06..UC-10)
+*Roadmapper will populate Phase and Plan columns.*
 
 ---
-*Requirements defined: 2026-04-14*
-*Last updated: 2026-04-14*
+*Last updated: 2026-04-15 — v1.11-supabase requirements defined*
