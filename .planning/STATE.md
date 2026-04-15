@@ -4,7 +4,7 @@ milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: verifying
 stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-04-15T08:48:43.815Z"
+last_updated: "2026-04-15T08:51:37.636Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 ## Current Position
 
-Phase: 29 (outline-wiki-deployment) — EXECUTING
-Plan: 3 of 3
+Phase: 30
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
