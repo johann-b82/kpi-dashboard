@@ -101,7 +101,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401 (completed 2026-04-15)
 - [x] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix (completed 2026-04-15)
 - [x] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session (completed 2026-04-15)
-- [ ] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure
+- [x] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure (completed 2026-04-15)
 
 ## Phase Details
 
@@ -206,7 +206,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   4. `README.md` contains a v1.11-directus version-history entry explaining the pivot (Directus added, Dex/oauth2-proxy abandoned, Supabase considered and rejected, Outline dropped)
 **Plans**: 3 plans
 - [x] 30-01-backup-sidecar-and-restore-PLAN.md — Backup sidecar (cron + pg_dump), restore script, compose wiring, exercise real restore cycle
-- [ ] 30-02-setup-docs-PLAN.md — Author docs/setup.md linear tutorial (bring-up, first Admin, Viewer→Admin promote, backup/restore, troubleshooting)
+- [x] 30-02-setup-docs-PLAN.md — Author docs/setup.md linear tutorial (bring-up, first Admin, Viewer→Admin promote, backup/restore, troubleshooting)
 - [x] 30-03-readme-version-entry-PLAN.md — Add v1.11-directus <details> block + table summary row to README.md
 
 ## Progress
@@ -229,4 +229,4 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 29 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 30 | v1.11-directus | 2/3 | In Progress|  |
+| 30 | v1.11-directus | 3/3 | Complete   | 2026-04-15 |

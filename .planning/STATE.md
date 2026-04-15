@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 30-03-readme-version-entry-PLAN.md
-last_updated: "2026-04-15T21:58:30.449Z"
+status: verifying
+stopped_at: Completed 30-02-setup-docs-PLAN.md
+last_updated: "2026-04-15T21:59:29.405Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 Phase: 30 (bring-up-docs-backup) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -70,6 +70,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 29 P03 | 10min | 3 tasks | 8 files |
 | Phase 30 P01 | 9min | 3 tasks | 5 files |
 | Phase 30 P03 | 2min | 1 tasks | 1 files |
+| Phase 30 P02 | 3min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 29]: Plan 02: shadcn Form primitive adapted for @base-ui/react stack (React.cloneElement, no Radix Slot dep)
 - [Phase 30]: Plan 01: Plain-format pg_dump piped through gzip (not -Fc) so .sql.gz extension is literal and restore needs only gunzip+psql (no pg_restore)
 - [Phase 30]: Plan 03: Added BOTH <details> narrative + table row to resolve D-09/README-convention mismatch
+- [Phase 30]: Plan 02: docs/setup.md authored as linear tutorial (D-07) with text-only Directus promote click-path (D-08); frontend port documented as 5173 matching actual compose config
 
 ### Pending Todos
 
@@ -114,8 +116,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T21:58:30.446Z
-**Stopped at:** Completed 30-03-readme-version-entry-PLAN.md
+**Last session:** 2026-04-15T21:59:29.403Z
+**Stopped at:** Completed 30-02-setup-docs-PLAN.md
 **Resume file:** None
 
 ---
