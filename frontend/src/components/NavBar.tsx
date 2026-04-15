@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
+import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, BookOpen } from "lucide-react";
 
 type Dashboard = "/" | "/hr";
 
@@ -20,6 +20,10 @@ import { useSettings } from "@/hooks/useSettings";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+
+// Wiki edge URL (Phase 30 D-02). Override via VITE_WIKI_URL in .env for
+// real-domain deployments without a code change.
+const WIKI_URL = import.meta.env.VITE_WIKI_URL ?? "https://wiki.internal";
 
 export function NavBar() {
   const { t } = useTranslation();
@@ -97,6 +101,16 @@ export function NavBar() {
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
           <LanguageToggle />
+          <a
+            href={WIKI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={t("nav.wiki")}
+            aria-label={t("nav.wiki")}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
+          >
+            <BookOpen className="h-5 w-5" />
+          </a>
           <Link
             href="/upload"
             aria-label={t("nav.upload")}
