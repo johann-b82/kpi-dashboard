@@ -219,7 +219,9 @@ Plans:
   1. A book/library icon is visible in the NavBar's right-side cluster, between the language toggle and upload icon
   2. Clicking the icon opens `https://wiki.internal` in a new browser tab
   3. The icon has an accessible tooltip/aria-label reading "Wiki" in both English and German locales
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 30-01-PLAN.md — NavBar WikiLink anchor + nav.wiki i18n + VITE_WIKI_URL env (NAV-01, NAV-02, NAV-03)
 **UI hint**: yes
 
 ---
