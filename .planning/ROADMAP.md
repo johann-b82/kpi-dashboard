@@ -129,7 +129,7 @@ Requirements: [milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.m
 - [x] **Phase 27: Dex IdP Setup** — Dex OIDC identity provider deployed and verified in isolation (completed 2026-04-14)
 - [x] **Phase 28: KPI Light OIDC Integration** — KPI Light backend and frontend gated behind Dex login (completed 2026-04-14)
 - [x] **Phase 29: Outline Wiki Deployment** — Outline running with its own Postgres + Redis, authenticating via Dex (completed 2026-04-15)
-- [ ] **Phase 30: Wiki NavBar Link** — KPI Light NavBar gains a wiki icon linking to Outline
+- [x] **Phase 30: Wiki NavBar Link** — KPI Light NavBar gains a wiki icon linking to Outline (completed 2026-04-15)
 - [ ] **Phase 31: Seed Outline Docs** — KPI Light documentation collection authored and published in Outline
 
 ## Phase Details
@@ -221,7 +221,7 @@ Plans:
   3. The icon has an accessible tooltip/aria-label reading "Wiki" in both English and German locales
 **Plans**: 1 plan
 Plans:
-- [ ] 30-01-PLAN.md — NavBar WikiLink anchor + nav.wiki i18n + VITE_WIKI_URL env (NAV-01, NAV-02, NAV-03)
+- [x] 30-01-PLAN.md — NavBar WikiLink anchor + nav.wiki i18n + VITE_WIKI_URL env (NAV-01, NAV-02, NAV-03)
 **UI hint**: yes
 
 ---
@@ -260,5 +260,5 @@ Plans:
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
 | 29 | v1.11 | 3/3 | Complete    | 2026-04-15 |
-| 30 | v1.11 | 0/? | Not started | - |
+| 30 | v1.11 | 1/1 | Complete   | 2026-04-15 |
 | 31 | v1.11 | 0/? | Not started | - |

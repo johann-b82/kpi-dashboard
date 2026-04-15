@@ -55,9 +55,9 @@
 
 ### Wiki Nav Integration (NAV)
 
-- [ ] **NAV-01**: KPI Light NavBar gains a new icon (book / library glyph) linking to `https://wiki.internal` in a new tab (`target="_blank"`)
-- [ ] **NAV-02**: Wiki icon lives between the existing LanguageToggle and Upload icon in the right-side NavBar cluster (exact position subject to UI-SPEC review)
-- [ ] **NAV-03**: Wiki icon has a translated tooltip/aria-label (`nav.wiki` → "Wiki" EN / "Wiki" DE)
+- [x] **NAV-01**: KPI Light NavBar gains a new icon (book / library glyph) linking to `https://wiki.internal` in a new tab (`target="_blank"`)
+- [x] **NAV-02**: Wiki icon lives between the existing LanguageToggle and Upload icon in the right-side NavBar cluster (exact position subject to UI-SPEC review)
+- [x] **NAV-03**: Wiki icon has a translated tooltip/aria-label (`nav.wiki` → "Wiki" EN / "Wiki" DE)
 
 ### Seeded KPI Light Documentation (DOC)
 
@@ -162,9 +162,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | WMP-01 | Phase 31 | Pending |
 | WMP-02 | Phase 31 | Pending |
 | WMP-03 | Phase 31 | Pending |
-| NAV-01 | Phase 30 | Pending |
-| NAV-02 | Phase 30 | Pending |
-| NAV-03 | Phase 30 | Pending |
+| NAV-01 | Phase 30 | Complete |
+| NAV-02 | Phase 30 | Complete |
+| NAV-03 | Phase 30 | Complete |
 | DOC-01 | Phase 31 | Pending |
 | DOC-02 | Phase 31 | Pending |
 | DOC-03 | Phase 31 | Pending |

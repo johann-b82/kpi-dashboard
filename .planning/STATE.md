@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: verifying
-stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-04-15T08:51:37.636Z"
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-04-15T09:00:45.797Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
+  completed_phases: 5
+  total_plans: 15
+  completed_plans: 15
   percent: 0
 ---
 
@@ -27,14 +27,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 29 — outline-wiki-deployment
+**Current focus:** Phase 30 — wiki-navbar-link
 
 ---
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
+Phase: 30 (wiki-navbar-link) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
@@ -84,6 +84,7 @@ Progress: [          ] 0%
 | Phase 29-outline-wiki-deployment P01 | 3min | 2 tasks | 2 files |
 | Phase 29-outline-wiki-deployment P02 | 4min | 2 tasks | 1 files |
 | Phase 29-outline-wiki-deployment P03 | 30min | 2 tasks | 1 files |
+| Phase 30-wiki-navbar-link P01 | 5min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T08:48:43.812Z
-**Stopped at:** Completed 29-03-PLAN.md
+**Last session:** 2026-04-15T09:00:45.794Z
+**Stopped at:** Completed 30-01-PLAN.md
 **Resume file:** None
