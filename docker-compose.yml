@@ -94,26 +94,22 @@ services:
       retries: 5
       start_period: 30s
 
-  directus-snapshot:
-    image: directus/directus:11.17.2
+  directus-bootstrap-roles:
+    # Roles-as-code sidecar. Replaces the v10-style snapshot.yml approach
+    # (rejected by Directus 11 — policies/access model). Runs a REST-API
+    # bootstrap script that is idempotent (GET-before-POST).
+    image: curlimages/curl:8.10.1
     env_file: .env
     environment:
-      KEY: ${DIRECTUS_KEY}
-      SECRET: ${DIRECTUS_SECRET}
-      DB_CLIENT: pg
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_DATABASE: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
     volumes:
-      - ./directus:/directus-snapshot:ro
+      - ./directus/bootstrap-roles.sh:/bootstrap-roles.sh:ro
     depends_on:
       directus:
         condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - "npx directus schema apply --yes /directus-snapshot/snapshot.yml"
+    entrypoint: ["/bin/sh", "/bootstrap-roles.sh"]
     restart: "no"
 
 volumes:
