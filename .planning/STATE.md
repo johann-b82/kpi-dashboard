@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 30-01-PLAN.md
-last_updated: "2026-04-15T09:27:29.380Z"
-last_activity: 2026-04-15 -- Phase 31 execution started
+stopped_at: Completed 30.1-01-PLAN.md
+last_updated: "2026-04-15T09:55:19.711Z"
+last_activity: 2026-04-15
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 5
-  total_plans: 21
-  completed_plans: 15
+  total_plans: 24
+  completed_plans: 16
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 31 — seed-outline-docs
+**Current focus:** Phase 30.1 — rebrand-kpi-light-to-kpi-dashboard
 
 ---
 
 ## Current Position
 
-Phase: 31 (seed-outline-docs) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 31
-Last activity: 2026-04-15 -- Phase 31 execution started
+Phase: 30.1 (rebrand-kpi-light-to-kpi-dashboard) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-04-15
 
 Progress: [          ] 0%
 
@@ -85,6 +85,7 @@ Progress: [          ] 0%
 | Phase 29-outline-wiki-deployment P02 | 4min | 2 tasks | 1 files |
 | Phase 29-outline-wiki-deployment P03 | 30min | 2 tasks | 1 files |
 | Phase 30-wiki-navbar-link P01 | 5min | 3 tasks | 4 files |
+| Phase 30.1 P01 | 1min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,7 @@ Progress: [          ] 0%
 - [Phase 29-outline-wiki-deployment]: Plan 29-02: Kept Dockerfile-default HEALTHCHECK on outline service (v0.86.0 probes /_health natively) — no compose override. No separate outline-migrate service; Outline runs DB migrations at container start (contrast with KPI Light's Alembic migrate service pattern).
 - [Phase 29-outline-wiki-deployment]: Plan 29-02: OIDC split endpoints wired per D-05 — OIDC_AUTH_URI https://auth.internal/dex/auth (browser) vs OIDC_TOKEN_URI/USERINFO_URI on http://dex:5556/dex/* (internal docker DNS). NODE_EXTRA_CA_CERTS + mkcert rootCA mount + auth.internal:host-gateway covers discovery/iss revalidation.
 - [Phase 29-outline-wiki-deployment]: Plan 29-03: Dex staticPasswords connector does not enable silent cross-app SSO — documented as Known limitation in docs/setup.md; connector swap (LDAP/OIDC/SAML) queued as backlog candidate, out of v1.11 scope. UAT also required NPM wiki.internal proxy host repoint from Phase 26 placeholder api:8000 → outline:3000 (runbook path).
+- [Phase 30.1]: Plan 30.1-01: Internal identifiers preserved (DEX_CLIENT_ID kpi-light, DEX_KPI_SECRET, kpi_session cookie); narrow WHERE clause on v1_11_rename_app_name data migration protects operator-customized app_name values (D-04)
 
 ### Pending Todos
 
@@ -160,6 +162,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T09:00:45.794Z
-**Stopped at:** Completed 30-01-PLAN.md
+**Last session:** 2026-04-15T09:55:19.708Z
+**Stopped at:** Completed 30.1-01-PLAN.md
 **Resume file:** None
