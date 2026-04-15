@@ -218,7 +218,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 27 | v1.11-directus | 2/2 | Complete   | 2026-04-15 |
+| 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 0/? | Not started | — |
 | 29 | v1.11-directus | 0/? | Not started | — |
 | 30 | v1.11-directus | 0/? | Not started | — |
