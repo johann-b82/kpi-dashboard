@@ -112,3 +112,30 @@ async def test_health_endpoint_no_auth_needed(client):
     r = await client.get("/health")
     assert r.status_code == 200
     assert r.json() == {"status": "ok"}
+
+
+# --- End-to-end against real app (Plan 27-02) ---
+
+async def test_real_api_route_requires_bearer():
+    from app.main import app
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.get("/api/kpis")
+        assert r.status_code == 401
+        assert r.json()["detail"] == "invalid or missing authentication token"
+
+
+async def test_real_api_route_accepts_valid_bearer():
+    from app.main import app
+    token = _mint(VIEWER_UUID)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.get("/api/kpis", headers={"Authorization": f"Bearer {token}"})
+        # Must not be 401 — auth passed. May be 200, 404, 422, or 5xx depending on DB state;
+        # the only failure we're asserting against is auth rejection.
+        assert r.status_code != 401, f"Expected auth to pass, got 401: {r.json()}"
+
+
+async def test_real_health_endpoint_no_auth():
+    from app.main import app
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.get("/health")
+        assert r.status_code == 200
