@@ -236,8 +236,8 @@ Output: Working /login, authed dashboard, role-aware UI, clean sign-out.
   <done>All 17 fetch sites use apiClient; no bare fetch remains; 9 admin-only surfaces are hidden from Viewers; NavBar has sign-out button; TS compiles.</done>
 </task>
 
-<task type="checkpoint:human-verify" gate="blocking">
-  <name>Task 3: Human end-to-end verification of all 5 ROADMAP success criteria</name>
+<task type="checkpoint:human-verify" gate="blocking" status="approved">
+  <name>Task 3: Human end-to-end verification of all 5 ROADMAP success criteria (APPROVED 2026-04-15)</name>
   <what-built>
     Complete Phase 29 deliverable: /login page, AuthProvider + AuthGate, silent refresh on boot, bearer token injection via apiClient across all 17 API calls, 9 admin-only UI surfaces hidden for Viewer, NavBar sign-out.
   </what-built>

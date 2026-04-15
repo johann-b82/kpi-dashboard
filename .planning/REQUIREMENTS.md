@@ -24,11 +24,11 @@
 ### Authentication (AUTH)
 
 - [x] **AUTH-01**: A seeded user can sign in via email/password at the Directus `POST /auth/login` endpoint and receive a valid JWT (access + refresh tokens).
-- [ ] **AUTH-02**: User can sign in via the web UI with email/password; invalid credentials show an inline error and do not grant a session.
+- [x] **AUTH-02**: User can sign in via the web UI with email/password; invalid credentials show an inline error and do not grant a session.
 - [x] **AUTH-03**: Frontend persists the Directus session via `@directus/sdk`, auto-refreshing the access token before expiry.
 - [x] **AUTH-04**: FastAPI validates every `/api/*` request's `Authorization: Bearer <jwt>` against the Directus JWT shared secret (HS256) and rejects expired/invalid tokens with 401.
 - [x] **AUTH-05**: `current_user` FastAPI dependency resolves `{ id, email, role }` from the verified JWT; available to all protected routes.
-- [ ] **AUTH-06**: User can sign out; session is cleared and subsequent API calls return 401.
+- [x] **AUTH-06**: User can sign out; session is cleared and subsequent API calls return 401.
 
 ### Role-Based Access Control (RBAC)
 

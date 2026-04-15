@@ -100,7 +100,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured (completed 2026-04-15)
 - [x] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401 (completed 2026-04-15)
 - [x] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix (completed 2026-04-15)
-- [ ] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session
+- [x] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session (completed 2026-04-15)
 - [ ] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure
 
 ## Phase Details
@@ -192,7 +192,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Plans**: 3 plans
 - [x] 29-01-backend-me-endpoint-and-cors-PLAN.md — Add GET /api/me FastAPI route; enable Directus CORS for browser origin
 - [x] 29-02-auth-infrastructure-PLAN.md — Install @directus/sdk + shadcn form; build directusClient, apiClient wrapper, AuthContext, useAuth/useRole, AuthGate, AdminOnly, FullPageSpinner
-- [ ] 29-03-wire-app-and-migrate-PLAN.md — LoginPage + wire App.tsx providers; migrate all 17 fetch sites to apiClient; wrap 9 admin-only UI surfaces; NavBar sign-out; human UAT of 5 ROADMAP criteria
+- [x] 29-03-wire-app-and-migrate-PLAN.md — LoginPage + wire App.tsx providers; migrate all 17 fetch sites to apiClient; wrap 9 admin-only UI surfaces; NavBar sign-out; human UAT of 5 ROADMAP criteria
 **UI hint**: yes
 
 ### Phase 30: Bring-up Docs + Backup
@@ -225,5 +225,5 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 29 | v1.11-directus | 2/3 | In Progress|  |
+| 29 | v1.11-directus | 3/3 | Complete   | 2026-04-15 |
 | 30 | v1.11-directus | 0/? | Not started | — |
