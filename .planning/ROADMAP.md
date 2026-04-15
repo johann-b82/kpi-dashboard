@@ -207,7 +207,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Plans**: 3 plans
 - [x] 30-01-backup-sidecar-and-restore-PLAN.md — Backup sidecar (cron + pg_dump), restore script, compose wiring, exercise real restore cycle
 - [ ] 30-02-setup-docs-PLAN.md — Author docs/setup.md linear tutorial (bring-up, first Admin, Viewer→Admin promote, backup/restore, troubleshooting)
-- [ ] 30-03-readme-version-entry-PLAN.md — Add v1.11-directus <details> block + table summary row to README.md
+- [x] 30-03-readme-version-entry-PLAN.md — Add v1.11-directus <details> block + table summary row to README.md
 
 ## Progress
 
@@ -229,4 +229,4 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 29 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 30 | v1.11-directus | 1/3 | In Progress|  |
+| 30 | v1.11-directus | 2/3 | In Progress|  |

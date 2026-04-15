@@ -43,7 +43,7 @@
 - [ ] **DOCS-01**: `docs/setup.md` covers first-time bring-up: clone → copy `.env.example` → generate secrets → `docker compose up -d` → first admin auto-bootstrapped → sign in to Directus admin UI to verify.
 - [ ] **DOCS-02**: `docs/setup.md` documents the promote-Viewer-to-Admin flow via the Directus admin UI (click-path with screenshots or described steps).
 - [x] **DOCS-03**: A nightly `pg_dump` backup is runnable (cron sidecar or host script); backups land in `./backups/`; `docs/setup.md` includes the restore procedure, exercised at least once.
-- [ ] **DOCS-04**: `README.md` v1.11-directus version-history entry summarizes the pivot (what was added — Directus, why not Dex/Supabase, what dropping Outline means for users).
+- [x] **DOCS-04**: `README.md` v1.11-directus version-history entry summarizes the pivot (what was added — Directus, why not Dex/Supabase, what dropping Outline means for users).
 
 ---
 

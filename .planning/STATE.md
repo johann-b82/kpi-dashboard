@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 30-01-backup-sidecar-and-restore-PLAN.md
-last_updated: "2026-04-15T21:56:45.623Z"
+stopped_at: Completed 30-03-readme-version-entry-PLAN.md
+last_updated: "2026-04-15T21:58:30.449Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 ## Current Position
 
 Phase: 30 (bring-up-docs-backup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -69,6 +69,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 29 P02 | 8min | 2 tasks | 8 files |
 | Phase 29 P03 | 10min | 3 tasks | 8 files |
 | Phase 30 P01 | 9min | 3 tasks | 5 files |
+| Phase 30 P03 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 29]: Plan 02: Access token kept in apiClient module singleton (not React state) to avoid re-rendering consumers on every refresh
 - [Phase 29]: Plan 02: shadcn Form primitive adapted for @base-ui/react stack (React.cloneElement, no Radix Slot dep)
 - [Phase 30]: Plan 01: Plain-format pg_dump piped through gzip (not -Fc) so .sql.gz extension is literal and restore needs only gunzip+psql (no pg_restore)
+- [Phase 30]: Plan 03: Added BOTH <details> narrative + table row to resolve D-09/README-convention mismatch
 
 ### Pending Todos
 
@@ -112,8 +114,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T21:56:45.620Z
-**Stopped at:** Completed 30-01-backup-sidecar-and-restore-PLAN.md
+**Last session:** 2026-04-15T21:58:30.446Z
+**Stopped at:** Completed 30-03-readme-version-entry-PLAN.md
 **Resume file:** None
 
 ---
