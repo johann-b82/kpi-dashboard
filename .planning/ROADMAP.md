@@ -226,6 +226,16 @@ Plans:
 
 ---
 
+### Phase 30.1: Rebrand KPI Light to KPI Dashboard (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 30
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 30.1 to break down)
+
 ### Phase 31: Seed Outline Docs
 **Goal**: The "KPI Light" Outline collection contains 8 authored documentation pages reachable from a collection landing page with a table of contents, reflecting the v1.10 state of the application.
 **Depends on**: Phase 30
