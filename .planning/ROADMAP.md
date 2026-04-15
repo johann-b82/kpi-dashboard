@@ -225,5 +225,5 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 29 | v1.11-directus | 3/3 | Complete   | 2026-04-15 |
+| 29 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 30 | v1.11-directus | 0/? | Not started | — |
