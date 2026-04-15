@@ -204,7 +204,10 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   2. `docs/setup.md` includes the click-path for promoting a Viewer to Admin via the Directus admin UI, verifiable by a second operator without code spelunking
   3. A nightly `pg_dump` runs (cron sidecar or host script), produces timestamped dump files under `./backups/`, and `docs/setup.md` documents a restore procedure that has been exercised at least once
   4. `README.md` contains a v1.11-directus version-history entry explaining the pivot (Directus added, Dex/oauth2-proxy abandoned, Supabase considered and rejected, Outline dropped)
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 30-01-backup-sidecar-and-restore-PLAN.md — Backup sidecar (cron + pg_dump), restore script, compose wiring, exercise real restore cycle
+- [ ] 30-02-setup-docs-PLAN.md — Author docs/setup.md linear tutorial (bring-up, first Admin, Viewer→Admin promote, backup/restore, troubleshooting)
+- [ ] 30-03-readme-version-entry-PLAN.md — Add v1.11-directus <details> block + table summary row to README.md
 
 ## Progress
 
@@ -226,4 +229,4 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 29 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 30 | v1.11-directus | 0/? | Not started | — |
+| 30 | v1.11-directus | 0/3 | Not started | — |
