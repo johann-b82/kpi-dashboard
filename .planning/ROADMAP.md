@@ -236,7 +236,14 @@ Plans:
   3. The Admin Runbook page covers the bcrypt user-add workflow, Outline volume backup, and OIDC secret rotation — confirmed accurate against the live stack
   4. The collection creation and permission model is documented inside Outline (admin-runbook or equivalent) so future projects can follow the same pattern
   5. A fresh `docker compose up --build` on a clean VM produces a working stack — all services healthy, all three hostnames respond, Dex login works (human UAT sign-off)
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 31-01-PLAN.md — Collection create + docs/wiki-seed/ init + DOC-01 Dev Setup + DOC-02 Architecture Mermaid + DOC-09 landing (WMP-01, DOC-01, DOC-02, DOC-09)
+- [ ] 31-02-PLAN.md — Router tags= fix for settings/sync/uploads (prereq for DOC-03) (DOC-03)
+- [ ] 31-03-PLAN.md — DOC-03 thin API Reference + DOC-04 Personio Sync Runbook (DOC-03, DOC-04)
+- [ ] 31-04-PLAN.md — DOC-05 Sales + DOC-06 HR + DOC-07 Settings user guides (DOC-05, DOC-06, DOC-07)
+- [ ] 31-05-PLAN.md — DOC-08 Admin Runbook (resolved GitHub URL) + landing relink (DOC-08, WMP-02, WMP-03)
+- [ ] 31-06-PLAN.md — E2E-01/03/04/05 UATs + final sign-off (E2E-01, E2E-03, E2E-04, E2E-05)
 
 ---
 
@@ -261,4 +268,4 @@ Plans:
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
 | 29 | v1.11 | 3/3 | Complete    | 2026-04-15 |
 | 30 | v1.11 | 1/1 | Complete    | 2026-04-15 |
-| 31 | v1.11 | 0/? | Not started | - |
+| 31 | v1.11 | 0/6 | Not started | - |
