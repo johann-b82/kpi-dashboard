@@ -13,6 +13,9 @@ venv/
 # Docker
 postgres_data/
 
+# Backups
+/backups/
+
 # macOS
 .DS_Store
 

@@ -115,6 +115,26 @@ services:
     entrypoint: ["/bin/sh", "/bootstrap-roles.sh"]
     restart: "no"
 
+  backup:
+    image: postgres:17-alpine
+    container_name: kpi-backup
+    env_file: .env
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      TZ: Europe/Berlin
+    volumes:
+      - ./backups:/backups
+      - ./backup/entrypoint.sh:/entrypoint.sh:ro
+      - ./backup/dump.sh:/usr/local/bin/dump.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   directus_uploads:
