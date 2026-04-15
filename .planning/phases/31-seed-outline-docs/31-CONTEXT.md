@@ -8,12 +8,12 @@ created: 2026-04-15
 
 ## Phase Goal
 
-The "KPI Light" Outline collection contains 8 authored documentation pages reachable from a collection landing page with a table of contents, reflecting the v1.10 state of the application. The collection creation + permission model is documented so future projects (Project Y, Project Z, ...) follow the same pattern. Final v1.11 E2E UATs signed off.
+The "KPI Dashboard" Outline collection contains 8 authored documentation pages reachable from a collection landing page with a table of contents, reflecting the v1.10 state of the application. The collection creation + permission model is documented so future projects (Project Y, Project Z, ...) follow the same pattern. Final v1.11 E2E UATs signed off.
 
 ## Domain Boundary
 
 **In scope:**
-- Create the "KPI Light" collection in Outline
+- Create the "KPI Dashboard" collection in Outline
 - Author 8 pages: Dev Setup (DOC-01), Docker Compose Architecture (DOC-02), API Reference (DOC-03), Personio Sync Runbook (DOC-04), Sales Dashboard User Guide (DOC-05), HR Dashboard User Guide (DOC-06), Settings Walkthrough (DOC-07), Admin Runbook (DOC-08)
 - Landing page with TOC + cross-links (DOC-09)
 - Collection + permission recipe (WMP-01, WMP-02, WMP-03)
@@ -84,12 +84,12 @@ docs/wiki-seed/
 ```
 Filenames use `##-slug.md` prefix matching DOC-01..DOC-08 numbering. The landing page (DOC-09) is `00-landing.md`.
 
-`docs/wiki-seed/README.md` explains: "These are markdown exports of the KPI Light Outline collection. Outline is canonical; this directory is a snapshot for version history and disaster recovery. Regenerate via: Outline UI → each page → ⋯ menu → Download → Markdown."
+`docs/wiki-seed/README.md` explains: "These are markdown exports of the KPI Dashboard Outline collection. Outline is canonical; this directory is a snapshot for version history and disaster recovery. Regenerate via: Outline UI → each page → ⋯ menu → Download → Markdown."
 
 **Rationale:** Permanent git history of wiki content, cheap disaster recovery, operator can grep wiki content from repo. Manual export is acceptable — updates are low-frequency (per-milestone, not per-PR).
 
 ### D-06: Export cadence = at phase completion + at milestone completion
-Export snapshots during Phase 31 execution after each page is authored. After v1.11 ships, one final re-export captures any post-UAT edits. Post-v1.11 milestones re-export the KPI Light collection at milestone boundaries; no per-edit syncing.
+Export snapshots during Phase 31 execution after each page is authored. After v1.11 ships, one final re-export captures any post-UAT edits. Post-v1.11 milestones re-export the KPI Dashboard collection at milestone boundaries; no per-edit syncing.
 
 **Rationale:** Low-overhead, predictable. Matches the project's milestone-based release cadence.
 
@@ -98,8 +98,8 @@ No screenshots. Navigation references use literal EN labels as they appear in th
 
 **Rationale:** Screenshots rot every UI change; text is resilient through v1.12+.
 
-### D-08: Permission model — single "KPI Light" collection, all internal members read+write
-- Collection name: `KPI Light`
+### D-08: Permission model — single "KPI Dashboard" collection, all internal members read+write
+- Collection name: `KPI Dashboard`
 - Collection icon: book/library emoji (choose in UI during creation)
 - Permissions: **members read+write**; no per-page permission overrides
 - Admin-runbook page (DOC-08) is NOT permission-restricted — every member can see + edit
@@ -107,9 +107,9 @@ No screenshots. Navigation references use literal EN labels as they appear in th
 **Rationale:** Internal-tool trust model; Outline auto-versions documents so accidental edits are reversible. Restricting admin content would force an out-of-band "how do I get access" step that slows ops response.
 
 ### D-09: Multi-project pattern (WMP-03) = one collection per project
-Future projects (Project Y, Project Z) each get **their own top-level Outline collection**, NOT a nested page inside "KPI Light". The recipe lives in DOC-08 Admin Runbook:
+Future projects (Project Y, Project Z) each get **their own top-level Outline collection**, NOT a nested page inside "KPI Dashboard". The recipe lives in DOC-08 Admin Runbook:
 1. In Outline: New Collection → name = project name → icon → save
-2. Set permissions: members read+write (mirror KPI Light default)
+2. Set permissions: members read+write (mirror KPI Dashboard default)
 3. Clone the 8-page structure or use custom set as needed
 4. Update Outline landing page (workspace home) to list all active project collections
 
@@ -118,7 +118,7 @@ Future projects (Project Y, Project Z) each get **their own top-level Outline co
 ### D-10: E2E-04 reframe — match Phase 29 SSO limitation
 E2E-04 UAT criterion is REWORDED from "NavBar wiki icon opens Outline; user is already logged in (Dex SSO session shared)" to:
 
-> **E2E-04 (reframed):** Clicking the NavBar wiki icon in KPI Light opens `https://wiki.internal` in a new tab. If the user has not yet authenticated to Outline in this browser, they are redirected through Dex and can log in with the same credentials used for KPI Light. Silent cross-app SSO is a documented known limitation (`docs/setup.md` Known limitations, Phase 29).
+> **E2E-04 (reframed):** Clicking the NavBar wiki icon in KPI Dashboard opens `https://wiki.internal` in a new tab. If the user has not yet authenticated to Outline in this browser, they are redirected through Dex and can log in with the same credentials used for KPI Dashboard. Silent cross-app SSO is a documented known limitation (`docs/setup.md` Known limitations, Phase 29).
 
 **Rationale:** Honest acceptance bar given Dex staticPasswords design. Value delivered = shared credentials + nav affordance, not one-click SSO. The reframe is consistent with how Phase 29 SC #3 was handled.
 
@@ -159,7 +159,7 @@ None — no pending todos matched Phase 31 scope.
 ## Success Signals for Research + Planning
 
 Downstream agents should produce plans that:
-1. Create the "KPI Light" collection with D-08 permissions as Task 1 (blocker for all subsequent pages)
+1. Create the "KPI Dashboard" collection with D-08 permissions as Task 1 (blocker for all subsequent pages)
 2. Author all 8 pages (DOC-01..DOC-08) + landing (DOC-09) in Outline, each checked for cross-links and correct reference to other pages
 3. Export each page to `docs/wiki-seed/##-slug.md` and commit the snapshot as part of phase execution (not a separate phase)
 4. Add `docs/wiki-seed/README.md` documenting D-05 regen recipe
