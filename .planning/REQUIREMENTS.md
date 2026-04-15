@@ -43,7 +43,7 @@
 - [x] **WIK-02**: Dedicated `outline-db` Postgres 17 container and `outline-redis` container back Outline — separate from KPI Light's `db` instance
 - [x] **WIK-03**: Outline uses `FILE_STORAGE=local` with attachments stored on a named volume (MinIO deliberately excluded — image discontinued Oct 2025)
 - [x] **WIK-04**: Outline authenticates against Dex via generic OIDC provider with `OIDC_AUTH_URI` pointing to the browser-reachable `https://auth.internal` and `OIDC_TOKEN_URI`/`OIDC_USERINFO_URI` pointing to internal docker DNS (`http://dex:5556/dex`)
-- [ ] **WIK-05**: First-time Outline login via Dex provisions the user automatically (JIT) and creates a default team/workspace
+- [x] **WIK-05**: First-time Outline login via Dex provisions the user automatically (JIT) and creates a default team/workspace
 - [x] **WIK-06**: Outline runs without SMTP configured — `SMTP_*` env vars left unset, invitations via external means (out-of-band) for v1.11
 - [x] **WIK-07**: License compliance: Outline BSL 1.1 usage is documented as "internal team use per Additional Use Grant" in repo README — confirms compliance for the ≤ 50-person internal use case
 
@@ -156,7 +156,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | WIK-02 | Phase 29 | Complete |
 | WIK-03 | Phase 29 | Complete |
 | WIK-04 | Phase 29 | Complete |
-| WIK-05 | Phase 29 | Pending |
+| WIK-05 | Phase 29 | Complete |
 | WIK-06 | Phase 29 | Complete |
 | WIK-07 | Phase 29 | Complete |
 | WMP-01 | Phase 31 | Pending |

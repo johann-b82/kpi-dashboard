@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: executing
-stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-04-15T07:06:18.305Z"
+status: verifying
+stopped_at: Completed 29-03-PLAN.md
+last_updated: "2026-04-15T08:48:43.815Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 Phase: 29 (outline-wiki-deployment) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%
@@ -83,6 +83,7 @@ Progress: [          ] 0%
 | Phase 28-kpi-light-oidc-integration P05 | 3min | 1 tasks | 1 files |
 | Phase 29-outline-wiki-deployment P01 | 3min | 2 tasks | 2 files |
 | Phase 29-outline-wiki-deployment P02 | 4min | 2 tasks | 1 files |
+| Phase 29-outline-wiki-deployment P03 | 30min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,7 @@ Progress: [          ] 0%
 - [Phase 29-outline-wiki-deployment]: Plan 29-01: Outline env block appended at end of .env.example (after DISABLE_AUTH) rather than inserted near Dex block — preserves Phase 27/28 block order and localises plan 29-02 additions.
 - [Phase 29-outline-wiki-deployment]: Plan 29-02: Kept Dockerfile-default HEALTHCHECK on outline service (v0.86.0 probes /_health natively) — no compose override. No separate outline-migrate service; Outline runs DB migrations at container start (contrast with KPI Light's Alembic migrate service pattern).
 - [Phase 29-outline-wiki-deployment]: Plan 29-02: OIDC split endpoints wired per D-05 — OIDC_AUTH_URI https://auth.internal/dex/auth (browser) vs OIDC_TOKEN_URI/USERINFO_URI on http://dex:5556/dex/* (internal docker DNS). NODE_EXTRA_CA_CERTS + mkcert rootCA mount + auth.internal:host-gateway covers discovery/iss revalidation.
+- [Phase 29-outline-wiki-deployment]: Plan 29-03: Dex staticPasswords connector does not enable silent cross-app SSO — documented as Known limitation in docs/setup.md; connector swap (LDAP/OIDC/SAML) queued as backlog candidate, out of v1.11 scope. UAT also required NPM wiki.internal proxy host repoint from Phase 26 placeholder api:8000 → outline:3000 (runbook path).
 
 ### Pending Todos
 
@@ -157,6 +159,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T07:06:18.303Z
-**Stopped at:** Completed 29-02-PLAN.md
+**Last session:** 2026-04-15T08:48:43.812Z
+**Stopped at:** Completed 29-03-PLAN.md
 **Resume file:** None
