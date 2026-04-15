@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.security.directus_auth import get_current_user
+from app.security.directus_auth import get_current_user, require_admin
 from app.defaults import DEFAULT_SETTINGS
 from app.models import AppSettings
 from app.schemas import AbsenceTypeOption, PersonioOptions, SettingsRead, SettingsUpdate
@@ -163,7 +163,11 @@ async def get_personio_options(
         )
 
 
-@router.put("", response_model=SettingsRead)
+@router.put(
+    "",
+    response_model=SettingsRead,
+    dependencies=[Depends(require_admin)],
+)
 async def put_settings(
     payload: SettingsUpdate,
     request: Request,
@@ -235,7 +239,11 @@ async def put_settings(
     return _build_read(row)
 
 
-@router.post("/logo", response_model=SettingsRead)
+@router.post(
+    "/logo",
+    response_model=SettingsRead,
+    dependencies=[Depends(require_admin)],
+)
 async def post_logo(
     file: UploadFile,
     db: AsyncSession = Depends(get_async_db_session),

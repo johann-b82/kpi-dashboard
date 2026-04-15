@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.security.directus_auth import get_current_user
+from app.security.directus_auth import get_current_user, require_admin
 from app.models import SalesRecord, UploadBatch
 from app.parsing.erp_parser import parse_erp_file
 from app.schemas import UploadBatchSummary, UploadResponse, ValidationErrorDetail
@@ -19,7 +19,11 @@ router = APIRouter(
 ALLOWED_EXTENSIONS = {".csv", ".txt"}
 
 
-@router.post("/upload", response_model=UploadResponse)
+@router.post(
+    "/upload",
+    response_model=UploadResponse,
+    dependencies=[Depends(require_admin)],
+)
 async def upload_file(
     file: UploadFile,
     db: AsyncSession = Depends(get_async_db_session),
@@ -100,7 +104,10 @@ async def list_uploads(
     return [UploadBatchSummary.model_validate(batch) for batch in batches]
 
 
-@router.delete("/uploads/{batch_id}")
+@router.delete(
+    "/uploads/{batch_id}",
+    dependencies=[Depends(require_admin)],
+)
 async def delete_upload(
     batch_id: int,
     db: AsyncSession = Depends(get_async_db_session),

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.security.directus_auth import get_current_user
+from app.security.directus_auth import get_current_user, require_admin
 from app.models import AppSettings, PersonioSyncMeta
 from app.schemas import SyncMetaRead, SyncResult, SyncTestResult
 from app.security.fernet import decrypt_credential
@@ -37,7 +37,11 @@ async def _get_credentials(db: AsyncSession) -> tuple[str, str]:
     return client_id, client_secret
 
 
-@router.post("", response_model=SyncResult)
+@router.post(
+    "",
+    response_model=SyncResult,
+    dependencies=[Depends(require_admin)],
+)
 async def run_sync(db: AsyncSession = Depends(get_async_db_session)) -> SyncResult:
     """Trigger a full Personio data sync (blocking, per D-01)."""
     from app.services import hr_sync
@@ -60,7 +64,11 @@ async def run_sync(db: AsyncSession = Depends(get_async_db_session)) -> SyncResu
         )
 
 
-@router.post("/test", response_model=SyncTestResult)
+@router.post(
+    "/test",
+    response_model=SyncTestResult,
+    dependencies=[Depends(require_admin)],
+)
 async def test_sync(db: AsyncSession = Depends(get_async_db_session)) -> SyncTestResult:
     """Test Personio credentials without syncing data (D-17)."""
     client_id, client_secret = await _get_credentials(db)
