@@ -224,8 +224,35 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 ## Version History
 
+<details>
+<summary><strong>v1.11-directus</strong> — 2026-04-15 — Auth + RBAC via self-hosted Directus</summary>
+
+### What changed
+
+- **Added: Directus 11 container.** A single `directus/directus:11` service runs alongside the existing Postgres, providing email/password login, two built-in roles (`Admin`, `Viewer`), and an admin UI at `http://localhost:8055` for user management. FastAPI verifies the Directus-issued JWT (HS256 shared secret) on every `/api/*` request; mutation routes require `Admin`, read routes are open to both roles.
+- **Added: nightly `pg_dump` backup sidecar.** A `backup` service in `docker-compose.yml` dumps the database nightly at 02:00 local time to `./backups/kpi-YYYY-MM-DD.sql.gz`, with 14-day rolling retention. A positional-arg `./scripts/restore.sh <dump-file>` streams a dump back into the running `db` container.
+- **Added: `docs/setup.md`.** A linear bring-up tutorial for first-time operators, including the Viewer→Admin promote click-path and the backup/restore procedure.
+
+### What was rejected
+
+- **Dex + oauth2-proxy + NPM auth_request** (Phase 32, previous attempt) — abandoned. Three moving parts to configure (Dex provider, oauth2-proxy sidecar, NGINX Proxy Manager auth_request directive) to get one sign-in page. Preserved on branch `archive/v1.12-phase32-abandoned` for reference only.
+- **Supabase** — evaluated, rejected. Full Supabase is a 5-service stack (Postgres, Auth, PostgREST, Realtime, Studio) when the project only needs sign-in and role assignment. Directus delivers the same outcome in one container on the existing database.
+
+### What was dropped
+
+- **Outline wiki** — removed from the stack entirely. The earlier v1.11/v1.12 plan was to share SSO between KPI Light and Outline via Dex. With Dex gone, the Outline use case is out of scope for this milestone. Existing Outline content (if any was deployed) is unaffected at the data level but no longer managed by this repo.
+
+### Impact for users
+
+- First-time login: browse to `/login`, enter email + password.
+- Viewer users see the dashboards but no upload/sync/save controls — those are admin-only and are hidden from the DOM entirely, not just disabled.
+- Administrators manage users via Directus at `http://localhost:8055`.
+
+</details>
+
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.11-directus | 2026-04-15 | Auth + RBAC via self-hosted Directus; nightly pg_dump backups; Outline wiki and Dex/oauth2-proxy path dropped |
 | v1.10 | 2026-04-14 | UI Consistency Pass — unified delta labeling (concrete period names, DE/EN parity) + page layout parity across Sales/HR/Upload/Settings; merged Appearance card; contextual back button |
 | v1.9 | 2026-04-14 | Dark Mode & Contrast — Tailwind v4 class-strategy dark mode, CSS-variable tokens, WCAG AA audit, no theme-flash pre-hydration IIFE |
 | v1.8 | 2026-04-12 | Employee table: worked hours, overtime ratio, department filter, active/all toggle |
