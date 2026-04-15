@@ -48,5 +48,52 @@ services:
       api:
         condition: service_healthy
 
+  directus:
+    image: directus/directus:11.17.2
+    env_file: .env
+    ports:
+      - "127.0.0.1:8055:8055"
+    volumes:
+      - directus_uploads:/directus/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      # --- Core secrets (from .env) ---
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      # --- Database connection — reuse existing `db` service ---
+      DB_CLIENT: pg
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # --- Hide Alembic-managed app tables from Directus Data Model UI ---
+      # Comma-separated, no spaces (per Directus docs). Verified against backend/app/models.py.
+      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version
+
+      # --- First-Admin bootstrap (D-01); ignored on subsequent boots ---
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+
+      # --- Public URL for email/oauth redirects (operator-only for v1.11) ---
+      PUBLIC_URL: http://127.0.0.1:8055
+
+      # --- Harden defaults for loopback-only operator UI ---
+      CORS_ENABLED: "false"
+      TELEMETRY: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8055/server/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 volumes:
   postgres_data:
+  directus_uploads:
