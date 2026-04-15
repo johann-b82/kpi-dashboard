@@ -7,7 +7,7 @@ export const DEFAULT_SETTINGS: Settings = {
   color_foreground: "oklch(0.15 0 0)",
   color_muted: "oklch(0.90 0 0)",
   color_destructive: "oklch(0.55 0.22 25)",
-  app_name: "KPI Light",
+  app_name: "KPI Dashboard",
   logo_url: null,
   logo_updated_at: null,
   // Phase 13 Personio fields — defaults used for reset-to-defaults
