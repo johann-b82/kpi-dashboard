@@ -176,7 +176,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   4. Promoting a Viewer to Admin in the Directus admin UI takes effect on the user's next token refresh (within JWT TTL)
   5. The API contract (inline in code or in `docs/api.md`) documents the Admin-vs-Viewer route matrix
 **Plans**: 2 plans
-- [ ] 28-01-require-admin-and-mutation-gating-PLAN.md — Add require_admin dep to directus_auth.py; apply Depends(require_admin) to 8 mutation routes across uploads/sync/settings routers
+- [x] 28-01-require-admin-and-mutation-gating-PLAN.md — Add require_admin dep to directus_auth.py; apply Depends(require_admin) to 8 mutation routes across uploads/sync/settings routers
 - [ ] 28-02-rbac-matrix-test-and-api-docs-PLAN.md — Parametrized pytest RBAC matrix (test_rbac.py) + docs/api.md canonical Admin-vs-Viewer contract
 
 ### Phase 29: Frontend Login + Role-Aware UI
@@ -221,6 +221,6 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 28 | v1.11-directus | 0/2 | Not started | — |
+| 28 | v1.11-directus | 1/2 | In Progress|  |
 | 29 | v1.11-directus | 0/? | Not started | — |
 | 30 | v1.11-directus | 0/? | Not started | — |
