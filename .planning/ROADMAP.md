@@ -161,7 +161,9 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   3. `current_user` FastAPI dependency is importable from `backend/app/security/directus_auth.py` and resolves `{ id, email, role }` from the verified JWT
   4. Unit tests cover: valid token → user resolved; expired → 401; wrong-signature → 401; missing bearer → 401
   5. `backend/app/config.py` reads `DIRECTUS_SECRET` from env with a clear error if unset
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 27-01-auth-dependency-foundation-PLAN.md — config.py (Pydantic BaseSettings), Role enum, CurrentUser schema, get_current_user dependency (HS256 verify + UUID→Role map), 8 unit tests
+- [ ] 27-02-router-wiring-and-env-PLAN.md — Fetch Administrator UUID from running Directus, populate .env/.env.example, wire dependencies=[Depends(get_current_user)] on all 6 routers, e2e tests
 
 ### Phase 28: RBAC Enforcement on All Routes
 **Goal**: Every FastAPI read route is open to both roles and every mutation route requires `role == 'Admin'`, returning 403 with a machine-readable body for Viewer users. Role changes made in Directus admin UI take effect on next JWT refresh.
@@ -216,7 +218,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 27 | v1.11-directus | 0/? | Not started | — |
+| 27 | v1.11-directus | 0/2 | In progress | — |
 | 28 | v1.11-directus | 0/? | Not started | — |
 | 29 | v1.11-directus | 0/? | Not started | — |
 | 30 | v1.11-directus | 0/? | Not started | — |
