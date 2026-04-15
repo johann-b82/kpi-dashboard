@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 28-05-PLAN.md
-last_updated: "2026-04-15T06:42:28.645Z"
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-04-15T07:02:44.904Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 0
 ---
 
@@ -27,14 +27,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 28 — kpi-light-oidc-integration
+**Current focus:** Phase 29 — outline-wiki-deployment
 
 ---
 
 ## Current Position
 
-Phase: 29
-Plan: Not started
+Phase: 29 (outline-wiki-deployment) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -81,6 +81,7 @@ Progress: [          ] 0%
 | Phase 28-kpi-light-oidc-integration P03 | 3min | 1 tasks | 6 files |
 | Phase 28-kpi-light-oidc-integration P02 | 5min | 2 tasks | 4 files |
 | Phase 28-kpi-light-oidc-integration P05 | 3min | 1 tasks | 1 files |
+| Phase 29-outline-wiki-deployment P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Progress: [          ] 0%
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-02: api container needs extra_hosts auth.internal/kpi.internal -> host-gateway + mkcert rootCA merged into system bundle at startup so OIDC discovery via NPM works without breaking public-CA trust
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-02: 503 (not 404) for /api/auth/{login,callback,logout} under DISABLE_AUTH=true via _bypass_guard helper
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-05: docs/setup.md Phase 28 runbook appended verbatim from plan draft; append-only (Phase 26/27 sections preserved); no UAT-driven content deviations
+- [Phase 29-outline-wiki-deployment]: Plan 29-01: BSL 1.1 Additional Use Grant wording corrected in README (no 50-person cap; the actual grant prohibits offering a 'Document Service' to third parties). CONTEXT D-07 reference retroactively superseded by this plan.
+- [Phase 29-outline-wiki-deployment]: Plan 29-01: Outline env block appended at end of .env.example (after DISABLE_AUTH) rather than inserted near Dex block — preserves Phase 27/28 block order and localises plan 29-02 additions.
 
 ### Pending Todos
 
@@ -151,6 +154,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T23:08:35.357Z
-**Stopped at:** Completed 28-05-PLAN.md
+**Last session:** 2026-04-15T07:02:44.901Z
+**Stopped at:** Completed 29-01-PLAN.md
 **Resume file:** None
