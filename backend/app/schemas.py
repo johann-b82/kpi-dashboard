@@ -2,8 +2,9 @@ import re
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
+from uuid import UUID
 
-from pydantic import AfterValidator, BaseModel, Field
+from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 
 class ValidationErrorDetail(BaseModel):
@@ -285,3 +286,15 @@ class EmployeeRead(BaseModel):
     overtime_ratio: float | None = None
 
     model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------
+# Phase 27 — Auth schemas
+# --------------------------------------------------------------------------
+from app.security.roles import Role  # noqa: E402
+
+
+class CurrentUser(BaseModel):
+    id: UUID
+    email: EmailStr
+    role: Role
