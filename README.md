@@ -1,4 +1,4 @@
-# KPI Light
+# KPI Dashboard
 
 A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files into PostgreSQL for Sales KPIs, and syncs Personio HR data for HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard with dark mode. Built for internal team use.
 
@@ -34,7 +34,7 @@ Details: [docs/setup.md](docs/setup.md).
 
 | Hostname                 | Serves                                     | Since     |
 | ------------------------ | ------------------------------------------ | --------- |
-| `https://kpi.internal`   | KPI Light frontend + `/api/*`              | Phase 26  |
+| `https://kpi.internal`   | KPI Dashboard frontend + `/api/*`              | Phase 26  |
 | `https://wiki.internal`  | Outline wiki (placeholder until Phase 29)  | Phase 29  |
 | `https://auth.internal`  | Dex OIDC (placeholder until Phase 27)      | Phase 27  |
 
