@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 30 context gathered
-last_updated: "2026-04-15T21:42:00.916Z"
+status: executing
+stopped_at: Completed 30-01-backup-sidecar-and-restore-PLAN.md
+last_updated: "2026-04-15T21:56:45.623Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 17
+  completed_plans: 15
   percent: 0
 ---
 
@@ -27,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 29 — frontend-login-role-aware-ui
+**Current focus:** Phase 30 — bring-up-docs-backup
 
 ---
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 30 (bring-up-docs-backup) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -68,6 +68,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 29 P01 | 5min | 2 tasks | 4 files |
 | Phase 29 P02 | 8min | 2 tasks | 8 files |
 | Phase 29 P03 | 10min | 3 tasks | 8 files |
+| Phase 30 P01 | 9min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 29]: Role StrEnum values already lowercase; /api/me uses .value defensively
 - [Phase 29]: Plan 02: Access token kept in apiClient module singleton (not React state) to avoid re-rendering consumers on every refresh
 - [Phase 29]: Plan 02: shadcn Form primitive adapted for @base-ui/react stack (React.cloneElement, no Radix Slot dep)
+- [Phase 30]: Plan 01: Plain-format pg_dump piped through gzip (not -Fc) so .sql.gz extension is literal and restore needs only gunzip+psql (no pg_restore)
 
 ### Pending Todos
 
@@ -110,9 +112,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T21:42:00.912Z
-**Stopped at:** Phase 30 context gathered
-**Resume file:** .planning/phases/30-bring-up-docs-backup/30-CONTEXT.md
+**Last session:** 2026-04-15T21:56:45.620Z
+**Stopped at:** Completed 30-01-backup-sidecar-and-restore-PLAN.md
+**Resume file:** None
 
 ---
 
