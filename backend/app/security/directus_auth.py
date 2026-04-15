@@ -60,3 +60,12 @@ async def get_current_user(
         email=f"{user_id}@directus.example.com",
         role=role,
     )
+
+
+def require_admin(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    if current_user.role != Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="admin role required",
+        )
+    return current_user
