@@ -274,6 +274,21 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 ---
 
+## License Note — Outline Wiki
+
+This repository deploys [Outline](https://github.com/outline/outline), which is
+licensed under the Business Source License 1.1 (BSL 1.1). The Additional Use
+Grant permits internal use by your own employees and contractors. It does NOT
+permit offering a competing "Document Service" — a commercial product that
+grants third parties access to Outline's functionality. Our deployment at
+`wiki.internal` is internal-team documentation only and falls squarely under
+the Additional Use Grant.
+
+Each Outline release converts to an OSI-approved open-source license four
+years after its release date; no end-of-life concern for self-hosters.
+
+---
+
 ## License
 
 Internal tool — not currently licensed for external distribution.
