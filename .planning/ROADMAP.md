@@ -130,7 +130,7 @@ Requirements: [milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.m
 - [x] **Phase 28: KPI Light OIDC Integration** — KPI Light backend and frontend gated behind Dex login (completed 2026-04-14)
 - [x] **Phase 29: Outline Wiki Deployment** — Outline running with its own Postgres + Redis, authenticating via Dex (completed 2026-04-15)
 - [x] **Phase 30: Wiki NavBar Link** — KPI Light NavBar gains a wiki icon linking to Outline (completed 2026-04-15)
-- [ ] **Phase 31: Seed Outline Docs** — KPI Dashboard documentation collection authored and published in Outline
+- [x] **Phase 31: Seed Outline Docs** — KPI Dashboard documentation collection authored and published in Outline (completed 2026-04-15)
 
 ## Phase Details
 
@@ -281,4 +281,4 @@ Plans:
 | 29 | v1.11 | 3/3 | Complete    | 2026-04-15 |
 | 30 | v1.11 | 1/1 | Complete    | 2026-04-15 |
 | 30.1 | v1.11 | 3/3 | Complete    | 2026-04-15 |
-| 31 | v1.11 | 0/6 | Not started | - |
+| 31 | v1.11 | 0/6 | Complete    | 2026-04-15 |
