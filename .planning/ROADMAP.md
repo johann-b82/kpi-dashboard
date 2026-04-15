@@ -231,7 +231,7 @@ Plans:
 **Goal:** Rename human-facing product name KPI Light → KPI Dashboard (display only — internal identifiers unchanged per D-01).
 **Requirements**: none (mechanical rename; no ROADMAP requirements)
 **Depends on:** Phase 30
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 30.1-01-PLAN.md — Backend rename + Alembic migration (defaults, config, auth docstrings, main.py FastAPI title)
@@ -280,5 +280,5 @@ Plans:
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
 | 29 | v1.11 | 3/3 | Complete    | 2026-04-15 |
 | 30 | v1.11 | 1/1 | Complete    | 2026-04-15 |
-| 30.1 | v1.11 | 3/3 | Complete    | 2026-04-15 |
+| 30.1 | v1.11 | 3/3 | Complete   | 2026-04-15 |
 | 31 | v1.11 | 0/6 | Not started | - |

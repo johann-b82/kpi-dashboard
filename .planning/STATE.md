@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
-status: executing
-stopped_at: Completed 30.1-02-PLAN.md
-last_updated: "2026-04-15T09:56:58.149Z"
+status: verifying
+stopped_at: Completed 30.1-03-PLAN.md (Phase 30.1 complete)
+last_updated: "2026-04-15T10:02:13.455Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 24
-  completed_plans: 17
+  completed_plans: 19
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 Phase: 30.1 (rebrand-kpi-light-to-kpi-dashboard) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%
@@ -87,6 +87,7 @@ Progress: [          ] 0%
 | Phase 30-wiki-navbar-link P01 | 5min | 3 tasks | 4 files |
 | Phase 30.1 P01 | 1min | 4 tasks | 5 files |
 | Phase 30.1 P02 | 1min | 2 tasks | 3 files |
+| Phase 30.1 P03 | ~8min | 7 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,7 @@ Progress: [          ] 0%
 - [Phase 29-outline-wiki-deployment]: Plan 29-03: Dex staticPasswords connector does not enable silent cross-app SSO — documented as Known limitation in docs/setup.md; connector swap (LDAP/OIDC/SAML) queued as backlog candidate, out of v1.11 scope. UAT also required NPM wiki.internal proxy host repoint from Phase 26 placeholder api:8000 → outline:3000 (runbook path).
 - [Phase 30.1]: Plan 30.1-01: Internal identifiers preserved (DEX_CLIENT_ID kpi-light, DEX_KPI_SECRET, kpi_session cookie); narrow WHERE clause on v1_11_rename_app_name data migration protects operator-customized app_name values (D-04)
 - [Phase 30.1]: Value-only i18n rewrite; keys preserved per D-03 (zero t() call-site churn)
+- [Phase 30.1]: Phase 30.1 closed: 13 commits across 3 plans; D-01 internal identifiers all preserved; D-02 historical freeze honoured with PROJECT.md rename-note continuity
 
 ### Pending Todos
 
@@ -164,6 +166,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T09:56:58.146Z
-**Stopped at:** Completed 30.1-02-PLAN.md
+**Last session:** 2026-04-15T10:02:13.449Z
+**Stopped at:** Completed 30.1-03-PLAN.md (Phase 30.1 complete)
 **Resume file:** None
