@@ -1,0 +1,7 @@
+NAME                                IMAGE                       COMMAND                  SERVICE             CREATED              STATUS                      PORTS
+acm-kpi-light-api-1                 acm-kpi-light-api           "uvicorn app.main:ap…"   api                 About a minute ago   Up 45 seconds (healthy)     0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+acm-kpi-light-db-1                  postgres:17-alpine          "docker-entrypoint.s…"   db                  About a minute ago   Up 53 seconds (healthy)     5432/tcp
+acm-kpi-light-directus-1            directus/directus:11.17.2   "docker-entrypoint.s…"   directus            About a minute ago   Up 45 seconds (healthy)     127.0.0.1:8055->8055/tcp
+acm-kpi-light-directus-snapshot-1   directus/directus:11.17.2   "/bin/sh -c 'npx dir…"   directus-snapshot   About a minute ago   Exited (0) 24 seconds ago   
+acm-kpi-light-frontend-1            acm-kpi-light-frontend      "docker-entrypoint.s…"   frontend            About a minute ago   Up 40 seconds               0.0.0.0:5173->5173/tcp, [::]:5173->5173/tcp
+acm-kpi-light-migrate-1             acm-kpi-light-migrate       "alembic upgrade head"   migrate             About a minute ago   Exited (0) 45 seconds ago   
