@@ -4,8 +4,8 @@ milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
 stopped_at: Completed 28-05-PLAN.md
-last_updated: "2026-04-14T23:08:35.361Z"
-last_activity: 2026-04-14
+last_updated: "2026-04-15T06:42:28.645Z"
+last_activity: 2026-04-15
 progress:
   total_phases: 6
   completed_phases: 3
@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 
 ## Current Position
 
-Phase: 28 (kpi-light-oidc-integration) — EXECUTING
-Plan: 5 of 5
+Phase: 29
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-14
+Last activity: 2026-04-15
 
 Progress: [          ] 0%
 

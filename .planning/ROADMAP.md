@@ -252,7 +252,7 @@ Plans:
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
-| 28 | v1.11 | 5/5 | Complete   | 2026-04-14 |
+| 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
 | 29 | v1.11 | 0/? | Not started | - |
 | 30 | v1.11 | 0/? | Not started | - |
 | 31 | v1.11 | 0/? | Not started | - |
