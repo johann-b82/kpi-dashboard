@@ -11,6 +11,12 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.security.auth import SYNTHETIC_USER, get_current_user
+
+# Bypass OIDC auth in tests by returning the synthetic dev user. Phase 28
+# guards all business routers with `get_current_user`; without this override
+# prior-phase tests hit 401 before exercising any business logic.
+app.dependency_overrides[get_current_user] = lambda: SYNTHETIC_USER
 
 
 @pytest_asyncio.fixture
