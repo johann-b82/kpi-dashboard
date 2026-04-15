@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 28-02-rbac-matrix-test-and-api-docs-PLAN.md
-last_updated: "2026-04-15T20:46:33.089Z"
+last_updated: "2026-04-15T20:49:07.794Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 ## Current Position
 
-Phase: 28 (rbac-enforcement-on-all-routes) — EXECUTING
-Plan: 2 of 2
+Phase: 29
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
