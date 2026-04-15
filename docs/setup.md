@@ -435,6 +435,7 @@ docker compose up -d dex
 - **No RP-initiated logout.** Dex does not expose an `end_session_endpoint` (upstream issue [dexidp/dex#1697](https://github.com/dexidp/dex/issues/1697)). Per-app logout works — the app clears its own cookie. Cross-app SSO-wide logout does not exist. Mitigation: the 1h ID-token TTL (D-07) bounds how long an unused session can linger.
 - **Config reload requires restart.** There is no file-watcher; every change to `dex/config.yaml` needs `docker compose restart dex`. Restart is <2 s and safe.
 - **`userID` is permanent.** Never regenerate the `userID:` UUID for an existing user. It is the OIDC `sub` claim that downstream apps (KPI Light in Phase 28, Outline in Phase 29) store in their own user tables; rotating it orphans every stored reference (Pitfall 4).
+- **No silent cross-app SSO.** Dex's `staticPasswords` connector does not set a browser session cookie on `auth.internal`, so each OIDC client (KPI Light, Outline) re-prompts for the password even in the same browser. The value delivered is *one credential set for both apps*, not *one click*. Upgrading to an upstream connector (LDAP, upstream OIDC, SAML) is the standard fix — out of scope for v1.11.
 
 ---
 
