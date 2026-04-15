@@ -8,24 +8,24 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.11-supabase Supabase Pivot
+## Current Milestone: v1.11-directus Directus Pivot
 
-**Goal:** Replace the local Postgres + (abandoned) Dex/oauth2-proxy stack with a single self-hosted Supabase stack that consolidates DB + auth + RBAC for up to 150 users across two roles (Admin, Viewer).
+**Goal:** Add auth + RBAC for up to 150 users (Admin, Viewer) by introducing a single self-hosted Directus container on top of the existing Postgres — keeping the stack lean after the abandoned Dex/oauth2-proxy attempt.
 
 **Target features:**
-- Single-Postgres Supabase stack (postgres + kong + gotrue + postgrest + studio); old `db` service retired; KPI schema and `auth.*` live in the same database
-- Alembic re-pointed at Supabase Postgres; fresh `alembic upgrade head` owns `public` schema only
-- Email/password login via GoTrue; FastAPI validates Supabase JWT via JWKS
-- `profiles` table + signup trigger; `role` enum (`admin` | `viewer`) gates mutation endpoints (uploads, sync, settings PUT, deletes)
-- React login page with `@supabase/supabase-js` session + auto-refresh; viewer UI hides admin-only actions
-- One-command bring-up + docs: `setup.md` walkthrough, first-admin bootstrap, nightly `pg_dump` sidecar for backup
+- Single Directus container (`directus/directus:11`) reusing the existing `db` Postgres; admin UI at `http://localhost:8055`
+- Two Directus roles: `Admin` (full access) and `Viewer` (read-only); configured via `snapshot.yml` + Directus admin UI
+- FastAPI validates Directus JWT (HS256 shared secret); `current_user` dependency resolves `{ id, email, role }`
+- Mutation endpoints (uploads, sync, settings PUT, deletes) gate on `role == 'Admin'`; Viewer gets 403 with machine-readable body
+- React login page via `@directus/sdk`; axios interceptor attaches bearer; session auto-refresh; Viewer UI hides admin-only actions
+- One-command bring-up + docs: setup.md walkthrough, first-admin bootstrap, promote-Viewer-to-Admin flow via Directus UI, nightly `pg_dump` backup
 
-**Key context:** Baseline reset to v1.10 from abandoned v1.12/Phase 32 (Dex + oauth2-proxy proved too brittle; archived on `archive/v1.12-phase32-abandoned`). Outline wiki dropped. No SSO/SAML this milestone. No RLS (API-layer authz only). Fresh DB. Source of truth: `.planning/SUPABASE-PIVOT.md`.
+**Key context:** Baseline reset to v1.10 from abandoned v1.12/Phase 32 (Dex + oauth2-proxy proved too brittle; archived on `archive/v1.12-phase32-abandoned`). Briefly considered Supabase (5 services) but switched to Directus for fewer moving parts and a built-in user admin UI. Outline wiki dropped. No SSO/SAML this milestone. Fresh DB. Source of truth: `.planning/DIRECTUS-PIVOT.md`.
 
 ## Current State
 
 **Shipped:** v1.10 — 2026-04-14
-**In progress:** v1.11-supabase — Supabase Pivot (baseline reset from abandoned v1.12)
+**In progress:** v1.11-directus — Directus Pivot (baseline reset from abandoned v1.12)
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
@@ -160,7 +160,7 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 
 ### Out of Scope
 
-- Outline wiki — dropped in the v1.11-supabase pivot
+- Outline wiki — dropped in the v1.11-directus pivot
 - Dex + oauth2-proxy silent-SSO layer — abandoned after Phase 32; preserved on `archive/v1.12-phase32-abandoned`
 - Active Directory integration — not planned in v1.11
 - Multi-tenant / multi-app user management — not planned in v1.11
@@ -175,7 +175,7 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - **Deployment:** Docker Compose stack (db, migrate, api, frontend containers with healthchecks)
 - **Data format:** Fixed 38-column ERP tab-delimited export; German locale (decimal comma, DD.MM.YYYY dates) handled during parse
 - **Users:** Internal team, small group, no external access in v1
-- **Identity (v1.11-supabase):** Self-hosted Supabase GoTrue — email/password, single `profiles` table with `role` enum (admin | viewer), FastAPI validates JWT via JWKS
+- **Identity (v1.11-directus):** Self-hosted Directus (single container) on existing Postgres — email/password, two roles (Admin | Viewer) managed in Directus admin UI, FastAPI validates Directus JWT via shared HS256 secret
 - **Tech debt carried forward:**
   - 5 Phase 2 human-UAT visual items (drag-drop spinner, toast render, inline error list) — tracked in `02-HUMAN-UAT.md`
   - DASH-02 shipped monthly-only (granularity toggle removed by user request post-verification)
@@ -183,19 +183,19 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 ## Constraints
 
 - **Containerization**: Must run via Docker Compose — no bare-metal dependencies
-- **Database**: Self-hosted Supabase Postgres — single instance holds KPI + `auth.*` schemas; Alembic owns `public`
-- **Identity**: Self-hosted Supabase GoTrue — email/password, JWT via JWKS, `profiles.role` enum gates mutations
+- **Database**: Existing PostgreSQL container; Alembic owns app tables in `public`, Directus owns `directus_*` tables in the same DB
+- **Identity**: Self-hosted Directus (single container) — email/password, two roles (Admin | Viewer), JWT HS256 shared secret, FastAPI gates mutations on role
 - **File schema**: Fixed/known columns — simplifies parsing, no schema inference needed
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Supabase for DB + auth (v1.11) | Self-hosted, Docker-native, consolidates Postgres + GoTrue + PostgREST + Studio; drops Dex/oauth2-proxy complexity proven brittle in Phase 32 | — Pending v1.11 |
-| Pivot from Authentik/Dex to Supabase | Phase 32 silent-SSO flow (Dex + oauth2-proxy + NPM auth_request) hit cascading cookie/CSRF/config-gen failures; single-app scope no longer justifies multi-service identity stack | ✓ Adopted 2026-04-15 |
-| Single Postgres instance | Supabase Postgres holds both KPI data and `auth.*` — no second DB container, schemas separate concerns | — v1.11 Phase 26 |
-| `profiles` table with `role` enum | Decouples app metadata from GoTrue's internal `auth.users` schema; role changes are one-line SQL | — v1.11 Phase 27 |
-| API-layer authz, no RLS in v1.11 | FastAPI is single entry point; RLS doubles authz surface for no gain until a direct-to-PostgREST feature emerges | — v1.11 Phase 28 |
+| Directus for auth + admin UI (v1.11) | Single container; reuses existing Postgres; built-in user/role admin UI; mature (7+ years); lower host complexity than Supabase's 5-service stack | — Pending v1.11 |
+| Pivot from Authentik/Dex to Directus | Phase 32 silent-SSO flow (Dex + oauth2-proxy + NPM auth_request) hit cascading cookie/CSRF/config-gen failures; single-app scope doesn't justify a multi-service identity stack; Supabase briefly considered but ruled out in favor of Directus's simpler single-container footprint | ✓ Adopted 2026-04-15 |
+| Keep existing Postgres container | Directus connects to our `db` service; no migration needed; Alembic owns `public.*`, Directus owns `directus_*` in the same DB | — v1.11 Phase 26 |
+| Two Directus roles (Admin, Viewer) managed in Directus UI | Directus's role/permission model is UI-first; no hand-rolled `profiles.role` enum; role change is a click | — v1.11 Phase 26 |
+| FastAPI gates mutations on Directus JWT role claim | Server-side authz is authoritative; frontend hiding is UX polish; 403 with `{"detail": "admin role required"}` for Viewer | — v1.11 Phase 28 |
 | Fixed 38-column schema | User confirmed ERP export columns are consistent; removes need for schema inference | ✓ Good (Phase 2 parser simpler than alternatives) |
 | Docker Compose deployment | Entire stack containerized for portability and reproducibility | ✓ Phase 1 |
 | FastAPI + asyncpg + SQLAlchemy 2.0 async | Async end-to-end matches I/O-bound workload; 10x Pydantic v2 validation | ✓ v1.0 |
@@ -229,4 +229,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 — v1.11-supabase Supabase Pivot milestone started (baseline reset from abandoned v1.12)*
+*Last updated: 2026-04-15 — v1.11-directus Directus Pivot milestone started (baseline reset from abandoned v1.12)*

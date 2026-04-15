@@ -1,8 +1,8 @@
-# Milestone v1.11-supabase — Requirements
+# Milestone v1.11-directus — Requirements
 
-**Milestone goal:** Replace local Postgres + (abandoned Dex/oauth2-proxy) with self-hosted Supabase, consolidating DB + auth + RBAC for up to 150 users across Admin and Viewer roles.
+**Milestone goal:** Add auth + RBAC for up to 150 users (Admin, Viewer) by introducing a single self-hosted Directus container on top of the existing Postgres — keeping the stack lean after abandoning the Dex/oauth2-proxy attempt.
 
-**Source of truth:** `.planning/SUPABASE-PIVOT.md` (locked decisions, risk register).
+**Source of truth:** `.planning/DIRECTUS-PIVOT.md` (locked decisions, risk register).
 
 ---
 
@@ -10,53 +10,51 @@
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots Supabase (postgres, kong, gotrue, postgrest, studio) plus api + frontend, no manual steps between commands.
-- [ ] **INFRA-02**: Old `db` service is removed from `docker-compose.yml` — Supabase's `postgres` is the only Postgres container running.
-- [ ] **INFRA-03**: Developer can reach Supabase Studio at `http://localhost:54323` and see the single Postgres instance's `public` and `auth` schemas.
-- [ ] **INFRA-04**: Developer can reach the GoTrue API at `http://localhost:54321/auth/v1/*` (via kong gateway) for login / JWT endpoints.
-- [ ] **INFRA-05**: All Supabase service secrets (JWT secret, anon key, service-role key, DB password) live in `.env` with clear `.env.example` entries and generation commands.
+- [ ] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots `db`, `directus`, `api`, `frontend`, no manual steps between commands.
+- [ ] **INFRA-02**: The Directus admin UI is reachable at `http://localhost:8055` and the first admin user can sign in with credentials from `.env`.
+- [ ] **INFRA-03**: Directus connects to the existing `db` Postgres container and creates its own `directus_*` tables without interfering with Alembic-managed `public.*` tables.
+- [ ] **INFRA-04**: All Directus secrets (admin email/password, JWT secret, key) live in `.env` with clear `.env.example` entries and generation commands.
 
-### Data Layer (DATA)
+### Directus Configuration (CFG)
 
-- [ ] **DATA-01**: Alembic is re-pointed at Supabase's Postgres via `DATABASE_URL` (`postgresql://postgres:...@supabase-db:5432/postgres`); `alembic upgrade head` runs cleanly against a fresh Supabase stack.
-- [ ] **DATA-02**: All existing KPI tables (sales data, HR snapshots, upload history, settings) recreate successfully in Supabase's Postgres `public` schema without schema drift.
-- [ ] **DATA-03**: A new `profiles` table references `auth.users(id)` with columns `role` (enum `admin` | `viewer`, default `viewer`), `full_name`, `locale` (default `de`), plus standard timestamps.
-- [ ] **DATA-04**: A signup trigger (`handle_new_user`) auto-creates a `profiles` row on every new `auth.users` insert, defaulting `role` to `viewer`.
-- [ ] **DATA-05**: FastAPI code paths use the Supabase Postgres for all reads/writes; no residual references to the removed `db` service.
+- [ ] **CFG-01**: A `snapshot.yml` (or equivalent bootstrap script) defines two roles — `Admin` (full access) and `Viewer` (read-only) — reproducibly on a fresh stack.
+- [ ] **CFG-02**: Directus's Data Model UI does not expose the app's `public.*` tables (via `DB_EXCLUDE_TABLES` or equivalent) — operators manage users/roles in Directus, Alembic owns KPI schema.
+- [ ] **CFG-03**: The first Admin user is bootstrapped automatically on initial stack bring-up via env-driven `ADMIN_EMAIL` / `ADMIN_PASSWORD`; subsequent Admins can be created via the Directus UI.
 
 ### Authentication (AUTH)
 
-- [ ] **AUTH-01**: User can sign up via email/password (or via Studio-seeded invite) and receives a valid session on first sign-in.
+- [ ] **AUTH-01**: A seeded user can sign in via email/password at the Directus `POST /auth/login` endpoint and receive a valid JWT (access + refresh tokens).
 - [ ] **AUTH-02**: User can sign in via the web UI with email/password; invalid credentials show an inline error and do not grant a session.
-- [ ] **AUTH-03**: Frontend persists the Supabase session via `@supabase/supabase-js`, auto-refreshing the access token before expiry.
-- [ ] **AUTH-04**: FastAPI validates every `/api/*` request's `Authorization: Bearer <jwt>` against GoTrue's JWKS (RS256) and rejects expired/invalid tokens with 401.
-- [ ] **AUTH-05**: `current_user` FastAPI dependency resolves `{ id, email, role }` from the verified JWT + `profiles` lookup; available to all protected routes.
+- [ ] **AUTH-03**: Frontend persists the Directus session via `@directus/sdk`, auto-refreshing the access token before expiry.
+- [ ] **AUTH-04**: FastAPI validates every `/api/*` request's `Authorization: Bearer <jwt>` against the Directus JWT shared secret (HS256) and rejects expired/invalid tokens with 401.
+- [ ] **AUTH-05**: `current_user` FastAPI dependency resolves `{ id, email, role }` from the verified JWT; available to all protected routes.
 - [ ] **AUTH-06**: User can sign out; session is cleared and subsequent API calls return 401.
 
 ### Role-Based Access Control (RBAC)
 
-- [ ] **RBAC-01**: Read endpoints (`GET /api/kpis`, `/api/hr/kpis`, `/api/data/*`, `GET /api/settings`) return data for both Admin and Viewer roles.
-- [ ] **RBAC-02**: Mutation endpoints (`POST /api/uploads/*`, `POST /api/sync/personio`, `PUT /api/settings`, any `DELETE /api/data/*`) require `role == 'admin'`; return 403 for Viewer.
-- [ ] **RBAC-03**: Frontend hides admin-only UI actions (upload button, sync trigger, settings save, delete controls) when `useAuth().role === 'viewer'`.
-- [ ] **RBAC-04**: Admin can promote a Viewer to Admin via a single SQL statement and the change takes effect on the next JWT refresh (≤ token TTL).
-- [ ] **RBAC-05**: API contract documents the Admin-vs-Viewer matrix; 403 responses carry a machine-readable reason (`{"detail": "admin role required"}`).
+- [ ] **RBAC-01**: Read endpoints (`GET /api/kpis`, `/api/hr/kpis`, `/api/data/*`, `GET /api/settings`) return data for both `Admin` and `Viewer` roles.
+- [ ] **RBAC-02**: Mutation endpoints (`POST /api/uploads/*`, `POST /api/sync/personio`, `PUT /api/settings`, any `DELETE /api/data/*`) require `role == 'Admin'`; return 403 for `Viewer` with body `{"detail": "admin role required"}`.
+- [ ] **RBAC-03**: Frontend hides admin-only UI actions (upload button, sync trigger, settings save, delete controls) when `useAuth().role === 'Viewer'`.
+- [ ] **RBAC-04**: Admin can promote a Viewer to Admin via the Directus admin UI (role assignment) and the change takes effect on the user's next JWT refresh (≤ token TTL).
+- [ ] **RBAC-05**: API contract documents the Admin-vs-Viewer matrix; 403 responses carry the machine-readable reason above.
 
 ### Bring-up & Operations (DOCS)
 
-- [ ] **DOCS-01**: `docs/setup.md` covers first-time bring-up: clone → copy `.env.example` → generate secrets → `docker compose up -d` → bootstrap first admin user via Studio or seed SQL.
-- [ ] **DOCS-02**: `docs/setup.md` documents the promote-viewer-to-admin flow.
-- [ ] **DOCS-03**: A nightly `pg_dump` backup is runnable (cron sidecar or host script); backups land in `./backups/`; `docs/setup.md` includes the restore procedure.
-- [ ] **DOCS-04**: `README.md` v1.11-supabase version-history entry summarizes the pivot (what replaced what, why Dex was dropped, what Outline dropping means).
+- [ ] **DOCS-01**: `docs/setup.md` covers first-time bring-up: clone → copy `.env.example` → generate secrets → `docker compose up -d` → first admin auto-bootstrapped → sign in to Directus admin UI to verify.
+- [ ] **DOCS-02**: `docs/setup.md` documents the promote-Viewer-to-Admin flow via the Directus admin UI (click-path with screenshots or described steps).
+- [ ] **DOCS-03**: A nightly `pg_dump` backup is runnable (cron sidecar or host script); backups land in `./backups/`; `docs/setup.md` includes the restore procedure, exercised at least once.
+- [ ] **DOCS-04**: `README.md` v1.11-directus version-history entry summarizes the pivot (what was added — Directus, why not Dex/Supabase, what dropping Outline means for users).
 
 ---
 
 ## Future Requirements (deferred, not in v1.11)
 
-- SSO/OIDC external providers (Google, M365) — add when HR asks.
-- Email verification + password reset via SMTP — enable when SMTP provisioned.
-- Row-Level Security (RLS) policies — add when a feature bypasses FastAPI.
-- Audit logging beyond Supabase's built-in auth logs.
-- Realtime / Storage / Analytics Supabase services — not used this milestone.
+- SSO/OIDC external providers (Google, M365) — Directus supports; enable when HR asks.
+- Email verification + password reset via SMTP — Directus supports; enable when SMTP provisioned.
+- Exposing Directus REST/GraphQL to the browser — frontend stays on FastAPI only for v1.11.
+- Directus flows / webhooks / realtime features.
+- Row-Level Security (RLS) policies — add if a feature bypasses FastAPI.
+- Audit logging beyond Directus's built-in activity log.
 - Export filtered data as CSV (DASH-07) — carried over from v1.0 backlog.
 - Duplicate upload detection (UPLD-07) — carried over.
 - Per-upload drill-down view (DASH-08) — carried over.
@@ -67,6 +65,7 @@
 
 - **Outline wiki** — dropped entirely in the pivot.
 - **Dex + oauth2-proxy + NPM auth_request layer** — abandoned; preserved on `archive/v1.12-phase32-abandoned` for reference only.
+- **Supabase** — evaluated, rejected in favor of Directus's simpler single-container footprint.
 - **Active Directory / LDAP integration** — not planned.
 - **Multi-tenant / multi-app user management** — single app this milestone.
 - **Silent cross-app SSO** — moot (only one app).
@@ -78,13 +77,30 @@
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| INFRA-01..05 | TBD | — | Not started |
-| DATA-01..05 | TBD | — | Not started |
-| AUTH-01..06 | TBD | — | Not started |
-| RBAC-01..05 | TBD | — | Not started |
-| DOCS-01..04 | TBD | — | Not started |
+| INFRA-01 | Phase 26 | — | Not started |
+| INFRA-02 | Phase 26 | — | Not started |
+| INFRA-03 | Phase 26 | — | Not started |
+| INFRA-04 | Phase 26 | — | Not started |
+| CFG-01 | Phase 26 | — | Not started |
+| CFG-02 | Phase 26 | — | Not started |
+| CFG-03 | Phase 26 | — | Not started |
+| AUTH-01 | Phase 27 | — | Not started |
+| AUTH-02 | Phase 29 | — | Not started |
+| AUTH-03 | Phase 29 | — | Not started |
+| AUTH-04 | Phase 27 | — | Not started |
+| AUTH-05 | Phase 27 | — | Not started |
+| AUTH-06 | Phase 29 | — | Not started |
+| RBAC-01 | Phase 28 | — | Not started |
+| RBAC-02 | Phase 28 | — | Not started |
+| RBAC-03 | Phase 29 | — | Not started |
+| RBAC-04 | Phase 28 | — | Not started |
+| RBAC-05 | Phase 28 | — | Not started |
+| DOCS-01 | Phase 30 | — | Not started |
+| DOCS-02 | Phase 30 | — | Not started |
+| DOCS-03 | Phase 30 | — | Not started |
+| DOCS-04 | Phase 30 | — | Not started |
 
-*Roadmapper will populate Phase and Plan columns.*
+**Coverage:** 22/22 requirements mapped (100%).
 
 ---
-*Last updated: 2026-04-15 — v1.11-supabase requirements defined*
+*Last updated: 2026-04-15 — Directus Pivot requirements defined, roadmap mapping ready*
