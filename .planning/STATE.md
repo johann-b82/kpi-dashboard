@@ -1,42 +1,42 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10
-milestone_name: UI Consistency Pass
-status: verifying
-stopped_at: Completed 25-03-uat-layout-parity-PLAN.md
-last_updated: "2026-04-14T15:45:22.121Z"
-last_activity: 2026-04-14
+milestone: v1.11-supabase
+milestone_name: Supabase Pivot
+status: defining_requirements
+stopped_at: Milestone started — gathering requirements
+last_updated: "2026-04-15T15:30:00.000Z"
+last_activity: 2026-04-15
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
-# Project State: KPI Light
+# Project State: KPI Dashboard
 
-**Last updated:** 2026-04-14
-**Session:** v1.10 UI Consistency Pass — milestone started, defining requirements
+**Last updated:** 2026-04-15
+**Session:** v1.11-supabase Supabase Pivot — milestone started, defining requirements
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.10 milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-supabase milestone started)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 25 — page-layout-parity
+**Current focus:** Milestone v1.11-supabase — defining requirements (baseline reset to v1.10 from abandoned v1.12/Phase 32)
 
 ---
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-14
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-15 — Milestone v1.11-supabase started
 
 Progress: [          ] 0%
 
@@ -121,6 +121,16 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-14T15:42:14.558Z
-**Stopped at:** Completed 25-03-uat-layout-parity-PLAN.md
+**Last session:** 2026-04-15T15:30:00.000Z
+**Stopped at:** Milestone v1.11-supabase — requirements gathering
 **Resume file:** None
+
+---
+
+## Milestone v1.11-supabase Context
+
+- **Baseline reset:** `main` hard-reset to `v1.10` (`0676530`). Phase 32 (oauth2-proxy + Dex) abandoned — preserved on `archive/v1.12-phase32-abandoned`.
+- **Outline wiki dropped.** All v1.11 (Outline + shared Dex auth) and v1.12 (Phase 32) work discarded.
+- **Architecture pivot:** Local Postgres `db` service retired; self-hosted Supabase (postgres + kong + gotrue + postgrest + studio) consolidates DB + auth.
+- **Scale:** ~150 users, 2 roles (Admin, Viewer). Email/password only. No SSO this milestone.
+- **Source of truth:** `.planning/SUPABASE-PIVOT.md` (locked decisions, phase breakdown, risk register).

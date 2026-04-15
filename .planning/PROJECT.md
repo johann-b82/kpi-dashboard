@@ -8,21 +8,31 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.10 UI Consistency Pass
+## Current Milestone: v1.11-supabase Supabase Pivot
 
-**Goal:** Align delta-badge labeling and page layout conventions across Sales, HR, Upload, and Settings so every surface looks and reads the same.
+**Goal:** Replace the local Postgres + (abandoned) Dex/oauth2-proxy stack with a single self-hosted Supabase stack that consolidates DB + auth + RBAC for up to 150 users across two roles (Admin, Viewer).
 
 **Target features:**
-- ✅ Unified delta labeling (Phase 24, 2026-04-14) — Sales + HR share `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names (e.g. `vs. April 2025`, `vs. Q2 2025`), DE/EN parity. `periodLabels.ts` delta formatters retired; `formatChartSeriesLabel` retained for RevenueChart. thisYear collapsed to single YTD-vs-YTD row.
-- ✅ Page width parity (Phase 25, 2026-04-14) — `/upload` and `/settings` adopt the dashboard container (`max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`). `/upload` restructures body into responsive two-column DropZone + UploadHistory grid with full-width ErrorList above. `/settings` keeps `pb-32` for sticky ActionBar. During UAT the operator also requested: merged Appearance card (Identity + Colors), HR card wrapper embedding Personio + Sollwerte as subsections, 6-column logo row (name 2/6, thumb 1/6, dropzone 3/6), contextual back button with sessionStorage-tracked last dashboard, NavBar showing logo + app name together, and `SALES`/`VERTRIEB` uppercase in nav.
+- Single-Postgres Supabase stack (postgres + kong + gotrue + postgrest + studio); old `db` service retired; KPI schema and `auth.*` live in the same database
+- Alembic re-pointed at Supabase Postgres; fresh `alembic upgrade head` owns `public` schema only
+- Email/password login via GoTrue; FastAPI validates Supabase JWT via JWKS
+- `profiles` table + signup trigger; `role` enum (`admin` | `viewer`) gates mutation endpoints (uploads, sync, settings PUT, deletes)
+- React login page with `@supabase/supabase-js` session + auto-refresh; viewer UI hides admin-only actions
+- One-command bring-up + docs: `setup.md` walkthrough, first-admin bootstrap, nightly `pg_dump` sidecar for backup
+
+**Key context:** Baseline reset to v1.10 from abandoned v1.12/Phase 32 (Dex + oauth2-proxy proved too brittle; archived on `archive/v1.12-phase32-abandoned`). Outline wiki dropped. No SSO/SAML this milestone. No RLS (API-layer authz only). Fresh DB. Source of truth: `.planning/SUPABASE-PIVOT.md`.
 
 ## Current State
 
-**Shipped:** v1.9 — 2026-04-14
-**In progress:** v1.10 — UI Consistency Pass
+**Shipped:** v1.10 — 2026-04-14
+**In progress:** v1.11-supabase — Supabase Pivot (baseline reset from abandoned v1.12)
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8, all Dockerized via compose with Alembic migration service. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload.
 **Codebase:** ~10,000 LOC (Python + TypeScript), 9 versions shipped (v1.0–v1.9).
 **Audit status:** All v1.0–v1.6 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+
+## Shipped: v1.10 UI Consistency Pass (2026-04-14)
+
+Unified delta-badge labeling and page layout conventions across Sales, HR, Upload, and Settings. Phase 24 retired `periodLabels.ts` delta formatters in favor of `kpi.delta.{vsMonth,vsQuarter,vsYear}` i18n namespace with concrete period names; thisYear collapsed to single YTD-vs-YTD row. Phase 25 adopted the dashboard container across all pages; `/upload` restructured into responsive DropZone + UploadHistory grid; `/settings` gained merged Appearance card, HR wrapper with Personio + Sollwerte subsections, 6-column logo row, contextual back button with sessionStorage-tracked last dashboard.
 
 ## Shipped: v1.9 Dark Mode & Contrast (2026-04-14)
 
@@ -65,7 +75,9 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 
 ## Deferred to Later Milestones
 
-- Authentik integration (AUTH-01, OIDC/OAuth2) — unblocks multi-app identity reuse and per-user scoping
+- SSO / SAML / OIDC external providers (Google, M365) — revisit post-v1.11 if HR asks
+- Email verification / password reset flows — enable when SMTP provisioned
+- Row-Level Security policies — API-layer authz covers v1.11; add RLS when any feature bypasses FastAPI
 - Export filtered data as CSV (DASH-07)
 - Duplicate upload detection (UPLD-07)
 - Per-upload drill-down view (DASH-08)
@@ -148,11 +160,11 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 
 ### Out of Scope
 
-- Authentication/login — deferred to v2 (Authentik OIDC/OAuth2)
-- Role-based access control — deferred to v2 (admin vs viewer)
+- Outline wiki — dropped in the v1.11-supabase pivot
+- Dex + oauth2-proxy silent-SSO layer — abandoned after Phase 32; preserved on `archive/v1.12-phase32-abandoned`
+- Active Directory integration — not planned in v1.11
+- Multi-tenant / multi-app user management — not planned in v1.11
 - Scheduled ingestion from shared folder — deferred to v2
-- Active Directory integration — deferred to v2 (via Authentik LDAP/AD connector)
-- Multi-tenant / multi-app user management — deferred to v2+
 - Automated data pipelines or ETL beyond file upload — future scope
 - Mobile-specific UI — web-first (v1.0 desktop 1080p+ confirmed sufficient)
 - Dynamic schema detection — fixed 38-column schema is deliberate
@@ -163,7 +175,7 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - **Deployment:** Docker Compose stack (db, migrate, api, frontend containers with healthchecks)
 - **Data format:** Fixed 38-column ERP tab-delimited export; German locale (decimal comma, DD.MM.YYYY dates) handled during parse
 - **Users:** Internal team, small group, no external access in v1
-- **Future architecture:** Authentik as centralized identity provider shared across multiple apps — this KPI app is the first in a planned suite
+- **Identity (v1.11-supabase):** Self-hosted Supabase GoTrue — email/password, single `profiles` table with `role` enum (admin | viewer), FastAPI validates JWT via JWKS
 - **Tech debt carried forward:**
   - 5 Phase 2 human-UAT visual items (drag-drop spinner, toast render, inline error list) — tracked in `02-HUMAN-UAT.md`
   - DASH-02 shipped monthly-only (granularity toggle removed by user request post-verification)
@@ -171,16 +183,19 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 ## Constraints
 
 - **Containerization**: Must run via Docker Compose — no bare-metal dependencies
-- **Database**: PostgreSQL — chosen for reliability and ecosystem
-- **Identity (future)**: Authentik — self-hosted, Docker-native, supports OIDC/OAuth2/LDAP/AD
+- **Database**: Self-hosted Supabase Postgres — single instance holds KPI + `auth.*` schemas; Alembic owns `public`
+- **Identity**: Self-hosted Supabase GoTrue — email/password, JWT via JWKS, `profiles.role` enum gates mutations
 - **File schema**: Fixed/known columns — simplifies parsing, no schema inference needed
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Authentik for identity (v2) | Self-hosted, Docker-native, supports AD/LDAP/OIDC, reusable across apps | — Pending v2 |
-| Auth deferred to v2 | v1 focus is core data pipeline + dashboard; internal-only use doesn't need auth yet | ✓ Good (v1.0 shipped without auth friction) |
+| Supabase for DB + auth (v1.11) | Self-hosted, Docker-native, consolidates Postgres + GoTrue + PostgREST + Studio; drops Dex/oauth2-proxy complexity proven brittle in Phase 32 | — Pending v1.11 |
+| Pivot from Authentik/Dex to Supabase | Phase 32 silent-SSO flow (Dex + oauth2-proxy + NPM auth_request) hit cascading cookie/CSRF/config-gen failures; single-app scope no longer justifies multi-service identity stack | ✓ Adopted 2026-04-15 |
+| Single Postgres instance | Supabase Postgres holds both KPI data and `auth.*` — no second DB container, schemas separate concerns | — v1.11 Phase 26 |
+| `profiles` table with `role` enum | Decouples app metadata from GoTrue's internal `auth.users` schema; role changes are one-line SQL | — v1.11 Phase 27 |
+| API-layer authz, no RLS in v1.11 | FastAPI is single entry point; RLS doubles authz surface for no gain until a direct-to-PostgREST feature emerges | — v1.11 Phase 28 |
 | Fixed 38-column schema | User confirmed ERP export columns are consistent; removes need for schema inference | ✓ Good (Phase 2 parser simpler than alternatives) |
 | Docker Compose deployment | Entire stack containerized for portability and reproducibility | ✓ Phase 1 |
 | FastAPI + asyncpg + SQLAlchemy 2.0 async | Async end-to-end matches I/O-bound workload; 10x Pydantic v2 validation | ✓ v1.0 |
@@ -214,4 +229,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 — v1.10 UI Consistency Pass milestone started*
+*Last updated: 2026-04-15 — v1.11-supabase Supabase Pivot milestone started (baseline reset from abandoned v1.12)*
