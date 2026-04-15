@@ -17,7 +17,7 @@
 
 ### Directus Configuration (CFG)
 
-- [ ] **CFG-01**: A `snapshot.yml` (or equivalent bootstrap script) defines two roles — `Admin` (full access) and `Viewer` (read-only) — reproducibly on a fresh stack.
+- [x] **CFG-01**: A `snapshot.yml` (or equivalent bootstrap script) defines two roles — `Admin` (full access) and `Viewer` (read-only) — reproducibly on a fresh stack.
 - [x] **CFG-02**: Directus's Data Model UI does not expose the app's `public.*` tables (via `DB_EXCLUDE_TABLES` or equivalent) — operators manage users/roles in Directus, Alembic owns KPI schema.
 - [x] **CFG-03**: The first Admin user is bootstrapped automatically on initial stack bring-up via env-driven `ADMIN_EMAIL` / `ADMIN_PASSWORD`; subsequent Admins can be created via the Directus UI.
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 26-01-compose-service-and-env-PLAN.md
-last_updated: "2026-04-15T15:53:12.441Z"
+stopped_at: Completed 26-02-snapshot-roles-and-apply-PLAN.md
+last_updated: "2026-04-15T15:54:55.372Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 ## Current Position
 
 Phase: 26 (directus-up-on-existing-postgres) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -59,6 +59,7 @@ Progress: [          ] 0%  (0/5 phases)
 
 ---
 | Phase 26 P01 | 3min | 2 tasks | 2 files |
+| Phase 26 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Progress: [          ] 0%  (0/5 phases)
 - **Phase 30 (DOCS):** `docs/setup.md`, `README.md` entry, nightly `pg_dump`, promote-to-Admin flow.
 - **Coverage:** 22/22 REQs mapped, no orphans, no duplicates.
 - **Locked (from DIRECTUS-PIVOT.md):** single Directus container on existing Postgres, email/password only, two Directus-managed roles (Admin/Viewer), fresh DB, API-layer authz, Directus REST not exposed to browser.
+- [Phase 26]: Fixed UUIDs in directus/snapshot.yml for cross-machine determinism (Directus resolves roles by ID)
+- [Phase 26]: Sidecar pattern chosen over docker compose run or entrypoint-wrap — declarative, auto-runs on every up
 
 ### Pending Todos
 
@@ -90,8 +93,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T15:53:12.439Z
-**Stopped at:** Completed 26-01-compose-service-and-env-PLAN.md
+**Last session:** 2026-04-15T15:54:55.370Z
+**Stopped at:** Completed 26-02-snapshot-roles-and-apply-PLAN.md
 **Resume file:** None
 
 ---

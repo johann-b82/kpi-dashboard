@@ -148,7 +148,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   6. `.env.example` documents every Directus secret (`DIRECTUS_KEY`, `DIRECTUS_SECRET`, `DIRECTUS_ADMIN_EMAIL`, `DIRECTUS_ADMIN_PASSWORD`) with generation commands
 **Plans**: 3 plans
 - [x] 26-01-compose-service-and-env-PLAN.md — Add `directus/directus:11.17.2` service to compose reusing existing `db`; document secrets in `.env.example`
-- [ ] 26-02-snapshot-roles-and-apply-PLAN.md — Author `directus/snapshot.yml` with Admin + Viewer roles; add `directus-snapshot` sidecar that applies it on every bring-up
+- [x] 26-02-snapshot-roles-and-apply-PLAN.md — Author `directus/snapshot.yml` with Admin + Viewer roles; add `directus-snapshot` sidecar that applies it on every bring-up
 - [ ] 26-03-bringup-verification-PLAN.md — Clean `docker compose up`, DB coexistence check, human-verify admin UI + role list + hidden app tables
 
 ### Phase 27: FastAPI Directus Auth Dependency
@@ -215,7 +215,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 23 | v1.9 | 5/5 | Complete | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
-| 26 | v1.11-directus | 1/3 | In Progress|  |
+| 26 | v1.11-directus | 2/3 | In Progress|  |
 | 27 | v1.11-directus | 0/? | Not started | — |
 | 28 | v1.11-directus | 0/? | Not started | — |
 | 29 | v1.11-directus | 0/? | Not started | — |
