@@ -6,11 +6,15 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
+from app.security.directus_auth import get_current_user
 from app.models import SalesRecord, UploadBatch
 from app.parsing.erp_parser import parse_erp_file
 from app.schemas import UploadBatchSummary, UploadResponse, ValidationErrorDetail
 
-router = APIRouter(prefix="/api")
+router = APIRouter(
+    prefix="/api",
+    dependencies=[Depends(get_current_user)],
+)
 
 ALLOWED_EXTENSIONS = {".csv", ".txt"}
 

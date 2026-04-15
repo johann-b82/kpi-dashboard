@@ -10,6 +10,7 @@ from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
+from app.security.directus_auth import get_current_user
 from app.models import AppSettings
 from app.schemas import HrKpiHistoryPoint, HrKpiResponse
 from app.services.hr_kpi_aggregation import (
@@ -22,7 +23,11 @@ from app.services.hr_kpi_aggregation import (
     compute_hr_kpis,
 )
 
-router = APIRouter(prefix="/api/hr", tags=["hr-kpis"])
+router = APIRouter(
+    prefix="/api/hr",
+    tags=["hr-kpis"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/kpis", response_model=HrKpiResponse)
