@@ -1,4 +1,4 @@
-# KPI Light — Setup Runbook
+# KPI Dashboard — Setup Runbook
 
 This document walks a new developer from a clean machine to a working `https://kpi.internal` dashboard with a green padlock. Follow it top-to-bottom.
 
@@ -41,7 +41,7 @@ This installs mkcert's root CA into the system and browser trust stores. After t
 
 ### 2.2 Add the hostnames to your hosts file
 
-KPI Light is served at three internal hostnames that must resolve to your local machine. Add this **exact** line to your hosts file:
+KPI Dashboard is served at three internal hostnames that must resolve to your local machine. Add this **exact** line to your hosts file:
 
 ```
 127.0.0.1 kpi.internal wiki.internal auth.internal
@@ -67,7 +67,7 @@ The three hostnames serve:
 
 | Hostname               | Serves                                      |
 | ---------------------- | ------------------------------------------- |
-| `https://kpi.internal`  | KPI Light frontend (`/`) + API (`/api/*`)   |
+| `https://kpi.internal`  | KPI Dashboard frontend (`/`) + API (`/api/*`)   |
 | `https://wiki.internal` | Outline wiki (placeholder until Phase 29)   |
 | `https://auth.internal` | Dex OIDC (placeholder until Phase 27)       |
 
@@ -231,7 +231,7 @@ With the stack running and all three proxy hosts saved, verify in a browser:
 
 1. **Dashboard loads with green padlock**
    - Open <https://kpi.internal>
-   - Expected: KPI Light dashboard renders, padlock icon is green (no cert warnings).
+   - Expected: KPI Dashboard dashboard renders, padlock icon is green (no cert warnings).
 2. **API reachable through the same origin**
    - Open <https://kpi.internal/api/health> (or check the Network tab for any `/api/*` call from the dashboard)
    - Expected: 200 JSON response from FastAPI.
@@ -270,7 +270,7 @@ Self-signed via mkcert remains the default for single-VM v1.11 internal deployme
 
 ## Dex first-login
 
-Dex is the OIDC identity provider that KPI Light and (later) Outline wiki both trust. Follow this section the first time you bring Dex up on a machine, and any time you rebuild from scratch with a fresh `dex_data` volume.
+Dex is the OIDC identity provider that KPI Dashboard and (later) Outline wiki both trust. Follow this section the first time you bring Dex up on a machine, and any time you rebuild from scratch with a fresh `dex_data` volume.
 
 ### 1. Generate Dex client secrets
 
@@ -434,18 +434,18 @@ docker compose up -d dex
 
 - **No RP-initiated logout.** Dex does not expose an `end_session_endpoint` (upstream issue [dexidp/dex#1697](https://github.com/dexidp/dex/issues/1697)). Per-app logout works — the app clears its own cookie. Cross-app SSO-wide logout does not exist. Mitigation: the 1h ID-token TTL (D-07) bounds how long an unused session can linger.
 - **Config reload requires restart.** There is no file-watcher; every change to `dex/config.yaml` needs `docker compose restart dex`. Restart is <2 s and safe.
-- **`userID` is permanent.** Never regenerate the `userID:` UUID for an existing user. It is the OIDC `sub` claim that downstream apps (KPI Light in Phase 28, Outline in Phase 29) store in their own user tables; rotating it orphans every stored reference (Pitfall 4).
-- **No silent cross-app SSO.** Dex's `staticPasswords` connector does not set a browser session cookie on `auth.internal`, so each OIDC client (KPI Light, Outline) re-prompts for the password even in the same browser. The value delivered is *one credential set for both apps*, not *one click*. Upgrading to an upstream connector (LDAP, upstream OIDC, SAML) is the standard fix — out of scope for v1.11.
+- **`userID` is permanent.** Never regenerate the `userID:` UUID for an existing user. It is the OIDC `sub` claim that downstream apps (KPI Dashboard in Phase 28, Outline in Phase 29) store in their own user tables; rotating it orphans every stored reference (Pitfall 4).
+- **No silent cross-app SSO.** Dex's `staticPasswords` connector does not set a browser session cookie on `auth.internal`, so each OIDC client (KPI Dashboard, Outline) re-prompts for the password even in the same browser. The value delivered is *one credential set for both apps*, not *one click*. Upgrading to an upstream connector (LDAP, upstream OIDC, SAML) is the standard fix — out of scope for v1.11.
 
 ---
 
-## Phase 28 — KPI Light login via Dex
+## Phase 28 — KPI Dashboard login via Dex
 
-This section adds one-time setup and the day-2 verification steps for KPI Light's OIDC integration. It assumes Phases 26 (NPM + hostnames) and 27 (Dex) are already verified.
+This section adds one-time setup and the day-2 verification steps for KPI Dashboard's OIDC integration. It assumes Phases 26 (NPM + hostnames) and 27 (Dex) are already verified.
 
 ### One-time: generate SESSION_SECRET
 
-KPI Light signs its session cookie (`kpi_session`) with a secret defined in `.env`:
+KPI Dashboard signs its session cookie (`kpi_session`) with a secret defined in `.env`:
 
 ```bash
 # Generate a real 64-hex-char value:
@@ -476,7 +476,7 @@ Override in `.env` only if you change the NPM hostname layout.
 ### First login walkthrough (E2E-02)
 
 1. `docker compose up --build` — wait for `api`, `frontend`, `dex`, `npm`, `db` to be healthy.
-2. Open `https://kpi.internal` in a browser. You should see the KPI Light splash for ~100–300 ms, then the browser redirects to `https://auth.internal/dex/auth?...`.
+2. Open `https://kpi.internal` in a browser. You should see the KPI Dashboard splash for ~100–300 ms, then the browser redirects to `https://auth.internal/dex/auth?...`.
 3. Log in with a Dex static user (see Phase 27 section for seeding users / bcrypt workflow).
 4. Dex redirects to `https://kpi.internal/api/auth/callback?code=...&state=...` which lands you on `/` (dashboard). The NavBar shows your display name (or email if `name` claim is absent).
 5. Reload the page — session persists (cookie `kpi_session`, 8 h absolute TTL).
@@ -484,7 +484,7 @@ Override in `.env` only if you change the NPM hostname layout.
 
 ### Known limitation: Dex SSO lingers ~1 h after logout
 
-Dex v2.43.0 does not support RP-initiated logout (`end_session_endpoint` is not implemented — upstream issue #1697). KPI Light's logout only clears its own `kpi_session` cookie. If you click **Log out** in KPI Light and then click **Log in** again within ~1 h, Dex still has its own SSO cookie on `auth.internal` and re-signs you in silently (no password prompt). This is expected, not a bug — documented in decision D-08 / D-09.
+Dex v2.43.0 does not support RP-initiated logout (`end_session_endpoint` is not implemented — upstream issue #1697). KPI Dashboard's logout only clears its own `kpi_session` cookie. If you click **Log out** in KPI Dashboard and then click **Log in** again within ~1 h, Dex still has its own SSO cookie on `auth.internal` and re-signs you in silently (no password prompt). This is expected, not a bug — documented in decision D-08 / D-09.
 
 ### DISABLE_AUTH=true dev bypass (E2E-06)
 
@@ -533,15 +533,15 @@ Unprotected (must stay reachable):
 
 ## Phase 29 — Outline Wiki deployment
 
-This section walks an operator from a stack that already has Phases 26 (NPM + hostnames), 27 (Dex), and 28 (KPI Light OIDC) green to a working `https://wiki.internal` Outline wiki, single-sign-on from the same Dex instance. Append-only — do not skip prerequisites.
+This section walks an operator from a stack that already has Phases 26 (NPM + hostnames), 27 (Dex), and 28 (KPI Dashboard OIDC) green to a working `https://wiki.internal` Outline wiki, single-sign-on from the same Dex instance. Append-only — do not skip prerequisites.
 
 ### 1. Prerequisites
 
 - `.env` already contains real values (populated during Phases 27/28) for:
   - `DEX_OUTLINE_SECRET` — the Dex client secret for the `outline` client (Phase 27)
   - `DEX_KPI_SECRET` — Dex client secret for the `kpi-light` client (Phase 27)
-  - `SESSION_SECRET` — KPI Light session-cookie secret (Phase 28)
-  - `POSTGRES_PASSWORD` — KPI Light DB password (Phase 26)
+  - `SESSION_SECRET` — KPI Dashboard session-cookie secret (Phase 28)
+  - `POSTGRES_PASSWORD` — KPI Dashboard DB password (Phase 26)
 - Dex is running and verified per the "Dex first-login" section above (issuer resolves, seeded user can log in).
 - `wiki.internal` is already in `/etc/hosts` alongside `kpi.internal` and `auth.internal` (Phase 26 §2.2).
 - The `wiki.internal` proxy host exists in NPM as a placeholder forwarding to `api:8000` (Phase 26 §4.3 Proxy Host 2). Phase 29 repoints it at Outline.
@@ -634,7 +634,7 @@ Step-by-step human verification:
 
 ### 7. Known limitation — no cross-app logout
 
-Clicking **Log out** in Outline does NOT log the user out of KPI Light (and vice versa). Dex v2.43.0 does not implement `end_session_endpoint` (RP-initiated logout), so neither app can signal the other or Dex to tear down the shared session. Bounded mitigation: the Dex access-token TTL is ≤1 h (DEX-05), so unused sessions expire. Tracked as AUTH2-02 for the v2 milestone.
+Clicking **Log out** in Outline does NOT log the user out of KPI Dashboard (and vice versa). Dex v2.43.0 does not implement `end_session_endpoint` (RP-initiated logout), so neither app can signal the other or Dex to tear down the shared session. Bounded mitigation: the Dex access-token TTL is ≤1 h (DEX-05), so unused sessions expire. Tracked as AUTH2-02 for the v2 milestone.
 
 This is the same limitation documented in the Phase 28 section above — the Phase 29 deployment inherits it unchanged.
 
