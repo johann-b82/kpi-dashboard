@@ -133,7 +133,16 @@ services:
     # Internal-tool scope makes root acceptable here; the alternative is a
     # chown init sidecar. Revisit when the stack hardens.
     user: root
-    command: dex serve /etc/dex/config.yaml
+    # Phase 31 debugging: Dex v2.43 does NOT expand $VAR inside staticClients.secret
+    # when loading the config (observed: token exchange failed with invalid_client
+    # even though the env var was set). Preprocess the config with envsubst at
+    # startup so DEX_KPI_SECRET / DEX_OUTLINE_SECRET land as literal values.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache gettext >/dev/null 2>&1 || true
+        envsubst '$$DEX_KPI_SECRET $$DEX_OUTLINE_SECRET' < /etc/dex/config.yaml > /tmp/config.yaml
+        exec dex serve /tmp/config.yaml
     # D-22: no host port binding — NPM is the edge (Phase 26 D-07 convention).
     # Uncomment for direct curl/debug bypassing NPM. Matches frontend/api hatch.
     # ports:
