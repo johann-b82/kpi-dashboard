@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 26-03-bringup-verification-PLAN.md
-last_updated: "2026-04-15T17:43:49.253Z"
+status: executing
+stopped_at: Completed 27-01-auth-dependency-foundation-PLAN.md
+last_updated: "2026-04-15T18:10:59.463Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 0
 ---
 
@@ -27,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 26 — directus-up-on-existing-postgres
+**Current focus:** Phase 27 — fastapi-directus-auth-dependency
 
 ---
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 27 (fastapi-directus-auth-dependency) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -61,6 +61,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 26 P01 | 3min | 2 tasks | 2 files |
 | Phase 26 P02 | 2min | 2 tasks | 2 files |
 | Phase 26 P03 | 15min | 3 tasks | 0 files |
+| Phase 27 P01 | 321s | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 26]: Sidecar pattern chosen over docker compose run or entrypoint-wrap — declarative, auto-runs on every up
 - [Phase 26]: Custom role 'Admin' coexists with Directus built-in 'Administrator'; Phase 27 require_role must be explicit about which to match
 - [Phase 26]: Directus 11 'schema apply' does not handle roles; replaced with directus/bootstrap-roles.sh REST-API bootstrap script
+- [Phase 27]: placeholder-email-domain: Use {uuid}@directus.example.com not @directus.local — pydantic-email-validator rejects .local TLD
 
 ### Pending Todos
 
@@ -96,8 +98,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T17:41:19.150Z
-**Stopped at:** Completed 26-03-bringup-verification-PLAN.md
+**Last session:** 2026-04-15T18:10:59.461Z
+**Stopped at:** Completed 27-01-auth-dependency-foundation-PLAN.md
 **Resume file:** None
 
 ---
