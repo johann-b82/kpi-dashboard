@@ -97,7 +97,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 ### v1.11-directus Directus Pivot (In Progress)
 
-- [ ] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured
+- [x] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured (completed 2026-04-15)
 - [ ] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401
 - [ ] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix
 - [ ] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session
@@ -149,7 +149,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Plans**: 3 plans
 - [x] 26-01-compose-service-and-env-PLAN.md — Add `directus/directus:11.17.2` service to compose reusing existing `db`; document secrets in `.env.example`
 - [x] 26-02-snapshot-roles-and-apply-PLAN.md — Author `directus/snapshot.yml` with Admin + Viewer roles; add `directus-snapshot` sidecar that applies it on every bring-up
-- [ ] 26-03-bringup-verification-PLAN.md — Clean `docker compose up`, DB coexistence check, human-verify admin UI + role list + hidden app tables
+- [x] 26-03-bringup-verification-PLAN.md — Clean `docker compose up`, DB coexistence check, human-verify admin UI + role list + hidden app tables
 
 ### Phase 27: FastAPI Directus Auth Dependency
 **Goal**: FastAPI verifies Directus-issued JWTs (HS256 shared secret), resolves a `current_user` with role, and rejects unauthenticated or expired tokens with 401 — the server-side auth backbone without yet gating on role.
@@ -215,7 +215,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 23 | v1.9 | 5/5 | Complete | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
-| 26 | v1.11-directus | 2/3 | In Progress|  |
+| 26 | v1.11-directus | 3/3 | Complete   | 2026-04-15 |
 | 27 | v1.11-directus | 0/? | Not started | — |
 | 28 | v1.11-directus | 0/? | Not started | — |
 | 29 | v1.11-directus | 0/? | Not started | — |

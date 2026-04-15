@@ -11,7 +11,7 @@
 ### Infrastructure (INFRA)
 
 - [x] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots `db`, `directus`, `api`, `frontend`, no manual steps between commands.
-- [ ] **INFRA-02**: The Directus admin UI is reachable at `http://localhost:8055` and the first admin user can sign in with credentials from `.env`.
+- [x] **INFRA-02**: The Directus admin UI is reachable at `http://localhost:8055` and the first admin user can sign in with credentials from `.env`.
 - [x] **INFRA-03**: Directus connects to the existing `db` Postgres container and creates its own `directus_*` tables without interfering with Alembic-managed `public.*` tables.
 - [x] **INFRA-04**: All Directus secrets (admin email/password, JWT secret, key) live in `.env` with clear `.env.example` entries and generation commands.
 

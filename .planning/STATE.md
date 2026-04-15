@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 26-02-snapshot-roles-and-apply-PLAN.md
-last_updated: "2026-04-15T15:54:55.372Z"
+status: verifying
+stopped_at: Completed 26-03-bringup-verification-PLAN.md
+last_updated: "2026-04-15T17:41:19.152Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 Phase: 26 (directus-up-on-existing-postgres) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -60,6 +60,7 @@ Progress: [          ] 0%  (0/5 phases)
 ---
 | Phase 26 P01 | 3min | 2 tasks | 2 files |
 | Phase 26 P02 | 2min | 2 tasks | 2 files |
+| Phase 26 P03 | 15min | 3 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Progress: [          ] 0%  (0/5 phases)
 - **Locked (from DIRECTUS-PIVOT.md):** single Directus container on existing Postgres, email/password only, two Directus-managed roles (Admin/Viewer), fresh DB, API-layer authz, Directus REST not exposed to browser.
 - [Phase 26]: Fixed UUIDs in directus/snapshot.yml for cross-machine determinism (Directus resolves roles by ID)
 - [Phase 26]: Sidecar pattern chosen over docker compose run or entrypoint-wrap — declarative, auto-runs on every up
+- [Phase 26]: Custom role 'Admin' coexists with Directus built-in 'Administrator'; Phase 27 require_role must be explicit about which to match
+- [Phase 26]: Directus 11 'schema apply' does not handle roles; replaced with directus/bootstrap-roles.sh REST-API bootstrap script
 
 ### Pending Todos
 
@@ -93,8 +96,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T15:54:55.370Z
-**Stopped at:** Completed 26-02-snapshot-roles-and-apply-PLAN.md
+**Last session:** 2026-04-15T17:41:19.150Z
+**Stopped at:** Completed 26-03-bringup-verification-PLAN.md
 **Resume file:** None
 
 ---
