@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { CheckboxList } from "@/components/settings/CheckboxList";
 import type { CheckboxOption } from "@/components/settings/CheckboxList";
 import { fetchPersonioOptions, testPersonioConnection, triggerSync } from "@/lib/api";
+import { AdminOnly } from "@/auth/AdminOnly";
 import { syncKeys, hrKpiKeys } from "@/lib/queryKeys";
 import type { DraftFields } from "@/hooks/useSettingsDraft";
 
@@ -176,33 +177,35 @@ export function PersonioCard({ draft, setField, hasCredentials, embedded = false
               )}
               {testing ? t("settings.personio.test_connection.testing") : t("settings.personio.test_connection.button")}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSyncFeedback("idle");
-                setSyncError(null);
-                syncMutation.mutate();
-              }}
-              disabled={syncMutation.isPending || !hasCredentials}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
-            >
-              {syncMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {t("hr.sync.button")}
-                </>
-              ) : syncFeedback === "success" ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
-                  {t("hr.sync.success")}
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  {t("hr.sync.button")}
-                </>
-              )}
-            </button>
+            <AdminOnly>
+              <button
+                type="button"
+                onClick={() => {
+                  setSyncFeedback("idle");
+                  setSyncError(null);
+                  syncMutation.mutate();
+                }}
+                disabled={syncMutation.isPending || !hasCredentials}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
+              >
+                {syncMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("hr.sync.button")}
+                  </>
+                ) : syncFeedback === "success" ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
+                    {t("hr.sync.success")}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    {t("hr.sync.button")}
+                  </>
+                )}
+              </button>
+            </AdminOnly>
           </div>
           {testResult !== null && (
             <p

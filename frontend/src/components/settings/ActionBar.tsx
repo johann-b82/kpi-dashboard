@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Check, RotateCcw, Undo2 } from "lucide-react";
+import { AdminOnly } from "@/auth/AdminOnly";
 
 export interface ActionBarProps {
   isDirty: boolean;
@@ -15,6 +16,10 @@ export interface ActionBarProps {
  * Layout:
  *   Left:  "Unsaved changes" indicator (only when isDirty)
  *   Right: [Discard (ghost, dirty-only)] [Reset to defaults (outline, always)] [Save changes (primary, disabled when pristine)]
+ *
+ * All three action buttons are individually wrapped with <AdminOnly> —
+ * Viewer sees the ActionBar region but no buttons (settings becomes
+ * effectively read-only from their perspective).
  */
 export function ActionBar({
   isDirty,
@@ -40,34 +45,40 @@ export function ActionBar({
         </div>
         <div className="flex items-center gap-2">
           {isDirty && (
+            <AdminOnly>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onDiscard}
+                disabled={isSaving}
+              >
+                <Undo2 className="h-4 w-4 mr-1" aria-hidden="true" />
+                {t("settings.actions.discard")}
+              </Button>
+            </AdminOnly>
+          )}
+          <AdminOnly>
             <Button
               type="button"
-              variant="ghost"
-              onClick={onDiscard}
+              variant="outline"
+              onClick={onResetClick}
               disabled={isSaving}
             >
-              <Undo2 className="h-4 w-4 mr-1" aria-hidden="true" />
-              {t("settings.actions.discard")}
+              <RotateCcw className="h-4 w-4 mr-1" aria-hidden="true" />
+              {t("settings.actions.reset")}
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onResetClick}
-            disabled={isSaving}
-          >
-            <RotateCcw className="h-4 w-4 mr-1" aria-hidden="true" />
-            {t("settings.actions.reset")}
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            onClick={onSave}
-            disabled={!isDirty || isSaving}
-          >
-            <Check className="h-4 w-4 mr-1" aria-hidden="true" />
-            {t("settings.actions.save")}
-          </Button>
+          </AdminOnly>
+          <AdminOnly>
+            <Button
+              type="button"
+              variant="default"
+              onClick={onSave}
+              disabled={!isDirty || isSaving}
+            >
+              <Check className="h-4 w-4 mr-1" aria-hidden="true" />
+              {t("settings.actions.save")}
+            </Button>
+          </AdminOnly>
         </div>
       </div>
     </div>

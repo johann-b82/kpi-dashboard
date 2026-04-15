@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
+import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, LogOut } from "lucide-react";
+import { useAuth } from "@/auth/useAuth";
+import { AdminOnly } from "@/auth/AdminOnly";
 
 type Dashboard = "/" | "/hr";
 
@@ -24,6 +26,7 @@ export function NavBar() {
   const { t } = useTranslation();
   const [location, navigate] = useLocation();
   const { data } = useSettings();
+  const { signOut } = useAuth();
 
   // Fallback chain: cached data > frontend defaults.
   // ThemeProvider gates render while isLoading, so by the time NavBar renders,
@@ -96,13 +99,15 @@ export function NavBar() {
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
           <LanguageToggle />
-          <Link
-            href="/upload"
-            aria-label={t("nav.upload")}
-            className={uploadLinkClass}
-          >
-            <UploadIcon className="h-5 w-5" />
-          </Link>
+          <AdminOnly>
+            <Link
+              href="/upload"
+              aria-label={t("nav.upload")}
+              className={uploadLinkClass}
+            >
+              <UploadIcon className="h-5 w-5" />
+            </Link>
+          </AdminOnly>
           <Link
             href="/settings"
             aria-label={t("nav.settings")}
@@ -110,6 +115,14 @@ export function NavBar() {
           >
             <SettingsIcon className="h-5 w-5" />
           </Link>
+          <button
+            type="button"
+            aria-label="Sign out"
+            onClick={() => signOut()}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </nav>

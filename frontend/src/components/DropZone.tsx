@@ -9,6 +9,7 @@ import type { UploadResponse } from "@/lib/api";
 import { kpiKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AdminOnly } from "@/auth/AdminOnly";
 import { useState } from "react";
 
 interface DropZoneProps {
@@ -108,14 +109,16 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
                 {t("dropzone_prompt")}
               </p>
               <p className="text-xs text-muted-foreground">{t("dropzone_or")}</p>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={open}
-              >
-                {t("browse_button")}
-              </Button>
+              <AdminOnly>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={open}
+                >
+                  {t("browse_button")}
+                </Button>
+              </AdminOnly>
               <p className="text-xs text-muted-foreground">{t("accepted_formats")}</p>
             </>
           )}

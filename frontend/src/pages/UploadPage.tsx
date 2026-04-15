@@ -5,10 +5,24 @@ import { DropZone } from "@/components/DropZone";
 import { ErrorList } from "@/components/ErrorList";
 import { UploadHistory } from "@/components/UploadHistory";
 import type { ValidationErrorDetail } from "@/lib/api";
+import { useRole } from "@/auth/useAuth";
 
 export function UploadPage() {
   const { t } = useTranslation();
   const [errors, setErrors] = useState<ValidationErrorDetail[]>([]);
+  const role = useRole();
+
+  // Inline role check (D-04 "Inline allowed where JSX wrap is awkward") —
+  // page-level permission message for Viewer. Admin sees full page body.
+  if (role !== "admin") {
+    return (
+      <div className="max-w-7xl mx-auto px-6 pt-4 pb-8">
+        <p className="text-muted-foreground text-sm text-center py-16">
+          You don't have permission to access this page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8">

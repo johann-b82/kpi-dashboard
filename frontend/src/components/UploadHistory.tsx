@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { AdminOnly } from "@/auth/AdminOnly";
 
 function StatusBadge({ status }: { status: UploadBatchSummary["status"] }) {
   if (status === "success") {
@@ -112,15 +113,17 @@ export function UploadHistory() {
                 {batch.error_count}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedBatch(batch)}
-                  aria-label={t("delete_title")}
-                  className="hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AdminOnly>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedBatch(batch)}
+                    aria-label={t("delete_title")}
+                    className="hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AdminOnly>
               </TableCell>
             </TableRow>
           ))}

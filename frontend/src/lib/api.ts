@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface ValidationErrorDetail {
   row: number;
   column: string;
@@ -25,23 +27,18 @@ export interface UploadBatchSummary {
 export async function uploadFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.detail || "Upload failed");
-  }
-  return res.json();
+  return apiClient<UploadResponse>("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
 }
 
 export async function getUploads(): Promise<UploadBatchSummary[]> {
-  const res = await fetch("/api/uploads");
-  if (!res.ok) throw new Error("Failed to fetch uploads");
-  return res.json();
+  return apiClient<UploadBatchSummary[]>("/api/uploads");
 }
 
 export async function deleteUpload(id: number): Promise<void> {
-  const res = await fetch(`/api/uploads/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete upload");
+  await apiClient<void>(`/api/uploads/${id}`, { method: "DELETE" });
 }
 
 /**
@@ -110,9 +107,7 @@ export async function fetchKpiSummary(
     params.set("prev_year_start", prev.prev_year_start);
   if (prev?.prev_year_end) params.set("prev_year_end", prev.prev_year_end);
   const qs = params.toString();
-  const res = await fetch(`/api/kpis${qs ? `?${qs}` : ""}`);
-  if (!res.ok) throw new Error("Failed to fetch KPI summary");
-  return res.json();
+  return apiClient<KpiSummary>(`/api/kpis${qs ? `?${qs}` : ""}`);
 }
 
 export async function fetchChartData(
@@ -131,15 +126,11 @@ export async function fetchChartData(
     if (prevStart) params.set("prev_start", prevStart);
     if (prevEnd) params.set("prev_end", prevEnd);
   }
-  const res = await fetch(`/api/kpis/chart?${params.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch chart data");
-  return res.json();
+  return apiClient<ChartResponse>(`/api/kpis/chart?${params.toString()}`);
 }
 
 export async function fetchLatestUpload(): Promise<LatestUploadResponse> {
-  const res = await fetch("/api/kpis/latest-upload");
-  if (!res.ok) throw new Error("Failed to fetch latest upload");
-  return res.json();
+  return apiClient<LatestUploadResponse>("/api/kpis/latest-upload");
 }
 
 export interface Settings {
@@ -166,9 +157,7 @@ export interface Settings {
 }
 
 export async function fetchSettings(): Promise<Settings> {
-  const res = await fetch("/api/settings");
-  if (!res.ok) throw new Error("Failed to fetch settings");
-  return res.json();
+  return apiClient<Settings>("/api/settings");
 }
 
 /**
@@ -201,63 +190,30 @@ export interface SettingsUpdatePayload {
 
 /**
  * PUT /api/settings — persists all 8 editable fields atomically.
- * Returns the full Settings (10 fields including logo_url, logo_updated_at).
- * On non-2xx, throws Error with the backend-provided `detail` string so
- * the caller can surface it in a toast without extra parsing.
+ * apiClient preserves the legacy `err.detail` error shape so existing
+ * callers (settings form toasts) keep working.
  */
 export async function updateSettings(
   payload: SettingsUpdatePayload,
 ): Promise<Settings> {
-  const res = await fetch("/api/settings", {
+  return apiClient<Settings>("/api/settings", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Failed to save settings" }));
-    throw new Error(formatDetail(err.detail) || "Failed to save settings");
-  }
-  return res.json();
-}
-
-function formatDetail(detail: unknown): string {
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) {
-    return detail
-      .map((d) => {
-        if (typeof d === "string") return d;
-        if (d && typeof d === "object") {
-          const loc = Array.isArray((d as { loc?: unknown }).loc)
-            ? ((d as { loc: unknown[] }).loc.slice(1).join(".") as string)
-            : "";
-          const msg = (d as { msg?: string }).msg ?? JSON.stringify(d);
-          return loc ? `${loc}: ${msg}` : msg;
-        }
-        return String(d);
-      })
-      .join("; ");
-  }
-  if (detail && typeof detail === "object") return JSON.stringify(detail);
-  return "";
 }
 
 /**
- * POST /api/settings/logo — uploads a PNG or SVG (max 1 MB client-side,
- * backend re-validates with nh3 SVG sanitization + magic-byte check).
- * Returns the full Settings with updated logo_url and logo_updated_at.
+ * POST /api/settings/logo — uploads a PNG or SVG. FormData body; apiClient
+ * leaves Content-Type unset so the browser writes the multipart boundary.
  */
 export async function uploadLogo(file: File): Promise<Settings> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch("/api/settings/logo", {
+  return apiClient<Settings>("/api/settings/logo", {
     method: "POST",
     body: formData,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Failed to upload logo" }));
-    throw new Error(formatDetail(err.detail) || "Failed to upload logo");
-  }
-  return res.json();
 }
 
 // ---------------------------------------------------------------------------
@@ -286,9 +242,7 @@ export interface SyncTestResult {
  * departments from Personio. Only called when hasCredentials is true.
  */
 export async function fetchPersonioOptions(): Promise<PersonioOptions> {
-  const res = await fetch("/api/settings/personio-options");
-  if (!res.ok) throw new Error("Failed to fetch Personio options");
-  return res.json();
+  return apiClient<PersonioOptions>("/api/settings/personio-options");
 }
 
 /**
@@ -297,12 +251,7 @@ export async function fetchPersonioOptions(): Promise<PersonioOptions> {
  * failures (only on network/parse errors).
  */
 export async function testPersonioConnection(): Promise<SyncTestResult> {
-  const res = await fetch("/api/sync/test", { method: "POST" });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Connection test failed" }));
-    throw new Error(formatDetail(err.detail) || "Connection test failed");
-  }
-  return res.json();
+  return apiClient<SyncTestResult>("/api/sync/test", { method: "POST" });
 }
 
 // ---------------------------------------------------------------------------
@@ -316,9 +265,7 @@ export interface SyncMetaResponse {
 }
 
 export async function fetchSyncMeta(): Promise<SyncMetaResponse> {
-  const res = await fetch("/api/sync/meta");
-  if (!res.ok) throw new Error("Failed to fetch sync meta");
-  return res.json();
+  return apiClient<SyncMetaResponse>("/api/sync/meta");
 }
 
 export interface SyncResult {
@@ -330,12 +277,7 @@ export interface SyncResult {
 }
 
 export async function triggerSync(): Promise<SyncResult> {
-  const res = await fetch("/api/sync", { method: "POST" });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Sync failed" }));
-    throw new Error(formatDetail(err.detail) || "Sync failed");
-  }
-  return res.json();
+  return apiClient<SyncResult>("/api/sync", { method: "POST" });
 }
 
 // ---------------------------------------------------------------------------
@@ -358,9 +300,7 @@ export interface HrKpiResponse {
 }
 
 export async function fetchHrKpis(): Promise<HrKpiResponse> {
-  const res = await fetch("/api/hr/kpis");
-  if (!res.ok) throw new Error("Failed to fetch HR KPIs");
-  return res.json();
+  return apiClient<HrKpiResponse>("/api/hr/kpis");
 }
 
 export interface HrKpiHistoryPoint {
@@ -372,9 +312,7 @@ export interface HrKpiHistoryPoint {
 }
 
 export async function fetchHrKpiHistory(): Promise<HrKpiHistoryPoint[]> {
-  const res = await fetch("/api/hr/kpis/history");
-  if (!res.ok) throw new Error("Failed to fetch HR KPI history");
-  return res.json();
+  return apiClient<HrKpiHistoryPoint[]>("/api/hr/kpis/history");
 }
 
 // --------------------------------------------------------------------------
@@ -405,9 +343,7 @@ export async function fetchSalesRecords(params?: {
   if (params?.end_date) q.set("end_date", params.end_date);
   if (params?.customer) q.set("customer", params.customer);
   if (params?.search) q.set("search", params.search);
-  const res = await fetch(`/api/data/sales?${q}`);
-  if (!res.ok) throw new Error("Failed to fetch sales records");
-  return res.json();
+  return apiClient<SalesRecordRow[]>(`/api/data/sales?${q}`);
 }
 
 export interface EmployeeRow {
@@ -434,7 +370,5 @@ export async function fetchEmployees(params?: {
   if (params?.department) q.set("department", params.department);
   if (params?.status) q.set("status", params.status);
   if (params?.search) q.set("search", params.search);
-  const res = await fetch(`/api/data/employees?${q}`);
-  if (!res.ok) throw new Error("Failed to fetch employees");
-  return res.json();
+  return apiClient<EmployeeRow[]>(`/api/data/employees?${q}`);
 }
