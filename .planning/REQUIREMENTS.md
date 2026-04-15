@@ -10,16 +10,16 @@
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots `db`, `directus`, `api`, `frontend`, no manual steps between commands.
+- [x] **INFRA-01**: Developer can start the full stack with `docker compose up` — boots `db`, `directus`, `api`, `frontend`, no manual steps between commands.
 - [ ] **INFRA-02**: The Directus admin UI is reachable at `http://localhost:8055` and the first admin user can sign in with credentials from `.env`.
-- [ ] **INFRA-03**: Directus connects to the existing `db` Postgres container and creates its own `directus_*` tables without interfering with Alembic-managed `public.*` tables.
-- [ ] **INFRA-04**: All Directus secrets (admin email/password, JWT secret, key) live in `.env` with clear `.env.example` entries and generation commands.
+- [x] **INFRA-03**: Directus connects to the existing `db` Postgres container and creates its own `directus_*` tables without interfering with Alembic-managed `public.*` tables.
+- [x] **INFRA-04**: All Directus secrets (admin email/password, JWT secret, key) live in `.env` with clear `.env.example` entries and generation commands.
 
 ### Directus Configuration (CFG)
 
 - [ ] **CFG-01**: A `snapshot.yml` (or equivalent bootstrap script) defines two roles — `Admin` (full access) and `Viewer` (read-only) — reproducibly on a fresh stack.
-- [ ] **CFG-02**: Directus's Data Model UI does not expose the app's `public.*` tables (via `DB_EXCLUDE_TABLES` or equivalent) — operators manage users/roles in Directus, Alembic owns KPI schema.
-- [ ] **CFG-03**: The first Admin user is bootstrapped automatically on initial stack bring-up via env-driven `ADMIN_EMAIL` / `ADMIN_PASSWORD`; subsequent Admins can be created via the Directus UI.
+- [x] **CFG-02**: Directus's Data Model UI does not expose the app's `public.*` tables (via `DB_EXCLUDE_TABLES` or equivalent) — operators manage users/roles in Directus, Alembic owns KPI schema.
+- [x] **CFG-03**: The first Admin user is bootstrapped automatically on initial stack bring-up via env-driven `ADMIN_EMAIL` / `ADMIN_PASSWORD`; subsequent Admins can be created via the Directus UI.
 
 ### Authentication (AUTH)
 
