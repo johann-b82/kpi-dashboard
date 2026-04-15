@@ -527,3 +527,140 @@ Unprotected (must stay reachable):
 | Callback 400 "state mismatch" | User took >5 min at Dex login page, or cookie was dropped | Retry the login flow |
 | After logout, login re-auths without a password | Expected — Dex SSO cookie persists ~1 h (see limitation above) | — |
 | api startup: missing `SESSION_SECRET` | `.env` not regenerated | Run `openssl rand -hex 32` and paste into `.env` |
+
+---
+
+## Phase 29 — Outline Wiki deployment
+
+This section walks an operator from a stack that already has Phases 26 (NPM + hostnames), 27 (Dex), and 28 (KPI Light OIDC) green to a working `https://wiki.internal` Outline wiki, single-sign-on from the same Dex instance. Append-only — do not skip prerequisites.
+
+### 1. Prerequisites
+
+- `.env` already contains real values (populated during Phases 27/28) for:
+  - `DEX_OUTLINE_SECRET` — the Dex client secret for the `outline` client (Phase 27)
+  - `DEX_KPI_SECRET` — Dex client secret for the `kpi-light` client (Phase 27)
+  - `SESSION_SECRET` — KPI Light session-cookie secret (Phase 28)
+  - `POSTGRES_PASSWORD` — KPI Light DB password (Phase 26)
+- Dex is running and verified per the "Dex first-login" section above (issuer resolves, seeded user can log in).
+- `wiki.internal` is already in `/etc/hosts` alongside `kpi.internal` and `auth.internal` (Phase 26 §2.2).
+- The `wiki.internal` proxy host exists in NPM as a placeholder forwarding to `api:8000` (Phase 26 §4.3 Proxy Host 2). Phase 29 repoints it at Outline.
+
+### 2. Generate Outline secrets
+
+Outline needs three new secrets in `.env`. `SECRET_KEY` and `UTILS_SECRET` MUST be two INDEPENDENT 32-byte hex values — sharing entropy is a documented Outline warning (Pitfall 2).
+
+```bash
+echo "OUTLINE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
+echo "OUTLINE_UTILS_SECRET=$(openssl rand -hex 32)" >> .env
+echo "OUTLINE_DB_PASSWORD=$(openssl rand -hex 16)" >> .env
+```
+
+If you populated `.env` by hand instead, verify three distinct values are present:
+
+```bash
+grep '^OUTLINE_' .env
+# Expect three lines, three different values; SECRET_KEY != UTILS_SECRET
+```
+
+`DEX_OUTLINE_SECRET` is already in `.env` from Phase 27 — Outline reuses it as `OIDC_CLIENT_SECRET`. Do not regenerate it.
+
+### 3. Bring up Outline's dependencies then Outline itself
+
+Outline runs its own DB migrations at container start (creates the `uuid-ossp` extension and all tables) — there is no separate migrate service.
+
+```bash
+docker compose up -d outline-db outline-redis
+docker compose ps outline-db outline-redis   # both must be "(healthy)"
+docker compose up -d outline
+docker compose logs -f outline               # wait for "Listening on http://0.0.0.0:3000"
+```
+
+First boot takes ~30–60 s while migrations run. A second `docker compose up -d outline` after that is instant.
+
+### 4. Configure the `wiki.internal` NPM proxy host
+
+Open <http://localhost:81> and edit the placeholder `wiki.internal` proxy host created in Phase 26 §4.3. Use these exact field values:
+
+**Details tab:**
+
+| Field                       | Value                                                                 |
+| --------------------------- | --------------------------------------------------------------------- |
+| Domain Names                | `wiki.internal`                                                       |
+| Forward Hostname / IP       | `outline`                                                             |
+| Forward Port                | `3000`                                                                |
+| Scheme                      | `http`                                                                |
+| Websockets Support          | **ON** (Outline uses websockets for real-time collaboration)          |
+| Block Common Exploits       | ON                                                                    |
+
+**SSL tab:**
+
+| Field              | Value                                              |
+| ------------------ | -------------------------------------------------- |
+| SSL Certificate    | `internal-wildcard` (the cert from §4.2 — reuse it)|
+| Force SSL          | ON                                                 |
+| HTTP/2 Support     | ON                                                 |
+| HSTS               | off                                                |
+
+**Advanced tab** — paste this block verbatim (same `X-Forwarded-*` headers Phase 27 uses for Dex; Outline's `FORCE_HTTPS=true` plus these headers gives consistent link generation):
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Proto https;
+proxy_set_header X-Forwarded-For $remote_addr;
+proxy_set_header X-Real-IP $remote_addr;
+```
+
+Save.
+
+### 5. Smoke verification (automatable)
+
+```bash
+curl -skf https://wiki.internal/ -o /dev/null && echo "wiki reachable"
+curl -skIL https://wiki.internal/auth/oidc -o /dev/null -w "%{http_code}\n"   # expect 302 (redirect to Dex)
+docker compose exec outline sh -c 'env | grep -E "^SMTP_" | wc -l'            # expect 0 (WIK-06 — no SMTP configured)
+```
+
+### 6. First-login UAT (WIK-05 — Phase 29 Success Criterion #2 and #3)
+
+Step-by-step human verification:
+
+1. Open `https://wiki.internal` in a fresh **private / incognito** window. Expected: browser redirects to Dex login at `https://auth.internal/dex/auth...`.
+2. Log in as `admin@acm.local` (the Phase 27 admin user) — using the admin account first means the workspace admin seat is owned by a known account, per Open Question 2 in RESEARCH.
+3. Expected: redirected back to `https://wiki.internal`, a workspace/team is auto-created (JIT provisioning), and the admin user is visible in the top-right menu with their `name` claim as display.
+4. In a second tab of the same incognito window, open `https://kpi.internal`. Expected: dashboard loads immediately — NO second login prompt (shared Dex SSO; Success Criterion #3).
+5. Create a test doc in Outline with an image attachment. Upload succeeds.
+6. `docker compose restart outline` — wait for the container to return healthy. Reload the test doc — the attachment still renders (Success Criterion #5 / WIK-03 persistence).
+
+### 7. Known limitation — no cross-app logout
+
+Clicking **Log out** in Outline does NOT log the user out of KPI Light (and vice versa). Dex v2.43.0 does not implement `end_session_endpoint` (RP-initiated logout), so neither app can signal the other or Dex to tear down the shared session. Bounded mitigation: the Dex access-token TTL is ≤1 h (DEX-05), so unused sessions expire. Tracked as AUTH2-02 for the v2 milestone.
+
+This is the same limitation documented in the Phase 28 section above — the Phase 29 deployment inherits it unchanged.
+
+### 8. Troubleshooting
+
+| Symptom                                                                    | Likely Pitfall (RESEARCH) | Fix                                                                                              |
+| -------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
+| Dex logs show `redirect_uri does not match client registration`            | Pitfall 1                 | `URL` in `.env` / compose has a trailing slash or wrong scheme. Set exactly `https://wiki.internal`. |
+| Outline logs show `issuer validation failed`                               | Pitfall 3                 | `OIDC_AUTH_URI` host mismatch vs Dex issuer. Must be `https://auth.internal/dex/auth` exactly.      |
+| Attachments vanish after `docker compose down`                             | Pitfall 5                 | Named volume mount missing. Verify `docker volume ls \| grep outline_uploads`.                      |
+
+---
+
+## Backups
+
+### Outline backups (D-04)
+
+Outline persists two kinds of state: its Postgres database (users, docs, revisions) and its local file-storage volume (attachments). Back both up together if you're capturing a point-in-time snapshot.
+
+```bash
+# Outline database dump
+docker compose exec outline-db pg_dump -U outline outline \
+  > "outline-db-$(date +%F).sql"
+
+# Outline attachments (local file storage volume)
+docker compose exec outline tar -czf - /var/lib/outline/data \
+  > "outline-uploads-$(date +%F).tar.gz"
+```
+
+No automation — run manually. Persistence is exercised by Phase 29 UAT step 6 (attachment survives `docker compose restart outline`).
