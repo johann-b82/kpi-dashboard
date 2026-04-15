@@ -13,7 +13,7 @@ from app.routers.hr_kpis import router as hr_kpis_router
 from app.routers.data import router as data_router
 from app.scheduler import lifespan
 
-app = FastAPI(title="KPI Light", lifespan=lifespan)
+app = FastAPI(title="KPI Dashboard", lifespan=lifespan)
 
 # Phase 28 SessionMiddleware — must be added BEFORE any router so session
 # cookies are available to downstream auth routers (Plan 28-02).
