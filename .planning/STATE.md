@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 28-02-rbac-matrix-test-and-api-docs-PLAN.md
-last_updated: "2026-04-15T20:49:07.794Z"
+status: executing
+stopped_at: Completed 29-01-backend-me-endpoint-and-cors-PLAN.md
+last_updated: "2026-04-15T21:15:38.708Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 0
 ---
 
@@ -27,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 28 — rbac-enforcement-on-all-routes
+**Current focus:** Phase 29 — frontend-login-role-aware-ui
 
 ---
 
 ## Current Position
 
-Phase: 29
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 29 (frontend-login-role-aware-ui) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -65,6 +65,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 27 P02 | 6min | 3 tasks | 8 files |
 | Phase 28 P01 | 5min | 2 tasks | 4 files |
 | Phase 28 P02 | 10min | 2 tasks | 2 files |
+| Phase 29 P01 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 27]: directus-filter-workaround: Directus v11 /roles?filter[name][_eq]=Administrator returned empty; used jq select(.name=="Administrator") client-side
 - [Phase 28]: require_admin is sync (not async) — FastAPI awaits dep chain; per-route enforcement via dependencies=[] on decorator
 - [Phase 28]: Import _mint from test_directus_auth.py to keep JWT minting DRY across test files
+- [Phase 29]: Role StrEnum values already lowercase; /api/me uses .value defensively
 
 ### Pending Todos
 
@@ -104,8 +106,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T20:46:33.086Z
-**Stopped at:** Completed 28-02-rbac-matrix-test-and-api-docs-PLAN.md
+**Last session:** 2026-04-15T21:15:38.705Z
+**Stopped at:** Completed 29-01-backend-me-endpoint-and-cors-PLAN.md
 **Resume file:** None
 
 ---

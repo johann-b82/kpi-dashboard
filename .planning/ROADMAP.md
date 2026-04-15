@@ -190,7 +190,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   4. Viewer users see a functional dashboard but admin-only controls (upload button, Personio sync trigger, settings Save button, delete controls) are hidden — not just disabled — from the DOM
   5. Signing out from the UI clears the client session and returns the user to `/login`; refreshing after sign-out does not restore the session; subsequent `/api/*` calls return 401
 **Plans**: 3 plans
-- [ ] 29-01-backend-me-endpoint-and-cors-PLAN.md — Add GET /api/me FastAPI route; enable Directus CORS for browser origin
+- [x] 29-01-backend-me-endpoint-and-cors-PLAN.md — Add GET /api/me FastAPI route; enable Directus CORS for browser origin
 - [ ] 29-02-auth-infrastructure-PLAN.md — Install @directus/sdk + shadcn form; build directusClient, apiClient wrapper, AuthContext, useAuth/useRole, AuthGate, AdminOnly, FullPageSpinner
 - [ ] 29-03-wire-app-and-migrate-PLAN.md — LoginPage + wire App.tsx providers; migrate all 17 fetch sites to apiClient; wrap 9 admin-only UI surfaces; NavBar sign-out; human UAT of 5 ROADMAP criteria
 **UI hint**: yes
@@ -225,5 +225,5 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
 | 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 29 | v1.11-directus | 0/3 | Planned | — |
+| 29 | v1.11-directus | 1/3 | In Progress|  |
 | 30 | v1.11-directus | 0/? | Not started | — |
