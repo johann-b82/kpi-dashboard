@@ -203,7 +203,11 @@ Plans:
   4. Outline's `outline-db` Postgres is separate from KPI Light's `db` — the two databases have distinct container names and volumes
   5. File attachment upload in Outline succeeds and the attachment persists after a container restart (local volume mount confirmed)
   6. Outline BSL 1.1 compliance note ("internal team use per Additional Use Grant") is present in the repo README
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 29-01-PLAN.md — .env.example Outline secret placeholders + README BSL compliance note (WIK-07)
+- [ ] 29-02-PLAN.md — docker-compose.yml outline + outline-db + outline-redis services with OIDC split endpoints + mkcert CA (WIK-01, WIK-02, WIK-03, WIK-04, WIK-06)
+- [ ] 29-03-PLAN.md — docs/setup.md Phase 29 runbook + NPM wiki.internal proxy host + human UAT (WIK-01, WIK-05)
 
 ---
 
@@ -253,6 +257,6 @@ Plans:
 | 26 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
-| 29 | v1.11 | 0/? | Not started | - |
+| 29 | v1.11 | 0/3 | Planned | - |
 | 30 | v1.11 | 0/? | Not started | - |
 | 31 | v1.11 | 0/? | Not started | - |
