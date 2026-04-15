@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 28-01-require-admin-and-mutation-gating-PLAN.md
-last_updated: "2026-04-15T20:25:55.956Z"
+status: verifying
+stopped_at: Completed 28-02-rbac-matrix-test-and-api-docs-PLAN.md
+last_updated: "2026-04-15T20:46:33.089Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone s
 
 Phase: 28 (rbac-enforcement-on-all-routes) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [          ] 0%  (0/5 phases)
@@ -64,6 +64,7 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 27 P01 | 321s | 3 tasks | 7 files |
 | Phase 27 P02 | 6min | 3 tasks | 8 files |
 | Phase 28 P01 | 5min | 2 tasks | 4 files |
+| Phase 28 P02 | 10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Progress: [          ] 0%  (0/5 phases)
 - [Phase 27]: placeholder-email-domain: Use {uuid}@directus.example.com not @directus.local — pydantic-email-validator rejects .local TLD
 - [Phase 27]: directus-filter-workaround: Directus v11 /roles?filter[name][_eq]=Administrator returned empty; used jq select(.name=="Administrator") client-side
 - [Phase 28]: require_admin is sync (not async) — FastAPI awaits dep chain; per-route enforcement via dependencies=[] on decorator
+- [Phase 28]: Import _mint from test_directus_auth.py to keep JWT minting DRY across test files
 
 ### Pending Todos
 
@@ -102,8 +104,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T20:25:55.954Z
-**Stopped at:** Completed 28-01-require-admin-and-mutation-gating-PLAN.md
+**Last session:** 2026-04-15T20:46:33.086Z
+**Stopped at:** Completed 28-02-rbac-matrix-test-and-api-docs-PLAN.md
 **Resume file:** None
 
 ---

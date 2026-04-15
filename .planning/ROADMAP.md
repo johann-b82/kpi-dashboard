@@ -99,7 +99,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 - [x] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured (completed 2026-04-15)
 - [x] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401 (completed 2026-04-15)
-- [ ] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix
+- [x] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix (completed 2026-04-15)
 - [ ] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session
 - [ ] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure
 
@@ -177,7 +177,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   5. The API contract (inline in code or in `docs/api.md`) documents the Admin-vs-Viewer route matrix
 **Plans**: 2 plans
 - [x] 28-01-require-admin-and-mutation-gating-PLAN.md — Add require_admin dep to directus_auth.py; apply Depends(require_admin) to 8 mutation routes across uploads/sync/settings routers
-- [ ] 28-02-rbac-matrix-test-and-api-docs-PLAN.md — Parametrized pytest RBAC matrix (test_rbac.py) + docs/api.md canonical Admin-vs-Viewer contract
+- [x] 28-02-rbac-matrix-test-and-api-docs-PLAN.md — Parametrized pytest RBAC matrix (test_rbac.py) + docs/api.md canonical Admin-vs-Viewer contract
 
 ### Phase 29: Frontend Login + Role-Aware UI
 **Goal**: Users authenticate through a browser login page; the frontend manages session + refresh via `@directus/sdk`, attaches the bearer token to every API call, hides admin-only UI affordances from Viewer users, and handles sign-out cleanly.
@@ -221,6 +221,6 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
 | 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
 | 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 28 | v1.11-directus | 1/2 | In Progress|  |
+| 28 | v1.11-directus | 2/2 | Complete   | 2026-04-15 |
 | 29 | v1.11-directus | 0/? | Not started | — |
 | 30 | v1.11-directus | 0/? | Not started | — |
