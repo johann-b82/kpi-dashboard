@@ -84,8 +84,11 @@ services:
       # --- Public URL for email/oauth redirects (operator-only for v1.11) ---
       PUBLIC_URL: http://127.0.0.1:8055
 
-      # --- Harden defaults for loopback-only operator UI ---
-      CORS_ENABLED: "false"
+      # --- CORS: required for SPA at localhost:5173 to send credentialed requests ---
+      # CORS_CREDENTIALS is load-bearing for the httpOnly refresh cookie (Phase 29 D-02).
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://localhost:5173"
+      CORS_CREDENTIALS: "true"
       TELEMETRY: "false"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8055/server/health || exit 1"]
