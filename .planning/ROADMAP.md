@@ -11,6 +11,7 @@
 - ✅ **v1.6 Multi-Select HR Criteria** — Phases 19–20 (shipped 2026-04-12) — [archive](milestones/v1.6-ROADMAP.md)
 - ✅ **v1.9 Dark Mode & Contrast** — Phases 21–23 (shipped 2026-04-14) — [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.10 UI Consistency Pass** — Phases 24–25 (shipped 2026-04-14)
+- ✅ **v1.11-directus Directus Pivot** — Phases 26–30 (shipped 2026-04-15) — [archive](milestones/v1.11-directus-ROADMAP.md)
 
 ## Phases
 
@@ -95,120 +96,20 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 </details>
 
-### v1.11-directus Directus Pivot (In Progress)
+<details>
+<summary>✅ v1.11-directus Directus Pivot (Phases 26–30) — SHIPPED 2026-04-15</summary>
 
-- [x] **Phase 26: Directus Up, on Existing Postgres** — Single `directus/directus:11` container added to compose; connects to the existing `db`; admin UI at `http://localhost:8055`; first Admin bootstrapped; two roles (`Admin`, `Viewer`) configured (completed 2026-04-15)
-- [x] **Phase 27: FastAPI Directus Auth Dependency** — FastAPI verifies Directus JWT (HS256 shared secret); `current_user` dep resolves `{ id, email, role }`; unauthenticated requests → 401 (completed 2026-04-15)
-- [x] **Phase 28: RBAC Enforcement on All Routes** — Mutation routes gated on `role == 'Admin'` (403 for Viewer); read routes open to both; documented matrix (completed 2026-04-15)
-- [x] **Phase 29: Frontend Login + Role-Aware UI** — `/login` via `@directus/sdk`, axios bearer interceptor, session auto-refresh, Viewer UI hides admin-only actions, sign-out clears session (completed 2026-04-15)
-- [x] **Phase 30: Bring-up Docs + Backup** — `docs/setup.md` + README v1.11-directus entry + nightly `pg_dump` + restore procedure (completed 2026-04-15)
+- [x] Phase 26: Directus Up, on Existing Postgres (3/3 plans) — completed 2026-04-15
+- [x] Phase 27: FastAPI Directus Auth Dependency (2/2 plans) — completed 2026-04-15
+- [x] Phase 28: RBAC Enforcement on All Routes (2/2 plans) — completed 2026-04-15
+- [x] Phase 29: Frontend Login + Role-Aware UI (3/3 plans) — completed 2026-04-15
+- [x] Phase 30: Bring-up Docs + Backup (3/3 plans) — completed 2026-04-15
+
+Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-ROADMAP.md)
+
+</details>
 
 ## Phase Details
-
-### Phase 24: Delta Label Unification
-**Goal**: Both Sales and HR dashboards read delta badges from a single shared `kpi.delta.*` i18n namespace, covering month / quarter / year granularities with full DE/EN parity, and `periodLabels.ts` is simplified or retired.
-**Depends on**: Phase 23
-**Requirements**: UC-01, UC-02, UC-03, UC-04, UC-05
-**Success Criteria** (what must be TRUE):
-  1. Sales KPI card delta badges display `vs. prev. month` / `vs. Vormonat`, `vs. prev. quarter` / `vs. Vorquartal`, and `vs. prev. year` / `vs. Vorjahr` — matching the HR dashboard style exactly
-  2. Quarter granularity delta labels appear correctly on both the Sales and HR dashboards in both DE and EN
-  3. `KpiCardGrid` and `HrKpiCardGrid` both resolve their delta label strings from the same `kpi.delta.*` keys — no duplicate or divergent label logic exists in either component
-  4. `scripts/check-locale-parity.mts` exits with code 0 (no missing keys between `en.json` and `de.json`)
-  5. `frontend/src/lib/periodLabels.ts` contains no unreferenced absolute-period formatters — either the file is deleted or only referenced code remains
-**Plans**: 1 plan
-- [x] 24-01-delta-label-unification-PLAN.md
-**UI hint**: yes
-
-### Phase 25: Page Layout Parity
-**Goal**: `/upload` and `/settings` use the same `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8` container as the dashboards.
-**Depends on**: Phase 24
-**Requirements**: UC-06, UC-07, UC-08, UC-09, UC-10
-**Success Criteria** (what must be TRUE):
-  1. `/upload` page outer wrapper uses `max-w-7xl mx-auto px-6 pt-4 pb-8 space-y-8`
-  2. `/settings` page outer wrapper uses `max-w-7xl mx-auto px-6 pt-4 space-y-8 pb-32`
-  3. `/upload` body layout (DropZone + UploadHistory) uses the wider canvas sensibly
-  4. Padding rhythm consistent across `/`, `/hr`, `/upload`, `/settings`
-  5. Human UAT confirms no visual regressions
-**Plans**: 3 plans
-- [x] 25-01-upload-container-and-grid-PLAN.md
-- [x] 25-02-settings-container-PLAN.md
-- [x] 25-03-uat-layout-parity-PLAN.md
-**UI hint**: yes
-
-### Phase 26: Directus Up, on Existing Postgres
-**Goal**: A single `directus/directus:11` container boots alongside the existing `db`, `api`, and `frontend` via `docker compose up`; the admin UI is reachable at `http://localhost:8055`; the first Admin is auto-bootstrapped from `.env`; and two roles (`Admin`, `Viewer`) are configured reproducibly.
-**Depends on**: Phase 25 (v1.10 baseline)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, CFG-01, CFG-02, CFG-03
-**Success Criteria** (what must be TRUE):
-  1. `docker compose up` from a clean checkout brings `db`, `directus`, `api`, and `frontend` all to `healthy` with no manual intervention between commands
-  2. Developer can open `http://localhost:8055`, sign in as the bootstrapped first Admin (credentials from `.env`), and see the Directus admin UI
-  3. The `db` Postgres instance contains both Alembic-owned `public.*` app tables and Directus's `directus_*` tables without collision
-  4. Directus's Data Model UI does NOT show `public.*` app tables (`DB_EXCLUDE_TABLES` or equivalent in effect)
-  5. Two roles exist reproducibly — `Admin` (full access) and `Viewer` (read-only own user) — defined via `directus/snapshot.yml` or bootstrap script
-  6. `.env.example` documents every Directus secret (`DIRECTUS_KEY`, `DIRECTUS_SECRET`, `DIRECTUS_ADMIN_EMAIL`, `DIRECTUS_ADMIN_PASSWORD`) with generation commands
-**Plans**: 3 plans
-- [x] 26-01-compose-service-and-env-PLAN.md — Add `directus/directus:11.17.2` service to compose reusing existing `db`; document secrets in `.env.example`
-- [x] 26-02-snapshot-roles-and-apply-PLAN.md — Author `directus/snapshot.yml` with Admin + Viewer roles; add `directus-snapshot` sidecar that applies it on every bring-up
-- [x] 26-03-bringup-verification-PLAN.md — Clean `docker compose up`, DB coexistence check, human-verify admin UI + role list + hidden app tables
-
-### Phase 27: FastAPI Directus Auth Dependency
-**Goal**: FastAPI verifies Directus-issued JWTs (HS256 shared secret), resolves a `current_user` with role, and rejects unauthenticated or expired tokens with 401 — the server-side auth backbone without yet gating on role.
-**Depends on**: Phase 26
-**Requirements**: AUTH-01, AUTH-04, AUTH-05
-**Success Criteria** (what must be TRUE):
-  1. A seeded user can `POST /auth/login` directly to Directus with email+password and receive a valid JWT (access + refresh tokens)
-  2. Any `/api/*` request without a valid `Authorization: Bearer <jwt>` returns 401; expired or malformed tokens also return 401
-  3. `current_user` FastAPI dependency is importable from `backend/app/security/directus_auth.py` and resolves `{ id, email, role }` from the verified JWT
-  4. Unit tests cover: valid token → user resolved; expired → 401; wrong-signature → 401; missing bearer → 401
-  5. `backend/app/config.py` reads `DIRECTUS_SECRET` from env with a clear error if unset
-**Plans**: 2 plans
-- [x] 27-01-auth-dependency-foundation-PLAN.md — config.py (Pydantic BaseSettings), Role enum, CurrentUser schema, get_current_user dependency (HS256 verify + UUID→Role map), 8 unit tests
-- [x] 27-02-router-wiring-and-env-PLAN.md — Fetch Administrator UUID from running Directus, populate .env/.env.example, wire dependencies=[Depends(get_current_user)] on all 6 routers, e2e tests
-
-### Phase 28: RBAC Enforcement on All Routes
-**Goal**: Every FastAPI read route is open to both roles and every mutation route requires `role == 'Admin'`, returning 403 with a machine-readable body for Viewer users. Role changes made in Directus admin UI take effect on next JWT refresh.
-**Depends on**: Phase 27
-**Requirements**: RBAC-01, RBAC-02, RBAC-04, RBAC-05
-**Success Criteria** (what must be TRUE):
-  1. With a valid Viewer JWT: every `GET /api/kpis`, `/api/hr/kpis`, `/api/data/*`, and `GET /api/settings` returns 200
-  2. With a valid Viewer JWT: every `POST /api/uploads/*`, `POST /api/sync/personio`, `PUT /api/settings`, and `DELETE /api/data/*` returns 403 with body `{"detail": "admin role required"}`
-  3. With a valid Admin JWT: all routes (read + mutate) succeed exactly as in v1.10
-  4. Promoting a Viewer to Admin in the Directus admin UI takes effect on the user's next token refresh (within JWT TTL)
-  5. The API contract (inline in code or in `docs/api.md`) documents the Admin-vs-Viewer route matrix
-**Plans**: 2 plans
-- [x] 28-01-require-admin-and-mutation-gating-PLAN.md — Add require_admin dep to directus_auth.py; apply Depends(require_admin) to 8 mutation routes across uploads/sync/settings routers
-- [x] 28-02-rbac-matrix-test-and-api-docs-PLAN.md — Parametrized pytest RBAC matrix (test_rbac.py) + docs/api.md canonical Admin-vs-Viewer contract
-
-### Phase 29: Frontend Login + Role-Aware UI
-**Goal**: Users authenticate through a browser login page; the frontend manages session + refresh via `@directus/sdk`, attaches the bearer token to every API call, hides admin-only UI affordances from Viewer users, and handles sign-out cleanly.
-**Depends on**: Phase 28
-**Requirements**: AUTH-02, AUTH-03, AUTH-06, RBAC-03
-**Success Criteria** (what must be TRUE):
-  1. User lands on `/login` when unauthenticated; after submitting valid email+password they are redirected to the Sales dashboard and stay signed in across full page reloads; invalid credentials show an inline error and do not grant a session
-  2. The frontend auto-refreshes the Directus access token before expiry without forcing the user to re-login during a session
-  3. Every outgoing `/api/*` call carries an `Authorization: Bearer <jwt>` header set by a shared axios (or fetch) interceptor
-  4. Viewer users see a functional dashboard but admin-only controls (upload button, Personio sync trigger, settings Save button, delete controls) are hidden — not just disabled — from the DOM
-  5. Signing out from the UI clears the client session and returns the user to `/login`; refreshing after sign-out does not restore the session; subsequent `/api/*` calls return 401
-**Plans**: 3 plans
-- [x] 29-01-backend-me-endpoint-and-cors-PLAN.md — Add GET /api/me FastAPI route; enable Directus CORS for browser origin
-- [x] 29-02-auth-infrastructure-PLAN.md — Install @directus/sdk + shadcn form; build directusClient, apiClient wrapper, AuthContext, useAuth/useRole, AuthGate, AdminOnly, FullPageSpinner
-- [x] 29-03-wire-app-and-migrate-PLAN.md — LoginPage + wire App.tsx providers; migrate all 17 fetch sites to apiClient; wrap 9 admin-only UI surfaces; NavBar sign-out; human UAT of 5 ROADMAP criteria
-**UI hint**: yes
-
-### Phase 30: Bring-up Docs + Backup
-**Goal**: A first-time operator can clone the repo, follow `docs/setup.md`, and end up with a running stack, a first Admin user, the promote-to-Admin flow documented, and a working nightly backup — closing the loop on the milestone.
-**Depends on**: Phase 29
-**Requirements**: DOCS-01, DOCS-02, DOCS-03, DOCS-04
-**Success Criteria** (what must be TRUE):
-  1. Following `docs/setup.md` end-to-end on a clean machine produces a running stack with a usable first Admin account — no undocumented manual steps
-  2. `docs/setup.md` includes the click-path for promoting a Viewer to Admin via the Directus admin UI, verifiable by a second operator without code spelunking
-  3. A nightly `pg_dump` runs (cron sidecar or host script), produces timestamped dump files under `./backups/`, and `docs/setup.md` documents a restore procedure that has been exercised at least once
-  4. `README.md` contains a v1.11-directus version-history entry explaining the pivot (Directus added, Dex/oauth2-proxy abandoned, Supabase considered and rejected, Outline dropped)
-**Plans**: 3 plans
-- [x] 30-01-backup-sidecar-and-restore-PLAN.md — Backup sidecar (cron + pg_dump), restore script, compose wiring, exercise real restore cycle
-- [x] 30-02-setup-docs-PLAN.md — Author docs/setup.md linear tutorial (bring-up, first Admin, Viewer→Admin promote, backup/restore, troubleshooting)
-- [x] 30-03-readme-version-entry-PLAN.md — Add v1.11-directus <details> block + table summary row to README.md
-
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |

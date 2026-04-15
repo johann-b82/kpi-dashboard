@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.11-directus Directus Pivot (Shipped: 2026-04-15)
+
+**Phases completed:** 7 phases, 17 plans, 18 tasks
+
+**Key accomplishments:**
+
+- 1. Concrete prior-period labels on bottom row
+- Task 1: Swap outer wrapper to dashboard container and restructure body into two-column grid
+- SettingsPage outer wrappers upgraded from max-w-5xl to max-w-7xl dashboard-parity container with pb-32 ActionBar clearance and space-y-8 vertical rhythm
+- Human UAT approved UC-10 — all four pages pass container parity, delta label survival (DE/EN, month/quarter/year), and zero dashboard regressions; UAT session also produced Settings card consolidation and NavBar contextual back button
+- Clean `docker compose up` brings the full 6-service stack to terminal state, operator signs in at 127.0.0.1:8055, both custom roles (Admin, Viewer) render in the admin UI, and none of the 7 Alembic-managed app tables appear in Directus Data Model — Phase 26 closed.
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- Shipped the Phase 29 user-visible deliverable: /login page, role-aware UI across 9 admin surfaces, NavBar sign-out, and full fetch→apiClient migration (17 call sites) — all 5 ROADMAP success criteria verified by the user.
+- Section-order deviation:
+- README.md edit location:
+
+---
+
 ## v1.9 Dark Mode & Contrast (Shipped: 2026-04-14)
 
 **Delivered:** Full dark mode across every surface with OS-preference-aware initial theme, localStorage override, and WCAG-AA-targeted contrast via deterministic token fixes.
