@@ -1,10 +1,11 @@
 ---
 phase: 29
 slug: frontend-login-role-aware-ui
-status: draft
+status: approved
 shadcn_initialized: true
 preset: components.json (existing shadcn setup)
 created: 2026-04-15
+reviewed_at: 2026-04-15
 ---
 
 # Phase 29 — UI Design Contract
