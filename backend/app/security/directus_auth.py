@@ -57,6 +57,6 @@ async def get_current_user(
     # TODO(Phase 28+): fetch from Directus GET /users/{id}.
     return CurrentUser(
         id=user_id,
-        email=f"{user_id}@directus.local",
+        email=f"{user_id}@directus.example.com",
         role=role,
     )

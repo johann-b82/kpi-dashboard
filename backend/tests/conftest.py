@@ -6,6 +6,17 @@ Provides:
   - `reset_settings`: autouse fixture that resets the app_settings singleton row
     to DEFAULT_SETTINGS before each test, guaranteeing isolation.
 """
+import os
+
+os.environ.setdefault("DIRECTUS_SECRET", "test-directus-secret-phase-27")
+os.environ.setdefault("DIRECTUS_ADMINISTRATOR_ROLE_UUID", "c1111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+os.environ.setdefault("DIRECTUS_VIEWER_ROLE_UUID", "a2222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+# Defaults required for app.database module import during test collection
+os.environ.setdefault("POSTGRES_USER", "test")
+os.environ.setdefault("POSTGRES_PASSWORD", "test")
+os.environ.setdefault("POSTGRES_DB", "test")
+os.environ.setdefault("POSTGRES_HOST", "localhost")
+
 import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
@@ -69,11 +80,12 @@ async def reset_settings():
                 )
             )
             await db.commit()
-    except (SQLAlchemyError, RuntimeError):
+    except (SQLAlchemyError, RuntimeError, OSError):
         # Table may not exist yet in a partial Wave 2 tree (Plans 04-02/04-03
         # create `app_settings`). Pure unit tests that don't need DB isolation
         # should still run — let them proceed as a no-op. RuntimeError catches
         # the "attached to a different loop" fragility when the module-scoped
-        # async engine outlives a parametrized test's event loop.
+        # async engine outlives a parametrized test's event loop. OSError catches
+        # socket/DNS errors when no database is reachable (e.g. auth unit tests).
         pass
     yield
