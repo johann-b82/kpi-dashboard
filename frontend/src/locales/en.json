@@ -33,6 +33,8 @@
   "nav.back": "Back",
   "nav.back_to_sales": "Back to Sales",
   "nav.back_to_hr": "Back to HR",
+  "nav.wiki": "Wiki",
+  "nav": { "wiki": "Wiki" },
   "auth.logout": "Log out",
   "auth": { "logout": "Log out" },
   "hr.sync.lastSynced": "Last sync:",
