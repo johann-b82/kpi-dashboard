@@ -228,20 +228,22 @@ Plans:
 
 ### Phase 30.1: Rebrand KPI Light to KPI Dashboard (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Rename human-facing product name KPI Light → KPI Dashboard (display only — internal identifiers unchanged per D-01).
+**Requirements**: none (mechanical rename; no ROADMAP requirements)
 **Depends on:** Phase 30
-**Plans:** 2/3 plans executed
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 30.1 to break down)
+- [x] 30.1-01-PLAN.md — Backend rename + Alembic migration (defaults, config, auth docstrings, main.py FastAPI title)
+- [x] 30.1-02-PLAN.md — Frontend i18n values + defaults.ts
+- [x] 30.1-03-PLAN.md — Docs + PROJECT.md rename-note + Phase 31 fix-up
 
 ### Phase 31: Seed Outline Docs
-**Goal**: The "KPI Light" Outline collection contains 8 authored documentation pages reachable from a collection landing page with a table of contents, reflecting the v1.10 state of the application.
+**Goal**: The "KPI Dashboard" Outline collection contains 8 authored documentation pages reachable from a collection landing page with a table of contents, reflecting the v1.10 state of the application.
 **Depends on**: Phase 30
 **Requirements**: DOC-01, DOC-02, DOC-03, DOC-04, DOC-05, DOC-06, DOC-07, DOC-08, DOC-09, WMP-01, WMP-02, WMP-03, E2E-01, E2E-03, E2E-04, E2E-05
 **Success Criteria** (what must be TRUE):
-  1. The "KPI Light" collection exists in Outline and all 8 pages (Dev Setup, Docker Compose Architecture, API Reference, Personio Sync Runbook, Sales Dashboard User Guide, HR Dashboard User Guide, Settings Walkthrough, Admin Runbook) are published and reachable
+  1. The "KPI Dashboard" collection exists in Outline and all 8 pages (Dev Setup, Docker Compose Architecture, API Reference, Personio Sync Runbook, Sales Dashboard User Guide, HR Dashboard User Guide, Settings Walkthrough, Admin Runbook) are published and reachable
   2. The collection landing page has a table of contents with working cross-links between pages
   3. The Admin Runbook page covers the bcrypt user-add workflow, Outline volume backup, and OIDC secret rotation — confirmed accurate against the live stack
   4. The collection creation and permission model is documented inside Outline (admin-runbook or equivalent) so future projects can follow the same pattern
@@ -278,4 +280,5 @@ Plans:
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
 | 29 | v1.11 | 3/3 | Complete    | 2026-04-15 |
 | 30 | v1.11 | 1/1 | Complete    | 2026-04-15 |
+| 30.1 | v1.11 | 3/3 | Complete    | 2026-04-15 |
 | 31 | v1.11 | 0/6 | Not started | - |
