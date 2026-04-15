@@ -206,7 +206,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 29-01-PLAN.md — .env.example Outline secret placeholders + README BSL compliance note (WIK-07)
-- [ ] 29-02-PLAN.md — docker-compose.yml outline + outline-db + outline-redis services with OIDC split endpoints + mkcert CA (WIK-01, WIK-02, WIK-03, WIK-04, WIK-06)
+- [x] 29-02-PLAN.md — docker-compose.yml outline + outline-db + outline-redis services with OIDC split endpoints + mkcert CA (WIK-01, WIK-02, WIK-03, WIK-04, WIK-06)
 - [ ] 29-03-PLAN.md — docs/setup.md Phase 29 runbook + NPM wiki.internal proxy host + human UAT (WIK-01, WIK-05)
 
 ---
@@ -257,6 +257,6 @@ Plans:
 | 26 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 27 | v1.11 | 3/3 | Complete    | 2026-04-14 |
 | 28 | v1.11 | 5/5 | Complete    | 2026-04-15 |
-| 29 | v1.11 | 1/3 | In Progress|  |
+| 29 | v1.11 | 2/3 | In Progress|  |
 | 30 | v1.11 | 0/? | Not started | - |
 | 31 | v1.11 | 0/? | Not started | - |

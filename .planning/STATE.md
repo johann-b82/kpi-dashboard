@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Outline Wiki + Shared Auth (Dex)
 status: executing
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-04-15T07:02:44.904Z"
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-04-15T07:06:18.305Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-14 after v1.11 milestone started)
 ## Current Position
 
 Phase: 29 (outline-wiki-deployment) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -82,6 +82,7 @@ Progress: [          ] 0%
 | Phase 28-kpi-light-oidc-integration P02 | 5min | 2 tasks | 4 files |
 | Phase 28-kpi-light-oidc-integration P05 | 3min | 1 tasks | 1 files |
 | Phase 29-outline-wiki-deployment P01 | 3min | 2 tasks | 2 files |
+| Phase 29-outline-wiki-deployment P02 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Progress: [          ] 0%
 - [Phase 28-kpi-light-oidc-integration]: Plan 28-05: docs/setup.md Phase 28 runbook appended verbatim from plan draft; append-only (Phase 26/27 sections preserved); no UAT-driven content deviations
 - [Phase 29-outline-wiki-deployment]: Plan 29-01: BSL 1.1 Additional Use Grant wording corrected in README (no 50-person cap; the actual grant prohibits offering a 'Document Service' to third parties). CONTEXT D-07 reference retroactively superseded by this plan.
 - [Phase 29-outline-wiki-deployment]: Plan 29-01: Outline env block appended at end of .env.example (after DISABLE_AUTH) rather than inserted near Dex block — preserves Phase 27/28 block order and localises plan 29-02 additions.
+- [Phase 29-outline-wiki-deployment]: Plan 29-02: Kept Dockerfile-default HEALTHCHECK on outline service (v0.86.0 probes /_health natively) — no compose override. No separate outline-migrate service; Outline runs DB migrations at container start (contrast with KPI Light's Alembic migrate service pattern).
+- [Phase 29-outline-wiki-deployment]: Plan 29-02: OIDC split endpoints wired per D-05 — OIDC_AUTH_URI https://auth.internal/dex/auth (browser) vs OIDC_TOKEN_URI/USERINFO_URI on http://dex:5556/dex/* (internal docker DNS). NODE_EXTRA_CA_CERTS + mkcert rootCA mount + auth.internal:host-gateway covers discovery/iss revalidation.
 
 ### Pending Todos
 
@@ -154,6 +157,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T07:02:44.901Z
-**Stopped at:** Completed 29-01-PLAN.md
+**Last session:** 2026-04-15T07:06:18.303Z
+**Stopped at:** Completed 29-02-PLAN.md
 **Resume file:** None
