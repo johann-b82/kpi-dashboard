@@ -1,4 +1,4 @@
-"""Pydantic v2 BaseSettings for KPI Light API (Phase 28).
+"""Pydantic v2 BaseSettings for KPI Dashboard API (Phase 28).
 
 Centralizes all Phase 28 auth configuration. `DEX_CLIENT_SECRET` uses
 `validation_alias="DEX_KPI_SECRET"` so we read Phase 27's env var directly

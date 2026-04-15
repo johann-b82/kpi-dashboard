@@ -1,4 +1,4 @@
-"""OIDC (Dex) auth primitives for KPI Light (Phase 28).
+"""OIDC (Dex) auth primitives for KPI Dashboard (Phase 28).
 
 Exports:
   - `oauth`: authlib Starlette OAuth singleton with Dex client registered
