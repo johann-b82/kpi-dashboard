@@ -14,9 +14,9 @@
 
 ### Branding (BRAND)
 
-- [ ] **BRAND-01**: App name reads "KPI Dashboard" everywhere it previously read "KPI Light" (navbar, login page, browser tab title, i18n strings, settings default `app_name`)
-- [ ] **BRAND-02**: Login page shows the uploaded logo (from `/api/settings/logo`) above the title
-- [ ] **BRAND-03**: Login page card styling matches the app's existing card aesthetic (clean white, subtle border/shadow, blue accent button) — consistent CI with Settings/Dashboard pages
+- [x] **BRAND-01**: App name reads "KPI Dashboard" everywhere it previously read "KPI Light" (navbar, login page, browser tab title, i18n strings, settings default `app_name`)
+- [x] **BRAND-02**: Login page shows the uploaded logo (from `/api/settings/logo`) above the title
+- [x] **BRAND-03**: Login page card styling matches the app's existing card aesthetic (clean white, subtle border/shadow, blue accent button) — consistent CI with Settings/Dashboard pages
 
 ---
 
@@ -41,9 +41,9 @@
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| CHART-01 | Phase 31 | — | Not started |
-| CHART-02 | Phase 31 | — | Not started |
-| CHART-03 | Phase 31 | — | Not started |
-| BRAND-01 | Phase 32 | — | Not started |
-| BRAND-02 | Phase 32 | — | Not started |
-| BRAND-03 | Phase 32 | — | Not started |
+| CHART-01 | Phase 31 | 31-01, 31-02 | Complete |
+| CHART-02 | Phase 31 | 31-01, 31-02 | Complete |
+| CHART-03 | Phase 31 | 31-01, 31-02 | Complete |
+| BRAND-01 | Phase 32 | 32-01 | Complete |
+| BRAND-02 | Phase 32 | 32-01, 32-02 | Complete |
+| BRAND-03 | Phase 32 | 32-02 | Complete |
