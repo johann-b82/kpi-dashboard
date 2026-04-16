@@ -2,6 +2,10 @@ import enUserIntro from "../../docs/en/user-guide/intro.md?raw";
 import deUserIntro from "../../docs/de/user-guide/intro.md?raw";
 import enAdminIntro from "../../docs/en/admin-guide/intro.md?raw";
 import deAdminIntro from "../../docs/de/admin-guide/intro.md?raw";
+import enSystemSetup from "../../docs/en/admin-guide/system-setup.md?raw";
+import deSystemSetup from "../../docs/de/admin-guide/system-setup.md?raw";
+import enArchitecture from "../../docs/en/admin-guide/architecture.md?raw";
+import deArchitecture from "../../docs/de/admin-guide/architecture.md?raw";
 import enUploadingData from "../../docs/en/user-guide/uploading-data.md?raw";
 import deUploadingData from "../../docs/de/user-guide/uploading-data.md?raw";
 import enSalesDashboard from "../../docs/en/user-guide/sales-dashboard.md?raw";
@@ -26,7 +30,11 @@ export const sections: Record<SectionId, ArticleEntry[]> = {
     { slug: "filters", titleKey: "docs.nav.filters" },
     { slug: "language-and-theme", titleKey: "docs.nav.languageAndTheme" },
   ],
-  "admin-guide": [{ slug: "intro", titleKey: "docs.nav.adminGuideIntro" }],
+  "admin-guide": [
+    { slug: "intro", titleKey: "docs.nav.adminGuideIntro" },
+    { slug: "system-setup", titleKey: "docs.nav.adminSystemSetup" },
+    { slug: "architecture", titleKey: "docs.nav.adminArchitecture" },
+  ],
 };
 
 /** Content registry: registry[lang][section][slug] = raw Markdown string */
@@ -40,7 +48,11 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       filters: enFilters,
       "language-and-theme": enLanguageAndTheme,
     },
-    "admin-guide": { intro: enAdminIntro },
+    "admin-guide": {
+      intro: enAdminIntro,
+      "system-setup": enSystemSetup,
+      architecture: enArchitecture,
+    },
   },
   de: {
     "user-guide": {
@@ -51,6 +63,10 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       filters: deFilters,
       "language-and-theme": deLanguageAndTheme,
     },
-    "admin-guide": { intro: deAdminIntro },
+    "admin-guide": {
+      intro: deAdminIntro,
+      "system-setup": deSystemSetup,
+      architecture: deArchitecture,
+    },
   },
 };
