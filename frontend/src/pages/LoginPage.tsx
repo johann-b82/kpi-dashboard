@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,26 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginPage() {
   const { signIn } = useAuth();
   const [loginError, setLoginError] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let revoke: string | null = null;
+    fetch("/api/settings/logo/public")
+      .then((res) => {
+        if (!res.ok) return;
+        return res.blob();
+      })
+      .then((blob) => {
+        if (blob) {
+          revoke = URL.createObjectURL(blob);
+          setLogoUrl(revoke);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      if (revoke) URL.revokeObjectURL(revoke);
+    };
+  }, []);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -57,8 +77,15 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm border border-border shadow-sm">
         <CardHeader>
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="mx-auto h-16 w-16 object-contain mb-2"
+            />
+          )}
           <p className="text-center text-2xl font-semibold mb-4">KPI Dashboard</p>
         </CardHeader>
         <CardContent>
