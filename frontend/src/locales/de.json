@@ -200,5 +200,15 @@
   "settings.targets.overtime": "Überstunden-Quote",
   "settings.targets.sick_leave": "Krankheitsquote",
   "settings.targets.fluctuation": "Fluktuation",
-  "settings.targets.revenue": "Umsatz / Produktions-MA"
+  "settings.targets.revenue": "Umsatz / Produktions-MA",
+  "docs": {
+    "toc": {
+      "title": "Auf dieser Seite"
+    },
+    "loading": "Dokumentation wird geladen",
+    "empty": {
+      "heading": "Kein Inhalt gefunden",
+      "body": "Dieser Artikel konnte nicht geladen werden. Versuchen Sie, die Seite zu aktualisieren."
+    }
+  }
 }

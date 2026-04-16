@@ -200,5 +200,15 @@
   "settings.targets.overtime": "Overtime ratio",
   "settings.targets.sick_leave": "Sick leave ratio",
   "settings.targets.fluctuation": "Fluctuation",
-  "settings.targets.revenue": "Revenue / prod. employee"
+  "settings.targets.revenue": "Revenue / prod. employee",
+  "docs": {
+    "toc": {
+      "title": "On this page"
+    },
+    "loading": "Loading documentation",
+    "empty": {
+      "heading": "No content found",
+      "body": "This article could not be loaded. Try refreshing the page."
+    }
+  }
 }
