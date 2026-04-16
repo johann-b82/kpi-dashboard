@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, LogOut } from "lucide-react";
+import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, LogOut, Library } from "lucide-react";
 import { useAuth } from "@/auth/useAuth";
 import { AdminOnly } from "@/auth/AdminOnly";
 
@@ -58,6 +58,10 @@ export function NavBar() {
     "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
     (location === "/settings" ? "text-primary" : "text-foreground");
 
+  const docsLinkClass =
+    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
+    (location === "/docs" || location.startsWith("/docs/") ? "text-primary" : "text-foreground");
+
   return (
     <nav className="fixed top-0 inset-x-0 h-16 bg-card border-b border-border z-50">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center gap-6">
@@ -73,7 +77,7 @@ export function NavBar() {
           <span className="text-sm font-medium">{settings.app_name}</span>
         </div>
 
-        {location === "/settings" || location === "/upload" ? (
+        {location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
           <button
             type="button"
             onClick={() => navigate(lastDashboard)}
@@ -99,6 +103,13 @@ export function NavBar() {
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
           <LanguageToggle />
+          <Link
+            href="/docs"
+            aria-label={t("docs.nav.docsLabel")}
+            className={docsLinkClass}
+          >
+            <Library className="h-5 w-5" />
+          </Link>
           <AdminOnly>
             <Link
               href="/upload"

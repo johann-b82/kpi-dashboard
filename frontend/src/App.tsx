@@ -3,14 +3,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { Route, Switch, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
-
-const DocsPage = lazy(() => import("./pages/DocsPage"));
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { HRPage } from "./pages/HRPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NavBar } from "./components/NavBar";
+
+const DocsPage = lazy(() => import("./pages/DocsPage"));
 import { SubHeader } from "./components/SubHeader";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
@@ -37,6 +37,15 @@ function AppShell() {
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
           <Route path="/settings" component={SettingsPage} />
+          <Route path="/docs/:section/:slug">
+            <Suspense fallback={
+              <div className="flex h-64 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" aria-label="Loading documentation" />
+              </div>
+            }>
+              <DocsPage />
+            </Suspense>
+          </Route>
           <Route path="/docs">
             <Suspense fallback={
               <div className="flex h-64 items-center justify-center">
