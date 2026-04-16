@@ -8,26 +8,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.12 Chart Polish & Rebrand
-
-**Goal:** Improve chart readability for multi-year data and rebrand from "KPI Light" to "KPI Dashboard" with CI-aligned login.
-
-**Target features:**
-- Year labels on all chart x-axes (e.g., `Nov '25`), with year grouping when data spans multiple years
-- Fill time gaps: show all months in range even when no data exists for a period
-- Rebrand app name from "KPI Light" → "KPI Dashboard" everywhere (title, navbar, login, settings default, i18n)
-- Login page CI alignment: match existing app card style (clean white cards, subtle borders, blue accent), show uploaded logo above title
-
-**Key context:** Charts use Recharts with `Intl.DateTimeFormat` locale-aware month labels. Logo is already uploadable via `/api/settings/logo`. Login is currently a plain shadcn card — restyle to match the Settings page card aesthetic. Rename is cosmetic only (no package/repo rename).
-
 ## Current State
 
-**Shipped:** v1.11-directus — 2026-04-15
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh.
-**Phase 31 complete (2026-04-16):** Chart readability — year-aware tick labels (`Nov '25`), year boundary separators, gap-filled month spines on Sales charts. Shared `chartTimeUtils.ts` utility module with 12 unit tests.
-**Phase 32 complete (2026-04-16):** Rebrand & Login CI — renamed "KPI Light" → "KPI Dashboard" across all surfaces (8 files), added public logo endpoint (`GET /api/settings/logo/public`), restyled login card with logo display and matching border/shadow aesthetic.
-**Codebase:** ~14,000 LOC (Python + TypeScript), 10 versions shipped (v1.0–v1.11-directus).
-**Audit status:** All v1.0–v1.6 and v1.11-directus requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.12 Chart Polish & Rebrand — 2026-04-16
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page.
+**Codebase:** ~14,000 LOC (Python + TypeScript), 11 versions shipped (v1.0–v1.12).
+**Audit status:** All v1.0–v1.6, v1.11-directus, and v1.12 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+
+## Shipped: v1.12 Chart Polish & Rebrand (2026-04-16)
+
+Year-aware chart x-axis labels (`Nov '25`) with year boundary separators and gap-filled month spines across Sales and HR dashboards. Shared `chartTimeUtils.ts` utility module with 12 unit tests. Rebranded from "KPI Light" to "KPI Dashboard" across all 8 UI surfaces, added unauthenticated `GET /api/settings/logo/public` endpoint, and restyled login page with logo display and card aesthetic matching the rest of the app.
 
 ## Shipped: v1.11-directus Directus Pivot (2026-04-15)
 
@@ -151,6 +141,15 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ DM-09: WCAG AA contrast via deterministic token fixes (`--color-success` darkened, grep-clean codebase) — Phase 23 (D-12 waiver on automated/manual verification)
 - ✓ DM-10: Delta/status badges legible in both modes via EmployeeTable `text-foreground` override + token shade adjustment — Phase 23 (D-12 waiver on WebAIM spot-check)
 
+### Validated in v1.12
+
+- ✓ CHART-01: All chart x-axes display year alongside month (e.g., `Nov '25`) — v1.12 Phase 31
+- ✓ CHART-02: Year grouping/separator on multi-year chart data — v1.12 Phase 31
+- ✓ CHART-03: Gap-filled month spines on x-axis — v1.12 Phase 31
+- ✓ BRAND-01: App name reads "KPI Dashboard" everywhere — v1.12 Phase 32
+- ✓ BRAND-02: Login page shows uploaded logo — v1.12 Phase 32
+- ✓ BRAND-03: Login page card styling matches app aesthetic — v1.12 Phase 32
+
 ### Validated in v1.6
 
 - ✓ MIG-01: Database migration converts 3 Personio config columns to JSON array columns — v1.6
@@ -232,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-16 — Phase 31 complete, Phase 32 next*
+*Last updated: 2026-04-16 after v1.12 milestone*

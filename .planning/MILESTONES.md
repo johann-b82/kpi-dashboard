@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.12 Chart Polish & Rebrand (Shipped: 2026-04-16)
+
+**Phases completed:** 2 phases, 4 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Shared `chartTimeUtils.ts` module (month spine, gap-fill merge, locale-aware formatter, year-boundary detector) with 12 unit tests (Phase 31)
+- Year-aware tick labels (`Nov '25`), gap-filled axes, and dashed year boundary lines on both Sales and HR dashboards (Phase 31)
+- Renamed "KPI Light" to "KPI Dashboard" across all 8 UI surfaces + added unauthenticated `GET /api/settings/logo/public` endpoint (Phase 32)
+- Login page logo display from public endpoint with text-only fallback + card restyling matching app aesthetic (Phase 32)
+
+---
+
 ## v1.11-directus Directus Pivot (Shipped: 2026-04-15)
 
 **Phases completed:** 7 phases, 17 plans, 18 tasks
