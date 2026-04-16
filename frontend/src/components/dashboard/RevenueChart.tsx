@@ -12,6 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -25,6 +26,7 @@ import {
   tooltipStyle,
 } from "@/lib/chartDefaults";
 import { fetchChartData } from "@/lib/api";
+import { buildMonthSpine, mergeIntoSpine, formatMonthYear, yearBoundaryDates } from "@/lib/chartTimeUtils";
 import { kpiKeys } from "@/lib/queryKeys";
 import { selectComparisonMode } from "@/lib/chartComparisonMode";
 import { computePrevBounds } from "@/lib/prevBounds";
@@ -110,8 +112,8 @@ export function RevenueChart({
       const cw = Math.ceil((days + jan1.getDay() + 1) / 7);
       return i18nLocale === "de" ? `KW ${cw}` : `CW ${cw}`;
     }
-    // thisQuarter, thisYear, allTime → show month name
-    return new Intl.DateTimeFormat(locale, { month: "short" }).format(d);
+    // thisQuarter, thisYear, allTime → show month + year
+    return formatMonthYear(dateStr, locale);
   };
 
   const Header = (
@@ -157,19 +159,32 @@ export function RevenueChart({
   // zero bar/line, so we preserve null explicitly.
   const currentPoints = data?.current ?? [];
   const prevPoints = data?.previous ?? null;
-  const rows = currentPoints.map((p, i) => {
-    const priorRaw = prevPoints ? (prevPoints[i]?.revenue ?? null) : null;
+
+  // CHART-03: gap-fill — build dense month spine for non-weekly presets
+  const spine = (preset !== "thisMonth" && startDate && endDate)
+    ? buildMonthSpine(startDate, endDate)
+    : (preset !== "thisMonth" && currentPoints.length > 0)
+      ? buildMonthSpine(currentPoints[0].date, currentPoints[currentPoints.length - 1].date)
+      : null;
+
+  const mergedCurrent = spine ? mergeIntoSpine(spine, currentPoints) : currentPoints;
+  const mergedPrior = (spine && prevPoints) ? mergeIntoSpine(spine, prevPoints) : prevPoints;
+
+  const rows = mergedCurrent.map((p, i) => {
+    const priorRaw = mergedPrior ? (mergedPrior[i]?.revenue ?? null) : null;
     return {
       date: p.date,
       revenue: p.revenue === null ? null : Number(p.revenue),
       revenuePrior:
-        prevPoints === null
+        mergedPrior === null
           ? undefined
           : priorRaw === null
             ? null
             : Number(priorRaw),
     };
   });
+
+  const boundaries = spine ? yearBoundaryDates(spine) : [];
 
   const showPrior =
     mode !== "none" && data?.previous !== null && data?.previous !== undefined;
@@ -190,6 +205,7 @@ export function RevenueChart({
                 {...axisProps}
                 tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={formatXAxis}
+                ticks={spine ?? undefined}
               />
               <YAxis
                 {...axisProps}
@@ -205,6 +221,21 @@ export function RevenueChart({
                 formatter={(v) => formatCurrency(Number(v))}
               />
               <Legend wrapperStyle={legendWrapperStyle} />
+              {boundaries.map(d => (
+                <ReferenceLine
+                  key={d}
+                  x={d}
+                  stroke="var(--color-border)"
+                  strokeDasharray="4 2"
+                  strokeWidth={1}
+                  label={{
+                    value: d.slice(0, 4),
+                    position: "insideTopLeft",
+                    fontSize: 10,
+                    fill: "var(--color-muted-foreground)",
+                  }}
+                />
+              ))}
               <Bar
                 dataKey="revenue"
                 fill="var(--color-chart-current)"
@@ -229,6 +260,7 @@ export function RevenueChart({
                 {...axisProps}
                 tick={{ ...axisProps.tick, fontSize: 12 }}
                 tickFormatter={formatXAxis}
+                ticks={spine ?? undefined}
               />
               <YAxis
                 {...axisProps}
@@ -244,6 +276,21 @@ export function RevenueChart({
                 formatter={(v) => formatCurrency(Number(v))}
               />
               <Legend wrapperStyle={legendWrapperStyle} />
+              {boundaries.map(d => (
+                <ReferenceLine
+                  key={d}
+                  x={d}
+                  stroke="var(--color-border)"
+                  strokeDasharray="4 2"
+                  strokeWidth={1}
+                  label={{
+                    value: d.slice(0, 4),
+                    position: "insideTopLeft",
+                    fontSize: 10,
+                    fill: "var(--color-muted-foreground)",
+                  }}
+                />
+              ))}
               <Area
                 type="monotone"
                 dataKey="revenue"
