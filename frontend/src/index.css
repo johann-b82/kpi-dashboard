@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "highlight.js/styles/github.css";
+
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -137,3 +140,16 @@
     @apply font-sans;
   }
 }
+
+/* Syntax highlighting dark mode */
+.dark pre code.hljs {
+  background: oklch(0.205 0 0);
+  color: #e6edf3;
+}
+.dark .hljs-keyword { color: #ff7b72; }
+.dark .hljs-string { color: #a5d6ff; }
+.dark .hljs-comment { color: #8b949e; }
+.dark .hljs-title { color: #d2a8ff; }
+.dark .hljs-number { color: #79c0ff; }
+.dark .hljs-built_in { color: #ffa657; }
+.dark .hljs-attr { color: #79c0ff; }
