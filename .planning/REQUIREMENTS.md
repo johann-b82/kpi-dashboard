@@ -19,13 +19,13 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 - [x] **RENDER-01**: User sees Markdown content rendered as styled prose with dark mode support
 - [x] **RENDER-02**: User sees syntax-highlighted code blocks in documentation
 - [x] **RENDER-03**: User sees clickable heading anchor links for deep linking within articles
-- [ ] **RENDER-04**: User sees an in-page table of contents generated from article headings
+- [x] **RENDER-04**: User sees an in-page table of contents generated from article headings
 
 ### User Guide
 
-- [ ] **UGUIDE-01**: User can read how to upload data files (CSV/TXT format, drag-drop, error handling)
-- [ ] **UGUIDE-02**: User can read how to use the Sales dashboard (KPI cards, charts, date filters, deltas)
-- [ ] **UGUIDE-03**: User can read how to use the HR dashboard (KPI cards, Personio sync status, deltas)
+- [x] **UGUIDE-01**: User can read how to upload data files (CSV/TXT format, drag-drop, error handling)
+- [x] **UGUIDE-02**: User can read how to use the Sales dashboard (KPI cards, charts, date filters, deltas)
+- [x] **UGUIDE-03**: User can read how to use the HR dashboard (KPI cards, Personio sync status, deltas)
 - [x] **UGUIDE-04**: User can read how to use filters, date ranges, and chart controls
 - [x] **UGUIDE-05**: User can read how to switch language and dark mode
 
@@ -73,10 +73,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RENDER-01 | Phase 33 | Complete |
 | RENDER-02 | Phase 33 | Complete |
 | RENDER-03 | Phase 33 | Complete |
-| RENDER-04 | Phase 33 | Pending |
-| UGUIDE-01 | Phase 35 | Pending |
-| UGUIDE-02 | Phase 35 | Pending |
-| UGUIDE-03 | Phase 35 | Pending |
+| RENDER-04 | Phase 33 | Complete |
+| UGUIDE-01 | Phase 35 | Complete |
+| UGUIDE-02 | Phase 35 | Complete |
+| UGUIDE-03 | Phase 35 | Complete |
 | UGUIDE-04 | Phase 35 | Complete |
 | UGUIDE-05 | Phase 35 | Complete |
 | AGUIDE-01 | Phase 36 | Complete |
