@@ -126,7 +126,11 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
   2. When data spans two or more years, a visual separator or grouping marker distinguishes year boundaries on the x-axis
   3. Selecting a date range that includes months with no uploaded data still shows those months on the x-axis (gap visible, label present)
   4. Existing chart features (bar/line toggle, prior-period overlay, delta badges) continue to work correctly with the new axis formatting
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md — TDD: shared chart time utilities (spine, merge, formatter, boundary detector)
+- [ ] 31-02-PLAN.md — Integrate utilities into RevenueChart and HrKpiCharts
 **UI hint**: yes
 
 ### Phase 32: Rebrand & Login CI
@@ -162,5 +166,5 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
 | 28 | v1.11-directus | 2/2 | Complete | 2026-04-15 |
 | 29 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 30 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
-| 31 | v1.12 | 0/0 | Not started | - |
+| 31 | v1.12 | 0/2 | Planning | - |
 | 32 | v1.12 | 0/0 | Not started | - |
