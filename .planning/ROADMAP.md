@@ -200,4 +200,4 @@ Plans:
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 35. User Guide Content | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 36. Admin Guide Content | v1.13 | 2/2 | Complete   | 2026-04-16 |
+| 36. Admin Guide Content | v1.13 | 2/2 | Complete    | 2026-04-16 |
