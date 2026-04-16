@@ -12,13 +12,13 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 - [ ] **NAV-01**: User can access documentation via a book icon in the navbar (left of upload icon)
 - [ ] **NAV-02**: User sees a role-filtered sidebar with doc sections (Admins see User + Admin guides, Viewers see User guide only)
 - [ ] **NAV-03**: User lands on a role-aware default article when navigating to /docs (Admin→admin intro, Viewer→user intro)
-- [ ] **NAV-04**: Docs page is lazy-loaded so it does not impact dashboard bundle size
+- [x] **NAV-04**: Docs page is lazy-loaded so it does not impact dashboard bundle size
 
 ### Content Rendering
 
-- [ ] **RENDER-01**: User sees Markdown content rendered as styled prose with dark mode support
-- [ ] **RENDER-02**: User sees syntax-highlighted code blocks in documentation
-- [ ] **RENDER-03**: User sees clickable heading anchor links for deep linking within articles
+- [x] **RENDER-01**: User sees Markdown content rendered as styled prose with dark mode support
+- [x] **RENDER-02**: User sees syntax-highlighted code blocks in documentation
+- [x] **RENDER-03**: User sees clickable heading anchor links for deep linking within articles
 - [ ] **RENDER-04**: User sees an in-page table of contents generated from article headings
 
 ### User Guide
@@ -69,10 +69,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-01 | Phase 34 | Pending |
 | NAV-02 | Phase 34 | Pending |
 | NAV-03 | Phase 34 | Pending |
-| NAV-04 | Phase 33 | Pending |
-| RENDER-01 | Phase 33 | Pending |
-| RENDER-02 | Phase 33 | Pending |
-| RENDER-03 | Phase 33 | Pending |
+| NAV-04 | Phase 33 | Complete |
+| RENDER-01 | Phase 33 | Complete |
+| RENDER-02 | Phase 33 | Complete |
+| RENDER-03 | Phase 33 | Complete |
 | RENDER-04 | Phase 33 | Pending |
 | UGUIDE-01 | Phase 35 | Pending |
 | UGUIDE-02 | Phase 35 | Pending |

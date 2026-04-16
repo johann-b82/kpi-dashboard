@@ -144,7 +144,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
   5. The docs route is lazy-loaded and does not increase the initial dashboard bundle
 **Plans**: 2 plans
 Plans:
-- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
 - [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 **UI hint**: yes
 
@@ -197,7 +197,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 33. Rendering Foundation | v1.13 | 0/TBD | Not started | - |
+| 33. Rendering Foundation | v1.13 | 1/2 | In Progress|  |
 | 34. Navigation Shell | v1.13 | 0/TBD | Not started | - |
 | 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
 | 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |
