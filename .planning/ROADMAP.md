@@ -175,8 +175,8 @@ Plans:
   5. User can read a complete article explaining how to switch language and dark mode
 **Plans**: 2 plans
 Plans:
-- [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
-- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
+- [ ] 35-01-PLAN.md — EN+DE articles: intro, uploading data, sales dashboard, HR dashboard
+- [ ] 35-02-PLAN.md — EN+DE articles: filters, language/theme + registry wiring
 
 ### Phase 36: Admin Guide Content
 **Goal**: Admins can read complete guidance on system setup, architecture, Personio integration, and user management; all documentation exists in both DE and EN
