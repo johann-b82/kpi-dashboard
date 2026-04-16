@@ -33,8 +33,8 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 
 - [x] **AGUIDE-01**: Admin can read system setup instructions (Docker Compose, environment variables, first start)
 - [x] **AGUIDE-02**: Admin can read architecture overview (services, data flow, tech stack)
-- [ ] **AGUIDE-03**: Admin can read Personio integration setup (credentials, sync config, absence/department mapping)
-- [ ] **AGUIDE-04**: Admin can read user management instructions (Directus roles, promoting users)
+- [x] **AGUIDE-03**: Admin can read Personio integration setup (credentials, sync config, absence/department mapping)
+- [x] **AGUIDE-04**: Admin can read user management instructions (Directus roles, promoting users)
 
 ### Internationalization
 
@@ -81,8 +81,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UGUIDE-05 | Phase 35 | Complete |
 | AGUIDE-01 | Phase 36 | Complete |
 | AGUIDE-02 | Phase 36 | Complete |
-| AGUIDE-03 | Phase 36 | Pending |
-| AGUIDE-04 | Phase 36 | Pending |
+| AGUIDE-03 | Phase 36 | Complete |
+| AGUIDE-04 | Phase 36 | Complete |
 | I18N-01 | Phase 36 | Complete |
 | I18N-02 | Phase 34 | Complete |
 

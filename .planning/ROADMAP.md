@@ -128,7 +128,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 - [x] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading (completed 2026-04-16)
 - [x] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome (completed 2026-04-16)
 - [x] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN (completed 2026-04-16)
-- [ ] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage
+- [x] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage (completed 2026-04-16)
 
 ## Phase Details
 
@@ -191,7 +191,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 36-01-PLAN.md — EN+DE system-setup, architecture, intro replacement + registry/i18n wiring
-- [ ] 36-02-PLAN.md — EN+DE personio, user-management + registry/i18n wiring
+- [x] 36-02-PLAN.md — EN+DE personio, user-management + registry/i18n wiring
 
 ## Progress
 
@@ -200,4 +200,4 @@ Plans:
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 35. User Guide Content | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 36. Admin Guide Content | v1.13 | 1/2 | In Progress|  |
+| 36. Admin Guide Content | v1.13 | 2/2 | Complete   | 2026-04-16 |
