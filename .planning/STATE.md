@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.12
 milestone_name: Chart Polish & Rebrand
-status: executing
-stopped_at: Completed 31-01-PLAN.md
-last_updated: "2026-04-16T07:16:46.568Z"
+status: verifying
+stopped_at: Completed 31-02-PLAN.md
+last_updated: "2026-04-16T07:19:48.985Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-15)
 
 Phase: 31 (chart-readability) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-16
 
 Progress: [          ] 0%  (0/2 phases)
@@ -66,6 +66,7 @@ Progress: [          ] 0%  (0/2 phases)
 
 ---
 | Phase 31 P01 | 300 | 1 tasks | 3 files |
+| Phase 31 P02 | 111 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Progress: [          ] 0%  (0/2 phases)
 - **Phase 32 (Rebrand):** Cosmetic rename "KPI Light" to "KPI Dashboard" across all surfaces + login page CI alignment (logo + card styling). No package/repo rename.
 - **Coverage:** 6/6 REQs mapped, no orphans, no duplicates.
 - [Phase 31]: mergeIntoSpine uses YYYY-MM slice key in Map to match dates regardless of day component
+- [Phase 31]: RevenueChart uses startDate/endDate props for spine when available, falls back to data bounds
+- [Phase 31]: HR ReferenceLine x= uses YYYY-MM slice to match dataKey=month format
 
 ### Pending Todos
 
@@ -94,8 +97,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-16T07:16:46.566Z
-**Stopped at:** Completed 31-01-PLAN.md
+**Last session:** 2026-04-16T07:19:48.983Z
+**Stopped at:** Completed 31-02-PLAN.md
 **Resume file:** None
 
 ---
