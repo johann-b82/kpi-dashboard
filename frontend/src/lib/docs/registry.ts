@@ -6,6 +6,10 @@ import enSystemSetup from "../../docs/en/admin-guide/system-setup.md?raw";
 import deSystemSetup from "../../docs/de/admin-guide/system-setup.md?raw";
 import enArchitecture from "../../docs/en/admin-guide/architecture.md?raw";
 import deArchitecture from "../../docs/de/admin-guide/architecture.md?raw";
+import enPersonio from "../../docs/en/admin-guide/personio.md?raw";
+import dePersonio from "../../docs/de/admin-guide/personio.md?raw";
+import enUserManagement from "../../docs/en/admin-guide/user-management.md?raw";
+import deUserManagement from "../../docs/de/admin-guide/user-management.md?raw";
 import enUploadingData from "../../docs/en/user-guide/uploading-data.md?raw";
 import deUploadingData from "../../docs/de/user-guide/uploading-data.md?raw";
 import enSalesDashboard from "../../docs/en/user-guide/sales-dashboard.md?raw";
@@ -34,6 +38,8 @@ export const sections: Record<SectionId, ArticleEntry[]> = {
     { slug: "intro", titleKey: "docs.nav.adminGuideIntro" },
     { slug: "system-setup", titleKey: "docs.nav.adminSystemSetup" },
     { slug: "architecture", titleKey: "docs.nav.adminArchitecture" },
+    { slug: "personio", titleKey: "docs.nav.adminPersonio" },
+    { slug: "user-management", titleKey: "docs.nav.adminUserManagement" },
   ],
 };
 
@@ -52,6 +58,8 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       intro: enAdminIntro,
       "system-setup": enSystemSetup,
       architecture: enArchitecture,
+      personio: enPersonio,
+      "user-management": enUserManagement,
     },
   },
   de: {
@@ -67,6 +75,8 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       intro: deAdminIntro,
       "system-setup": deSystemSetup,
       architecture: deArchitecture,
+      personio: dePersonio,
+      "user-management": deUserManagement,
     },
   },
 };

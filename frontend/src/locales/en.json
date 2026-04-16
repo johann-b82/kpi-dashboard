@@ -222,7 +222,9 @@
       "filters": "Filters & Date Ranges",
       "languageAndTheme": "Language & Dark Mode",
       "adminSystemSetup": "System Setup",
-      "adminArchitecture": "Architecture"
+      "adminArchitecture": "Architecture",
+      "adminPersonio": "Personio Integration",
+      "adminUserManagement": "User Management"
     }
   }
 }
