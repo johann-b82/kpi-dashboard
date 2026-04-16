@@ -1,23 +1,23 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.12
-milestone_name: Chart Polish & Rebrand
-status: complete
-stopped_at: Milestone archived
-last_updated: "2026-04-16T10:42:00.000Z"
+milestone: v1.13
+milestone_name: In-App Documentation
+status: active
+stopped_at: Defining requirements
+last_updated: "2026-04-16T12:00:00.000Z"
 last_activity: 2026-04-16
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-16
-**Session:** v1.12 Chart Polish & Rebrand — milestone complete
+**Session:** v1.13 In-App Documentation — defining requirements
 
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-16)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Planning next milestone
+**Current focus:** v1.13 In-App Documentation
 
 ---
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Milestone v1.12 shipped — ready for next milestone
-Last activity: 2026-04-16
+Status: Defining requirements
+Last activity: 2026-04-16 — Milestone v1.13 started
 
-Progress: [##########] 100%  (2/2 phases)
+Progress: [..........] 0%
 
 ---
 

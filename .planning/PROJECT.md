@@ -8,6 +8,18 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.13 In-App Documentation
+
+**Goal:** Role-aware in-app documentation site with admin (setup/architecture) and user (usage) content, accessible via a header icon.
+
+**Target features:**
+- Documentation icon in navbar (left of upload icon) linking to docs
+- Admin documentation: system setup, architecture, Docker config, Personio setup, user management
+- User documentation: uploading files, reading Sales/HR dashboards, filters, dark mode
+- Role-based visibility: Admins see both admin + user docs, Viewers see only user docs
+- Markdown-authored content rendered in-app (bundled with frontend, no external CMS)
+- Bilingual DE/EN support consistent with existing i18n
+
 ## Current State
 
 **Shipped:** v1.12 Chart Polish & Rebrand — 2026-04-16
@@ -231,4 +243,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-16 after v1.12 milestone*
+*Last updated: 2026-04-16 after v1.13 milestone start*
