@@ -142,7 +142,10 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
   3. Each section heading shows a clickable anchor link that updates the URL and enables deep linking
   4. An in-page table of contents is generated from article headings and links to each section
   5. The docs route is lazy-loaded and does not increase the initial dashboard bundle
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 **UI hint**: yes
 
 ### Phase 34: Navigation Shell
@@ -154,7 +157,10 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
   2. Admin users see both User Guide and Admin Guide sections in the sidebar; Viewer users see only the User Guide section
   3. Navigating to /docs as an Admin lands on the admin intro article; as a Viewer it lands on the user intro article
   4. All sidebar labels, section titles, and navigation elements display correctly in both DE and EN
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 **UI hint**: yes
 
 ### Phase 35: User Guide Content
@@ -167,7 +173,10 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
   3. User can read a complete article explaining the HR dashboard (KPI cards, Personio sync status, delta badges)
   4. User can read a complete article covering filters, date range presets, and chart type controls
   5. User can read a complete article explaining how to switch language and dark mode
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 
 ### Phase 36: Admin Guide Content
 **Goal**: Admins can read complete guidance on system setup, architecture, Personio integration, and user management; all documentation exists in both DE and EN
@@ -179,7 +188,10 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
   3. Admin can read a complete Personio integration article (credentials, sync config, absence/department mapping)
   4. Admin can read a complete user management article (Directus roles, promoting users)
   5. Every article in both User Guide and Admin Guide exists in DE and EN, consistent with the app's current language setting
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 
 ## Progress
 
