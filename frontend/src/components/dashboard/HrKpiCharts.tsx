@@ -25,6 +25,7 @@ import {
   tooltipStyle,
 } from "@/lib/chartDefaults";
 import { fetchHrKpiHistory } from "@/lib/api";
+import { formatMonthYear, yearBoundaryDates } from "@/lib/chartTimeUtils";
 
 const CHART_HEIGHT = 220;
 
@@ -50,10 +51,9 @@ interface MiniChartProps {
 function MiniChart({ title, data, formatValue, locale, chartType, target, targetLabel }: MiniChartProps) {
   const hasTarget = target != null;
 
-  const formatMonth = (m: string) => {
-    const d = new Date(m + "-01");
-    return new Intl.DateTimeFormat(locale, { month: "short" }).format(d);
-  };
+  const formatMonth = (m: string) => formatMonthYear(m + "-01", locale);
+
+  const boundaries = yearBoundaryDates(data.map(d => d.month + "-01"));
 
   const commonXAxis = (
     <XAxis
@@ -112,6 +112,21 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
               formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
             />
             {targetLine}
+            {boundaries.map(d => (
+              <ReferenceLine
+                key={`yr-${d}`}
+                x={d.slice(0, 7)}
+                stroke="var(--color-border)"
+                strokeDasharray="4 2"
+                strokeWidth={1}
+                label={{
+                  value: d.slice(0, 4),
+                  position: "insideTopLeft",
+                  fontSize: 10,
+                  fill: "var(--color-muted-foreground)",
+                }}
+              />
+            ))}
             <Area
               type="monotone"
               dataKey="value"
@@ -136,6 +151,21 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
               formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
             />
             {targetLine}
+            {boundaries.map(d => (
+              <ReferenceLine
+                key={`yr-${d}`}
+                x={d.slice(0, 7)}
+                stroke="var(--color-border)"
+                strokeDasharray="4 2"
+                strokeWidth={1}
+                label={{
+                  value: d.slice(0, 4),
+                  position: "insideTopLeft",
+                  fontSize: 10,
+                  fill: "var(--color-muted-foreground)",
+                }}
+              />
+            ))}
             <Bar dataKey="value" fill="var(--color-chart-current)" />
           </BarChart>
         )}
