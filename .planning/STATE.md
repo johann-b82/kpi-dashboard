@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: In-App Documentation
 status: active
-stopped_at: Defining requirements
+stopped_at: Roadmap created — ready to plan Phase 33
 last_updated: "2026-04-16T12:00:00.000Z"
 last_activity: 2026-04-16
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,7 +17,7 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-16
-**Session:** v1.13 In-App Documentation — defining requirements
+**Session:** v1.13 In-App Documentation — roadmap created
 
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-16)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.13 In-App Documentation
+**Current focus:** v1.13 In-App Documentation — Phase 33: Rendering Foundation
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 33 of 36 (Rendering Foundation)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-16 — Milestone v1.13 started
+Status: Ready to plan
+Last activity: 2026-04-16 — Roadmap created, 19/19 requirements mapped
 
 Progress: [..........] 0%
 
@@ -44,68 +44,47 @@ Progress: [..........] 0%
 
 ## Performance Metrics
 
-**Velocity (v1.11-directus):**
+**Velocity (v1.12):**
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
-| Phase 26 P01 | 3min | 2 tasks | 2 files |
-| Phase 26 P02 | 2min | 2 tasks | 2 files |
-| Phase 26 P03 | 15min | 3 tasks | 0 files |
-| Phase 27 P01 | 321s | 3 tasks | 7 files |
-| Phase 27 P02 | 6min | 3 tasks | 8 files |
-| Phase 28 P01 | 5min | 2 tasks | 4 files |
-| Phase 28 P02 | 10min | 2 tasks | 2 files |
-| Phase 29 P01 | 5min | 2 tasks | 4 files |
-| Phase 29 P02 | 8min | 2 tasks | 8 files |
-| Phase 29 P03 | 10min | 3 tasks | 8 files |
-| Phase 30 P01 | 9min | 3 tasks | 5 files |
-| Phase 30 P02 | 3min | 1 tasks | 1 files |
-| Phase 30 P03 | 2min | 1 tasks | 1 files |
+| Phase 31 P01 | 300s | 1 task | 3 files |
+| Phase 31 P02 | 111s | 2 tasks | 2 files |
+| Phase 32 P01 | — | — | — |
+| Phase 32 P02 | — | — | — |
 
 *Updated after each plan completion*
 
 ---
-| Phase 31 P01 | 300 | 1 tasks | 3 files |
-| Phase 31 P02 | 111 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-- **v1.12 scope:** 2 phases (31–32), independent — no dependency between them
-- **Phase 31 (Charts):** Year labels on x-axes, year grouping separators, gap-filled month series. Touches Recharts tick formatters and chart data utilities on both Sales and HR dashboards.
-- **Phase 32 (Rebrand):** Cosmetic rename "KPI Light" to "KPI Dashboard" across all surfaces + login page CI alignment (logo + card styling). No package/repo rename.
-- **Coverage:** 6/6 REQs mapped, no orphans, no duplicates.
-- [Phase 31]: mergeIntoSpine uses YYYY-MM slice key in Map to match dates regardless of day component
-- [Phase 31]: RevenueChart uses startDate/endDate props for spine when available, falls back to data bounds
-- [Phase 31]: HR ReferenceLine x= uses YYYY-MM slice to match dataKey=month format
+- **v1.13 scope:** 4 phases (33–36), sequential dependency chain
+- **Phase 33 (Rendering):** Markdown pipeline + dark mode prose + syntax highlight + TOC + anchor links + lazy loading. No content yet — infrastructure only.
+- **Phase 34 (Navigation):** Navbar icon, role-gated sidebar, role-aware default route, i18n chrome. Depends on Phase 33 rendering primitives.
+- **Phase 35 (User Guide):** 5 articles × 2 languages. Content authoring phase; depends on Phase 34 navigation shell.
+- **Phase 36 (Admin Guide):** 4 articles × 2 languages. Closes I18N-01 (full bilingual coverage). Depends on Phase 35.
+- **Coverage:** 19/19 REQs mapped, no orphans, no duplicates.
 
 ### Pending Todos
 
-- Plan Phase 31 via `/gsd:plan-phase 31`
+- Plan Phase 33 via `/gsd:plan-phase 33`
 
 ### Open Blockers
 
 None.
 
-### Carry-forward Tech Debt (from v1.0/v1.2)
+### Carry-forward Tech Debt
 
 - Phase 2 human-UAT: 5 visual items (drag-drop spinner, toast, inline error list) — non-blocking
-- DASH-02 monthly-only: granularity toggle removed by user request; backend still supports daily/weekly/monthly
+- DASH-02 monthly-only: granularity toggle removed by user request
 
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-04-16T07:32:35.787Z
-**Stopped at:** Phase 32 context gathered
-**Resume file:** .planning/phases/32-rebrand-login-ci/32-CONTEXT.md
-
----
-
-## Milestone v1.12 Context
-
-- **Scope:** Polish milestone — no new features, no schema changes, no backend API changes expected
-- **Charts (Phase 31):** Recharts tick formatting uses `Intl.DateTimeFormat` for locale-aware month names. Need to add year suffix and handle gap-filling in the data layer before it reaches Recharts.
-- **Rebrand (Phase 32):** "KPI Light" appears in i18n files, settings default, document.title, navbar. Logo already uploadable via `/api/settings/logo`. Login page is a shadcn card — restyle to match Settings card aesthetic.
-- **Independence:** Phases 31 and 32 have no dependency on each other — can be executed in either order.
+**Last session:** 2026-04-16
+**Stopped at:** Roadmap written — v1.13 Phases 33–36 defined
+**Resume file:** None

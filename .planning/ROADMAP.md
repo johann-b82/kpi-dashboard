@@ -13,6 +13,7 @@
 - ✅ **v1.10 UI Consistency Pass** — Phases 24–25 (shipped 2026-04-14)
 - ✅ **v1.11-directus Directus Pivot** — Phases 26–30 (shipped 2026-04-15) — [archive](milestones/v1.11-directus-ROADMAP.md)
 - ✅ **v1.12 Chart Polish & Rebrand** — Phases 31–32 (shipped 2026-04-16) — [archive](milestones/v1.12-ROADMAP.md)
+- 🚧 **v1.13 In-App Documentation** — Phases 33–36 (in progress)
 
 ## Phases
 
@@ -119,3 +120,72 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
 Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 
 </details>
+
+### 🚧 v1.13 In-App Documentation (In Progress)
+
+**Milestone Goal:** Role-aware in-app documentation site with admin and user guide content, accessible via a header icon, bilingual DE/EN, with Markdown rendering, syntax highlighting, heading anchors, and a generated table of contents.
+
+- [ ] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading
+- [ ] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome
+- [ ] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN
+- [ ] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage
+
+## Phase Details
+
+### Phase 33: Rendering Foundation
+**Goal**: The docs page infrastructure is in place — Markdown content renders as polished, dark-mode-aware prose with syntax-highlighted code, clickable heading anchors, and a generated table of contents; the docs route is lazy-loaded
+**Depends on**: Phase 32
+**Requirements**: NAV-04, RENDER-01, RENDER-02, RENDER-03, RENDER-04
+**Success Criteria** (what must be TRUE):
+  1. Markdown content renders as styled prose that adapts correctly between light and dark mode
+  2. Code blocks inside articles display syntax-highlighted output
+  3. Each section heading shows a clickable anchor link that updates the URL and enables deep linking
+  4. An in-page table of contents is generated from article headings and links to each section
+  5. The docs route is lazy-loaded and does not increase the initial dashboard bundle
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 34: Navigation Shell
+**Goal**: Users can reach the docs from the navbar, see a role-filtered sidebar, and land on the appropriate default article; all UI chrome is bilingual
+**Depends on**: Phase 33
+**Requirements**: NAV-01, NAV-02, NAV-03, I18N-02
+**Success Criteria** (what must be TRUE):
+  1. A book icon appears in the navbar (left of the upload icon) and navigates to /docs
+  2. Admin users see both User Guide and Admin Guide sections in the sidebar; Viewer users see only the User Guide section
+  3. Navigating to /docs as an Admin lands on the admin intro article; as a Viewer it lands on the user intro article
+  4. All sidebar labels, section titles, and navigation elements display correctly in both DE and EN
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 35: User Guide Content
+**Goal**: Users can read complete, accurate guidance on every user-facing feature of the app
+**Depends on**: Phase 34
+**Requirements**: UGUIDE-01, UGUIDE-02, UGUIDE-03, UGUIDE-04, UGUIDE-05
+**Success Criteria** (what must be TRUE):
+  1. User can read a complete article explaining how to upload data files (CSV/TXT format, drag-drop, error handling)
+  2. User can read a complete article explaining the Sales dashboard (KPI cards, charts, date filters, delta badges)
+  3. User can read a complete article explaining the HR dashboard (KPI cards, Personio sync status, delta badges)
+  4. User can read a complete article covering filters, date range presets, and chart type controls
+  5. User can read a complete article explaining how to switch language and dark mode
+**Plans**: TBD
+
+### Phase 36: Admin Guide Content
+**Goal**: Admins can read complete guidance on system setup, architecture, Personio integration, and user management; all documentation exists in both DE and EN
+**Depends on**: Phase 35
+**Requirements**: AGUIDE-01, AGUIDE-02, AGUIDE-03, AGUIDE-04, I18N-01
+**Success Criteria** (what must be TRUE):
+  1. Admin can read a complete system setup article (Docker Compose bring-up, environment variables, first start)
+  2. Admin can read a complete architecture overview article (services, data flow, tech stack)
+  3. Admin can read a complete Personio integration article (credentials, sync config, absence/department mapping)
+  4. Admin can read a complete user management article (Directus roles, promoting users)
+  5. Every article in both User Guide and Admin Guide exists in DE and EN, consistent with the app's current language setting
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 33. Rendering Foundation | v1.13 | 0/TBD | Not started | - |
+| 34. Navigation Shell | v1.13 | 0/TBD | Not started | - |
+| 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
+| 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |

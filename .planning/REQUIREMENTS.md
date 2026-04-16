@@ -66,31 +66,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| RENDER-01 | — | Pending |
-| RENDER-02 | — | Pending |
-| RENDER-03 | — | Pending |
-| RENDER-04 | — | Pending |
-| UGUIDE-01 | — | Pending |
-| UGUIDE-02 | — | Pending |
-| UGUIDE-03 | — | Pending |
-| UGUIDE-04 | — | Pending |
-| UGUIDE-05 | — | Pending |
-| AGUIDE-01 | — | Pending |
-| AGUIDE-02 | — | Pending |
-| AGUIDE-03 | — | Pending |
-| AGUIDE-04 | — | Pending |
-| I18N-01 | — | Pending |
-| I18N-02 | — | Pending |
+| NAV-01 | Phase 34 | Pending |
+| NAV-02 | Phase 34 | Pending |
+| NAV-03 | Phase 34 | Pending |
+| NAV-04 | Phase 33 | Pending |
+| RENDER-01 | Phase 33 | Pending |
+| RENDER-02 | Phase 33 | Pending |
+| RENDER-03 | Phase 33 | Pending |
+| RENDER-04 | Phase 33 | Pending |
+| UGUIDE-01 | Phase 35 | Pending |
+| UGUIDE-02 | Phase 35 | Pending |
+| UGUIDE-03 | Phase 35 | Pending |
+| UGUIDE-04 | Phase 35 | Pending |
+| UGUIDE-05 | Phase 35 | Pending |
+| AGUIDE-01 | Phase 36 | Pending |
+| AGUIDE-02 | Phase 36 | Pending |
+| AGUIDE-03 | Phase 36 | Pending |
+| AGUIDE-04 | Phase 36 | Pending |
+| I18N-01 | Phase 36 | Pending |
+| I18N-02 | Phase 34 | Pending |
 
 **Coverage:**
 - v1.13 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-16 after initial definition*
+*Last updated: 2026-04-16 after roadmap creation*
