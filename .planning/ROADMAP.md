@@ -159,8 +159,8 @@ Plans:
   4. All sidebar labels, section titles, and navigation elements display correctly in both DE and EN
 **Plans**: 2 plans
 Plans:
-- [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
-- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
+- [ ] 34-01-PLAN.md — Stub articles, registry, DocsSidebar, i18n keys
+- [ ] 34-02-PLAN.md — NavBar icon, DocsPage routing, role guards
 **UI hint**: yes
 
 ### Phase 35: User Guide Content
