@@ -125,7 +125,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 
 **Milestone Goal:** Role-aware in-app documentation site with admin and user guide content, accessible via a header icon, bilingual DE/EN, with Markdown rendering, syntax highlighting, heading anchors, and a generated table of contents.
 
-- [ ] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading
+- [x] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading (completed 2026-04-16)
 - [ ] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome
 - [ ] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN
 - [ ] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage
@@ -145,7 +145,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 **Plans**: 2 plans
 Plans:
 - [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
-- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
+- [x] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 **UI hint**: yes
 
 ### Phase 34: Navigation Shell
@@ -175,7 +175,7 @@ Plans:
   5. User can read a complete article explaining how to switch language and dark mode
 **Plans**: 2 plans
 Plans:
-- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
 - [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 
 ### Phase 36: Admin Guide Content
@@ -197,7 +197,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 33. Rendering Foundation | v1.13 | 1/2 | In Progress|  |
+| 33. Rendering Foundation | v1.13 | 2/2 | Complete   | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 0/TBD | Not started | - |
 | 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
 | 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |
