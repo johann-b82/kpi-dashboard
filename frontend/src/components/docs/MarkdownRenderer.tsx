@@ -31,16 +31,17 @@ function HeadingWithAnchor({ level, id, children, node: _node, ...props }: Headi
 
 export function MarkdownRenderer({ content }: Props) {
   return (
-    <ReactMarkdown
-      className="prose dark:prose-invert max-w-none"
-      remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeSlug, [rehypeHighlight, { detect: true }]]}
-      components={{
-        h2: ({ node, ...props }) => <HeadingWithAnchor level={2} {...props} />,
-        h3: ({ node, ...props }) => <HeadingWithAnchor level={3} {...props} />,
-      }}
-    >
-      {content}
-    </ReactMarkdown>
+    <div className="prose dark:prose-invert max-w-none">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeSlug, [rehypeHighlight, { detect: true }]]}
+        components={{
+          h2: ({ node, ...props }) => <HeadingWithAnchor level={2} {...props} />,
+          h3: ({ node, ...props }) => <HeadingWithAnchor level={3} {...props} />,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   );
 }
