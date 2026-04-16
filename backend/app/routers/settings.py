@@ -26,6 +26,8 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
 )
 
+public_router = APIRouter(prefix="/api/settings", tags=["settings"])
+
 ALLOWED_LOGO_EXTENSIONS = {".png", ".svg"}
 MAX_LOGO_BYTES = 1 * 1024 * 1024  # 1 MB — D-16
 
@@ -304,5 +306,26 @@ async def get_logo(
         headers={
             "ETag": etag,
             "Cache-Control": "public, max-age=31536000",  # ?v= query param busts it
+        },
+    )
+
+
+@public_router.get("/logo/public")
+async def get_logo_public(
+    request: Request,
+    db: AsyncSession = Depends(get_async_db_session),
+) -> Response:
+    row = await _get_singleton(db)
+    if row.logo_data is None or row.logo_updated_at is None:
+        raise HTTPException(status_code=404, detail="No logo set")
+    etag = _etag_for(row)
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+    return Response(
+        content=row.logo_data,
+        media_type=row.logo_mime or "application/octet-stream",
+        headers={
+            "ETag": etag,
+            "Cache-Control": "public, max-age=300",
         },
     )
