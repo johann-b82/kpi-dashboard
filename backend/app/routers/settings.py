@@ -50,7 +50,7 @@ def _build_read(row: AppSettings) -> SettingsRead:
     logo_url: str | None = None
     if row.logo_data is not None and row.logo_updated_at is not None:
         ts = int(row.logo_updated_at.timestamp())
-        logo_url = f"/api/settings/logo?v={ts}"
+        logo_url = f"/api/settings/logo/public?v={ts}"
     personio_has_credentials = (
         row.personio_client_id_enc is not None
         and row.personio_client_secret_enc is not None
