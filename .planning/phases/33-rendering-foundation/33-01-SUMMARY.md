@@ -44,8 +44,8 @@ Installed react-markdown + rehype/remark plugin pipeline with syntax highlightin
 
 | Task | Name | Commit | Files |
 |------|------|--------|-------|
-| 1 | Install packages, configure typography, add raw type declaration | d27b439 | package.json, index.css, vite-env.d.ts |
-| 2 | Create MarkdownRenderer, TOC utility, stub content, DocsPage, lazy route | a43f2e4 | MarkdownRenderer.tsx, toc.ts, DocsPage.tsx, getting-started.md (x2), App.tsx, locales |
+| 1 | Install packages, configure typography, add raw type declaration | f39e804 | package.json, index.css, vite-env.d.ts |
+| 2 | Create MarkdownRenderer, TOC utility, stub content, DocsPage, lazy route | 6bc6c27 | MarkdownRenderer.tsx, toc.ts, DocsPage.tsx, getting-started.md (x2), App.tsx, locales |
 
 ## Deviations from Plan
 
@@ -55,13 +55,13 @@ Installed react-markdown + rehype/remark plugin pipeline with syntax highlightin
 - **Found during:** Task 2 — toc.ts imports `remark` directly but it was not in the plan's install list
 - **Fix:** Added `remark@15.0.1` to the npm install command
 - **Files modified:** frontend/package.json
-- **Commit:** d27b439
+- **Commit:** f39e804
 
 **2. [Rule 1 - Bug] Nested `@import` inside `.dark {}` block not supported by Vite**
 - **Found during:** Task 1 — plan noted to test nested @import for dark hljs theme
 - **Fix:** Used manual `.dark .hljs-*` token overrides as prescribed by the plan's fallback path
 - **Files modified:** frontend/src/index.css
-- **Commit:** d27b439
+- **Commit:** f39e804
 
 ## Known Stubs
 
@@ -81,6 +81,6 @@ These stubs do not prevent the plan's goal — the /docs route renders correctly
 - frontend/src/docs/en/getting-started.md: EXISTS
 - frontend/src/docs/de/getting-started.md: EXISTS
 - frontend/src/vite-env.d.ts: EXISTS
-- Commits d27b439 and a43f2e4: VERIFIED (git log)
+- Commits f39e804 and 6bc6c27: VERIFIED (git log)
 - `npx tsc --noEmit`: PASSED (0 errors)
 - `npx vite build`: PASSED (DocsPage in separate chunk DocsPage-D7dWMR5p.js)

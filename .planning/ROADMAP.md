@@ -159,7 +159,7 @@ Plans:
   4. All sidebar labels, section titles, and navigation elements display correctly in both DE and EN
 **Plans**: 2 plans
 Plans:
-- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
+- [x] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
 - [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
 **UI hint**: yes
 
