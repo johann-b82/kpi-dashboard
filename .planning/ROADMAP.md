@@ -126,7 +126,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 **Milestone Goal:** Role-aware in-app documentation site with admin and user guide content, accessible via a header icon, bilingual DE/EN, with Markdown rendering, syntax highlighting, heading anchors, and a generated table of contents.
 
 - [x] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading (completed 2026-04-16)
-- [ ] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome
+- [x] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome (completed 2026-04-16)
 - [ ] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN
 - [ ] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage
 
@@ -160,7 +160,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 34-01-PLAN.md — Stub articles, registry, DocsSidebar, i18n keys
-- [ ] 34-02-PLAN.md — NavBar icon, DocsPage routing, role guards
+- [x] 34-02-PLAN.md — NavBar icon, DocsPage routing, role guards
 **UI hint**: yes
 
 ### Phase 35: User Guide Content
@@ -198,6 +198,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 34. Navigation Shell | v1.13 | 1/2 | In Progress|  |
+| 34. Navigation Shell | v1.13 | 2/2 | Complete   | 2026-04-16 |
 | 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
 | 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |

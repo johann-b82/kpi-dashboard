@@ -9,9 +9,9 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 
 ### Navigation & Infrastructure
 
-- [ ] **NAV-01**: User can access documentation via a book icon in the navbar (left of upload icon)
+- [x] **NAV-01**: User can access documentation via a book icon in the navbar (left of upload icon)
 - [x] **NAV-02**: User sees a role-filtered sidebar with doc sections (Admins see User + Admin guides, Viewers see User guide only)
-- [ ] **NAV-03**: User lands on a role-aware default article when navigating to /docs (Admin→admin intro, Viewer→user intro)
+- [x] **NAV-03**: User lands on a role-aware default article when navigating to /docs (Admin→admin intro, Viewer→user intro)
 - [x] **NAV-04**: Docs page is lazy-loaded so it does not impact dashboard bundle size
 
 ### Content Rendering
@@ -66,9 +66,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | Phase 34 | Pending |
+| NAV-01 | Phase 34 | Complete |
 | NAV-02 | Phase 34 | Complete |
-| NAV-03 | Phase 34 | Pending |
+| NAV-03 | Phase 34 | Complete |
 | NAV-04 | Phase 33 | Complete |
 | RENDER-01 | Phase 33 | Complete |
 | RENDER-02 | Phase 33 | Complete |
