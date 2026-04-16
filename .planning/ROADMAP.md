@@ -121,7 +121,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 
 </details>
 
-### 🚧 v1.13 In-App Documentation (In Progress)
+### v1.13 In-App Documentation (In Progress)
 
 **Milestone Goal:** Role-aware in-app documentation site with admin and user guide content, accessible via a header icon, bilingual DE/EN, with Markdown rendering, syntax highlighting, heading anchors, and a generated table of contents.
 
@@ -190,8 +190,8 @@ Plans:
   5. Every article in both User Guide and Admin Guide exists in DE and EN, consistent with the app's current language setting
 **Plans**: 2 plans
 Plans:
-- [ ] 33-01-PLAN.md — Markdown pipeline, syntax highlighting, heading anchors, lazy route
-- [ ] 33-02-PLAN.md — TOC sidebar with Intersection Observer active tracking
+- [ ] 36-01-PLAN.md — EN+DE system-setup, architecture, intro replacement + registry/i18n wiring
+- [ ] 36-02-PLAN.md — EN+DE personio, user-management + registry/i18n wiring
 
 ## Progress
 
@@ -200,4 +200,4 @@ Plans:
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 35. User Guide Content | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |
+| 36. Admin Guide Content | v1.13 | 0/2 | Not started | - |
