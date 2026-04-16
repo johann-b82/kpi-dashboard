@@ -166,5 +166,5 @@ Plans:
 | 28 | v1.11-directus | 2/2 | Complete | 2026-04-15 |
 | 29 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 30 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
-| 31 | v1.12 | 2/2 | Complete   | 2026-04-16 |
+| 31 | v1.12 | 2/2 | Complete    | 2026-04-16 |
 | 32 | v1.12 | 0/0 | Not started | - |
