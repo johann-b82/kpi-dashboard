@@ -31,14 +31,14 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 
 ### Admin Guide
 
-- [ ] **AGUIDE-01**: Admin can read system setup instructions (Docker Compose, environment variables, first start)
-- [ ] **AGUIDE-02**: Admin can read architecture overview (services, data flow, tech stack)
+- [x] **AGUIDE-01**: Admin can read system setup instructions (Docker Compose, environment variables, first start)
+- [x] **AGUIDE-02**: Admin can read architecture overview (services, data flow, tech stack)
 - [ ] **AGUIDE-03**: Admin can read Personio integration setup (credentials, sync config, absence/department mapping)
 - [ ] **AGUIDE-04**: Admin can read user management instructions (Directus roles, promoting users)
 
 ### Internationalization
 
-- [ ] **I18N-01**: All documentation content exists in both DE and EN, consistent with the app's current language
+- [x] **I18N-01**: All documentation content exists in both DE and EN, consistent with the app's current language
 - [x] **I18N-02**: All UI chrome (sidebar labels, section titles, nav elements) has DE/EN i18n keys
 
 ## Future Requirements
@@ -79,11 +79,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UGUIDE-03 | Phase 35 | Pending |
 | UGUIDE-04 | Phase 35 | Complete |
 | UGUIDE-05 | Phase 35 | Complete |
-| AGUIDE-01 | Phase 36 | Pending |
-| AGUIDE-02 | Phase 36 | Pending |
+| AGUIDE-01 | Phase 36 | Complete |
+| AGUIDE-02 | Phase 36 | Complete |
 | AGUIDE-03 | Phase 36 | Pending |
 | AGUIDE-04 | Phase 36 | Pending |
-| I18N-01 | Phase 36 | Pending |
+| I18N-01 | Phase 36 | Complete |
 | I18N-02 | Phase 34 | Complete |
 
 **Coverage:**

@@ -190,7 +190,7 @@ Plans:
   5. Every article in both User Guide and Admin Guide exists in DE and EN, consistent with the app's current language setting
 **Plans**: 2 plans
 Plans:
-- [ ] 36-01-PLAN.md — EN+DE system-setup, architecture, intro replacement + registry/i18n wiring
+- [x] 36-01-PLAN.md — EN+DE system-setup, architecture, intro replacement + registry/i18n wiring
 - [ ] 36-02-PLAN.md — EN+DE personio, user-management + registry/i18n wiring
 
 ## Progress
@@ -200,4 +200,4 @@ Plans:
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 35. User Guide Content | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 36. Admin Guide Content | v1.13 | 0/2 | Not started | - |
+| 36. Admin Guide Content | v1.13 | 1/2 | In Progress|  |
