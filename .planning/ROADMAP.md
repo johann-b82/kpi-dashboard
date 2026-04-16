@@ -113,7 +113,7 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
 ### v1.12 Chart Polish & Rebrand (Phases 31–32)
 
 - [x] **Phase 31: Chart Readability** — Year-aware x-axis labels, year grouping, and gap-filled time series across all charts (completed 2026-04-16)
-- [ ] **Phase 32: Rebrand & Login CI** — Rename app to "KPI Dashboard" everywhere and align login page with app card aesthetic
+- [x] **Phase 32: Rebrand & Login CI** — Rename app to "KPI Dashboard" everywhere and align login page with app card aesthetic (completed 2026-04-16)
 
 ## Phase Details
 
@@ -171,4 +171,4 @@ Plans:
 | 29 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 30 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 31 | v1.12 | 2/2 | Complete    | 2026-04-16 |
-| 32 | v1.12 | 0/2 | Not started | - |
+| 32 | v1.12 | 0/2 | Complete    | 2026-04-16 |
