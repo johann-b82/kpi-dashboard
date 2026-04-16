@@ -159,7 +159,7 @@ Plans:
   4. All sidebar labels, section titles, and navigation elements display correctly in both DE and EN
 **Plans**: 2 plans
 Plans:
-- [ ] 34-01-PLAN.md — Stub articles, registry, DocsSidebar, i18n keys
+- [x] 34-01-PLAN.md — Stub articles, registry, DocsSidebar, i18n keys
 - [ ] 34-02-PLAN.md — NavBar icon, DocsPage routing, role guards
 **UI hint**: yes
 
@@ -198,6 +198,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 34. Navigation Shell | v1.13 | 0/TBD | Not started | - |
+| 34. Navigation Shell | v1.13 | 1/2 | In Progress|  |
 | 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
 | 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |

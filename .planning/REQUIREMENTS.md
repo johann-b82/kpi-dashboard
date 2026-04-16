@@ -10,7 +10,7 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 ### Navigation & Infrastructure
 
 - [ ] **NAV-01**: User can access documentation via a book icon in the navbar (left of upload icon)
-- [ ] **NAV-02**: User sees a role-filtered sidebar with doc sections (Admins see User + Admin guides, Viewers see User guide only)
+- [x] **NAV-02**: User sees a role-filtered sidebar with doc sections (Admins see User + Admin guides, Viewers see User guide only)
 - [ ] **NAV-03**: User lands on a role-aware default article when navigating to /docs (Admin→admin intro, Viewer→user intro)
 - [x] **NAV-04**: Docs page is lazy-loaded so it does not impact dashboard bundle size
 
@@ -39,7 +39,7 @@ Requirements for in-app documentation milestone. Each maps to roadmap phases.
 ### Internationalization
 
 - [ ] **I18N-01**: All documentation content exists in both DE and EN, consistent with the app's current language
-- [ ] **I18N-02**: All UI chrome (sidebar labels, section titles, nav elements) has DE/EN i18n keys
+- [x] **I18N-02**: All UI chrome (sidebar labels, section titles, nav elements) has DE/EN i18n keys
 
 ## Future Requirements
 
@@ -67,7 +67,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | NAV-01 | Phase 34 | Pending |
-| NAV-02 | Phase 34 | Pending |
+| NAV-02 | Phase 34 | Complete |
 | NAV-03 | Phase 34 | Pending |
 | NAV-04 | Phase 33 | Complete |
 | RENDER-01 | Phase 33 | Complete |
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGUIDE-03 | Phase 36 | Pending |
 | AGUIDE-04 | Phase 36 | Pending |
 | I18N-01 | Phase 36 | Pending |
-| I18N-02 | Phase 34 | Pending |
+| I18N-02 | Phase 34 | Complete |
 
 **Coverage:**
 - v1.13 requirements: 19 total
