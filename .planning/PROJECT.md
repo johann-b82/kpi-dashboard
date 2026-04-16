@@ -24,6 +24,7 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 **Shipped:** v1.11-directus — 2026-04-15
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh.
+**Phase 31 complete (2026-04-16):** Chart readability — year-aware tick labels (`Nov '25`), year boundary separators, gap-filled month spines on Sales charts. Shared `chartTimeUtils.ts` utility module with 12 unit tests.
 **Codebase:** ~14,000 LOC (Python + TypeScript), 10 versions shipped (v1.0–v1.11-directus).
 **Audit status:** All v1.0–v1.6 and v1.11-directus requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
 
@@ -230,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 — v1.12 milestone started*
+*Last updated: 2026-04-16 — Phase 31 complete, Phase 32 next*
