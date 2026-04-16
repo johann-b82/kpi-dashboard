@@ -1,317 +1,171 @@
 # Pitfalls Research
 
-**Domain:** HR KPI Dashboard + Personio API Integration — KPI Light v1.3
-**Project:** KPI Light
-**Researched:** 2026-04-12
-**Confidence:** HIGH (Personio: official developer docs + community threads; APScheduler: FastAPI GitHub + official docs; Docker: official docs; TanStack Query: official docs + GitHub issues)
+**Domain:** In-app Markdown documentation added to existing React SPA with auth, dark mode, i18n
+**Project:** KPI Dashboard v1.13
+**Researched:** 2026-04-16
+**Confidence:** HIGH — all pitfalls grounded in known behaviour of the specific libraries already in use (react-markdown, Tailwind v4, react-i18next, wouter, Directus JWT auth, Vite 8)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause security vulnerabilities, data corruption, or rewrites if addressed late.
+Mistakes that cause security vulnerabilities, broken UX across modes, or meaningful rewrites if addressed late.
 
 ---
 
-### Pitfall 1: Personio API Token Stored in Database as Plaintext — Exposed via API Response
+### Pitfall 1: Raw HTML in Markdown Bypasses React's XSS Protection
 
 **What goes wrong:**
-The Settings page needs to let users enter their Personio API credentials (client_id and client_secret). The naive path: add two TEXT columns to the `app_settings` table, expose them via `GET /api/settings`, return them in the response JSON. The React frontend pre-fills the inputs with the values from the API response. The credentials are now visible in the browser network tab, accessible to anyone who can open DevTools, and included in any API response logging.
-
-In a zero-auth app (v1.3 has no authentication), this means any user who can reach the UI can trivially extract the Personio credentials — which grant read access to your entire employee dataset.
+Markdown renderers convert `.md` to HTML. If `rehype-raw` is added to render HTML examples in documentation (common for architecture diagrams, Docker Compose YAML samples, or HTML code examples), any `<script>` tag or event-handler attribute (`<img onerror="…">`) present in a `.md` file executes at full app origin. Since files are bundled statically, the attack surface is the authoring workflow — but the risk is real once multiple team members edit docs.
 
 **Why it happens:**
-Storing all settings in one table/endpoint is the obvious pattern when the settings model is already established. Developers don't think of API credentials as different from other settings values until they realize the credentials are being echoed back in responses.
+Developers add `rehype-raw` to make HTML code samples render correctly, not realising it also enables executable HTML. The distinction between "show HTML in a code block" and "execute HTML as DOM" is subtle. The default `react-markdown` behaviour (without `rehype-raw`) is already safe; `rehype-raw` intentionally disables that safety.
 
 **How to avoid:**
-Two separate concerns:
-
-1. **Storage**: Store credentials in the `.env` file / Docker Compose environment variables passed to the API container — not in the database. The settings API receives the token from env vars at startup; the database only stores whether sync is configured (a boolean flag), not the credentials themselves. The `PERSONIO_CLIENT_ID` and `PERSONIO_CLIENT_SECRET` env vars live in `.env` (already gitignored by project convention) and are injected via `docker-compose.yml`.
-
-2. **If the requirement is UI-configurable credentials** (so the user can enter them without redeploying): Store credentials in the database, but NEVER return the secret in API responses. The `GET /api/settings` endpoint returns `{"personio_configured": true, "personio_client_id": "visible-for-reference"}` — the client_secret is write-only from the API's perspective. Implement a dedicated `POST /api/settings/personio-credentials` endpoint that accepts credentials, validates them by making an auth call to Personio, and stores them. Never include the secret in any GET response.
-
-Recommended for v1.3: env vars (no rebuild needed for credential rotation, simpler implementation). Defer UI-configurable credentials to a later milestone if auth is added first.
+Do not install `rehype-raw`. Use fenced Markdown code blocks (` ```html `) for all HTML examples — these render as `<code>` elements and are never executed. If `rehype-raw` is genuinely required, always pair it with `rehype-sanitize`; never use it alone.
 
 **Warning signs:**
-- `GET /api/settings` response includes `personio_client_secret`
-- Settings table has a `personio_client_secret TEXT` column returned in the default settings query
-- Network tab shows credentials in plaintext
+- `rehype-raw` in `package.json` without `rehype-sanitize` adjacent to it
+- Any `.md` file containing a bare `<script>` tag or inline `onerror=` handler
+- Markdown rendered via `dangerouslySetInnerHTML` anywhere in the component tree
 
 **Phase to address:**
-Personio API integration setup (first phase of v1.3). The credential storage strategy must be decided before any other Personio work — it affects Docker Compose config, env var schema, and settings model design.
+Library setup phase (first phase) — set this constraint before any content is authored.
 
 ---
 
-### Pitfall 2: APScheduler Duplicate Jobs with Multiple Uvicorn Workers
+### Pitfall 2: Markdown-Rendered Content Ignores Tailwind Dark Mode
 
 **What goes wrong:**
-The auto-sync background job is registered in FastAPI's `lifespan` startup. In development with a single Uvicorn worker this works fine. In Docker with `uvicorn --workers 4` (or if the image ever switches to a Gunicorn process manager), each worker process initializes its own APScheduler instance. Result: the Personio sync job runs 4 times every interval, 4 simultaneous requests hit the Personio API, rate limits are exhausted, and 4 concurrent writes to the same PostgreSQL rows cause locking conflicts or duplicate data.
+Tailwind v4 uses the `.dark` class strategy with CSS-variable tokens on `:root`/`.dark`. Elements generated by a Markdown renderer are **not** Tailwind utility classes — they are bare `<h1>`, `<p>`, `<code>`, `<table>`, `<blockquote>` tags. These inherit browser defaults (black text, white background on `<body>`) rather than the app's token palette. Result: docs render correctly in light mode but show black text on a near-black background in dark mode.
 
-This is not theoretical — it is the documented primary failure mode for APScheduler in Docker multi-worker setups (confirmed in FastAPI GitHub discussion #9143 and uvicorn-gunicorn-fastapi-docker issue #227).
+This is especially visible for code blocks: `<pre><code>` in dark mode can show dark-on-dark text with no contrast.
 
 **Why it happens:**
-Each Python process has its own memory space. `AsyncIOScheduler` state is not shared between processes. FastAPI's lifespan runs once per process. With 4 workers, lifespan runs 4 times.
+Developers style the React component tree with Tailwind utilities, assume the Markdown output inherits those styles, and don't test dark mode until after the docs feature is considered complete. The existing app has dark mode working everywhere else, so the assumption seems safe.
 
 **How to avoid:**
-For v1.3 (single-container Docker Compose, Uvicorn without multi-worker flag): The project's `docker-compose.yml` runs Uvicorn with a single worker (no `--workers N` flag). This is safe — confirm the compose command does not add workers. Document this as a constraint: "Background sync requires single-worker Uvicorn. Do not add `--workers` to the API service command without adding a distributed job lock."
-
-If multi-worker is ever added: Use APScheduler v4's data store + event broker pattern (SQLAlchemy data store pointing to the existing PostgreSQL, Redis event broker) to ensure only one worker executes the job. Alternatively, extract the scheduler into a separate `sync` service in Docker Compose that has no HTTP server — pure scheduler, single process, zero worker ambiguity.
-
-For v1.3, the simplest safe pattern: single-worker Uvicorn + `AsyncIOScheduler` in lifespan. Add a `# SCHEDULER: single-worker only` comment in the compose file to prevent accidental scaling.
+Use `@tailwindcss/typography` (the `prose` plugin). In Tailwind v4 (no `tailwind.config.js`), configure it via `@plugin "@tailwindcss/typography"` in the CSS entry file. Wrap the Markdown render output in `<div className="prose dark:prose-invert max-w-none">`. This ensures all generated HTML elements receive the typography palette, which respects the `.dark` class. Verify every prose element type (h1–h4, p, code, pre, table, blockquote, ul/ol) in both modes before closing the phase.
 
 **Warning signs:**
-- Personio sync logs show double or quadruple invocations per interval
-- Rate limit (429) errors from Personio immediately after each scheduled sync
-- Duplicate rows in `personio_attendances` or `personio_absences` tables
+- Markdown render wrapped in a plain `<div>` with no `prose` class
+- `@tailwindcss/typography` absent from `package.json`
+- Dark mode toggle tested on the dashboard but not on the docs page
 
 **Phase to address:**
-Background sync implementation. Lock in single-worker constraint before the scheduler is written, not after.
+First doc render phase — dark mode verification is a phase exit criterion, not a follow-up task.
 
 ---
 
-### Pitfall 3: Personio API Rate Limits Are Underdocumented and Inconsistent
+### Pitfall 3: Role Gate Is Frontend-Only — Admin Doc Files Are Accessible as Static Assets
 
 **What goes wrong:**
-The Personio developer community documents a limit of approximately 60 requests per minute for most endpoints, with a specific limit of 150 requests per minute for the auth endpoint — but these limits are not published in official documentation as hard numbers. In practice, multiple developers report receiving 429 errors at rates below the informal limit, especially when:
-- Fetching paginated attendance records for large date ranges (each page = 1 request, max 50 records per page)
-- Running the initial full sync (which fetches employees + all historical attendance + all absences)
-- Any parallel request pattern
-
-A company with 50 employees and 2 years of attendance data can require 50+ API calls for the initial sync. If the scheduler retries immediately on 429, it triggers a penalty window (continued throttling for 60 seconds).
+Admin docs (Docker config, architecture, Personio setup, user management procedures) are bundled into the Vite build as static assets. The React router guards `/docs/admin/*` routes so Viewers see no nav link. But the `.md` files are served by Vite/nginx statically — any user who knows the file path can fetch them directly via the browser address bar or `curl` with no auth check. The existing Directus JWT middleware in FastAPI does not cover static file serving.
 
 **Why it happens:**
-Developers write a simple pagination loop with `while has_more: fetch_next_page()` with no delay and no 429 handling. This works for small datasets during development but fails in production with real data volumes.
+The established auth pattern in this app is FastAPI-gated API routes + frontend `ProtectedRoute` wrappers. Static files served by Vite/nginx entirely bypass FastAPI, so the existing auth middleware provides no coverage for them. Hiding the nav link feels like security but is only UX.
 
 **How to avoid:**
-1. **Respect 429 with exponential backoff**: On any 429 response, wait `retry_after` seconds (read from the `Retry-After` header if present, else default 60s) before retrying. Do NOT retry immediately.
+Choose one option explicitly and log the decision in PROJECT.md Key Decisions:
 
-2. **Add inter-request delay**: Insert a `asyncio.sleep(1.0)` between paginated requests during the full sync. At 60 requests per minute, 1 second between calls keeps you under the limit. This is acceptable because sync runs in the background.
+1. **FastAPI-served docs (proper authz):** Store `.md` files server-side, add `GET /api/docs/{path}` protected by `current_user` dependency with role check. Frontend fetches file content at runtime. Correct authz, more work.
+2. **Accepted risk (private LAN deployment):** Admin docs remain static assets; the residual risk is explicitly acknowledged. Acceptable only because: (a) deployment is on a private LAN with no external access, (b) admin docs contain no credentials — only procedures and architecture descriptions. Log the decision explicitly.
 
-3. **Paginate correctly**: The Personio API uses `limit` (1–50, default 10) and `offset` parameters for v1 endpoints. Use `limit=50` (maximum) on all list endpoints to minimize the number of requests. Some v2 endpoints use cursor-based pagination — check the specific endpoint.
-
-4. **Separate initial sync from incremental sync**: Initial sync (all history) runs once with rate-limit-aware pagination. Incremental sync (recent delta, e.g., last 7 days) runs on schedule and requires far fewer requests. Design both modes from the start.
+Option 2 is recommended for v1.13 given the private-LAN, internal-team deployment scope. However, it must be an explicit decision — not a silent default.
 
 **Warning signs:**
-- Sync loop with no `asyncio.sleep` between pages
-- No 429 handling (sync fails silently or crashes on rate limit)
-- Initial sync and scheduled sync use identical code paths with no differentiation
+- Admin `.md` files in `public/` or `src/assets/docs/` with no server-side access check
+- Frontend role guard is the only gate (no discussion of static asset exposure in the phase)
+- No test verifying what a Viewer JWT can and cannot retrieve
 
 **Phase to address:**
-Personio API client implementation. Build rate limit handling and pagination before any KPI calculation logic — KPIs depend on complete data; incomplete fetches produce wrong numbers.
+Role-gating phase — the decision between option 1 and option 2 must be made and logged, not silently defaulted.
 
 ---
 
-### Pitfall 4: Personio v1 vs v2 API Confusion — Wrong Endpoint for the Data You Need
+### Pitfall 4: i18n Content Duplication Creates Permanent Maintenance Burden
 
 **What goes wrong:**
-Personio has two parallel API versions. v1 is the traditional REST API still used for most operations. v2 introduces significant breaking changes:
-
-- **Attendance (time entries)**: v1 Attendances endpoint (`/company/attendances`) is deprecated. v2 Attendance API is now GA. If you build on v1, you will need to migrate before the July 31, 2026 deprecation deadline — which may fall during a future milestone.
-- **Absences**: v1 absence endpoint has known pagination bugs (documented in community thread). The v2 absence periods endpoint (`/v2/absence-periods`) is GA and recommended.
-- **Employees**: v2 splits `Person` and `Employment` into separate resources. Fetching employee data requires two endpoint calls (persons + employments) to assemble what v1 returns in one call. This matters for the "Fluktuation" KPI (headcount + terminations) and "Produktions-Mitarbeiterumsatz" (production employee count).
-- **Custom attributes**: The `dynamic_` prefix on custom attribute IDs in v1 is not consistent with v2. Attribute IDs must be whitelisted in the Personio API settings UI before they appear in responses.
-
-Building on v1 endpoints that are scheduled for deprecation means a forced migration mid-product lifecycle.
-
-**How to avoid:**
-Use v2 for Attendances and Absences (both GA). Use v1 for Employees (v2 employee split is more complex without clear benefit for this use case at this scale). Document which version each endpoint uses in the client module.
-
-For the "Produktions-Mitarbeiter" segment: filtering by department is available but requires knowing the exact department name as stored in Personio (case-sensitive). Do not hardcode "Produktion" — fetch the department list via API and match, or make the department filter value configurable in settings.
-
-**Warning signs:**
-- All Personio calls going to v1 endpoints including attendance
-- Department name hardcoded as a string literal in the application code
-- No version-per-endpoint documentation in the client module
-
-**Phase to address:**
-Personio API client design (before implementation). Define which API version serves each data type. This is a design decision, not an implementation detail.
-
----
-
-### Pitfall 5: Cross-Source KPI (Produktions-Mitarbeiterumsatz) — Temporal Mismatch Between Sales and HR Data
-
-**What goes wrong:**
-The "Produktions-Mitarbeiterumsatz" KPI divides ERP revenue (from the orders table) by the number of production employees (from Personio). These two data sources have independent update cycles:
-- ERP data is uploaded manually (whenever a user uploads a file)
-- Personio data is synced on a schedule (configurable interval, e.g., every 4 hours)
-
-If the ERP upload contains Q1 data but Personio sync is stale (hasn't run since last week), the employee count reflects a different period than the revenue figure. The KPI is mathematically computed but semantically wrong. Worse: the dashboard shows no warning that the two data sources are from different time windows.
+The simplest bilingual docs implementation: two separate Markdown files per topic (`setup.de.md` / `setup.en.md`). This seems clean until the doc set grows beyond 3–4 files. Every update to admin procedures must be applied twice. German and English files drift out of sync within weeks. Users on one locale see outdated information with no warning.
 
 **Why it happens:**
-Two independent data pipelines with no coordination mechanism. The KPI calculation query joins the two tables without checking whether the Personio data is fresh enough to be meaningful for the revenue period.
+The two-file pattern mirrors the existing i18n key approach (`de.json` / `en.json`) which works well for UI strings. Developers apply the same pattern to prose content without realising that full documents drift independently where key–value strings do not.
 
 **How to avoid:**
-1. **Store a `synced_at` timestamp** on Personio data (already implied by "Daten aktualisieren" button). Expose this to the frontend.
+Use the locale-subfolder pattern with a parity check: `/docs/de/setup.md` and `/docs/en/setup.md`. Accept the duplication but make it visible (side-by-side folders) and enforced (a CI or pre-release check that verifies file counts match between `/docs/de/` and `/docs/en/`). A missing file in one locale is caught at release time, not when a user reports stale content.
 
-2. **Show data freshness separately for each source**: The HR dashboard should show two freshness indicators — "ERP-Daten: letzte Upload [timestamp]" and "Personio-Daten: letzte Sync [timestamp]". The existing `freshness_indicator` pattern from the Sales dashboard is the template.
-
-3. **Flag stale cross-source KPIs**: If Personio data is older than N hours (configurable, default 24h), show a staleness warning on the Produktions-Mitarbeiterumsatz card specifically. Do not silently compute with stale data.
-
-4. **Define "employee count for period"**: The KPI needs a clear definition — is it headcount at end of period? Average over period? Personio's employee list is a snapshot at sync time. If the sync runs weekly and someone was hired and fired within the week, they won't appear. Document the definition and its limitation in the UI (tooltip or footnote).
+Do not use i18n JSON keys for prose content — store prose in `.md` files only. Use react-i18next exclusively for UI chrome: page title, breadcrumbs, the "back" button label, section headings that are part of the navigation.
 
 **Warning signs:**
-- HR dashboard shows KPI cards with no freshness indicator
-- `Produktions-Mitarbeiterumsatz` computed without checking `personio_last_synced_at`
-- No warning when Personio data is older than 24h
+- Flat docs folder with `setup-de.md` / `setup-en.md` naming (no parity enforcement)
+- No parity check in CI or documented as a manual release gate
+- Docs written in one language with `<!-- TODO: translate -->` placeholders
 
 **Phase to address:**
-HR KPI calculation + dashboard display. The freshness indicator design must precede the KPI card implementation.
+Docs folder structure phase (before any content is authored) — the structure decision is permanent once content starts accumulating.
 
 ---
 
-## Moderate Pitfalls
-
-Mistakes that cause bugs, UX degradation, or meaningful tech debt but not rewrites.
-
----
-
-### Pitfall 6: Personio Bearer Token Expiry — 24-Hour Token Cached Past Expiry
+### Pitfall 5: Docs Route Conflicts With Existing wouter Router
 
 **What goes wrong:**
-Personio's v2 auth API issues bearer tokens that are stable for 24 hours. The client fetches a token on startup and caches it in memory. If the API service container restarts partway through a token's lifetime, the token is re-fetched (no problem). But if the token is cached without an expiry check and the container runs for more than 24 hours without restart (normal in production), the next API call returns 401. The sync job fails silently or errors until the container is restarted or the token is manually refreshed.
-
-**How to avoid:**
-Cache the token with its expiry time (`issued_at + 24h - 5min buffer`). Before each Personio API call, check `if now() > token_expires_at: re-authenticate`. The auth endpoint rate limit is 150 req/min — re-fetching on expiry is safe. Store `token_expires_at` as a module-level variable in the Personio client class.
-
-Do not store the bearer token in the database or settings — it is a derived credential (obtained from client_id + client_secret) and should be treated as ephemeral in-process state.
-
-**Warning signs:**
-- Personio client stores `self.token` without `self.token_expires_at`
-- Sync job fails with 401 on containers that have been running more than 24 hours
-- No token refresh logic in the client's request method
-
-**Phase to address:**
-Personio API client implementation. Token lifecycle management is part of the client class design, not a post-implementation fix.
-
----
-
-### Pitfall 7: Alembic Migration Generates Conflicting Revision for Existing Tables
-
-**What goes wrong:**
-Running `alembic revision --autogenerate` for the new Personio tables (`personio_employees`, `personio_attendances`, `personio_absences`) against an existing database that already has `orders`, `uploads`, `app_settings` tables produces a migration that includes not just the new tables but also attempts to recreate existing tables if the SQLAlchemy models drift from the actual DB schema. If any column was added manually (e.g., during debugging) or if the autogenerate comparison misidentifies a type (common with custom types, JSONB, ENUM), the generated migration contains spurious changes that corrupt the existing schema when applied.
+The app uses `wouter` with shallow routes (`/`, `/sales`, `/hr`, `/upload`, `/settings`, `/login`). Adding `/docs` requires the first multi-segment parameterised route in the app. If not structured carefully, wouter's default path matching can silently swallow deep-link paths (`/docs/admin/setup`) under a catch-all `/docs` match. Additionally, the docs landing may redirect to `/docs/intro` which breaks the back-button flow back into the dashboard (lands on `/` instead of the last dashboard tab).
 
 **Why it happens:**
-Alembic autogenerate compares the `metadata` object (all declared models) against the database reflection. If an existing model has drifted from the DB (even by a comment or index name), autogenerate flags it. Developers run `alembic upgrade head` without reviewing the generated SQL.
+Developers copy the existing flat route pattern and add `/docs/:section/:page` as a parameter route without verifying wouter handles the nesting correctly. The existing app has never needed multi-segment parameterised routes.
 
 **How to avoid:**
-1. **Always review the generated migration file** before running it. Read the `upgrade()` function line-by-line. Confirm it only contains `CREATE TABLE` statements for the new Personio tables, not `ALTER TABLE` or `DROP TABLE` for existing tables.
-
-2. **Run `alembic check`** first (Alembic 1.9+) to see what the autogenerate would produce without generating the file. If it flags existing tables, fix the model drift before generating the migration.
-
-3. **Only import new models into `env.py`'s `target_metadata`** — all existing models must already be in `target_metadata`. Confirm `Base.metadata` includes all models.
-
-4. **Test migrations on a fresh DB** (in CI or a throwaway container) to verify the full migration chain from scratch produces a valid schema.
+Use wouter's `<Switch>` to ensure docs routes are fully matched before any catch-all. Test deep-link navigation to `/docs/admin/setup` directly (not via the nav icon) before the phase closes. Test the browser back button from a doc page — it must return to the correct dashboard tab (Sales or HR), not `/`. Reuse the existing `sessionStorage`-tracked last-dashboard pattern already in the Settings page for the docs back button.
 
 **Warning signs:**
-- Generated migration contains `op.alter_column` for columns you didn't change
-- Migration contains `op.drop_table` for any existing table
-- `alembic upgrade head` raises `Table already exists` errors
+- `/docs` route added without a deep-link test (`/docs/admin/setup` navigated directly)
+- Back button from docs lands on `/` (blank dashboard) instead of the last tab
+- Internal doc cross-links use `window.location.href` instead of wouter's `<Link>`
 
 **Phase to address:**
-Database schema migration for Personio tables (first development task). Run `alembic check` before `alembic revision`.
+Routing and navigation phase — back-button and deep-link behaviour are explicit success criteria, not optional polish.
 
 ---
 
-### Pitfall 8: Multi-Tab Dashboard — TanStack Query Cache Serves Stale HR Data After Manual Sync
+### Pitfall 6: Bundle Size Bloat From Full-Featured Markdown Library
 
 **What goes wrong:**
-The HR tab has a "Daten aktualisieren" (manual sync) button. When the user clicks it, the frontend calls `POST /api/personio/sync`, which triggers the Personio sync job. The sync completes and returns 200. But the KPI cards on the HR tab still show the old values because TanStack Query's cache for the HR KPI queries hasn't been invalidated.
-
-The user sees a stale UI immediately after explicitly requesting a refresh. This breaks the mental model established by the Sales tab (where upload triggers cache invalidation automatically).
+`react-markdown` with a minimal plugin set adds ~80KB min+gzip to the bundle. The current app baseline is approximately 42KB (Vite React-TS template). Adding `remark-gfm`, `rehype-highlight`, `rehype-sanitize`, and `rehype-raw` cumulatively can push the docs chunk to 120–150KB. If the `<DocsPage>` component is not code-split, this ships with every page load — including the login page and dashboard — even for users who never open the docs.
 
 **Why it happens:**
-The mutation for "trigger sync" and the queries for "fetch HR KPIs" are not connected through TanStack Query's invalidation mechanism. The sync endpoint returning 200 does not automatically invalidate the HR query cache.
+`npm install react-markdown` takes two seconds; the bundle impact is invisible until `vite build --report` is run. Developers don't check bundle output until late in the milestone.
 
 **How to avoid:**
-Use TanStack Query's `onSuccess` callback in the sync mutation to invalidate the HR KPI queries:
-
-```typescript
-const syncMutation = useMutation({
-  mutationFn: () => fetch('/api/personio/sync', { method: 'POST' }),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['hr-kpis'] });
-    queryClient.invalidateQueries({ queryKey: ['personio-sync-status'] });
-  },
-});
-```
-
-This is identical to the existing Sales upload invalidation pattern (`kpiKeys.all` prefix invalidation). Extend the same `queryKeys` factory to cover HR KPI queries with a separate `hrKpiKeys` namespace.
-
-Also: the sync endpoint should be async (fire the sync and return immediately with 202 Accepted) rather than blocking (waiting for the full Personio fetch to complete before returning). Fetching 2 years of attendance data can take 30–60 seconds. A blocking endpoint times out in browsers (30s default) and shows a frozen UI. Return 202 and poll a `/api/personio/sync-status` endpoint for completion.
+`react-markdown` is the right choice for this project (React-native API, safe defaults, good TypeScript support) but must be loaded lazily. Wrap the entire `<DocsPage>` in `React.lazy` + `<Suspense>` — Vite will automatically code-split it into a separate chunk. Install only the plugins actually required: `remark-gfm` only if GFM tables appear in docs; no `rehype-raw`; no `rehype-highlight` unless syntax highlighting is required. Run `vite build --report` after adding the library and verify the docs chunk is separate from the main bundle.
 
 **Warning signs:**
-- `POST /api/personio/sync` takes more than 5 seconds (indicates it's doing the full sync synchronously)
-- HR KPI cards do not refresh after clicking "Daten aktualisieren"
-- No `invalidateQueries` call in the sync mutation's `onSuccess`
+- `react-markdown` imported directly in a non-lazy component
+- `remark-gfm`, `rehype-raw`, `rehype-highlight`, and `rehype-sanitize` all installed when only basic Markdown is needed
+- No `vite build --report` run after adding the library
 
 **Phase to address:**
-HR dashboard frontend (sync button implementation). Design the async sync + polling pattern before implementing the button.
+Library setup phase — code splitting and bundle size verification are phase success criteria.
 
 ---
 
-### Pitfall 9: Fluktuation KPI Requires Historical Headcount — Personio Snapshot Is Not Enough
+### Pitfall 7: `prose` Class Leaks Into Existing App Pages
 
 **What goes wrong:**
-The "Fluktuation" KPI is defined as (terminations / total employees). Calculating this correctly requires:
-- Count of employees who left during the period (terminations)
-- Total headcount *at the start of* or *during* the period (not just current headcount)
+`@tailwindcss/typography`'s `prose` class applies opinionated typography resets to all descendant elements — `p`, `h1`–`h6`, `code`, `a`, `ul`, `table`, etc. If `prose` is accidentally applied to a parent component that wraps the entire app (a layout root, a page container), it overrides the existing typography on the dashboard, settings, and upload pages. KPI cards get unexpected `prose` link styles, table cells get `prose` font sizes, and Recharts labels inherit `prose` line heights.
 
-Personio's employee list endpoint returns the current state of employees. Terminated employees appear with a `termination_date` in the past and may have `status: inactive`. But the *headcount at a past point in time* requires reconstructing it from hire and termination dates.
-
-If the sync stores only active employees, terminated employees are deleted from the local table on each sync — making historical Fluktuation calculations impossible.
+**Why it happens:**
+Developers test `prose` in a nested component, it looks correct, then move the class one level up for convenience. The regression is not immediately obvious because affected pages look "close enough" — the changes are subtle overrides, not broken layouts.
 
 **How to avoid:**
-Store ALL employees from Personio — active and inactive — with their `hire_date` and `termination_date`. Never delete rows from `personio_employees` on sync; instead, use an UPSERT that updates existing rows and inserts new ones. The `status` column distinguishes active from inactive.
-
-The Fluktuation calculation then becomes:
-```sql
--- terminations in period
-SELECT COUNT(*) FROM personio_employees 
-WHERE termination_date BETWEEN period_start AND period_end
-
--- headcount at period start  
-SELECT COUNT(*) FROM personio_employees
-WHERE hire_date <= period_start 
-  AND (termination_date IS NULL OR termination_date >= period_start)
-```
-
-This requires the `hire_date` and `termination_date` fields to be stored and indexed.
+Apply `prose` only to the docs layout content area wrapper — the specific `<div>` that directly wraps the Markdown render output. Never apply it to the docs page root or any shared layout component. Run a visual check on the dashboard and settings pages after adding `@tailwindcss/typography` to verify no regressions.
 
 **Warning signs:**
-- `personio_employees` sync uses `DELETE + INSERT` instead of UPSERT
-- `personio_employees` table has no `termination_date` column
-- Fluktuation calculation uses `COUNT(*) WHERE status = 'active'` for the denominator
+- `prose` applied to a component that renders routes other than `/docs/*`
+- Dashboard or settings page font sizes or link styles change after the docs branch merges
+- `prose` applied in a shared layout component (`AppShell`, `PageContainer`, etc.)
 
 **Phase to address:**
-Personio data model (Alembic migration design) and sync logic. The UPSERT pattern and field selection must be decided before the first sync runs — retrofitting after requires a full re-sync.
-
----
-
-### Pitfall 10: Overtime and Sick Leave Hours Need Work Schedule Context — Raw Attendance Hours Are Wrong
-
-**What goes wrong:**
-The "Überstunden im Vergleich Gesamtstunden" and "Krankheit im Vergleich Gesamtstunden" KPIs need total expected hours as the denominator. Developers assume "total hours" = `COUNT(workdays) × 8 hours`. This is wrong because:
-
-- Personio employees have individual work schedules (part-time, 4-day week, etc.) stored in their employee record
-- Personio's absence type configuration determines whether a sick absence reduces target hours (the "Reduce target hours" setting on the absence type affects whether approved time off counts as attendance)
-- Overtime in Personio is calculated against the employee's schedule, not a flat 8h/day — the Personio overtime recalculation cutoff was set to November 1, 2025 for the current system
-
-Computing `SUM(attendance_hours) / SUM(expected_hours_8h_per_workday)` produces a subtly wrong number that looks plausible but is off by 10–30% for organizations with part-time staff.
-
-**How to avoid:**
-Fetch `weekly_hours` per employee from the Personio employee record. Use `weekly_hours / 5` as the per-day expectation (adjusted for holidays). This is an approximation — it is acceptable for an internal KPI dashboard but must be documented as such in the UI (tooltip: "Basiert auf vertraglichen Wochenstunden aus Personio, nicht auf tatsächlichen Arbeitszeitplänen").
-
-Do not attempt to replicate Personio's full overtime calculation engine in application code — it accounts for work schedule exceptions, public holidays per state, and conversion factors. Display the KPI as an approximate signal, not an auditable payroll figure.
-
-Store `weekly_hours` in `personio_employees` and use it in the KPI calculation query.
-
-**Warning signs:**
-- KPI calculation uses a flat 8h/day expected hours assumption
-- No `weekly_hours` column in `personio_employees`
-- No disclaimer in the UI that overtime figures are approximate
-
-**Phase to address:**
-Personio data model (add `weekly_hours`) and KPI calculation SQL. Must be addressed in the initial implementation — the denominator definition affects all three hours-based KPIs.
+First doc render phase — visual regression check on dashboard and settings pages is a phase exit criterion.
 
 ---
 
@@ -319,27 +173,25 @@ Personio data model (add `weekly_hours`) and KPI calculation SQL. Must be addres
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store Personio credentials in DB, return in GET response | Simple unified settings API | Credential exposure in any API response log or DevTools; security regression | Never — write-only endpoint or env vars only |
-| Use `DELETE + INSERT` on each Personio sync | Simple sync logic | Historical data lost; Fluktuation KPI impossible; forced full re-sync after any bug | Never — always UPSERT |
-| Build on v1 Attendance endpoint (deprecated July 2026) | Faster initial implementation | Forced migration during a future milestone with breaking changes | Acceptable only if v1.3 explicitly flags this as known tech debt with migration issue filed |
-| Blocking sync endpoint (waits for full Personio fetch) | Simple implementation | 30-60s UI freeze on manual sync; browser timeout on large orgs | Acceptable only in v1.3 MVP if org size is known to be small (<20 employees); must be async before public release |
-| Flat 8h/day expected hours assumption | No need to fetch work schedules | Wrong KPI values for part-time employees; numbers look authoritative but are wrong | Acceptable with explicit UI disclaimer; not acceptable without the disclaimer |
-| APScheduler in-process without worker constraint | Zero extra dependencies | Duplicate jobs on any multi-worker deploy; data corruption and rate limit exhaustion | Acceptable only with documented single-worker constraint in compose file |
+| Two-file DE/EN docs with no parity check | Simple to author first docs | EN and DE drift within weeks; users on one locale see stale information | Never without a parity check at release |
+| Frontend-only role gate for admin docs (static files) | Saves a FastAPI endpoint | Admin procedures visible to any user who knows the file URL | Acceptable in private LAN deployment if explicitly logged in PROJECT.md Key Decisions |
+| `rehype-raw` without `rehype-sanitize` | Easier HTML rendering in docs | XSS via authored Markdown at full app origin | Never |
+| Plain `<div>` wrapper for Markdown (no `prose`) | One fewer class | Dark mode breaks; typography is completely unstyled | Never in production UI |
+| Eager-loading the Markdown renderer | One fewer `React.lazy` | 80KB+ added to initial bundle; login and dashboard pay the cost | Never — docs are never on the critical render path |
+| `prose` applied to a shared layout ancestor | Convenient one-line solution | Typography regressions on all existing pages | Never |
 
 ---
 
 ## Integration Gotchas
 
-Common mistakes when connecting to the Personio API.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Personio auth | Fetching a new token on every API call | Cache token with expiry check; re-fetch only when within 5 minutes of 24h expiry |
-| Personio pagination | Using default `limit=10`, resulting in 10x more requests than necessary | Always set `limit=50` on list endpoints; use cursor pagination on v2 endpoints |
-| Personio absence type | Treating all absence types as "sick" | Fetch absence types list first; filter by the specific type ID for Krankheit; do not hardcode absence type names |
-| Personio attendance v1 | Mixing v1 and v2 auth tokens | v1 uses its own auth flow; v2 uses OAuth2 client credentials — use separate auth per API version or migrate fully to v2 |
-| Personio department filter | Hardcoding "Produktion" as a string | Make department filter configurable in settings; fetch department list from API for validation |
-| Personio employee attributes | Assuming attributes are always present | Custom attributes may be NULL if not filled in Personio; handle missing `weekly_hours` gracefully |
+| `@tailwindcss/typography` + Tailwind v4 | Copying v3 `tailwind.config.js` plugin config — does not exist in v4 | Configure via `@plugin "@tailwindcss/typography"` in the CSS entry file; verify prose tokens appear in the build output |
+| react-i18next + Markdown content | Using `t('docs.setup.paragraph1')` for full prose paragraphs | Store prose in `.md` files only; use `t()` exclusively for UI chrome (page titles, nav labels, breadcrumbs, button text) |
+| wouter + docs internal cross-links | Using `<a href="/docs/…">` in Markdown source | React components handling navigation use wouter `<Link>`; cross-links within Markdown are fine as relative paths but must be validated that the target page exists |
+| Directus JWT + static Vite assets | Assuming JWT middleware covers static file serving | Static files bypass FastAPI entirely; make the risk decision explicit (see Pitfall 3) |
+| `prose` + syntax highlighting (rehype-highlight) | Highlight theme uses hardcoded hex colours incompatible with dark mode | If syntax highlighting is added, use a highlight theme that exposes CSS variables, and set them in the `:root`/`.dark` token blocks |
+| `prose` + shadcn components inside docs | `prose` overrides shadcn button and badge styles | Scope `prose` tightly; add `not-prose` class to any shadcn component rendered inside the docs content area |
 
 ---
 
@@ -347,11 +199,10 @@ Common mistakes when connecting to the Personio API.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Initial Personio full sync in a single request loop | Sync takes 60+ seconds; browser timeout | Async background task; 202 Accepted + poll pattern | Any org with >20 employees and >3 months of attendance history |
-| Re-fetching all Personio data on every scheduled sync | Rate limit exhaustion; slow sync | Incremental sync using `updated_since` filter on attendance endpoint | After first week of running in production |
-| Computing cross-source KPI (revenue ÷ employees) in Python after fetching all rows | High memory use; slow response | Compute in SQL with a subquery; push aggregation to PostgreSQL | When orders table exceeds ~50k rows |
-| No database index on `personio_attendances.employee_id` and `date` | KPI queries slow as attendance data grows | Add composite index in migration | After ~6 months of data (grows with org size × sync frequency) |
-| Polling sync status at 1-second interval in frontend | Excessive API calls; Uvicorn CPU spike during sync | Poll at 3-5 second intervals with exponential backoff; stop polling after success/failure | Immediately, with any org size |
+| Eager-loading all doc pages at app startup | Slow first paint; large main JS chunk | `React.lazy` the entire `<DocsPage>` entry component; Vite code-splits automatically | Immediately — any Markdown renderer over ~20KB adds perceptible load |
+| Loading all `.md` files eagerly with `import.meta.glob({ eager: true })` | All doc content ships even if the user never opens docs | Use `import.meta.glob('**/*.md', { eager: false })` — lazy load per-page on demand | Noticeable with >10 doc files |
+| `prose` applied globally to a shared container | All non-docs pages get typography resets on every render | Scope `prose` to the docs content wrapper only | Immediately on any page that shares the container |
+| Syntax highlighting library loaded for docs | Adds 60–100KB (highlight.js, Prism) for code colouring | Only add if explicitly required; if added, load lazily within the docs chunk | First render of any page with code blocks |
 
 ---
 
@@ -359,12 +210,9 @@ Common mistakes when connecting to the Personio API.
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Personio client_secret in GET /api/settings response | Any user with DevTools access extracts API credentials | Write-only: accept via POST, never return in GET |
-| Personio credentials in docker-compose.yml instead of .env | Credentials committed to git | Use `.env` file (gitignored); reference with `${VAR}` syntax in compose |
-| Bearer token stored in localStorage or sessionStorage | XSS can steal the token | Keep token server-side only; never send to frontend |
-| Logging full Personio API response bodies | Employee PII (names, salaries, sick days) in server logs | Log only status codes and response sizes; never log response bodies from Personio endpoints |
-| No HTTPS between app containers and Personio API | Man-in-the-middle on internal network | `httpx` uses HTTPS by default; verify `ssl=True` is not disabled in client config |
-| Personio employee data (absences, health data) stored without access control | All users see all employee health/absence data | Acceptable in v1.3 (zero-auth internal tool); must be addressed before any Authentik integration |
+| `rehype-raw` without `rehype-sanitize` | XSS via admin-authored Markdown — executes at full app origin | Never use `rehype-raw` alone; use fenced code blocks for HTML examples instead |
+| Admin docs as static assets with only frontend role gate | Information disclosure: architecture, Docker config, user management procedures accessible to Viewers or unauthenticated users who know the path | Make the decision explicitly (FastAPI-served with auth check, or accepted-risk for private LAN); log in PROJECT.md |
+| `/docs/*` routes not wrapped in `ProtectedRoute` | Unauthenticated users reach doc pages | The existing `ProtectedRoute` wrapper must cover the entire `/docs/*` subtree, not just the nav icon |
 
 ---
 
@@ -372,27 +220,26 @@ Common mistakes when connecting to the Personio API.
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| HR tab shows "0" KPIs when Personio credentials are not configured | Looks like a bug | Show a "Personio nicht konfiguriert — bitte Zugangsdaten in den Einstellungen hinterlegen" empty state, not zero values |
-| Manual sync button with no feedback for 30+ seconds | User thinks it crashed; clicks multiple times, triggering duplicate syncs | Show spinner immediately on click; disable button during sync; show last-synced timestamp on completion |
-| Delta badges on HR KPIs with no prior-period data (first sync ever) | "—" badges look broken | Use same em-dash fallback pattern from v1.2; add tooltip "Kein Vergleichszeitraum verfügbar" |
-| HR and Sales tabs share the same date filter | Personio data has no time filter (it's always all data); applying the Sales filter to HR is meaningless | HR tab does not show the date filter UI; document "HR KPIs zeigen immer aktuelle Gesamtwerte" |
-| "Daten aktualisieren" succeeds but UI data doesn't change visibly | User doesn't know if it worked | Show a timestamp "Zuletzt aktualisiert: [time]" that visibly updates after each sync |
+| Dark mode broken in docs only | Admins using dark mode see unreadable content; loss of trust in the feature | `prose dark:prose-invert` from the first commit; verify before the phase closes |
+| No "back to dashboard" affordance in docs | Users hit browser back or get disoriented when the docs open as a full page | Reuse existing `sessionStorage` last-dashboard tracking; show a contextual back button in the docs header |
+| Docs always open to the same root page (no deep links) | User shares a link to a specific procedure; recipient lands on the docs home | Ensure URL reflects current section/page (`/docs/admin/setup`); wouter parameterised route, not hash fragments |
+| Language switch in docs drops the user back to the docs home | User reading English switches to German; lands on German docs home instead of the German equivalent of the current page | Track current doc path; switch the locale file for the same path, not the root |
+| Docs sidebar always visible on narrow viewports | Sidebar crowds the content on smaller screens | Collapsible sidebar (toggle on click); lower priority for v1.13 internal tool but must not break the layout at narrower widths |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Personio credentials**: Does `GET /api/settings` omit `personio_client_secret` from the response? Verify with curl — the field must not appear.
-- [ ] **Token expiry**: Let the API container run for 25 hours without restart. Does the next scheduled sync succeed (re-auth) or fail with 401?
-- [ ] **Rate limit handling**: Does the sync client handle 429 responses with a wait, not an immediate retry? Test by mocking a 429 in the Personio client.
-- [ ] **UPSERT on sync**: After syncing, manually insert a fake terminated employee row. Run sync again. Does the row survive (UPSERT) or disappear (DELETE + INSERT)?
-- [ ] **Fluktuation denominator**: Hire a test employee in Personio with a past `hire_date`. Sync. Does the headcount-at-period-start SQL query count them correctly?
-- [ ] **Multi-worker safety**: Add `--workers 2` to the Uvicorn command temporarily. Does the sync job run twice per interval? (It should — document why single-worker is required.)
-- [ ] **Async sync endpoint**: Call `POST /api/personio/sync` for a large date range. Does it return within 2 seconds (202 Accepted)? Or does it block?
-- [ ] **Manual sync invalidation**: Click "Daten aktualisieren". Do the KPI cards reload after sync completes (not just after clicking)? Check with DevTools Network tab.
-- [ ] **Empty state**: Clear Personio credentials from settings. Does the HR tab show a meaningful "not configured" state instead of zeros or errors?
-- [ ] **Attendance API version**: Confirm the codebase uses v2 attendance endpoints, not v1 (`/company/attendances`). Verify in the Personio client module.
-- [ ] **Alembic migration**: Run `alembic check` — does it report zero unexpected changes to existing tables? Only new Personio tables should appear in the diff.
+- [ ] **Dark mode:** Docs page verified in dark mode with `prose dark:prose-invert` — headings, body text, inline code, code blocks, tables, and blockquotes all readable
+- [ ] **Role gate (routing):** A Viewer JWT cannot navigate to `/docs/admin/*` via URL bar — not just hidden in the nav
+- [ ] **Role gate (static files):** Decision documented in PROJECT.md Key Decisions — FastAPI-served authz OR accepted-risk for private LAN
+- [ ] **XSS:** `rehype-raw` is either absent or paired with `rehype-sanitize`; no `dangerouslySetInnerHTML` in the docs render path
+- [ ] **Bundle split:** `<DocsPage>` is in a `React.lazy` boundary — confirmed by `vite build --report` showing a separate docs chunk
+- [ ] **i18n parity:** DE and EN file counts match; no `<!-- TODO: translate -->` in any shipped `.md` file
+- [ ] **Deep links:** `/docs/admin/setup` navigated to directly (not via nav icon) loads the correct page
+- [ ] **Back button:** Browser back from any doc page returns to the last dashboard tab (Sales or HR), not to `/`
+- [ ] **Language switch:** Switching locale while on a doc page loads the equivalent page in the target language, not the docs root
+- [ ] **Prose scope:** `prose` class is scoped to the docs content wrapper only — no visual regressions on dashboard, settings, or upload pages
 
 ---
 
@@ -400,13 +247,13 @@ Common mistakes when connecting to the Personio API.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Credentials exposed in API response | HIGH | Rotate Personio API credentials immediately; audit API response logs; patch the GET endpoint; redeploy |
-| Duplicate sync jobs from multi-worker | MEDIUM | Restart with single-worker; deduplicate rows in Personio tables (identify by `personio_id + date`); add worker constraint to compose |
-| Personio data deleted by DELETE+INSERT sync | HIGH | Full re-sync from Personio (if data still available there); switch to UPSERT; no recovery if Personio data was also deleted |
-| Rate limit exhaustion from sync | LOW | Wait 60 seconds; switch to incremental sync; add sleep between paginated requests |
-| Stale Personio token causing 401 errors | LOW | Restart API container (forces token re-fetch); add token expiry check to client |
-| Wrong overtime denominator (8h assumption) | LOW | Fix SQL query; add UI disclaimer; no historical data corruption |
-| Alembic migration corrupted existing tables | HIGH | Restore from `pg_dump` backup; fix migration; re-run; always test migrations on throwaway DB first |
+| Dark mode broken in docs | LOW | Add `dark:prose-invert` to the Markdown wrapper; verify all prose element types |
+| XSS via `rehype-raw` | MEDIUM | Remove `rehype-raw`; audit all `.md` files for raw HTML; replace with fenced code blocks; redeploy |
+| Admin docs accessible as static assets (unintended) | MEDIUM | Move files to FastAPI endpoint with role check; update all frontend fetch calls |
+| Bundle bloat discovered post-ship | LOW | Wrap `<DocsPage>` in `React.lazy` + `<Suspense>` — one-line change with measurable improvement |
+| DE/EN doc drift discovered | HIGH | Audit all files; identify canonical locale; retranslate stale pages; establish parity check before next release |
+| Route conflict with wouter | LOW–MEDIUM | Restructure route definitions to use explicit `<Switch>`; ensure docs routes precede any catch-alls; retest deep links |
+| `prose` leaking into existing pages | LOW | Move `prose` to the correct scoped wrapper; run visual spot-check on all existing pages |
 
 ---
 
@@ -414,38 +261,29 @@ Common mistakes when connecting to the Personio API.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Token exposure in API response (P1) | Personio credentials + settings design | curl `GET /api/settings` — secret must not appear |
-| Duplicate sync jobs (P2) | Background scheduler implementation | Run with `--workers 2`; confirm single execution per interval |
-| Rate limit handling (P3) | Personio API client implementation | Mock 429; confirm exponential backoff fires |
-| v1 vs v2 API confusion (P4) | Personio client design (pre-implementation) | Code review: attendance calls must use `/v2/attendances` |
-| Cross-source temporal mismatch (P5) | HR dashboard KPI cards | UI shows two freshness timestamps; stale Personio shows warning |
-| Bearer token expiry (P6) | Personio API client implementation | Run container 25h; confirm auto-re-auth |
-| Alembic migration conflict (P7) | DB migration (Personio tables) | `alembic check` shows only new tables |
-| Manual sync cache invalidation (P8) | HR dashboard sync button | Click sync; confirm KPI cards reload |
-| Fluktuation historical headcount (P9) | Personio data model + sync logic | UPSERT test + SQL query validation |
-| Overtime denominator definition (P10) | Personio data model + KPI SQL | Part-time employee test case |
+| XSS via Markdown renderer (P1) | Library setup phase | Confirm `rehype-raw` is absent or paired with `rehype-sanitize`; code review |
+| Dark mode broken in docs (P2) | First doc render phase | Toggle dark mode on rendered doc page; all prose elements readable |
+| Role gate — static files (P3) | Role-gating phase | Decision logged in PROJECT.md; chosen option implemented or waived explicitly |
+| i18n duplication drift (P4) | Docs folder structure phase | File count parity check defined before content authoring begins |
+| Route conflict with wouter (P5) | Routing and navigation phase | Deep-link test + back-button test as explicit success criteria |
+| Bundle bloat (P6) | Library setup phase | `vite build --report` confirms docs chunk is code-split from main bundle |
+| `prose` scope leaking (P7) | First doc render phase | Visual check on dashboard and settings pages after `prose` added |
 
 ---
 
 ## Sources
 
-- [Personio API rate limits — community thread (60 req/min informal)](https://developer.personio.de/discuss/66a8d4dcd07c9e0052e12519)
-- [Personio rate limit increased complaints (2025)](https://developer.personio.de/discuss/67ad33de7de5140018892fb0)
-- [Personio rate limits — Attendance API v2 (2025)](https://developer.personio.de/discuss/67f4ed20cc8a900036bd6fad)
-- [Personio API pagination broken — community report](https://developer.personio.de/discuss/61e47838f01e46005f025a6e)
-- [Personio Absences and Attendances v2 GA announcement](https://developer.personio.de/changelog/absences-and-attendances-v2-apis-promotion-to-general-availability-ga)
-- [Personio v1 Attendance deprecation (July 31, 2026) — API v2 issues discussion](https://developer.personio.de/discuss/67b6e06f8740e60031bb5803)
-- [Personio bearer token stable 24h — auth changelog](https://developer.personio.de/changelog/authentication-api-improved-bearer-token)
-- [Personio auth endpoint rate limit (150 req/min)](https://developer.personio.de/reference/post_v2-auth-token)
-- [Personio v2 Person + Employment split — historization](https://developer.personio.de/discuss/683eb3716fae3a00219dd67e)
-- [Personio overtime recalculation cutoff Nov 2025](https://support.personio.de/hc/en-us/articles/115000724605-Manage-overtime)
-- [APScheduler duplicate jobs with Gunicorn/multiple workers — FastAPI discussion #9143](https://github.com/fastapi/fastapi/discussions/9143)
-- [APScheduler logs in Docker — uvicorn-gunicorn-fastapi issue #227](https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker/issues/227)
-- [FastAPI-APScheduler4 multi-node data store requirement](https://grelinfo.github.io/fastapi-apscheduler4/0.1/getting_started/)
-- [TanStack Query invalidateQueries — official docs](https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation)
-- [TanStack Query staleTime: 'static' vs Infinity behavior](https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults)
-- [Alembic autogenerate limitations — official docs](https://alembic.sqlalchemy.org/en/latest/autogenerate.html)
+- `react-markdown` README — security section (safe-by-default without `rehype-raw`; explicit XSS warning when enabling raw HTML)
+- `rehype-sanitize` documentation — sanitisation configuration for use alongside `rehype-raw`
+- `@tailwindcss/typography` documentation — `prose` + dark mode (`prose-invert`) usage pattern
+- Tailwind v4 migration guide — CSS-first plugin configuration via `@plugin`, no `tailwind.config.js`
+- wouter documentation — `<Switch>` matching order and parameterised route patterns
+- Vite documentation — `import.meta.glob` lazy vs eager loading; code splitting with `React.lazy`
+- Project `PROJECT.md` — existing auth pattern (Directus JWT, FastAPI role gates, frontend `ProtectedRoute`)
+- Project `PROJECT.md` — existing dark mode implementation (Tailwind v4 class strategy, CSS-variable tokens, pre-hydration IIFE)
+- Project `PROJECT.md` — existing i18n implementation (react-i18next, DE/EN, localStorage preference)
+- Project `PROJECT.md` — existing routing (wouter, `sessionStorage` last-dashboard tracking in Settings)
 
 ---
-*Pitfalls research for: HR KPI Dashboard + Personio API Integration (KPI Light v1.3)*
-*Researched: 2026-04-12*
+*Pitfalls research for: in-app Markdown documentation added to existing React SPA (KPI Dashboard v1.13)*
+*Researched: 2026-04-16*

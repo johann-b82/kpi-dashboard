@@ -1,252 +1,188 @@
-# Stack Research
+# Stack Research — v1.13 In-App Documentation
 
-**Domain:** HR KPI Dashboard & Personio API Integration
-**Milestone:** KPI Light v1.3
-**Researched:** 2026-04-12
-**Confidence:** HIGH (Personio API auth model verified, APScheduler version verified, httpx version verified)
+**Domain:** In-app Markdown documentation site (role-aware, bilingual, bundled with React frontend)
+**Researched:** 2026-04-16
+**Confidence:** HIGH (all versions verified against npm registry)
 
----
+## Context: What Already Exists (Do Not Re-Add)
 
-## What This Document Covers
+The following are already in the stack and require zero changes for this milestone:
 
-Milestone-scoped research for v1.3. Documents **only the additions** needed on top of the validated stack. The following are NOT re-researched and ship unchanged: FastAPI, asyncpg, SQLAlchemy 2.0 async, Alembic, React 19, Vite 8, Recharts, Tailwind v4, shadcn/ui, TanStack Query, react-i18next, wouter, Docker Compose + PostgreSQL 17-alpine, nh3.
-
----
-
-## New Backend Dependencies
-
-### 1. Async HTTP Client for Personio API
-
-| Library | Version | Purpose | Why |
-|---------|---------|---------|-----|
-| httpx | 0.28.1 | Async HTTP client for all Personio REST API calls | `AsyncClient` integrates cleanly into the existing async FastAPI stack — no thread pool, no blocking. The alternative (`personio-py`) is sync-only (uses `requests`), last released in 2022 (v0.2.3), and would block the uvicorn event loop when called from async route handlers. The Personio API surface needed for v1.3 is small (3 endpoints: `/employees`, `/attendances`, `/absences`); a thin httpx-based client is cleaner than a stale third-party wrapper. |
-
-**Why NOT `personio-py`:**
-- Uses `requests` (sync) — calling from `async def` requires `asyncio.run_in_executor`, adding unnecessary complexity
-- Last release: v0.2.3 (approximately 2022, low maintenance signal)
-- No async interface; no plans for one in any tracked release
-- The Personio API is straightforward REST+JSON; a custom client is ~50 lines and zero risk of library drift
-
-**Personio auth model (verified):**
-- Bearer token obtained via `POST /auth` with `client_id` + `client_secret`
-- Token valid for 24 hours, stable (same value reused for the 24h window)
-- Token rotation: new token returned in response headers on each authenticated call — httpx response header inspection handles this transparently
-- Rate limit on `/auth`: 150 req/min; for background sync this is irrelevant (one call per sync cycle)
-
-```python
-# Personio API client pattern — thin wrapper over httpx.AsyncClient
-import httpx
-
-class PersonioClient:
-    BASE_URL = "https://api.personio.de/v1"
-
-    def __init__(self, client_id: str, client_secret: str):
-        self._client_id = client_id
-        self._client_secret = client_secret
-        self._token: str | None = None
-        self._http = httpx.AsyncClient(base_url=self.BASE_URL, timeout=30.0)
-
-    async def _ensure_auth(self) -> None:
-        if self._token:
-            return
-        resp = await self._http.post("/auth", json={
-            "client_id": self._client_id,
-            "client_secret": self._client_secret,
-        })
-        resp.raise_for_status()
-        self._token = resp.json()["data"]["token"]
-
-    async def get_employees(self) -> list[dict]:
-        await self._ensure_auth()
-        resp = await self._http.get("/company/employees",
-                                     headers={"Authorization": f"Bearer {self._token}"})
-        resp.raise_for_status()
-        # Rotate token if present in response headers
-        if new_token := resp.headers.get("X-Token"):
-            self._token = new_token
-        return resp.json()["data"]
-```
-
-### 2. Background Task Scheduler
-
-| Library | Version | Purpose | Why |
-|---------|---------|---------|-----|
-| APScheduler | 3.11.2 | Configurable interval-based Personio sync, triggered from within the FastAPI process | `AsyncIOScheduler` runs on the same asyncio event loop as FastAPI — no separate process or container needed. `reschedule_job()` allows runtime interval changes (required for "configurable auto-sync interval in Settings" without a server restart). Stable, battle-tested, well-documented. |
-
-**Why NOT APScheduler 4.x:** Pre-release only (latest: 4.0.0a6 as of April 2025). API is not stable; the project explicitly states it is not production-ready. Stay on 3.11.2.
-
-**Why NOT Celery/Redis:** A separate worker process + broker for a single background job is massively disproportionate. No external message broker to operate.
-
-**Why NOT FastAPI `BackgroundTasks`:** `BackgroundTasks` runs after a response — it is not a scheduler and does not repeat. Not applicable here.
-
-**Integration pattern — FastAPI lifespan:**
-
-```python
-from contextlib import asynccontextmanager
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-
-scheduler = AsyncIOScheduler()
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Load personio_sync_interval_hours from app_settings at startup
-    scheduler.add_job(
-        sync_personio,
-        trigger=IntervalTrigger(hours=personio_sync_interval_hours),
-        id="personio_sync",
-        replace_existing=True,
-        max_instances=1,  # Prevent overlap if sync takes longer than interval
-    )
-    scheduler.start()
-    yield
-    scheduler.shutdown(wait=False)
-
-app = FastAPI(lifespan=lifespan)
-```
-
-**Runtime interval reconfiguration (Settings page "Save"):**
-
-```python
-# When user saves new sync interval in Settings
-scheduler.reschedule_job(
-    job_id="personio_sync",
-    trigger=IntervalTrigger(hours=new_interval_hours),
-)
-```
-
-`reschedule_job()` replaces the trigger and recalculates next run time immediately — no restart required.
+- React 19 + Vite 8 + TypeScript + Tailwind v4 — rendering and styling
+- wouter — routing (add `/docs` and `/docs/:slug` routes)
+- react-i18next — bilingual DE/EN (reuse existing `i18n/` setup for doc section titles/labels)
+- shadcn/ui — component primitives (cards, sidebar, breadcrumbs)
+- Directus JWT (`Admin` / `Viewer` roles) — role-based visibility is already solved; just gate which `.md` files are imported
 
 ---
 
-## No New Frontend Dependencies
+## Recommended Additions
 
-All v1.3 frontend features (HR tab, KPI cards with delta badges, manual sync button, Settings sync interval input, Settings API token input) are achievable with already-installed libraries:
-- **Tab navigation:** existing wouter routes + shadcn/ui Tab components
-- **KPI cards with delta badges:** reuse existing delta badge components from v1.2
-- **Sync status feedback:** TanStack Query mutation + existing shadcn/ui toast or inline status text
-- **Settings inputs:** existing shadcn/ui form components
+### Core: Markdown Rendering Pipeline
 
----
+| Library | Version | Purpose | Why Recommended |
+|---------|---------|---------|-----------------|
+| `react-markdown` | 10.1.0 | Render `.md` strings as React component tree | The standard for this use case. Converts Markdown → React VDOM (not innerHTML), so it's XSS-safe by default and integrates with Tailwind/shadcn without `dangerouslySetInnerHTML`. MDX is overkill — docs content doesn't need embedded React components. `marked` produces HTML strings, which require `dangerouslySetInnerHTML` and lose component customization. |
+| `remark-gfm` | 4.0.1 | GitHub-Flavoured Markdown (tables, task lists, strikethrough, autolinks) | GFM tables are expected in setup/config docs. This is the official remark plugin; ships separately from `react-markdown` since v7. remark-gfm v4 matches the remark v15 ecosystem used by react-markdown v10. |
 
-## New Database Tables (No New Libraries)
+### Syntax Highlighting
 
-SQLAlchemy 2.0 async + Alembic (both already installed) handle all new HR schema. Three new tables via new Alembic migration:
+| Library | Version | Purpose | Why Recommended |
+|---------|---------|---------|-----------------|
+| `rehype-highlight` | 7.0.2 | Apply syntax highlighting to fenced code blocks via rehype pipeline | Integrates directly into `react-markdown`'s `rehypePlugins` prop. Uses `lowlight` (highlight.js grammar) under the hood. For a small bundled docs SPA with no build-time step, this is the right weight: no Shiki WASM loading overhead, no SSR required. Produces `<code class="hljs ...">` elements styled by a single CSS import. |
+| `highlight.js` | 11.11.1 | Highlight.js grammar registry (peer dep of `rehype-highlight`) | Import only needed language grammars to keep bundle small: `bash`, `yaml`, `python`, `typescript`, `json`. Full hljs auto-import is ~400KB; selective import is ~40KB. |
 
-| Table | Purpose | Key Columns |
-|-------|---------|-------------|
-| `personio_employees` | Raw employee list snapshot from Personio | `personio_id`, `first_name`, `last_name`, `department`, `position`, `hire_date`, `termination_date`, `status`, `synced_at` |
-| `personio_attendances` | Raw time/attendance entries from Personio | `personio_id`, `employee_id` (FK), `date`, `start_time`, `end_time`, `break_duration`, `type` (regular/overtime), `synced_at` |
-| `personio_absences` | Raw absence records from Personio | `personio_id`, `employee_id` (FK), `absence_type`, `start_date`, `end_date`, `duration_hours`, `status`, `synced_at` |
+### Table of Contents
 
-**Design principle:** Store Personio raw data as-is; compute KPIs at query time in SQL (same pattern as sales KPIs in v1.2). Do NOT pre-aggregate — raw data enables ad-hoc period filtering and delta calculations.
+| Library | Version | Purpose | Why Recommended |
+|---------|---------|---------|-----------------|
+| `rehype-slug` | 6.0.0 | Add `id` attributes to `<h1>`–`<h6>` heading elements | Required for anchor links in the TOC. Runs in the rehype pipeline after Markdown → HTML conversion. |
+| `rehype-autolink-headings` | 7.1.0 | Add `<a>` anchor links to headings (for copyable deep links) | Pairs with `rehype-slug`. Configure with `behavior: 'wrap'` to wrap heading text in the link. Must appear after `rehype-slug` in plugin array. |
 
-**`app_settings` additions** (extend existing table via new Alembic migration):
-```
-personio_client_id       VARCHAR(255) NULL
-personio_client_secret   VARCHAR(255) NULL   -- stored as plaintext; Authentik auth is v2 scope
-personio_sync_interval_hours  INTEGER NOT NULL DEFAULT 24
-personio_last_synced_at  TIMESTAMPTZ NULL
-```
+The TOC component itself is built as a small React hook (`useToc`) that reads heading elements from the rendered DOM via `document.querySelectorAll('h1, h2, h3')` after render — no additional library needed for a docs set of this size.
 
-Storing the API secret in PostgreSQL as plaintext is acceptable for v1.3: there is no authentication in front of this app yet (Authentik is v2 scope), and the threat model is internal-network-only. Flag this for the Authentik milestone — at v2, secrets should move to env vars or a secrets manager.
+### Search (Optional — Defer Unless Explicitly Required)
 
----
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `flexsearch` | 0.8.212 | Client-side full-text search over bundled doc pages | Only add if user feedback requests it. For < 20 pages, sidebar navigation + browser Ctrl+F is sufficient. If added: build index at app startup from imported `.md` files; ~30KB bundle cost. |
 
-## Settings Page Additions
-
-The existing Settings page (built in v1.1) gains two new sections:
-
-1. **Personio API Credentials** — `client_id` (text input) + `client_secret` (password input, masked). Saved to `app_settings` via existing settings mutation endpoint.
-2. **Auto-Sync Interval** — number input (hours, 1–168). On save, calls `scheduler.reschedule_job()` in the API handler. Manual "Daten aktualisieren" button on HR tab triggers an immediate ad-hoc sync via a dedicated `POST /api/hr/sync` endpoint.
-
----
-
-## What NOT to Add
-
-| Avoid | Why | What to Use Instead |
-|-------|-----|---------------------|
-| `personio-py` | Sync-only (uses `requests`); last release ~2022; blocks event loop in async FastAPI | `httpx.AsyncClient` with thin custom wrapper |
-| APScheduler 4.x | Alpha-only (4.0.0a6); not production-ready; API not stable | APScheduler 3.11.2 |
-| Celery + Redis | Full message broker for a single background job; disproportionate operational overhead | APScheduler 3.11.2 `AsyncIOScheduler` |
-| FastAPI `BackgroundTasks` | Not a scheduler; runs once after response, does not repeat | APScheduler |
-| `rq` (Redis Queue) | Requires Redis; same overkill argument as Celery | APScheduler |
-| A separate `personio-sync` Docker service | Adds container lifecycle complexity; APScheduler runs in-process | In-process APScheduler via lifespan |
-| `aiohttp` | Already have httpx; no need for a second async HTTP library | httpx 0.28.1 |
-| Pre-aggregated HR KPI tables | Loses raw data flexibility; couples schema to current KPI definitions | Raw tables + SQL aggregation at query time |
-| Secrets manager / Vault | v2 scope (Authentik milestone); overkill for internal-only v1.3 | Plaintext in `app_settings` with documented TODO |
+Recommendation: **Defer search entirely for v1.13.** A role-aware docs site with < 20 pages is fully navigable without it.
 
 ---
 
 ## Installation
 
-### Backend additions to `requirements.txt`
+```bash
+# Markdown rendering pipeline
+npm install react-markdown remark-gfm
 
+# Syntax highlighting
+npm install rehype-highlight highlight.js
+
+# TOC heading anchors
+npm install rehype-slug rehype-autolink-headings
+
+# Search — defer; add only if explicitly scoped
+# npm install flexsearch
 ```
-httpx==0.28.1
-APScheduler==3.11.2
+
+---
+
+## What NOT to Add
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| MDX (`@mdx-js/react`) | Docs are static Markdown authored by one team; no need to embed React components in content. MDX adds a Vite plugin, a Babel transform, and significant complexity for zero benefit here. | `react-markdown` + remark/rehype plugins |
+| `marked` | Produces an HTML string, not React elements — requires `dangerouslySetInnerHTML`, loses Tailwind className injection on headings/code, needs manual XSS sanitization. | `react-markdown` |
+| `shiki` / `@shikijs/rehype` | Shiki loads a WASM grammar engine (~1.5MB); designed for SSR or build-time pipelines (Next.js, Astro). For a Vite SPA with client-side rendering, the startup cost is visible. `rehype-highlight` with selective language imports is 10x lighter. | `rehype-highlight` + `highlight.js` |
+| `react-syntax-highlighter` | Last release is old; bundles the entire Prism/hljs grammar set even when using individual language modules. Larger bundle than `rehype-highlight` for the same result. | `rehype-highlight` |
+| `@tailwindcss/typography` (prose plugin) | Requires a `tailwind.config.js` which Tailwind v4 dropped. Applying the `prose` class will silently do nothing. | Style headings/lists/code via `react-markdown`'s `components` prop with Tailwind utility classes directly. |
+| `remark-toc` | Injects a `<ul>` TOC into the Markdown source text itself; hard to position in a sidebar layout; no scroll-sync capability. | Custom `useToc` hook over `document.querySelectorAll` |
+| Algolia DocSearch | External SaaS dependency, requires indexing pipeline, overkill for < 30 internal pages. | `flexsearch` if search is ever needed |
+
+---
+
+## Integration Patterns
+
+### Markdown Rendering Component
+
+```tsx
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeHighlight from 'rehype-highlight';
+// Import only needed language grammars:
+import 'highlight.js/lib/languages/bash';
+import 'highlight.js/lib/languages/yaml';
+import 'highlight.js/lib/languages/typescript';
+
+// Apply Tailwind utility classes via the `components` prop — NOT prose plugin
+<ReactMarkdown
+  remarkPlugins={[remarkGfm]}
+  rehypePlugins={[rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }], rehypeHighlight]}
+  components={{
+    h1: ({ children, ...props }) => (
+      <h1 className="text-2xl font-bold mb-4 mt-6" {...props}>{children}</h1>
+    ),
+    h2: ({ children, ...props }) => (
+      <h2 className="text-xl font-semibold mb-3 mt-5" {...props}>{children}</h2>
+    ),
+    code: ({ className, children, ...props }) => (
+      <code className={cn("rounded bg-muted px-1 py-0.5 font-mono text-sm", className)} {...props}>
+        {children}
+      </code>
+    ),
+  }}
+>
+  {markdownContent}
+</ReactMarkdown>
 ```
 
-No other new backend packages needed.
+### Bundling Markdown Files
 
-### Frontend — no new packages
+Import `.md` files as strings using Vite's `?raw` suffix — no loader plugin required:
 
-All v1.3 frontend work uses already-installed libraries.
+```ts
+import adminSetupDoc from './docs/admin/setup.md?raw';
+import userUploadDoc from './docs/user/upload.md?raw';
+```
+
+All docs bundled with the frontend container; no CMS, no API call, no backend changes.
+
+### Role Gating
+
+Gate doc visibility based on the existing `useAuth()` role claim — pure frontend logic:
+
+```ts
+const adminDocs = role === 'Admin' ? [adminSetupDoc, adminArchitectureDoc] : [];
+const userDocs = [userUploadDoc, userDashboardDoc];
+const visibleDocs = [...adminDocs, ...userDocs];
+```
+
+No backend changes required.
+
+### Highlight.js Dark Mode
+
+Use the `github` theme and override in `.dark` — consistent with existing Tailwind v4 class strategy:
+
+```ts
+// main.tsx or the docs component
+import 'highlight.js/styles/github.css';
+```
+
+Then in the global CSS file:
+```css
+.dark .hljs { background: var(--color-muted); color: var(--color-foreground); }
+```
 
 ---
 
-## Version Compatibility Notes
+## Version Compatibility
 
-| Package | Version | Compatibility Note |
-|---------|---------|-------------------|
-| httpx | 0.28.1 | Python >=3.8; fully async; works with FastAPI's asyncio event loop; no conflicts with existing stack |
-| APScheduler | 3.11.2 | Python >=3.8; `AsyncIOScheduler` requires no separate thread; `max_instances=1` prevents sync job overlap; works with FastAPI lifespan context manager |
-| Personio API | v1 (REST) | Bearer token auth; 24h token validity; endpoints: `/auth`, `/company/employees`, `/company/attendances`, `/company/time-off` (absences) |
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Basis |
-|------|------------|-------|
-| httpx 0.28.1 as Personio HTTP client | HIGH | PyPI confirmed latest stable (released Dec 2024); async pattern matches existing stack; official httpx docs + FastAPI async docs |
-| APScheduler 3.11.2 stability | HIGH | Version confirmed via WebSearch + Repology; 3.x docs confirm `AsyncIOScheduler` + `reschedule_job()` API |
-| APScheduler 4.x avoid | HIGH | Pre-release status confirmed (4.0.0a6); project README explicitly flags not production-ready |
-| personio-py avoid (sync-only, stale) | HIGH | GitHub repo confirmed `requests`-only; last PyPI release v0.2.3 |
-| Personio API auth model (24h token, client_id/secret) | HIGH | Verified against official Personio developer docs + changelog |
-| Raw-data storage pattern (no pre-aggregation) | HIGH | Consistent with existing sales KPI pattern in codebase (v1.2 uses SQL-computed windows) |
-| In-process scheduler (no separate container) | MEDIUM | Standard pattern for single-job APScheduler usage; acknowledged risk: sync job shares resources with API requests |
-| Plaintext API secret in app_settings | MEDIUM | Accepted for v1.3 internal-only scope; flagged as tech debt for Authentik milestone |
-
----
-
-## Risks and Mitigations
-
-| Risk | Likelihood | Mitigation |
-|------|------------|------------|
-| Personio API schema changes break raw data ingestion | Low | Store full raw JSON as JSONB alongside normalized columns — enables schema changes without data loss |
-| Sync job overlaps (slow Personio API response) | Medium | `max_instances=1` on APScheduler job prevents concurrent sync runs |
-| Personio API token expires during long sync | Low | Implement token refresh on 401 response in `PersonioClient._ensure_auth()` by clearing `self._token` and re-authenticating |
-| In-process scheduler causes memory pressure during large syncs | Low | Personio employee/attendance datasets for SMB (target user) are <10k rows; negligible memory footprint |
-| API secret visible in Settings page (plaintext) | Medium | Mask `client_secret` field in UI (password input); document Authentik milestone as the fix |
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| `react-markdown@10.1.0` | React 19 | ESM-only; Vite handles this transparently |
+| `remark-gfm@4.0.1` | `react-markdown@10` | remark v15 ecosystem — versions must align |
+| `rehype-highlight@7.0.2` | `react-markdown@10` | rehype v13 ecosystem — compatible with slug and autolink-headings |
+| `rehype-slug@6.0.0` | `rehype-highlight@7` | Same rehype v13 ecosystem |
+| `rehype-autolink-headings@7.1.0` | `rehype-slug@6` | Must come after `rehype-slug` in plugin array; slug IDs must exist first |
 
 ---
 
 ## Sources
 
-- [Personio Developer Docs — Getting Started](https://developer.personio.de/docs/getting-started-with-the-personio-api)
-- [Personio API Authentication reference](https://developer.personio.de/reference/authentication)
-- [Personio Authentication API — improved bearer token changelog](https://developer.personio.de/changelog/authentication-api-improved-bearer-token)
-- [httpx official docs — Async Support](https://www.python-httpx.org/async/)
-- [httpx PyPI — version 0.28.1 (Dec 2024)](https://pypi.org/project/httpx/)
-- [APScheduler 3.11.2 User Guide](https://apscheduler.readthedocs.io/en/3.x/userguide.html)
-- [APScheduler AsyncIOScheduler docs](https://apscheduler.readthedocs.io/en/3.x/modules/schedulers/asyncio.html)
-- [APScheduler IntervalTrigger docs](https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html)
-- [APScheduler PyPI — 3.11.2 latest stable](https://pypi.org/project/APScheduler/)
-- [Sentry — Schedule tasks with FastAPI (lifespan pattern)](https://sentry.io/answers/schedule-tasks-with-fastapi/)
-- [personio-py GitHub (at-gmbh/personio-py)](https://github.com/at-gmbh/personio-py)
+- [react-markdown npm](https://www.npmjs.com/package/react-markdown) — v10.1.0 confirmed
+- [remark-gfm npm](https://www.npmjs.com/package/remark-gfm) — v4.0.1 confirmed
+- [rehype-highlight GitHub](https://github.com/rehypejs/rehype-highlight) — v7.0.2 confirmed
+- [highlight.js npm](https://www.npmjs.com/package/highlight.js) — v11.11.1 confirmed
+- [rehype-slug npm](https://www.npmjs.com/package/rehype-slug) — v6.0.0 confirmed
+- [rehype-autolink-headings npm](https://www.npmjs.com/package/rehype-autolink-headings) — v7.1.0 confirmed
+- [flexsearch GitHub](https://github.com/nextapps-de/flexsearch) — v0.8.212 confirmed
+- [Shiki rehype integration docs](https://shiki.matsu.io/packages/rehype) — reviewed for SSR-vs-SPA tradeoff; ruled out for client-side SPA
+- [rehype-pretty-code](https://rehype-pretty.pages.dev/) — reviewed, same Shiki-based concern; ruled out
 
 ---
-
-*Stack research for: KPI Light v1.3 HR KPI Dashboard & Personio-Integration*
-*Researched: 2026-04-12*
+*Stack research for: v1.13 In-App Documentation additions to KPI Dashboard*
+*Researched: 2026-04-16*
