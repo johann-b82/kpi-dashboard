@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: In-App Documentation
 status: executing
-stopped_at: Phase 35 UI-SPEC approved
-last_updated: "2026-04-16T13:02:52.179Z"
-last_activity: 2026-04-16 -- Phase 35 execution started
+stopped_at: Completed 35-02-PLAN.md
+last_updated: "2026-04-16T13:13:43.851Z"
+last_activity: 2026-04-16
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 6
   percent: 0
 ---
 
@@ -34,9 +34,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-16)
 ## Current Position
 
 Phase: 35 (user-guide-content) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 35
-Last activity: 2026-04-16 -- Phase 35 execution started
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-16
 
 Progress: [..........] 0%
 
@@ -60,6 +60,7 @@ Progress: [..........] 0%
 | Phase 33-rendering-foundation P01 | 600 | 2 tasks | 11 files |
 | Phase 34-navigation-shell P01 | 600 | 2 tasks | 8 files |
 | Phase 34-navigation-shell P02 | 360 | 2 tasks | 3 files |
+| Phase 35 P02 | 600 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Progress: [..........] 0%
 - [Phase 33-rendering-foundation]: react-markdown + rehype-highlight + rehype-slug pipeline chosen; github-slugger used in extractToc for slug alignment with rehype-slug
 - [Phase 34-navigation-shell]: Registry keyed by lang/section/slug for O(1) content lookup in DocsPage
 - [Phase 34-navigation-shell]: Library icon placed before Upload in NavBar with active state for all /docs/* routes
+- [Phase 35]: i18n keys added as flat keys matching existing keySeparator:false convention
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-16T12:43:30.726Z
-**Stopped at:** Phase 35 UI-SPEC approved
-**Resume file:** .planning/phases/35-user-guide-content/35-UI-SPEC.md
+**Last session:** 2026-04-16T13:13:43.848Z
+**Stopped at:** Completed 35-02-PLAN.md
+**Resume file:** None

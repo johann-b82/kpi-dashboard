@@ -127,7 +127,7 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 
 - [x] **Phase 33: Rendering Foundation** — Markdown pipeline, syntax highlighting, heading anchors, TOC, dark mode prose, lazy loading (completed 2026-04-16)
 - [x] **Phase 34: Navigation Shell** — Navbar book icon, sidebar, role gating, routing, role-aware default article, i18n chrome (completed 2026-04-16)
-- [ ] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN
+- [x] **Phase 35: User Guide Content** — 5 user guide articles in DE and EN (completed 2026-04-16)
 - [ ] **Phase 36: Admin Guide Content** — 4 admin guide articles in DE and EN, full bilingual coverage
 
 ## Phase Details
@@ -175,8 +175,8 @@ Plans:
   5. User can read a complete article explaining how to switch language and dark mode
 **Plans**: 2 plans
 Plans:
-- [ ] 35-01-PLAN.md — EN+DE articles: intro, uploading data, sales dashboard, HR dashboard
-- [ ] 35-02-PLAN.md — EN+DE articles: filters, language/theme + registry wiring
+- [x] 35-01-PLAN.md — EN+DE articles: intro, uploading data, sales dashboard, HR dashboard
+- [x] 35-02-PLAN.md — EN+DE articles: filters, language/theme + registry wiring
 
 ### Phase 36: Admin Guide Content
 **Goal**: Admins can read complete guidance on system setup, architecture, Personio integration, and user management; all documentation exists in both DE and EN
@@ -199,5 +199,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 33. Rendering Foundation | v1.13 | 2/2 | Complete    | 2026-04-16 |
 | 34. Navigation Shell | v1.13 | 2/2 | Complete    | 2026-04-16 |
-| 35. User Guide Content | v1.13 | 0/TBD | Not started | - |
+| 35. User Guide Content | v1.13 | 2/2 | Complete   | 2026-04-16 |
 | 36. Admin Guide Content | v1.13 | 0/TBD | Not started | - |
