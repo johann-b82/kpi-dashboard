@@ -1,4 +1,4 @@
-# KPI Light
+# KPI Dashboard
 
 ## What This Is
 
@@ -7,6 +7,18 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 ## Core Value
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
+
+## Current Milestone: v1.12 Chart Polish & Rebrand
+
+**Goal:** Improve chart readability for multi-year data and rebrand from "KPI Light" to "KPI Dashboard" with CI-aligned login.
+
+**Target features:**
+- Year labels on all chart x-axes (e.g., `Nov '25`), with year grouping when data spans multiple years
+- Fill time gaps: show all months in range even when no data exists for a period
+- Rebrand app name from "KPI Light" → "KPI Dashboard" everywhere (title, navbar, login, settings default, i18n)
+- Login page CI alignment: match existing app card style (clean white cards, subtle borders, blue accent), show uploaded logo above title
+
+**Key context:** Charts use Recharts with `Intl.DateTimeFormat` locale-aware month labels. Logo is already uploadable via `/api/settings/logo`. Login is currently a plain shadcn card — restyle to match the Settings page card aesthetic. Rename is cosmetic only (no package/repo rename).
 
 ## Current State
 
@@ -218,4 +230,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-15 after v1.11-directus milestone*
+*Last updated: 2026-04-15 — v1.12 milestone started*
