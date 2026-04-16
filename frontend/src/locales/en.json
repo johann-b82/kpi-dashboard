@@ -215,7 +215,12 @@
       "userGuide": "User Guide",
       "adminGuide": "Admin Guide",
       "userGuideIntro": "Introduction",
-      "adminGuideIntro": "Introduction"
+      "adminGuideIntro": "Introduction",
+      "uploadingData": "Uploading Data",
+      "salesDashboard": "Sales Dashboard",
+      "hrDashboard": "HR Dashboard",
+      "filters": "Filters & Date Ranges",
+      "languageAndTheme": "Language & Dark Mode"
     }
   }
 }

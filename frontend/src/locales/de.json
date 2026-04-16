@@ -215,7 +215,12 @@
       "userGuide": "Benutzerhandbuch",
       "adminGuide": "Administratorhandbuch",
       "userGuideIntro": "Einleitung",
-      "adminGuideIntro": "Einleitung"
+      "adminGuideIntro": "Einleitung",
+      "uploadingData": "Daten hochladen",
+      "salesDashboard": "Umsatz-Dashboard",
+      "hrDashboard": "HR-Dashboard",
+      "filters": "Filter & Zeiträume",
+      "languageAndTheme": "Sprache & Dunkelmodus"
     }
   }
 }
