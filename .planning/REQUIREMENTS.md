@@ -41,9 +41,9 @@
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| CHART-01 | — | — | Not started |
-| CHART-02 | — | — | Not started |
-| CHART-03 | — | — | Not started |
-| BRAND-01 | — | — | Not started |
-| BRAND-02 | — | — | Not started |
-| BRAND-03 | — | — | Not started |
+| CHART-01 | Phase 31 | — | Not started |
+| CHART-02 | Phase 31 | — | Not started |
+| CHART-03 | Phase 31 | — | Not started |
+| BRAND-01 | Phase 32 | — | Not started |
+| BRAND-02 | Phase 32 | — | Not started |
+| BRAND-03 | Phase 32 | — | Not started |

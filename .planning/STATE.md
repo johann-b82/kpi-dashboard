@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.12
 milestone_name: Chart Polish & Rebrand
-status: defining requirements
+status: roadmap approved
 stopped_at: null
-last_updated: "2026-04-15T23:00:00.000Z"
+last_updated: "2026-04-15T23:30:00.000Z"
 last_activity: 2026-04-15
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,47 +17,37 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-15
-**Session:** v1.12 Chart Polish & Rebrand — defining requirements
+**Session:** v1.12 Chart Polish & Rebrand — roadmap approved
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-15 after v1.11-directus milestone started)
+See: `.planning/PROJECT.md` (updated 2026-04-15)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 30 — bring-up-docs-backup
+**Current focus:** v1.12 roadmap created — ready for Phase 31 planning
 
 ---
 
 ## Current Position
 
-Phase: 30
+Phase: 31 (next)
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: Roadmap approved — ready for phase planning
 Last activity: 2026-04-15
 
-Progress: [          ] 0%  (0/5 phases)
+Progress: [          ] 0%  (0/2 phases)
 
 ---
 
 ## Performance Metrics
 
-**Velocity (v1.9–v1.10):**
+**Velocity (v1.11-directus):**
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
-| 23 P01 | contrast tokens | 40s | 3 | 2 |
-| 23 P02 | EmployeeTable badge | 2min | 1 | 1 |
-| 24 P01 | delta label unification | 3h | 9 | 5 |
-| 25 P01 | upload container | 1min | 1 | 1 |
-| 25 P02 | settings container | 2min | 1 | 1 |
-| 25 P03 | UAT layout parity | 30min | 1 | 7 |
-
-*Updated after each plan completion*
-
----
 | Phase 26 P01 | 3min | 2 tasks | 2 files |
 | Phase 26 P02 | 2min | 2 tasks | 2 files |
 | Phase 26 P03 | 15min | 3 tasks | 0 files |
@@ -69,39 +59,25 @@ Progress: [          ] 0%  (0/5 phases)
 | Phase 29 P02 | 8min | 2 tasks | 8 files |
 | Phase 29 P03 | 10min | 3 tasks | 8 files |
 | Phase 30 P01 | 9min | 3 tasks | 5 files |
-| Phase 30 P03 | 2min | 1 tasks | 1 files |
 | Phase 30 P02 | 3min | 1 tasks | 1 files |
+| Phase 30 P03 | 2min | 1 tasks | 1 files |
+
+*Updated after each plan completion*
+
+---
 
 ## Accumulated Context
 
 ### Decisions
 
-- **v1.11-directus scope:** 5 phases (26–30), strict linear dependency chain — no parallel work
-- **Phase 26 (INFRA + CFG):** Directus container + role config before any backend changes. Reuses existing `db` Postgres — no data migration.
-- **Phase 27 (AUTH backend):** FastAPI JWT verification via HS256 shared secret; `current_user` dep; unit tests. Foundation for RBAC.
-- **Phase 28 (RBAC backend):** Read routes open to both roles; mutation routes 403 for Viewer. Role changes in Directus UI take effect on next JWT refresh.
-- **Phase 29 (frontend cut-over):** Login page via `@directus/sdk`, session refresh, role-aware UI hide, sign-out.
-- **Phase 30 (DOCS):** `docs/setup.md`, `README.md` entry, nightly `pg_dump`, promote-to-Admin flow.
-- **Coverage:** 22/22 REQs mapped, no orphans, no duplicates.
-- **Locked (from DIRECTUS-PIVOT.md):** single Directus container on existing Postgres, email/password only, two Directus-managed roles (Admin/Viewer), fresh DB, API-layer authz, Directus REST not exposed to browser.
-- [Phase 26]: Fixed UUIDs in directus/snapshot.yml for cross-machine determinism (Directus resolves roles by ID)
-- [Phase 26]: Sidecar pattern chosen over docker compose run or entrypoint-wrap — declarative, auto-runs on every up
-- [Phase 26]: Custom role 'Admin' coexists with Directus built-in 'Administrator'; Phase 27 require_role must be explicit about which to match
-- [Phase 26]: Directus 11 'schema apply' does not handle roles; replaced with directus/bootstrap-roles.sh REST-API bootstrap script
-- [Phase 27]: placeholder-email-domain: Use {uuid}@directus.example.com not @directus.local — pydantic-email-validator rejects .local TLD
-- [Phase 27]: directus-filter-workaround: Directus v11 /roles?filter[name][_eq]=Administrator returned empty; used jq select(.name=="Administrator") client-side
-- [Phase 28]: require_admin is sync (not async) — FastAPI awaits dep chain; per-route enforcement via dependencies=[] on decorator
-- [Phase 28]: Import _mint from test_directus_auth.py to keep JWT minting DRY across test files
-- [Phase 29]: Role StrEnum values already lowercase; /api/me uses .value defensively
-- [Phase 29]: Plan 02: Access token kept in apiClient module singleton (not React state) to avoid re-rendering consumers on every refresh
-- [Phase 29]: Plan 02: shadcn Form primitive adapted for @base-ui/react stack (React.cloneElement, no Radix Slot dep)
-- [Phase 30]: Plan 01: Plain-format pg_dump piped through gzip (not -Fc) so .sql.gz extension is literal and restore needs only gunzip+psql (no pg_restore)
-- [Phase 30]: Plan 03: Added BOTH <details> narrative + table row to resolve D-09/README-convention mismatch
-- [Phase 30]: Plan 02: docs/setup.md authored as linear tutorial (D-07) with text-only Directus promote click-path (D-08); frontend port documented as 5173 matching actual compose config
+- **v1.12 scope:** 2 phases (31–32), independent — no dependency between them
+- **Phase 31 (Charts):** Year labels on x-axes, year grouping separators, gap-filled month series. Touches Recharts tick formatters and chart data utilities on both Sales and HR dashboards.
+- **Phase 32 (Rebrand):** Cosmetic rename "KPI Light" to "KPI Dashboard" across all surfaces + login page CI alignment (logo + card styling). No package/repo rename.
+- **Coverage:** 6/6 REQs mapped, no orphans, no duplicates.
 
 ### Pending Todos
 
-- Kick off Phase 26 via `/gsd:plan-phase 26`
+- Plan Phase 31 via `/gsd:plan-phase 31`
 
 ### Open Blockers
 
@@ -116,18 +92,15 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15T21:59:29.403Z
-**Stopped at:** Completed 30-02-setup-docs-PLAN.md
+**Last session:** 2026-04-15
+**Stopped at:** Roadmap created for v1.12
 **Resume file:** None
 
 ---
 
-## Milestone v1.11-directus Context
+## Milestone v1.12 Context
 
-- **Baseline reset:** `main` hard-reset to `v1.10` (`0676530`). Phase 32 (oauth2-proxy + Dex) abandoned — preserved on `archive/v1.12-phase32-abandoned`.
-- **Outline wiki dropped.** All v1.11 (Outline + shared Dex auth) and v1.12 (Phase 32) work discarded.
-- **Architecture pivot:** Single `directus/directus:11` container added to compose; reuses existing `db` Postgres (no data migration); Directus owns `directus_*` tables, Alembic keeps `public.*`.
-- **Supabase considered and rejected:** evaluated 5-service Supabase stack; Directus's single-container + built-in user admin UI won on simplicity and maturity.
-- **Scale:** ~150 users, 2 Directus roles (Admin, Viewer). Email/password only. No SSO this milestone.
-- **Source of truth:** `.planning/DIRECTUS-PIVOT.md` (locked decisions, phase breakdown, risk register).
-- **Phase dependency chain:** 26 → 27 → 28 → 29 → 30 (strict; no parallelism).
+- **Scope:** Polish milestone — no new features, no schema changes, no backend API changes expected
+- **Charts (Phase 31):** Recharts tick formatting uses `Intl.DateTimeFormat` for locale-aware month names. Need to add year suffix and handle gap-filling in the data layer before it reaches Recharts.
+- **Rebrand (Phase 32):** "KPI Light" appears in i18n files, settings default, document.title, navbar. Logo already uploadable via `/api/settings/logo`. Login page is a shadcn card — restyle to match Settings card aesthetic.
+- **Independence:** Phases 31 and 32 have no dependency on each other — can be executed in either order.

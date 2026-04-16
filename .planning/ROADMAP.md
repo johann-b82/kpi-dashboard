@@ -1,4 +1,4 @@
-# Roadmap: KPI Light
+# Roadmap: KPI Dashboard
 
 ## Milestones
 
@@ -12,6 +12,7 @@
 - ✅ **v1.9 Dark Mode & Contrast** — Phases 21–23 (shipped 2026-04-14) — [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.10 UI Consistency Pass** — Phases 24–25 (shipped 2026-04-14)
 - ✅ **v1.11-directus Directus Pivot** — Phases 26–30 (shipped 2026-04-15) — [archive](milestones/v1.11-directus-ROADMAP.md)
+- [ ] **v1.12 Chart Polish & Rebrand** — Phases 31–32
 
 ## Phases
 
@@ -109,7 +110,37 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
 
 </details>
 
+### v1.12 Chart Polish & Rebrand (Phases 31–32)
+
+- [ ] **Phase 31: Chart Readability** — Year-aware x-axis labels, year grouping, and gap-filled time series across all charts
+- [ ] **Phase 32: Rebrand & Login CI** — Rename app to "KPI Dashboard" everywhere and align login page with app card aesthetic
+
 ## Phase Details
+
+### Phase 31: Chart Readability
+**Goal**: Users can read chart time axes unambiguously across multi-year data ranges with no missing months
+**Depends on**: Nothing (independent of Phase 32)
+**Requirements**: CHART-01, CHART-02, CHART-03
+**Success Criteria** (what must be TRUE):
+  1. Every chart x-axis tick on Sales and HR dashboards shows month and abbreviated year (e.g., `Nov '25`)
+  2. When data spans two or more years, a visual separator or grouping marker distinguishes year boundaries on the x-axis
+  3. Selecting a date range that includes months with no uploaded data still shows those months on the x-axis (gap visible, label present)
+  4. Existing chart features (bar/line toggle, prior-period overlay, delta badges) continue to work correctly with the new axis formatting
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 32: Rebrand & Login CI
+**Goal**: Users see "KPI Dashboard" branding consistently and encounter a login page that matches the app's visual identity
+**Depends on**: Nothing (independent of Phase 31)
+**Requirements**: BRAND-01, BRAND-02, BRAND-03
+**Success Criteria** (what must be TRUE):
+  1. The text "KPI Light" appears nowhere in the running application — navbar, login page, browser tab title, i18n files, and settings default all read "KPI Dashboard"
+  2. The login page displays the uploaded logo (from `/api/settings/logo`) above the title
+  3. The login page card uses the same white-card/subtle-border/blue-accent styling as the Settings and Dashboard pages
+  4. Both DE and EN locale files reflect the new app name
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -126,8 +157,10 @@ Full details: [milestones/v1.11-directus-ROADMAP.md](milestones/v1.11-directus-R
 | 23 | v1.9 | 5/5 | Complete | 2026-04-14 |
 | 24 | v1.10 | 1/1 | Complete | 2026-04-14 |
 | 25 | v1.10 | 3/3 | Complete | 2026-04-14 |
-| 26 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 27 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 28 | v1.11-directus | 2/2 | Complete    | 2026-04-15 |
-| 29 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
-| 30 | v1.11-directus | 3/3 | Complete    | 2026-04-15 |
+| 26 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
+| 27 | v1.11-directus | 2/2 | Complete | 2026-04-15 |
+| 28 | v1.11-directus | 2/2 | Complete | 2026-04-15 |
+| 29 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
+| 30 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
+| 31 | v1.12 | 0/0 | Not started | - |
+| 32 | v1.12 | 0/0 | Not started | - |
