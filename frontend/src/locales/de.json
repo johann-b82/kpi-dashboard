@@ -209,6 +209,13 @@
     "empty": {
       "heading": "Kein Inhalt gefunden",
       "body": "Dieser Artikel konnte nicht geladen werden. Versuchen Sie, die Seite zu aktualisieren."
+    },
+    "nav": {
+      "docsLabel": "Dokumentation",
+      "userGuide": "Benutzerhandbuch",
+      "adminGuide": "Administratorhandbuch",
+      "userGuideIntro": "Einleitung",
+      "adminGuideIntro": "Einleitung"
     }
   }
 }

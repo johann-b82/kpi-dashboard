@@ -209,6 +209,13 @@
     "empty": {
       "heading": "No content found",
       "body": "This article could not be loaded. Try refreshing the page."
+    },
+    "nav": {
+      "docsLabel": "Documentation",
+      "userGuide": "User Guide",
+      "adminGuide": "Admin Guide",
+      "userGuideIntro": "Introduction",
+      "adminGuideIntro": "Introduction"
     }
   }
 }
