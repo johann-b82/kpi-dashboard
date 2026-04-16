@@ -27,7 +27,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 /**
  * /login page per 29-UI-SPEC §"Login Card".
  *
- * - Static "KPI Light" wordmark (no /api/settings fetch — login page is unauthed).
+ * - Static "KPI Dashboard" wordmark (no /api/settings fetch — login page is unauthed).
  * - Inline error "Invalid email or password" on failed signIn; no toast (D-06).
  * - Never reveals which field was wrong.
  * - On success, AuthGate handles navigation to /.
@@ -59,7 +59,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <p className="text-center text-2xl font-semibold mb-4">KPI Light</p>
+          <p className="text-center text-2xl font-semibold mb-4">KPI Dashboard</p>
         </CardHeader>
         <CardContent>
           <h1 className="text-2xl font-semibold text-center text-foreground mb-6">

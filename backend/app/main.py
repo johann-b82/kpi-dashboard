@@ -11,7 +11,7 @@ from app.routers.data import router as data_router
 from app.routers.me import router as me_router
 from app.scheduler import lifespan
 
-app = FastAPI(title="KPI Light", lifespan=lifespan)
+app = FastAPI(title="KPI Dashboard", lifespan=lifespan)
 
 app.include_router(uploads_router)
 app.include_router(kpis_router)
