@@ -8,9 +8,9 @@
 
 ### Charts (CHART)
 
-- [ ] **CHART-01**: All chart x-axes display year alongside month (e.g., `Nov '25`) on both Sales and HR dashboards
-- [ ] **CHART-02**: When chart data spans multiple years, a visual year grouping/separator distinguishes year boundaries
-- [ ] **CHART-03**: Charts show all months in the data range on the x-axis, even months with no data (gap appears as missing point, axis label still present)
+- [x] **CHART-01**: All chart x-axes display year alongside month (e.g., `Nov '25`) on both Sales and HR dashboards
+- [x] **CHART-02**: When chart data spans multiple years, a visual year grouping/separator distinguishes year boundaries
+- [x] **CHART-03**: Charts show all months in the data range on the x-axis, even months with no data (gap appears as missing point, axis label still present)
 
 ### Branding (BRAND)
 

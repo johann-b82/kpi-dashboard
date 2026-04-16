@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.12
 milestone_name: Chart Polish & Rebrand
-status: roadmap approved
-stopped_at: null
-last_updated: "2026-04-15T23:30:00.000Z"
-last_activity: 2026-04-15
+status: executing
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-04-16T07:16:46.568Z"
+last_activity: 2026-04-16
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-15)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.12 roadmap created — ready for Phase 31 planning
+**Current focus:** Phase 31 — chart-readability
 
 ---
 
 ## Current Position
 
-Phase: 31 (next)
-Plan: Not started
-Status: Roadmap approved — ready for phase planning
-Last activity: 2026-04-15
+Phase: 31 (chart-readability) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-16
 
 Progress: [          ] 0%  (0/2 phases)
 
@@ -65,6 +65,7 @@ Progress: [          ] 0%  (0/2 phases)
 *Updated after each plan completion*
 
 ---
+| Phase 31 P01 | 300 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Progress: [          ] 0%  (0/2 phases)
 - **Phase 31 (Charts):** Year labels on x-axes, year grouping separators, gap-filled month series. Touches Recharts tick formatters and chart data utilities on both Sales and HR dashboards.
 - **Phase 32 (Rebrand):** Cosmetic rename "KPI Light" to "KPI Dashboard" across all surfaces + login page CI alignment (logo + card styling). No package/repo rename.
 - **Coverage:** 6/6 REQs mapped, no orphans, no duplicates.
+- [Phase 31]: mergeIntoSpine uses YYYY-MM slice key in Map to match dates regardless of day component
 
 ### Pending Todos
 
@@ -92,8 +94,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-15
-**Stopped at:** Roadmap created for v1.12
+**Last session:** 2026-04-16T07:16:46.566Z
+**Stopped at:** Completed 31-01-PLAN.md
 **Resume file:** None
 
 ---
