@@ -142,7 +142,11 @@ Plans:
   2. The login page displays the uploaded logo (from `/api/settings/logo`) above the title
   3. The login page card uses the same white-card/subtle-border/blue-accent styling as the Settings and Dashboard pages
   4. Both DE and EN locale files reflect the new app name
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 32-01-PLAN.md — Rename "KPI Light" to "KPI Dashboard" everywhere + public logo endpoint
+- [ ] 32-02-PLAN.md — Login page logo display and card restyling
 **UI hint**: yes
 
 ## Progress
@@ -167,4 +171,4 @@ Plans:
 | 29 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 30 | v1.11-directus | 3/3 | Complete | 2026-04-15 |
 | 31 | v1.12 | 2/2 | Complete    | 2026-04-16 |
-| 32 | v1.12 | 0/0 | Not started | - |
+| 32 | v1.12 | 0/2 | Not started | - |
