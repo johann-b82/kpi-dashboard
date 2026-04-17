@@ -201,6 +201,9 @@
   "settings.targets.sick_leave": "Sick leave ratio",
   "settings.targets.fluctuation": "Fluctuation",
   "settings.targets.revenue": "Revenue / prod. employee",
+  "launcher.title": "{{appName}}",
+  "launcher.tile.kpi_dashboard": "KPI Dashboard",
+  "launcher.tile.coming_soon": "Coming Soon",
   "docs": {
     "toc": {
       "title": "On this page"

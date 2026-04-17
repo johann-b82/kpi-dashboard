@@ -201,6 +201,9 @@
   "settings.targets.sick_leave": "Krankheitsquote",
   "settings.targets.fluctuation": "Fluktuation",
   "settings.targets.revenue": "Umsatz / Produktions-MA",
+  "launcher.title": "{{appName}}",
+  "launcher.tile.kpi_dashboard": "KPI-Dashboard",
+  "launcher.tile.coming_soon": "Demnächst",
   "docs": {
     "toc": {
       "title": "Auf dieser Seite"
