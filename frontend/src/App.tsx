@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { Route, Switch, useLocation } from "wouter";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -36,7 +36,10 @@ function AppShell() {
         <Switch>
           <Route path="/login" component={LoginPage} />
           <Route path="/home" component={LauncherPage} />
-          <Route path="/" component={DashboardPage} />
+          <Route path="/sales" component={DashboardPage} />
+          <Route path="/">
+            <Redirect to="/home" />
+          </Route>
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
           <Route path="/settings" component={SettingsPage} />
