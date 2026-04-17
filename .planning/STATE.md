@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
 status: Defining requirements
-stopped_at: Completed 39-01-PLAN.md
-last_updated: "2026-04-17T22:42:13.021Z"
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-04-17T22:52:43.500Z"
 last_activity: 2026-04-17 — Milestone v1.15 started
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -70,6 +70,7 @@ Progress: [ ] 0%
 | Phase 38-backend-schema-scheduler P02 | 374 | 2 tasks | 6 files |
 | Phase 38 P03 | 4m 17s | 4 tasks | 4 files |
 | Phase 39 P01 | 3 min | 3 tasks | 12 files |
+| Phase 39 P02 | 377 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Progress: [ ] 0%
 - [Phase 38]: Scheduler: module-level _engine ref over APScheduler kwargs — SnmpEngine may not pickle cleanly under MemoryJobStore; module-level ref matches existing singleton pattern and gives the scheduled job direct access without round-tripping through app.state
 - [Phase 38]: reschedule_sensor_poll(0) removes the job entirely (Personio D-07 parity); >0 with missing job uses add_job with full guardrail kwargs; >0 with existing job uses reschedule_job; all wrapped in try/except with log.exception so a broken PUT /api/settings cannot leak scheduler internals
 - [Phase 38]: docker-compose.yml api.command: --workers 1 literal kept alongside --reload (redundant in reload mode but load-bearing as CI grep guard and for production deploys that drop --reload)
+- [Phase 39]: Sensor thresholds surfaced read-only via GET /api/settings (Option A)
+- [Phase 39]: Custom AbsoluteDeltaRow for sensor cards (DeltaBadge hard-codes percent format; wrong for °C/%)
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T22:42:13.018Z
-**Stopped at:** Completed 39-01-PLAN.md
+**Last session:** 2026-04-17T22:52:43.497Z
+**Stopped at:** Completed 39-02-PLAN.md
 **Resume file:** None

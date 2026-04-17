@@ -57,12 +57,12 @@
 - [x] **SEN-FE-04**: `components/sensors/SensorTimeSeriesChart.tsx` renders two stacked Recharts `LineChart` (temperature °C, humidity %), one `Line` per sensor; `ReferenceLine` dashed for min/max thresholds
 - [x] **SEN-FE-05**: `chartDefaults.ts` extended with `sensorPalette` (multi-series distinct colors); tokens documented as semantic exception
 - [x] **SEN-FE-06**: Time-window selector uses `SegmentedControl` with segments `1h · 6h · 24h · 7d · 30d`; local state or new `SensorTimeWindowContext` — does NOT reuse `DateRangeContext`
-- [ ] **SEN-FE-07**: `components/sensors/PollNowButton.tsx` calls `POST /api/sensors/poll-now`; on success invalidates all `sensorKeys` queries (cards + charts refetch)
+- [x] **SEN-FE-07**: `components/sensors/PollNowButton.tsx` calls `POST /api/sensors/poll-now`; on success invalidates all `sensorKeys` queries (cards + charts refetch)
 - [x] **SEN-FE-08**: `useSensorReadings` hook uses TanStack Query with `refetchInterval: 15_000`, `refetchIntervalInBackground: false`, `refetchOnWindowFocus: true`, `staleTime: 5_000`
 - [x] **SEN-FE-09**: SubHeader shows route-aware freshness on `/sensors` (aggregate "letzte Messung vor Xs / nächste in Ys")
-- [ ] **SEN-FE-10**: Error/empty state: when latest reading is null or error_code set, card shows muted "Keine Messwerte — Verbindung prüfen"; chart uses Recharts `connectNulls={false}`
-- [ ] **SEN-FE-11**: DIFF-01 — delta badges on each KPI card (`+0.3 °C vs. 1 h`, `−2 % vs. 24 h`) via `DeltaBadgeStack` pattern
-- [ ] **SEN-FE-12**: DIFF-10 — "OK seit Xh" / "Offline seit X min" health chip per sensor, computed from `sensor_poll_log`
+- [x] **SEN-FE-10**: Error/empty state: when latest reading is null or error_code set, card shows muted "Keine Messwerte — Verbindung prüfen"; chart uses Recharts `connectNulls={false}`
+- [x] **SEN-FE-11**: DIFF-01 — delta badges on each KPI card (`+0.3 °C vs. 1 h`, `−2 % vs. 24 h`) via `DeltaBadgeStack` pattern
+- [x] **SEN-FE-12**: DIFF-10 — "OK seit Xh" / "Offline seit X min" health chip per sensor, computed from `sensor_poll_log`
 - [x] **SEN-FE-13**: All surfaces use Tailwind tokens only (no `dark:` variants, no hex literals outside documented sensorPalette exception) — dark mode works automatically
 
 ### Launcher Tile (SEN-LNCH-*)
@@ -91,7 +91,7 @@
 
 ### Internationalization (SEN-I18N-*)
 
-- [ ] **SEN-I18N-01**: New `sensors.*` namespace in `frontend/src/locales/en.json` and `de.json` covers all user-visible strings (page title, KPI labels, threshold messages, time-window segments, Poll-now, freshness, admin form fields, probe/walk UI, toast messages) — full DE/EN parity with "du" tone for German
+- [x] **SEN-I18N-01**: New `sensors.*` namespace in `frontend/src/locales/en.json` and `de.json` covers all user-visible strings (page title, KPI labels, threshold messages, time-window segments, Poll-now, freshness, admin form fields, probe/walk UI, toast messages) — full DE/EN parity with "du" tone for German
 - [x] **SEN-I18N-02**: Launcher tile label key (`launcher.tile.sensors`) added to both locales
 
 ---
