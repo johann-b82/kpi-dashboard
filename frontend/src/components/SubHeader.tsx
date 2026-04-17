@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
 import { useDateRange } from "@/contexts/DateRangeContext";
-import { fetchSyncMeta } from "@/lib/api";
-import { syncKeys } from "@/lib/queryKeys";
+import { fetchSyncMeta, fetchSensorStatus } from "@/lib/api";
+import { syncKeys, sensorKeys } from "@/lib/queryKeys";
 
 function HrFreshnessIndicator() {
   const { t, i18n } = useTranslation();
@@ -36,6 +36,51 @@ function HrFreshnessIndicator() {
   );
 }
 
+/**
+ * Sensor freshness — aggregate "last measured" across all enabled sensors.
+ * Uses sensorKeys.status() with D-07 refetch config (15s foreground, stop in
+ * background, refetch on focus, 5s stale). Next-poll display is deferred to a
+ * later plan: sensor_poll_interval_s lives on AppSettings but isn't exposed
+ * via /api/settings yet (Phase 40 scope).
+ */
+function SensorFreshnessIndicator() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useQuery({
+    queryKey: sensorKeys.status(),
+    queryFn: fetchSensorStatus,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 5_000,
+  });
+
+  if (isLoading) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  const successTimestamps = (data ?? [])
+    .map((s) => s.last_success_at)
+    .filter((v): v is string => v != null)
+    .map((ts) => new Date(ts).getTime())
+    .filter((n) => Number.isFinite(n));
+
+  if (successTimestamps.length === 0) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        {t("sensors.subheader.never")}
+      </span>
+    );
+  }
+
+  const latest = Math.max(...successTimestamps);
+  const seconds = Math.max(0, Math.floor((Date.now() - latest) / 1000));
+  return (
+    <span className="text-xs text-muted-foreground">
+      {t("sensors.subheader.lastMeasured", { seconds })}
+    </span>
+  );
+}
+
 export function SubHeader() {
   const [location] = useLocation();
   const { preset, range, handleFilterChange } = useDateRange();
@@ -57,7 +102,13 @@ export function SubHeader() {
             />
           )}
         </div>
-        {location === "/hr" ? <HrFreshnessIndicator /> : <FreshnessIndicator />}
+        {location === "/sensors" ? (
+          <SensorFreshnessIndicator />
+        ) : location === "/hr" ? (
+          <HrFreshnessIndicator />
+        ) : (
+          <FreshnessIndicator />
+        )}
       </div>
     </div>
   );

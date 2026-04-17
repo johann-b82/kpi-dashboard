@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { HRPage } from "./pages/HRPage";
+import { SensorsPage } from "./pages/SensorsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LauncherPage } from "./pages/LauncherPage";
@@ -39,6 +40,7 @@ function AppShell() {
           <Route path="/" component={LauncherPage} />
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
+          <Route path="/sensors" component={SensorsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/docs/:section/:slug">
             <Suspense fallback={

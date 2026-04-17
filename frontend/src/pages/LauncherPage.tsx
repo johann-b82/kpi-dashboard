@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import { LayoutDashboard, Box } from "lucide-react";
+import { LayoutDashboard, Box, Thermometer } from "lucide-react";
 import { useAuth } from "@/auth/useAuth";
+import { AdminOnly } from "@/auth/AdminOnly";
 
 export function LauncherPage() {
   const { t } = useTranslation();
@@ -9,10 +10,9 @@ export function LauncherPage() {
   const { user } = useAuth();
 
   // LAUNCH-05 / D-05: Admin-only tiles absent (not greyed) for viewer role.
-  // v1.14 defines ZERO admin-only tiles, so this variable is unused but the
-  // hook + pattern is wired so future admin tiles slot in cleanly.
-  const isAdmin = user?.role === "admin";
-  void isAdmin; // silence unused-var until an admin tile is added
+  // v1.15 SEN-LNCH-01: Sensors tile is admin-only; viewer sees no slot at all.
+  // Using <AdminOnly> child gating — hook stays for future role-specific logic.
+  void user;
 
   return (
     <div className="max-w-7xl mx-auto px-8 pt-16 pb-8">
@@ -38,8 +38,28 @@ export function LauncherPage() {
           </span>
         </div>
 
-        {/* Coming-soon tiles (3x) — opacity-40 + pointer-events-none per D-04 */}
-        {[0, 1, 2].map((i) => (
+        {/* v1.15 SEN-LNCH: Sensors tile (admin-only, replaces first coming-soon slot) */}
+        <AdminOnly>
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLocation("/sensors")}
+              aria-label={t("launcher.tile.sensors")}
+              className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+                         flex items-center justify-center p-4
+                         cursor-pointer hover:bg-accent/10 transition-colors
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Thermometer className="w-10 h-10 text-foreground" aria-hidden="true" />
+            </button>
+            <span className="text-xs text-muted-foreground text-center">
+              {t("launcher.tile.sensors")}
+            </span>
+          </div>
+        </AdminOnly>
+
+        {/* Coming-soon tiles (2x) — opacity-40 + pointer-events-none per D-04 */}
+        {[0, 1].map((i) => (
           <div key={`coming-soon-${i}`} className="flex flex-col items-center gap-2">
             <div
               aria-hidden="true"
