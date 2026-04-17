@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { HRPage } from "./pages/HRPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { LauncherPage } from "./pages/LauncherPage";
 import { NavBar } from "./components/NavBar";
 
 const DocsPage = lazy(() => import("./pages/DocsPage"));
@@ -33,6 +34,7 @@ function AppShell() {
       <main className={isLogin ? "" : "pt-28"}>
         <Switch>
           <Route path="/login" component={LoginPage} />
+          <Route path="/home" component={LauncherPage} />
           <Route path="/" component={DashboardPage} />
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
