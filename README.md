@@ -29,11 +29,11 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Dark Mode** — Sun/moon toggle in navbar; OS `prefers-color-scheme` default + localStorage override; pre-hydration IIFE avoids flash-of-unstyled-content
 
 ### App Launcher
-- **iOS-style `/home` entry point** — After login, users land on a 4-tile grid of app icons rather than directly in the Sales Dashboard
-- **Active KPI Dashboard tile** — Rounded-corner 120×120px card with icon; click navigates to the Sales Dashboard
+- **iOS-style entry point at `/`** — After login, users land on a grid of app icons rather than directly in a dashboard; dashboards live at `/sales` and `/hr`
+- **Active KPI Dashboard tile** — Rounded-corner 120×120px card with icon only; label sits below the tile (iOS-style); click navigates to `/sales`
 - **Coming-soon placeholders** — 3 greyed tiles (40% opacity, non-clickable) for future apps
 - **Role-aware scaffold** — Admin-only tiles can be added without structural changes; Viewer-role users see only tiles without the `admin` flag
-- **Settings-driven heading** — Page title reads the `app_name` from Settings; bilingual labels (DE/EN)
+- **Minimal launcher chrome** — Header on `/` shows brand (clickable → launcher), theme toggle, language toggle, settings gear, and sign-out; dashboard-scoped controls (SALES/HR toggle, docs, upload) appear only on dashboard routes
 
 ### In-App Documentation
 - **Role-Aware Docs** — Library icon in navbar opens /docs; Admins see User Guide + Admin Guide sections, Viewers see User Guide only
