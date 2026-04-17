@@ -28,6 +28,14 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Language** — DE/EN toggle stored in localStorage (no server round-trip)
 - **Dark Mode** — Sun/moon toggle in navbar; OS `prefers-color-scheme` default + localStorage override; pre-hydration IIFE avoids flash-of-unstyled-content
 
+### In-App Documentation
+- **Role-Aware Docs** — Library icon in navbar opens /docs; Admins see User Guide + Admin Guide sections, Viewers see User Guide only
+- **User Guide** — 5 articles: uploading data, Sales dashboard, HR dashboard, filters & controls, language & dark mode
+- **Admin Guide** — 4 articles: system setup (Docker Compose), architecture overview, Personio integration, user management (Directus roles)
+- **Bilingual Content** — All 22 articles available in DE and EN, switching with the app's language setting
+- **Markdown Rendering** — react-markdown + rehype plugins for syntax-highlighted code blocks, clickable heading anchors, and dark-mode-aware prose
+- **Table of Contents** — Auto-generated from article headings with Intersection Observer scroll tracking
+
 ### General
 - **Bilingual** — Full DE/EN i18n parity with informal "du" tone for German
 - **Theming** — Settings-driven color palette applied via CSS custom properties; chart colors follow primary/muted tokens; class-strategy dark mode via Tailwind v4
@@ -130,12 +138,14 @@ kpi-light/
 │
 ├── frontend/
 │   └── src/
-│       ├── pages/               # DashboardPage, HRPage, UploadPage, SettingsPage
+│       ├── pages/               # DashboardPage, HRPage, UploadPage, SettingsPage, DocsPage
 │       ├── components/
 │       │   ├── dashboard/       # KpiCard, RevenueChart, HrKpiCharts, SalesTable, EmployeeTable
+│       │   ├── docs/            # MarkdownRenderer, DocsSidebar, TableOfContents
 │       │   ├── settings/        # PersonioCard, CheckboxList, HrTargetsCard, ColorPicker, LogoUpload, ActionBar
 │       │   ├── NavBar.tsx, ThemeProvider.tsx, DropZone.tsx
 │       │   └── ui/              # shadcn primitives (checkbox, segmented-control, etc.)
+│       ├── docs/                # Markdown articles (en/ and de/ subdirectories)
 │       ├── hooks/               # useSettings, useSettingsDraft, useTableState, useUnsavedGuard
 │       ├── lib/                 # api.ts, queryKeys.ts, color.ts, dateUtils.ts, defaults.ts
 │       └── locales/             # en.json, de.json
@@ -252,6 +262,8 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.13 | 2026-04-17 | In-App Documentation — role-aware docs with Markdown rendering, 22 bilingual articles, TOC with scroll tracking |
+| v1.12 | 2026-04-16 | Chart Polish & Rebrand — year-aware x-axis labels, gap-filled month spines, "KPI Dashboard" rebrand, login page restyling |
 | v1.11-directus | 2026-04-15 | Auth + RBAC via self-hosted Directus; nightly pg_dump backups; Outline wiki and Dex/oauth2-proxy path dropped |
 | v1.10 | 2026-04-14 | UI Consistency Pass — unified delta labeling (concrete period names, DE/EN parity) + page layout parity across Sales/HR/Upload/Settings; merged Appearance card; contextual back button |
 | v1.9 | 2026-04-14 | Dark Mode & Contrast — Tailwind v4 class-strategy dark mode, CSS-variable tokens, WCAG AA audit, no theme-flash pre-hydration IIFE |
