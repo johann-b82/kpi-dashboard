@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from app.database import engine
 from app.routers.kpis import router as kpis_router
+from app.routers.sensors import router as sensors_router
 from app.routers.settings import router as settings_router, public_router as settings_public_router
 from app.routers.sync import router as sync_router
 from app.routers.uploads import router as uploads_router
@@ -18,6 +19,7 @@ app.include_router(kpis_router)
 app.include_router(settings_router)
 app.include_router(settings_public_router)
 app.include_router(sync_router)
+app.include_router(sensors_router)
 app.include_router(hr_kpis_router)
 app.include_router(data_router)
 app.include_router(me_router)
