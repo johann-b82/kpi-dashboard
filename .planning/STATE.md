@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
 status: Defining requirements
-stopped_at: Milestone v1.15 started
-last_updated: "2026-04-17T08:24:09.551Z"
-last_activity: 2026-04-17
+stopped_at: Completed 38-backend-schema-scheduler-01-PLAN.md
+last_updated: "2026-04-17T22:04:24.260Z"
+last_activity: 2026-04-17 — Milestone v1.15 started
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -66,6 +66,7 @@ Progress: [ ] 0%
 | Phase quick P260417-dzd | 75 | 2 tasks | 3 files |
 | Phase quick P260417-e45 | 65 | 2 tasks | 6 files |
 | Phase quick P260417-eb8 | 93 | 2 tasks | 6 files |
+| Phase 38-backend-schema-scheduler P01 | 228 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Progress: [ ] 0%
 - [Phase 37-launcher-shell-auth-wiring]: LauncherPage uses <button> for active tile for keyboard accessibility; coming-soon tiles are aria-hidden divs
 - [Phase quick]: Quick 260417-dzd: /home launcher hides NavBar center + docs/upload/settings links + SubHeader; main padding collapses to pt-16. Component-local chrome suppression pattern (isLauncher guard per component) preferred over App.tsx route-matching.
 - [Phase quick]: Quick 260417-eb8: Launcher moved /home → /. Brand slot now a wouter Link → /. Settings gear always visible; docs + upload + segmented-control gated on !isLauncher. Tiles restructured to icon-only 120x120 + external centered label (iOS style).
+- [Phase 38-backend-schema-scheduler]: Community strings Fernet-encrypted as BYTEA; reuse FERNET_KEY (no second key); SensorRead omits community entirely (write-only secret)
+- [Phase 38-backend-schema-scheduler]: Two-table sensor schema: sensor_readings (successful polls only) + sensor_poll_log (every attempt) — separates data from liveness per PITFALLS M-4
+- [Phase 38-backend-schema-scheduler]: pysnmp>=7.1.23,<8.0 (not pysnmp-lextudio which is deprecated); v3arch.asyncio import path
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T08:24:04.651Z
-**Stopped at:** Completed quick task 260417-eb8
+**Last session:** 2026-04-17T22:04:24.256Z
+**Stopped at:** Completed 38-backend-schema-scheduler-01-PLAN.md
 **Resume file:** None

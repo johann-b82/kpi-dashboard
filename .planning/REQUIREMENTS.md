@@ -14,24 +14,24 @@
 
 ### Database & Schema (SEN-DB-*)
 
-- [ ] **SEN-DB-01**: Alembic migration creates `sensors` table (id, name unique, host, port default 161, community, temperature_oid, humidity_oid, temperature_scale, humidity_scale, enabled, created_at, updated_at)
-- [ ] **SEN-DB-02**: Alembic migration creates `sensor_readings` table (id BIGSERIAL, sensor_id FK CASCADE, recorded_at TIMESTAMPTZ, temperature, humidity, error_code) with `UNIQUE(sensor_id, recorded_at)` and index on `(sensor_id, recorded_at DESC)`
-- [ ] **SEN-DB-03**: Alembic migration creates `sensor_poll_log` table (id, sensor_id FK, attempted_at, success, error_kind, latency_ms) — separates liveness from data
-- [ ] **SEN-DB-04**: Alembic migration extends `app_settings` with sensor_poll_interval_s (default 60), sensor_temperature_min/max, sensor_humidity_min/max (all nullable except interval)
-- [ ] **SEN-DB-05**: Migration seeds one default sensor row (Produktion, 192.9.201.27, OIDs from reference config.yaml) so scheduler has work from first tick
-- [ ] **SEN-DB-06**: Community string stored Fernet-encrypted at rest (reuse existing Personio Fernet key); never decrypted in logs
-- [ ] **SEN-DB-07**: `sensors` and `sensor_readings` added to `DB_EXCLUDE_TABLES` in docker-compose.yml so Directus Data Model UI hides them
-- [ ] **SEN-DB-08**: Migration round-trips cleanly — `upgrade → downgrade → upgrade` on fresh DB drops and recreates all tables + app_settings columns
+- [x] **SEN-DB-01**: Alembic migration creates `sensors` table (id, name unique, host, port default 161, community, temperature_oid, humidity_oid, temperature_scale, humidity_scale, enabled, created_at, updated_at)
+- [x] **SEN-DB-02**: Alembic migration creates `sensor_readings` table (id BIGSERIAL, sensor_id FK CASCADE, recorded_at TIMESTAMPTZ, temperature, humidity, error_code) with `UNIQUE(sensor_id, recorded_at)` and index on `(sensor_id, recorded_at DESC)`
+- [x] **SEN-DB-03**: Alembic migration creates `sensor_poll_log` table (id, sensor_id FK, attempted_at, success, error_kind, latency_ms) — separates liveness from data
+- [x] **SEN-DB-04**: Alembic migration extends `app_settings` with sensor_poll_interval_s (default 60), sensor_temperature_min/max, sensor_humidity_min/max (all nullable except interval)
+- [x] **SEN-DB-05**: Migration seeds one default sensor row (Produktion, 192.9.201.27, OIDs from reference config.yaml) so scheduler has work from first tick
+- [x] **SEN-DB-06**: Community string stored Fernet-encrypted at rest (reuse existing Personio Fernet key); never decrypted in logs
+- [x] **SEN-DB-07**: `sensors` and `sensor_readings` added to `DB_EXCLUDE_TABLES` in docker-compose.yml so Directus Data Model UI hides them
+- [x] **SEN-DB-08**: Migration round-trips cleanly — `upgrade → downgrade → upgrade` on fresh DB drops and recreates all tables + app_settings columns
 
 ### Backend Service & API (SEN-BE-*)
 
 - [ ] **SEN-BE-01**: `backend/app/services/snmp_poller.py` exposes `snmp_get`, `snmp_walk`, `poll_sensor`, `poll_all` as async functions using `pysnmp.hlapi.v3arch.asyncio` (not deprecated v6 path)
-- [ ] **SEN-BE-02**: `pysnmp>=7.1.23,<8.0` added to `backend/requirements.txt` (NOT `pysnmp-lextudio`)
+- [x] **SEN-BE-02**: `pysnmp>=7.1.23,<8.0` added to `backend/requirements.txt` (NOT `pysnmp-lextudio`)
 - [ ] **SEN-BE-03**: A single shared `SnmpEngine` is cached on `app.state.snmp_engine` at startup; no per-call instantiation
 - [ ] **SEN-BE-04**: `poll_all` uses `asyncio.gather(..., return_exceptions=True)` so one sensor failure does not cancel sibling polls
 - [ ] **SEN-BE-05**: Per-sensor polling uses `timeout=3.0, retries=2`; 3 consecutive failures surface as "offline" in the UI via `sensor_poll_log`
-- [ ] **SEN-BE-06**: `Sensor` and `SensorReading` (and `SensorPollLog`) SQLAlchemy models appended to the flat `backend/app/models.py`
-- [ ] **SEN-BE-07**: Pydantic schemas (`SensorRead`, `SensorCreate`, `SensorUpdate`, `SensorReadingRead`, `PollNowResult`, `SnmpProbeRequest`, `SnmpWalkRequest`) appended to `backend/app/schemas.py`; community typed as `SecretStr`
+- [x] **SEN-BE-06**: `Sensor` and `SensorReading` (and `SensorPollLog`) SQLAlchemy models appended to the flat `backend/app/models.py`
+- [x] **SEN-BE-07**: Pydantic schemas (`SensorRead`, `SensorCreate`, `SensorUpdate`, `SensorReadingRead`, `PollNowResult`, `SnmpProbeRequest`, `SnmpWalkRequest`) appended to `backend/app/schemas.py`; community typed as `SecretStr`
 - [ ] **SEN-BE-08**: `backend/app/routers/sensors.py` registers `APIRouter(prefix="/api/sensors", dependencies=[Depends(get_current_user), Depends(require_admin)])` — router-level admin gate
 - [ ] **SEN-BE-09**: Endpoints implemented: `GET /` list sensors, `POST /` create, `PATCH /{id}` update, `DELETE /{id}`, `GET /{id}/readings?hours=N`, `POST /poll-now`, `POST /snmp-probe`, `POST /snmp-walk`, `GET /status` (per-sensor health from poll_log)
 - [ ] **SEN-BE-10**: `POST /poll-now` awaits `poll_all()` synchronously (blocking like Personio `POST /api/sync`), wrapped in `asyncio.wait_for(..., timeout=30)`; returns `PollNowResult { sensors_polled, errors }`
