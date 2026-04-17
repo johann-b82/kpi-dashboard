@@ -8,6 +8,8 @@ import enArchitecture from "../../docs/en/admin-guide/architecture.md?raw";
 import deArchitecture from "../../docs/de/admin-guide/architecture.md?raw";
 import enPersonio from "../../docs/en/admin-guide/personio.md?raw";
 import dePersonio from "../../docs/de/admin-guide/personio.md?raw";
+import enSensorMonitor from "../../docs/en/admin-guide/sensor-monitor.md?raw";
+import deSensorMonitor from "../../docs/de/admin-guide/sensor-monitor.md?raw";
 import enUserManagement from "../../docs/en/admin-guide/user-management.md?raw";
 import deUserManagement from "../../docs/de/admin-guide/user-management.md?raw";
 import enUploadingData from "../../docs/en/user-guide/uploading-data.md?raw";
@@ -39,6 +41,7 @@ export const sections: Record<SectionId, ArticleEntry[]> = {
     { slug: "system-setup", titleKey: "docs.nav.adminSystemSetup" },
     { slug: "architecture", titleKey: "docs.nav.adminArchitecture" },
     { slug: "personio", titleKey: "docs.nav.adminPersonio" },
+    { slug: "sensor-monitor", titleKey: "docs.nav.adminSensorMonitor" },
     { slug: "user-management", titleKey: "docs.nav.adminUserManagement" },
   ],
 };
@@ -59,6 +62,7 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       "system-setup": enSystemSetup,
       architecture: enArchitecture,
       personio: enPersonio,
+      "sensor-monitor": enSensorMonitor,
       "user-management": enUserManagement,
     },
   },
@@ -76,6 +80,7 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       "system-setup": deSystemSetup,
       architecture: deArchitecture,
       personio: dePersonio,
+      "sensor-monitor": deSensorMonitor,
       "user-management": deUserManagement,
     },
   },

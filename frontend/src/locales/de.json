@@ -306,6 +306,7 @@
       "adminSystemSetup": "Systemeinrichtung",
       "adminArchitecture": "Architektur",
       "adminPersonio": "Personio-Integration",
+      "adminSensorMonitor": "Sensor Monitor",
       "adminUserManagement": "Benutzerverwaltung"
     }
   }
