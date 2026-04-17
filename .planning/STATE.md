@@ -1,23 +1,23 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.13
-milestone_name: In-App Documentation
-status: completed
-stopped_at: Milestone archived
+milestone: v1.14
+milestone_name: App Launcher
+status: active
+stopped_at: Defining requirements
 last_updated: "2026-04-17"
 last_activity: 2026-04-17
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-17
-**Session:** v1.13 In-App Documentation — milestone complete
+**Session:** v1.14 App Launcher — defining requirements
 
 ---
 
@@ -27,18 +27,18 @@ See: `.planning/PROJECT.md` (updated 2026-04-17)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Planning next milestone
+**Current focus:** v1.14 App Launcher — requirements and roadmap
 
 ---
 
 ## Current Position
 
-Phase: 36 (final)
-Plan: All complete
-Status: v1.13 milestone shipped
-Last activity: 2026-04-17
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-17 — Milestone v1.14 started
 
-Progress: [██████████] 100%
+Progress: [ ] 0%
 
 ---
 

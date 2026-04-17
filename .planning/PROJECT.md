@@ -8,6 +8,18 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
+## Current Milestone: v1.14 App Launcher
+
+**Goal:** Add an iOS-style app launcher as the post-login home page, making the KPI Dashboard the first tile in a role-aware grid of app icons.
+
+**Target features:**
+- New `/home` route — iOS-style grid of square rounded-corner tiles (icon + label below)
+- Login redirects to `/home` after this milestone (replaces direct `/sales` redirect)
+- KPI Dashboard tile (active, links to `/sales`)
+- Placeholder "coming soon" tiles (greyed out, no link)
+- Admin-only tiles hidden from Viewer role
+- Full DE/EN i18n and dark-mode support consistent with existing branding
+
 ## Current State
 
 **Shipped:** v1.13 In-App Documentation — 2026-04-17
@@ -247,4 +259,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 after v1.13 milestone*
+*Last updated: 2026-04-17 — v1.14 App Launcher started*
