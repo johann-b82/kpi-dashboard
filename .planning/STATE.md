@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: App Launcher
 status: Not started
-stopped_at: Phase 37 UI-SPEC approved
-last_updated: "2026-04-17T07:05:05.534Z"
+stopped_at: Completed 37-01-PLAN.md
+last_updated: "2026-04-17T07:21:40.991Z"
 last_activity: 2026-04-17 — Roadmap created
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [ ] 0%
 | Phase 34-navigation-shell P02 | 360 | 2 tasks | 3 files |
 | Phase 35 P02 | 600 | 2 tasks | 7 files |
 | Phase 36 P02 | 138 | 2 tasks | 7 files |
+| Phase 37-launcher-shell-auth-wiring P01 | 900 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Progress: [ ] 0%
 - **v1.14 scope:** 1 phase (37), pure frontend — no backend routes, no new Docker services
 - **Phase 37 (App Launcher):** iOS-style `/home` grid with role-aware tiles, login redirect update, PrivateRoute guard for `/home`, full DE/EN i18n, dark-mode via existing Tailwind token system, app name from Settings context
 - **Coverage:** 10/10 REQs mapped to Phase 37, no orphans, no duplicates
+- [Phase 37-launcher-shell-auth-wiring]: Active tile navigates to / (not /sales) — /sales route does not exist; Sales Dashboard served at root per App.tsx D-10
+- [Phase 37-launcher-shell-auth-wiring]: LauncherPage uses <button> for active tile for keyboard accessibility; coming-soon tiles are aria-hidden divs
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T07:05:05.525Z
-**Stopped at:** Phase 37 UI-SPEC approved
-**Resume file:** .planning/phases/37-launcher-shell-auth-wiring/37-UI-SPEC.md
+**Last session:** 2026-04-17T07:21:40.988Z
+**Stopped at:** Completed 37-01-PLAN.md
+**Resume file:** None

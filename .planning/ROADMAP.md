@@ -152,11 +152,15 @@ Full details: [milestones/v1.13-ROADMAP.md](milestones/v1.13-ROADMAP.md)
   5. The page title uses the app name from Settings and all tile labels render correctly in both DE and EN
   6. Navigating directly to `/home` while unauthenticated redirects to `/login`
   7. Dark mode toggles correctly on the launcher page with no additional theming code
-**Plans**: TBD
+**Plans**: 2 plans
+  - [x] 37-01-PLAN.md — Create LauncherPage, wire /home route, update AuthGate redirect, add launcher.* i18n keys
+  - [ ] 37-02-PLAN.md — Bring up stack + human-verify 10-step walkthrough across roles/themes/languages
 **UI hint**: yes
+
+*Implementation note: The KPI Dashboard tile navigates to `/` (where DashboardPage is served), not `/sales`. There is no `/sales` route in the codebase; per D-10 the root `/` is left as-is, and `/` IS the Sales Dashboard.*
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 37. App Launcher | 0/? | Not started | - |
+| 37. App Launcher | 1/2 | In Progress|  |

@@ -10,22 +10,22 @@
 
 ### Launcher Page
 
-- [ ] **LAUNCH-01**: User sees an iOS-style app grid at `/home` after login
-- [ ] **LAUNCH-02**: Each tile displays a square rounded-corner icon card with the app name label below
-- [ ] **LAUNCH-03**: KPI Dashboard tile is active — clicking it navigates to `/sales`
-- [ ] **LAUNCH-04**: Placeholder "coming soon" tiles are visually greyed out with no click action
-- [ ] **LAUNCH-05**: Admin-only tiles are hidden (not just disabled) from Viewer role users
+- [x] **LAUNCH-01**: User sees an iOS-style app grid at `/home` after login
+- [x] **LAUNCH-02**: Each tile displays a square rounded-corner icon card with the app name label below
+- [x] **LAUNCH-03**: KPI Dashboard tile is active — clicking it navigates to `/sales`
+- [x] **LAUNCH-04**: Placeholder "coming soon" tiles are visually greyed out with no click action
+- [x] **LAUNCH-05**: Admin-only tiles are hidden (not just disabled) from Viewer role users
 
 ### Auth & Routing
 
-- [ ] **AUTH-01**: Login success redirects to `/home` instead of the previous `/sales` default
-- [ ] **AUTH-02**: Unauthenticated access to `/home` redirects to `/login`
+- [x] **AUTH-01**: Login success redirects to `/home` instead of the previous `/sales` default
+- [x] **AUTH-02**: Unauthenticated access to `/home` redirects to `/login`
 
 ### Branding & Polish
 
-- [ ] **BRAND-01**: Launcher page uses the existing Tailwind CSS token system — dark mode works without additional theming code
-- [ ] **BRAND-02**: Tile labels and page title are fully translated in DE and EN
-- [ ] **BRAND-03**: Page heading uses the app name from Settings (same source as the navbar logo/name)
+- [x] **BRAND-01**: Launcher page uses the existing Tailwind CSS token system — dark mode works without additional theming code
+- [x] **BRAND-02**: Tile labels and page title are fully translated in DE and EN
+- [x] **BRAND-03**: Page heading uses the app name from Settings (same source as the navbar logo/name)
 
 ---
 
