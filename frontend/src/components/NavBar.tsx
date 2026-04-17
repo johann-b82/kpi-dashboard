@@ -25,7 +25,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 export function NavBar() {
   const { t } = useTranslation();
   const [location, navigate] = useLocation();
-  const isLauncher = location === "/home";
+  const isLauncher = location === "/";
   const { data } = useSettings();
   const { signOut } = useAuth();
 
@@ -67,7 +67,7 @@ export function NavBar() {
     <nav className="fixed top-0 inset-x-0 h-16 bg-card border-b border-border z-50">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center gap-6">
         {/* Brand slot — mutually exclusive logo OR text (D-05, BRAND-03 + BRAND-06) */}
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 cursor-pointer">
           {settings.logo_url != null && (
             <img
               src={settings.logo_url}
@@ -76,7 +76,7 @@ export function NavBar() {
             />
           )}
           <span className="text-sm font-medium">{settings.app_name}</span>
-        </div>
+        </Link>
 
         {!isLauncher && (
           location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
@@ -124,15 +124,15 @@ export function NavBar() {
                   <UploadIcon className="h-5 w-5" />
                 </Link>
               </AdminOnly>
-              <Link
-                href="/settings"
-                aria-label={t("nav.settings")}
-                className={settingsLinkClass}
-              >
-                <SettingsIcon className="h-5 w-5" />
-              </Link>
             </>
           )}
+          <Link
+            href="/settings"
+            aria-label={t("nav.settings")}
+            className={settingsLinkClass}
+          >
+            <SettingsIcon className="h-5 w-5" />
+          </Link>
           <button
             type="button"
             aria-label="Sign out"
