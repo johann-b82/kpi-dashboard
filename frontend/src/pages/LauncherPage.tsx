@@ -25,10 +25,10 @@ export function LauncherPage() {
         className="grid gap-6"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))" }}
       >
-        {/* Active tile: KPI Dashboard → navigates to / (Sales Dashboard route) */}
+        {/* Active tile: KPI Dashboard → navigates to /sales (Sales Dashboard route) */}
         <button
           type="button"
-          onClick={() => setLocation("/")}
+          onClick={() => setLocation("/sales")}
           aria-label={t("launcher.tile.kpi_dashboard")}
           className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
                      flex flex-col items-center justify-center gap-2 p-4

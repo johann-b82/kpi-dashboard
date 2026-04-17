@@ -5,7 +5,7 @@ import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, LogOut, Libr
 import { useAuth } from "@/auth/useAuth";
 import { AdminOnly } from "@/auth/AdminOnly";
 
-type Dashboard = "/" | "/hr";
+type Dashboard = "/sales" | "/hr";
 
 function getLastDashboard(): Dashboard {
   try {
@@ -14,7 +14,7 @@ function getLastDashboard(): Dashboard {
   } catch {
     /* sessionStorage unavailable — fall through to default */
   }
-  return "/";
+  return "/sales";
 }
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -37,11 +37,11 @@ export function NavBar() {
   // Track the last visited dashboard (Sales or HR) so the back button on
   // /settings and /upload can always return to where the user came from.
   useEffect(() => {
-    if (location === "/" || location === "/hr") {
+    if (location === "/sales" || location === "/hr") {
       try {
         sessionStorage.setItem("lastDashboard", location);
       } catch {
-        /* sessionStorage unavailable — back button falls back to "/" */
+        /* sessionStorage unavailable — back button falls back to "/sales" */
       }
     }
   }, [location]);
@@ -92,10 +92,10 @@ export function NavBar() {
           ) : (
             <SegmentedControl
               segments={[
-                { value: "/", label: t("nav.sales") },
+                { value: "/sales", label: t("nav.sales") },
                 { value: "/hr", label: t("nav.hr") },
               ]}
-              value={location === "/hr" ? "/hr" : "/"}
+              value={location === "/hr" ? "/hr" : "/sales"}
               onChange={(path) => navigate(path)}
               aria-label="Navigation"
               className="border-transparent"

@@ -30,7 +30,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
  * - Static "KPI Dashboard" wordmark (no /api/settings fetch — login page is unauthed).
  * - Inline error "Invalid email or password" on failed signIn; no toast (D-06).
  * - Never reveals which field was wrong.
- * - On success, AuthGate handles navigation to /.
+ * - On success, AuthGate handles navigation to /home.
  */
 export function LoginPage() {
   const { signIn } = useAuth();

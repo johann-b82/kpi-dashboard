@@ -8,7 +8,7 @@ import { FullPageSpinner } from "./FullPageSpinner";
  * Route guard per D-05:
  *   - While the initial hydration runs, shows <FullPageSpinner>.
  *   - Unauthed on a non-/login path → redirect to /login.
- *   - Authed on /login → redirect to /.
+ *   - Authed on /login → redirect to /home.
  *
  * Rendering of children proceeds in all other cases; nested <Switch>
  * components handle actual route selection. This keeps AuthGate
