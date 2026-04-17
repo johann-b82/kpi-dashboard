@@ -2,6 +2,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 
 from sqlalchemy import (
+    BigInteger as sa_BigInteger,
     Boolean,
     CheckConstraint,
     Date,
@@ -155,6 +156,23 @@ class AppSettings(Base):
     target_fluctuation: Mapped[float | None] = mapped_column(Numeric(8, 4), nullable=True)
     target_revenue_per_employee: Mapped[float | None] = mapped_column(Numeric(15, 2), nullable=True)
 
+    # --- v1.15 Sensor Monitor (Phase 38) ---
+    sensor_poll_interval_s: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=60
+    )
+    sensor_temperature_min: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 3), nullable=True
+    )
+    sensor_temperature_max: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 3), nullable=True
+    )
+    sensor_humidity_min: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 3), nullable=True
+    )
+    sensor_humidity_max: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 3), nullable=True
+    )
+
 
 class PersonioEmployee(Base):
     __tablename__ = "personio_employees"
@@ -251,3 +269,107 @@ class PersonioSyncMeta(Base):
     employees_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
     attendance_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
     absences_synced: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+# --- v1.15 Sensor models (Phase 38) ---
+
+
+class Sensor(Base):
+    """SNMP sensor configuration — one row per physical device.
+
+    community is Fernet-ciphertext (BYTEA), never plaintext (PITFALLS C-3).
+    Reuse app.security.sensor_community.encrypt_community / decrypt_community.
+    """
+    __tablename__ = "sensors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    host: Mapped[str] = mapped_column(String(255), nullable=False)
+    port: Mapped[int] = mapped_column(Integer, nullable=False, default=161)
+    community: Mapped[bytes] = mapped_column(BYTEA, nullable=False)  # Fernet ciphertext
+    temperature_oid: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    humidity_oid: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    temperature_scale: Mapped[Decimal] = mapped_column(
+        Numeric(10, 4), nullable=False, default=Decimal("1.0")
+    )
+    humidity_scale: Mapped[Decimal] = mapped_column(
+        Numeric(10, 4), nullable=False, default=Decimal("1.0")
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+    readings: Mapped[list["SensorReading"]] = relationship(
+        "SensorReading",
+        back_populates="sensor",
+        cascade="all, delete-orphan",
+    )
+    poll_logs: Mapped[list["SensorPollLog"]] = relationship(
+        "SensorPollLog",
+        back_populates="sensor",
+        cascade="all, delete-orphan",
+    )
+
+
+class SensorReading(Base):
+    """One row per successful poll. Failed polls go to sensor_poll_log (PITFALLS M-4)."""
+    __tablename__ = "sensor_readings"
+    __table_args__ = (
+        Index(
+            "ix_sensor_readings_sensor_recorded_at_desc",
+            "sensor_id",
+            "recorded_at",
+        ),
+        # UNIQUE(sensor_id, recorded_at) prevents duplicate rows from scheduled+manual
+        # poll collision (PITFALLS C-5). Use ON CONFLICT DO NOTHING on insert.
+    )
+
+    id: Mapped[int] = mapped_column(
+        sa_BigInteger, primary_key=True, autoincrement=True
+    )
+    sensor_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("sensors.id", ondelete="CASCADE"), nullable=False
+    )
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    temperature: Mapped[Decimal | None] = mapped_column(Numeric(8, 3), nullable=True)
+    humidity: Mapped[Decimal | None] = mapped_column(Numeric(8, 3), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    sensor: Mapped["Sensor"] = relationship("Sensor", back_populates="readings")
+
+
+class SensorPollLog(Base):
+    """Liveness log — one row per poll attempt (success OR failure).
+
+    Separates data (sensor_readings) from liveness (this table) per PITFALLS M-4.
+    Lets the UI render 'Offline seit X min' without scanning the readings dataset.
+    """
+    __tablename__ = "sensor_poll_log"
+    __table_args__ = (
+        Index(
+            "ix_sensor_poll_log_sensor_attempted_at_desc",
+            "sensor_id",
+            "attempted_at",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        sa_BigInteger, primary_key=True, autoincrement=True
+    )
+    sensor_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("sensors.id", ondelete="CASCADE"), nullable=False
+    )
+    attempted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    error_kind: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    sensor: Mapped["Sensor"] = relationship("Sensor", back_populates="poll_logs")

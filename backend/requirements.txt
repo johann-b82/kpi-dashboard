@@ -12,3 +12,4 @@ APScheduler==3.11.2
 pyjwt==2.10.1
 pydantic-settings==2.9.1
 email-validator==2.2.0
+pysnmp>=7.1.23,<8.0

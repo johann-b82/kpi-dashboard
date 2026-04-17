@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, EmailStr, Field, SecretStr
 
 
 class ValidationErrorDetail(BaseModel):
@@ -298,3 +298,92 @@ class CurrentUser(BaseModel):
     id: UUID
     email: EmailStr
     role: Role
+
+
+# --------------------------------------------------------------------------
+# v1.15 Sensor schemas (Phase 38)
+# --------------------------------------------------------------------------
+# SecretStr imported at top; Decimal + datetime already imported at top.
+
+
+class SensorRead(BaseModel):
+    """Admin-facing sensor config read. community is NEVER included (PITFALLS C-3)."""
+    id: int
+    name: str
+    host: str
+    port: int
+    # community is intentionally OMITTED — never echo the ciphertext, never decrypt it
+    # into a response. Admin UI treats community as write-only.
+    temperature_oid: str | None
+    humidity_oid: str | None
+    temperature_scale: Decimal
+    humidity_scale: Decimal
+    enabled: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SensorCreate(BaseModel):
+    """Admin creates a sensor. community is SecretStr (no default, min_length=1)."""
+    name: str = Field(..., min_length=1, max_length=100)
+    host: str = Field(..., min_length=1, max_length=255)
+    port: int = Field(default=161, ge=1, le=65535)
+    community: SecretStr = Field(..., min_length=1)  # PITFALLS N-7: no "public" default
+    temperature_oid: str | None = Field(default=None, max_length=255)
+    humidity_oid: str | None = Field(default=None, max_length=255)
+    temperature_scale: Decimal = Field(default=Decimal("1.0"), gt=Decimal("0"))
+    humidity_scale: Decimal = Field(default=Decimal("1.0"), gt=Decimal("0"))
+    enabled: bool = True
+
+
+class SensorUpdate(BaseModel):
+    """Partial sensor edit. All fields optional; community still SecretStr."""
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    host: str | None = Field(default=None, min_length=1, max_length=255)
+    port: int | None = Field(default=None, ge=1, le=65535)
+    community: SecretStr | None = Field(default=None, min_length=1)
+    temperature_oid: str | None = Field(default=None, max_length=255)
+    humidity_oid: str | None = Field(default=None, max_length=255)
+    temperature_scale: Decimal | None = Field(default=None, gt=Decimal("0"))
+    humidity_scale: Decimal | None = Field(default=None, gt=Decimal("0"))
+    enabled: bool | None = None
+
+
+class SensorReadingRead(BaseModel):
+    """One sensor_readings row."""
+    id: int
+    sensor_id: int
+    recorded_at: datetime
+    temperature: Decimal | None
+    humidity: Decimal | None
+    error_code: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class PollNowResult(BaseModel):
+    """Response shape for POST /api/sensors/poll-now."""
+    sensors_polled: int
+    errors: list[str]
+
+
+class SnmpProbeRequest(BaseModel):
+    """Probe an uncommitted sensor draft config for live temp+humidity."""
+    host: str = Field(..., min_length=1, max_length=255)
+    port: int = Field(default=161, ge=1, le=65535)
+    community: SecretStr = Field(..., min_length=1)
+    temperature_oid: str | None = Field(default=None, max_length=255)
+    humidity_oid: str | None = Field(default=None, max_length=255)
+    temperature_scale: Decimal = Field(default=Decimal("1.0"), gt=Decimal("0"))
+    humidity_scale: Decimal = Field(default=Decimal("1.0"), gt=Decimal("0"))
+
+
+class SnmpWalkRequest(BaseModel):
+    """Walk an OID tree for the OID-Finder admin UI."""
+    host: str = Field(..., min_length=1, max_length=255)
+    port: int = Field(default=161, ge=1, le=65535)
+    community: SecretStr = Field(..., min_length=1)
+    base_oid: str = Field(..., min_length=1, max_length=255)
+    max_results: int = Field(default=200, ge=1, le=500)
