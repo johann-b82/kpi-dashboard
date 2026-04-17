@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-stopped_at: Completed quick task 260417-e45
-last_updated: "2026-04-17T08:15:25.049Z"
+stopped_at: Completed quick task 260417-eb8
+last_updated: "2026-04-17T08:24:09.551Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 21
@@ -65,6 +65,7 @@ Progress: [ ] 0%
 | Phase 37-launcher-shell-auth-wiring P01 | 900 | 3 tasks | 5 files |
 | Phase quick P260417-dzd | 75 | 2 tasks | 3 files |
 | Phase quick P260417-e45 | 65 | 2 tasks | 6 files |
+| Phase quick P260417-eb8 | 93 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Progress: [ ] 0%
 - [Phase 37-launcher-shell-auth-wiring]: Active tile navigates to / (not /sales) — /sales route does not exist; Sales Dashboard served at root per App.tsx D-10
 - [Phase 37-launcher-shell-auth-wiring]: LauncherPage uses <button> for active tile for keyboard accessibility; coming-soon tiles are aria-hidden divs
 - [Phase quick]: Quick 260417-dzd: /home launcher hides NavBar center + docs/upload/settings links + SubHeader; main padding collapses to pt-16. Component-local chrome suppression pattern (isLauncher guard per component) preferred over App.tsx route-matching.
+- [Phase quick]: Quick 260417-eb8: Launcher moved /home → /. Brand slot now a wouter Link → /. Settings gear always visible; docs + upload + segmented-control gated on !isLauncher. Tiles restructured to icon-only 120x120 + external centered label (iOS style).
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T08:15:25.046Z
-**Stopped at:** Completed quick task 260417-e45
+**Last session:** 2026-04-17T08:24:04.651Z
+**Stopped at:** Completed quick task 260417-eb8
 **Resume file:** None
