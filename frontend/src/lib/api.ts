@@ -194,6 +194,14 @@ export interface SettingsUpdatePayload {
   target_sick_leave_ratio?: number | null;
   target_fluctuation?: number | null;
   target_revenue_per_employee?: number | null;
+  // Phase 40-01 — Sensor Monitor admin writes. undefined = "don't change"
+  // (mirrors Pydantic None-means-don't-change on SettingsUpdate). Decimals
+  // go on the wire as strings to match Pydantic's Decimal input coercion.
+  sensor_poll_interval_s?: number;
+  sensor_temperature_min?: string | null;
+  sensor_temperature_max?: string | null;
+  sensor_humidity_min?: string | null;
+  sensor_humidity_max?: string | null;
 }
 
 /**
@@ -448,4 +456,59 @@ export async function fetchSensorStatus(): Promise<SensorStatusEntry[]> {
  */
 export async function pollSensorsNow(): Promise<PollNowResult> {
   return apiClient<PollNowResult>("/api/sensors/poll-now", { method: "POST" });
+}
+
+// ---------------------------------------------------------------------------
+// Phase 40-01 — Sensor admin CRUD (mirrors backend SensorCreate / SensorUpdate)
+// community is SecretStr server-side — write-only; OMIT from PATCH body to
+// preserve the stored ciphertext (PITFALLS C-3). Decimals travel as strings
+// (matches Pydantic input coercion; consistent with Phase 39 read shape).
+// ---------------------------------------------------------------------------
+
+export interface SensorCreatePayload {
+  name: string;
+  host: string;
+  port: number;
+  community: string;              // plaintext on create — backend encrypts via Fernet
+  temperature_oid: string | null;
+  humidity_oid: string | null;
+  temperature_scale: string;      // Decimal
+  humidity_scale: string;         // Decimal
+  enabled: boolean;
+}
+
+export interface SensorUpdatePayload {
+  name?: string;
+  host?: string;
+  port?: number;
+  // Omit to keep stored ciphertext; set to a non-empty string to reset.
+  community?: string;
+  temperature_oid?: string | null;
+  humidity_oid?: string | null;
+  temperature_scale?: string;
+  humidity_scale?: string;
+  enabled?: boolean;
+}
+
+export async function createSensor(body: SensorCreatePayload): Promise<SensorRead> {
+  return apiClient<SensorRead>("/api/sensors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateSensor(
+  id: number,
+  body: SensorUpdatePayload,
+): Promise<SensorRead> {
+  return apiClient<SensorRead>(`/api/sensors/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteSensor(id: number): Promise<void> {
+  await apiClient<void>(`/api/sensors/${id}`, { method: "DELETE" });
 }
