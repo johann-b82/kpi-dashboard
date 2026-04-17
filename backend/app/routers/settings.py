@@ -74,6 +74,13 @@ def _build_read(row: AppSettings) -> SettingsRead:
         target_sick_leave_ratio=float(row.target_sick_leave_ratio) if row.target_sick_leave_ratio is not None else None,
         target_fluctuation=float(row.target_fluctuation) if row.target_fluctuation is not None else None,
         target_revenue_per_employee=float(row.target_revenue_per_employee) if row.target_revenue_per_employee is not None else None,
+        # Phase 39-02 — Sensor config read-only surfaces (columns exist since Phase 38 migration).
+        # Admin write endpoints arrive in Phase 40 (SettingsUpdate unchanged here).
+        sensor_poll_interval_s=row.sensor_poll_interval_s,
+        sensor_temperature_min=row.sensor_temperature_min,
+        sensor_temperature_max=row.sensor_temperature_max,
+        sensor_humidity_min=row.sensor_humidity_min,
+        sensor_humidity_max=row.sensor_humidity_max,
     )
 
 

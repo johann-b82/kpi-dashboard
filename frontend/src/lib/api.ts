@@ -154,6 +154,14 @@ export interface Settings {
   target_sick_leave_ratio: number | null;
   target_fluctuation: number | null;
   target_revenue_per_employee: number | null;
+  // Phase 39-02 — Sensor config read-only surfaces.
+  // Decimal serialized as string; parse via Number() at render (never store as number).
+  // Admin write endpoints arrive Phase 40 (SettingsUpdatePayload intentionally NOT extended).
+  sensor_poll_interval_s: number;
+  sensor_temperature_min: string | null;
+  sensor_temperature_max: string | null;
+  sensor_humidity_min: string | null;
+  sensor_humidity_max: string | null;
 }
 
 export async function fetchSettings(): Promise<Settings> {

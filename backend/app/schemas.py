@@ -170,6 +170,13 @@ class SettingsRead(BaseModel):
     target_sick_leave_ratio: float | None = None
     target_fluctuation: float | None = None
     target_revenue_per_employee: float | None = None
+    # Phase 39-02 — Sensor config surfaced read-only (admin writes arrive Phase 40).
+    # Decimal serializes as string; frontend parses via Number().
+    sensor_poll_interval_s: int = 60
+    sensor_temperature_min: Decimal | None = None
+    sensor_temperature_max: Decimal | None = None
+    sensor_humidity_min: Decimal | None = None
+    sensor_humidity_max: Decimal | None = None
 
     model_config = {"from_attributes": True}
 
