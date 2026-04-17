@@ -49,7 +49,7 @@ Exceptions: Tile cards are 120×120px fixed square — this is a layout constrai
 
 - Container: CSS grid, `grid-template-columns: repeat(auto-fill, minmax(120px, 1fr))`, `gap: 24px` (lg token)
 - Max tile width per column: 120px; grid scales to 4 columns on desktop (≥640px), 3 on tablet (≥480px), 2 on mobile
-- Page heading: `settings.app_name` from `useSettings()` — `text-2xl font-semibold` — source: CONTEXT.md D-11
+- Page heading: `settings.app_name` from `useSettings()` — `text-2xl font-medium` — source: CONTEXT.md D-11
 
 ### Tile card (active)
 
@@ -94,11 +94,10 @@ Exceptions: Tile cards are 120×120px fixed square — this is a layout constrai
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 (regular) | 1.5 |
-| Label (tile) | 12px | 500 (medium) | 1.3 |
-| Heading (page) | 24px | 600 (semibold) | 1.2 |
+| Label (tile) + Heading (page) | 12px / 24px | 500 (medium) | 1.3 / 1.2 |
 | Display | not used this phase | — | — |
 
-Font: Geist Variable. All sizes use the existing Tailwind v4 CSS-variable type scale (`text-sm`, `text-base`, `text-2xl`).
+Font: Geist Variable. All sizes use the existing Tailwind v4 CSS-variable type scale (`text-sm`, `text-base`, `text-2xl`). Size contrast (12px vs 24px) provides visual hierarchy — no third weight needed.
 
 ---
 
