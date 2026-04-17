@@ -23,6 +23,7 @@ import { queryClient } from "./queryClient";
 function AppShell() {
   const [location] = useLocation();
   const isLogin = location === "/login";
+  const isLauncher = location === "/home";
   return (
     <AuthGate>
       {!isLogin && (
@@ -31,7 +32,7 @@ function AppShell() {
           <SubHeader />
         </>
       )}
-      <main className={isLogin ? "" : "pt-28"}>
+      <main className={isLogin ? "" : isLauncher ? "pt-16" : "pt-28"}>
         <Switch>
           <Route path="/login" component={LoginPage} />
           <Route path="/home" component={LauncherPage} />

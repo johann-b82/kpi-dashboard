@@ -40,6 +40,11 @@ export function SubHeader() {
   const [location] = useLocation();
   const { preset, range, handleFilterChange } = useDateRange();
 
+  // Launcher surface hides chrome entirely — return null after all hooks
+  // so React's rules-of-hooks (constant hook order) are preserved across
+  // navigation between /home and other routes.
+  if (location === "/home") return null;
+
   return (
     <div className="fixed top-16 inset-x-0 h-12 bg-background z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
