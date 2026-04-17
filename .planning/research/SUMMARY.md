@@ -1,281 +1,246 @@
-# Research Summary — KPI Light v1.1 Branding & Settings
+# Research Summary — v1.15 Sensor Monitor
 
-**Project:** KPI Light
-**Domain:** Runtime corporate-identity theming + settings persistence for a Dockerized internal ERP dashboard
-**Researched:** 2026-04-11
-**Confidence:** HIGH
-
----
-
-## Executive Summary
-
-KPI Light v1.1 adds a Settings page where teams can brand the app (logo, colors, app name, default language) without touching code. This is a well-trodden problem: a singleton settings table in the existing PostgreSQL database, a React context that fetches settings on boot and injects CSS custom properties at runtime, and a new `/settings` route. The v1.0 stack handles all of it — the only new dependency is `nh3==0.3.3` for server-side SVG sanitization. Every other v1.1 feature (runtime theming, logo serving, language switching, live preview, save/reset flows) is implementable with already-installed libraries.
-
-The recommended approach builds in four sequential phases: backend schema + API, frontend plumbing (ThemeProvider + NavBar wiring), the SettingsPage UI + sub-components, and finally i18n integration + polish. This order is forced by dependency: the Alembic migration must exist before the API, the ThemeProvider must exist before SettingsPage (which calls `previewSettings()`), and i18n integration can trail the UI without blocking anything. The architecture makes zero changes to DashboardPage or UploadPage — theme propagation is automatic via CSS cascade.
-
-The two hard requirements that cannot be deferred or skimped are SVG sanitization and CSS color value validation. Both are security-level concerns on a zero-auth app: an unvalidated SVG upload is a stored XSS vector (Ghost CMS patched this exact attack in 2025), and an unvalidated color string passed to `document.documentElement.style.setProperty` is a CSS injection vector. Both must be implemented in Phase 1 (backend), before any logo or color is persistable. All other pitfalls are moderate-severity UX or operational concerns with straightforward mitigations.
+**Milestone:** v1.15 — Port standalone SNMP temperature/humidity monitor into the KPI Dashboard monorepo as an admin-only launcher app.
+**Synthesised:** 2026-04-17
+**Source files:** [STACK.md](./STACK.md) · [FEATURES.md](./FEATURES.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [PITFALLS.md](./PITFALLS.md)
+**Overall confidence:** HIGH (versions PyPI-verified; integration points verified against real file paths; pitfalls grounded in direct inspection of both the reference impl and the existing scheduler)
 
 ---
 
-## Key Findings
+## 1. Executive Summary
 
-### Recommended Stack
+v1.15 is a **port, not greenfield.** The standalone `snmp-monitor` MVP at `/Users/johannbechtold/Documents/snmp-monitor` already proves polling + threshold + chart UX; our job is to re-implement that behaviour inside the KPI Dashboard's design language and drop duplicated host infrastructure (Jinja templates, SQLite, YAML, standalone FastAPI). Everything rides the existing stack: FastAPI + SQLAlchemy async + asyncpg + APScheduler + Directus JWT + React 19 + Recharts + TanStack Query + react-i18next + Tailwind v4 tokens. **One new backend dependency (`pysnmp>=7.1.23,<8.0`). Zero frontend dependencies.**
 
-No new frontend packages are needed. The entire v1.1 frontend — runtime theming, live preview, logo display, language switching, all Settings UI — is achievable with React state, `document.documentElement.style.setProperty`, TanStack Query, i18next `changeLanguage()`, and existing shadcn/ui components. The only backend addition is `nh3==0.3.3`, a Rust-backed SVG sanitizer chosen over the deprecated `bleach`, the CVE-carrying `lxml html.clean`, and the removed `defusedxml.lxml`.
+Load-bearing decisions: (a) plain indexed Postgres, NOT TimescaleDB (10× below threshold); (b) reuse existing `AsyncIOScheduler` singleton — add `sensor_poll` job alongside `personio_sync`; (c) pysnmp `v3arch.asyncio` — reference impl uses deprecated `pysnmp-lextudio` + old v6 import path; both replaced on port; (d) admin-only at router level.
 
-**New dependency (backend only):**
-- `nh3==0.3.3` — SVG XSS sanitization; Rust-backed allowlist approach; pre-built manylinux wheels (no C compiler in Docker); actively maintained
-
-**Key existing libraries doing new work in v1.1:**
-- `SQLAlchemy LargeBinary` (maps to `BYTEA`) — logo storage inline in `app_settings` table
-- `Alembic` — new migration adding `app_settings` table + seeding the singleton row
-- `document.documentElement.style.setProperty` (no library) — runtime CSS var injection for theme
-- `i18next.changeLanguage()` — language switching on boot and on save; no detector plugin
-- `TanStack Query` — settings fetch with `staleTime: Infinity`, mutation for save, cache invalidation
-
-**What NOT to add:**
-- `bleach` — deprecated by Mozilla
-- `defusedxml` — lxml module removed in current versions
-- `lxml html.clean / Cleaner` — CVE GHSA-5jfw-gq64-q45f (SVG/math context-switching bypass)
-- `i18next-browser-languageDetector` — localStorage caching overrides the server default after first visit; defeats the purpose
-- `fastapi-cache / fastapi-cache2` — Redis/Memcached for a 1 MB logo is overkill; inline ETag + 304 is sufficient
-- Filesystem logo storage — container-ephemeral without an explicitly declared named Docker volume
-
-### Expected Features
-
-**Must have (table stakes — v1.1 is incomplete without these):**
-- Settings route `/settings` reachable from NavBar
-- App name input — replaces "KPI Light" in header and `document.title`
-- Logo upload (PNG/SVG, ≤ 1 MB, drag-and-drop + click) with client-side preview before save
-- Full semantic color palette editing: `--primary`, `--accent`, `--background`, `--foreground`, `--muted`, `--destructive` (user decision — full 6 tokens, not primary-only)
-- Live preview — theme changes reflected immediately while editing, before Save
-- Explicit Save button + Reset to defaults
-- Unsaved-changes warning on navigation away
-- Default UI language setting (DE/EN)
-- Browser tab title updated from stored app name
-
-**Should have (included in v1.1 scope):**
-- WCAG AA contrast ratio badge on color pickers (warn, do not block)
-- Color preset swatches (4–6 hardcoded options feeding the hex input; zero backend cost)
-- Logo drag-and-drop (reuse `react-dropzone` library — NOT `DropZone.tsx` component)
-
-**Defer to v1.2+:**
-- Dark mode toggle (per-user preference; needs auth for per-user scoping)
-- Per-user CI customization (needs Authentik/auth from v2)
-- Admin-only settings gating (needs Authentik roles)
-- Font selection (FOUC complexity, low demand)
-- Full OKLCH-native color picker UI (non-designer unfamiliar; hex input is sufficient)
-
-**Scope note — full semantic palette:** The user explicitly requested all 6 semantic color tokens (primary, accent, background, foreground, muted, destructive). FEATURES.md had recommended primary-only for v1.1. User decision overrides — implement all 6 tokens, but scope the WCAG contrast checks to the 3 most critical pairs only (`primary/primary-foreground`, `background/foreground`, `destructive/white`).
-
-### Architecture Approach
-
-v1.1 is an additive layer on the existing three-tier stack. One new router (`routers/settings.py`) with 4 endpoints, one new SQLAlchemy model (`AppSettings`), one new Alembic migration, one new React context (`ThemeContext.tsx`), one new page (`SettingsPage.tsx`), two new sub-components (`ColorPicker.tsx`, `LogoUpload.tsx`), and modifications to `App.tsx` and `NavBar.tsx`. `DashboardPage` and `UploadPage` require zero changes — they consume Tailwind utility classes that reference the CSS vars, so theme changes propagate automatically.
-
-**Major components:**
-1. `app_settings` table (PostgreSQL) — single row (id=1, enforced by CHECK constraint), typed columns for all settings, `BYTEA` for logo, `TIMESTAMPTZ` for `logo_updated_at` (cache-busting) and `updated_at` (concurrency locking)
-2. `routers/settings.py` (FastAPI) — `GET/PUT /api/settings`, `GET/POST /api/settings/logo`; logo served as `Response` (not `StreamingResponse`) with ETag from SHA-256 of bytes; nh3 sanitization in the POST logo handler
-3. `ThemeContext.tsx` (React) — wraps entire app; fetches settings once on mount with `staleTime: Infinity`; injects CSS vars via `document.documentElement.style.setProperty`; exposes `useSettings()` and `previewSettings()` hooks; calls `i18n.changeLanguage()` before first render
-4. `SettingsPage.tsx` — draft state in `useState`; drives live preview via `previewSettings()`; Save calls `PUT /api/settings` + logo mutation + TanStack Query invalidation
-5. `NavBar.tsx` (modified) — logo slot renders `<img src="/api/settings/logo?v={logo_updated_at}">` if logo set, otherwise falls back to `settings.app_name` text; adds Settings nav link
-
-**Key patterns:**
-- Single-row upsert via `session.execute(insert(...).on_conflict_do_update(...))` — avoids SQLAlchemy issue #9739 (LargeBinary multi-object commit bug) and enforces singleton
-- `QueryClientProvider` wraps `ThemeProvider` wraps the app — order matters; ThemeProvider uses TanStack Query internally
-- `logo_updated_at` timestamp as URL cache-buster: `?v={logo_updated_at}` — deterministic, no ETag complexity on the client
-- Settings query: `staleTime: Infinity, gcTime: Infinity` — settings change only on explicit user save, never on interval
-
-**Integration file paths (confirmed by codebase inspection):**
-- `backend/app/models.py` — add `AppSettings` model
-- `backend/app/schemas.py` — add `AppSettingsResponse`, `AppSettingsUpdate`
-- `backend/app/routers/settings.py` — new file
-- `backend/app/main.py` — add `app.include_router(settings_router)`
-- `backend/alembic/versions/` — new migration file
-- `backend/app/defaults.py` — new file (canonical default settings for reset)
-- `frontend/src/contexts/ThemeContext.tsx` — new file
-- `frontend/src/App.tsx` — wrap with ThemeProvider, add `/settings` route
-- `frontend/src/components/NavBar.tsx` — logo slot, app name hook, Settings link
-- `frontend/src/pages/SettingsPage.tsx` — new file
-- `frontend/src/components/settings/ColorPicker.tsx` — new file
-- `frontend/src/components/settings/LogoUpload.tsx` — new file
-- `frontend/src/locales/de.json`, `frontend/src/locales/en.json` — add `settings.*` and `nav.settings` keys
-
-**Do NOT touch:** `DropZone.tsx`, `DashboardPage.tsx`, `UploadPage.tsx`, `index.css`
-
-### Critical Pitfalls
-
-1. **SVG XSS (CRITICAL)** — User uploads an SVG with `<script>` or `on*` event handlers; stored and served as-is; executes in the app's origin. Prevention: server-side `nh3` sanitization with a strict element/attribute allowlist before any DB write. Serve logo via `<img>` tag only — never `dangerouslySetInnerHTML`. Add `X-Content-Type-Options: nosniff` header. Phase 1 (backend), before logo is persistable.
-
-2. **CSS Color Injection (CRITICAL)** — Raw user-supplied color string passed to `document.documentElement.style.setProperty()` can break out of CSS value context and inject arbitrary declarations. Prevention: Pydantic `@field_validator` with strict regex on the backend (reject strings containing `;`, `}`, `{`, `url(`, `expression(`, quotes). Same regex validation on the frontend before `setProperty` call. Phase 1 (Pydantic schema) + Phase 3 (color picker).
-
-3. **FOUC on Settings Load (MODERATE)** — App boots with CSS-file defaults for 200–800ms while settings API call resolves. Prevention: ThemeProvider renders a neutral skeleton until settings query reaches `isSuccess`; `i18n.changeLanguage()` called inside ThemeProvider before any translated content renders. Phase 2 (ThemeProvider architecture — must be designed correctly the first time; retrofitting the skeleton is a pain).
-
-4. **Logo Cache Staleness (MODERATE)** — Browser caches old logo after upload. Prevention: `logo_updated_at` stored on every logo write; frontend constructs URL as `/api/settings/logo?v={logo_updated_at}`; URL changes on every upload. Phase 1 (backend column + response) + Phase 3 (URL construction in NavBar + SettingsPage).
-
-5. **Language Detection Loop (MODERATE)** — `i18next-browser-languageDetector` creates a race between browser language and server default; localStorage cache fights the DB value. Prevention: do NOT install the detector. Server default is the single source of truth. Phase 4 (i18n wiring), but ThemeProvider architecture must accommodate this from Phase 2.
+Biggest risks are integration-shaped: Docker bridge reachability to `192.9.201.x` (must be smoke-tested from inside `api` container before business logic), community-string as secret (Fernet-encrypt, `SecretStr`, Directus-hidden), APScheduler re-entry. All preventable with Phase 38 guardrails. Three-phase roadmap is right-sized.
 
 ---
 
-## Divergence Resolutions
+## 2. Key Decisions (Consolidated)
 
-Four areas where the 4 researchers disagreed — each resolved with explicit rationale:
+### Stack additions
 
-### 1. Logo Storage: bytea vs Filesystem
-**Vote:** STACK (bytea) + ARCHITECTURE (bytea) + PITFALLS (bytea) vs FEATURES (filesystem). 3:1.
+| Layer | Addition | Version | Notes |
+|---|---|---|---|
+| Backend | `pysnmp` | `>=7.1.23,<8.0` | **Not** `pysnmp-lextudio` (deprecated). Fixes dispatcher leak in <7.1.22. |
+| Backend | — | — | Reference's `pyaml`, `jinja2`, `apscheduler` not ported (config → Postgres; templates → React; scheduler already installed) |
+| Frontend | — | — | **Zero npm installs.** All deps already present. |
+| Docker | — | — | No compose changes beyond `DB_EXCLUDE_TABLES` + `--workers 1` guard comment |
 
-**Resolution: bytea.** In Docker Compose, filesystem storage inside the API container is ephemeral — logo is lost on `docker compose up --build` (every deploy) unless a named volume is explicitly declared and mounted. Adding a volume mount for a single 1 MB file introduces operational complexity disproportionate to the benefit. Bytea keeps the settings row self-contained, fully ACID, and `pg_dump`-backed. Frontend cache-busting via `?v={logo_updated_at}` eliminates the "no browser caching" objection. The 1 MB size limit makes bytea practical — TOAST handles out-of-line storage transparently.
+### pysnmp API idiom (mandatory)
 
-### 2. Color Format: Hex input, oklch stored
-**Vote:** FEATURES (hex input + swatches; CSS vars accept any format) vs PITFALLS (oklch only, match `index.css`) vs STACK (store oklch to match CSS) vs ARCHITECTURE (TEXT column, convert hex→oklch in UI).
+```python
+from pysnmp.hlapi.v3arch.asyncio import (
+    CommunityData, ContextData, ObjectIdentity, ObjectType,
+    SnmpEngine, UdpTransportTarget, get_cmd,
+)
+# UdpTransportTarget is now an async factory — await .create(...)
+transport = await UdpTransportTarget.create((host, port), timeout=3.0, retries=1)
+```
 
-**Resolution: Hex `<input type="color">` for UX; convert to oklch before submission; store as TEXT.** The native color widget and hex swatches are the most universally understood format for non-designers. The UI accepts hex, converts to oklch before API submission using `culori` (small, tree-shakeable). Backend stores as TEXT with no format lock-in. On injection via `setProperty`, the oklch string matches the existing `:root` format in `index.css`. The PITFALLS color validator must expect oklch input from the client. Do NOT use a heavy color library — `culori`'s hex→oklch path is the only conversion needed.
+Reference impl uses deprecated v6 path `pysnmp.hlapi.asyncio`. Replace on port, don't copy.
 
-### 3. SVG Sanitization: nh3 (unanimous choice, different paths)
-**Vote:** STACK (nh3) vs PITFALLS (defusedxml + allowlist; cairosvg as nuclear fallback).
+### Schema shape
 
-**Resolution: nh3.** Single mature dependency, Rust-backed, actively maintained, pre-built wheels (no Docker compiler needed), explicit SVG allowlist API. `defusedxml` is deprecated. `lxml html.clean` has CVE GHSA-5jfw-gq64-q45f. The cairosvg→PNG rasterization approach is documented as a fallback option only if nh3 proves insufficient in practice — at 60×60 display, PNG is visually identical to vector.
+Three new tables + `app_settings` singleton extensions:
 
-### 4. Semantic Color Palette Scope: Full 6 tokens (user decision)
-**Vote:** FEATURES (primary-only for v1.1 simplicity) vs PITFALLS + PROJECT.md (full semantic palette).
+```sql
+CREATE TABLE sensors (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    host TEXT NOT NULL, port INT NOT NULL DEFAULT 161,
+    community TEXT NOT NULL,           -- Fernet-encrypted; SecretStr at API
+    temperature_oid TEXT, humidity_oid TEXT,
+    temperature_scale NUMERIC(10,4) NOT NULL DEFAULT 1.0,
+    humidity_scale    NUMERIC(10,4) NOT NULL DEFAULT 1.0,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-**Resolution: Full 6 tokens — user decision overrides.** User confirmed full semantic palette in PROJECT.md: primary, accent, background, foreground, muted, destructive. The schema already accommodates all tokens. Scope WCAG contrast warnings to 3 most critical pairs only; do not attempt to check all permutations.
+CREATE TABLE sensor_readings (
+    id BIGSERIAL PRIMARY KEY,
+    sensor_id INT NOT NULL REFERENCES sensors(id) ON DELETE CASCADE,
+    recorded_at TIMESTAMPTZ NOT NULL,
+    temperature NUMERIC(8,3), humidity NUMERIC(8,3),
+    error_code TEXT,
+    UNIQUE (sensor_id, recorded_at)
+);
+CREATE INDEX ix_sensor_readings_sensor_ts ON sensor_readings (sensor_id, recorded_at DESC);
 
-### 5. Language Detector: Unanimous no
-**All 4 researchers agree:** Do NOT install `i18next-browser-languageDetector`. Fetch settings on boot; call `i18n.changeLanguage()` before first render. Server value is the single source of truth.
+CREATE TABLE sensor_poll_log (           -- liveness, NOT data (PITFALLS §M-4)
+    id BIGSERIAL PRIMARY KEY,
+    sensor_id INT NOT NULL REFERENCES sensors(id) ON DELETE CASCADE,
+    attempted_at TIMESTAMPTZ NOT NULL,
+    success BOOLEAN NOT NULL,
+    error_kind TEXT, latency_ms INT
+);
 
----
+-- app_settings gains:
+--   sensor_poll_interval_s INT DEFAULT 60
+--   sensor_temperature_min/max, sensor_humidity_min/max
+```
 
-## Implications for Roadmap
+**Two-table decision:** `sensor_readings` only holds successful polls; `sensor_poll_log` records every attempt. Separates data from liveness; UI can render "offline 15 min" without scanning chart dataset.
 
-Suggested 4-phase structure — matches ARCHITECTURE.md's build order, validated by PITFALLS.md's phase-to-pitfall mapping.
+**Seed row:** one default sensor (`Produktion`, `192.9.201.27`) so scheduler has work from first tick.
 
-### Phase 1: Backend — Schema, API, and Security
-**Rationale:** Schema must exist before API; API must exist before UI. Security pitfalls (SVG XSS, CSS injection) must be addressed here — they cannot be retrofitted after the feature ships. This phase gates everything that follows.
+### Admin gate pattern
 
-**Delivers:**
-- `app_settings` Alembic migration (table + singleton row seed + CHECK constraint)
-- `AppSettings` SQLAlchemy model with `LargeBinary` logo column
-- `AppSettingsResponse` / `AppSettingsUpdate` Pydantic schemas with color field validators
-- `routers/settings.py`: `GET /api/settings`, `PUT /api/settings`, `GET /api/settings/logo`, `POST /api/settings/logo`
-- `nh3==0.3.3` added to `requirements.txt`; nh3 sanitization wired in logo POST handler
-- `app/defaults.py` — canonical default settings object (used by reset)
-- ETag + `logo_updated_at` on logo GET response
+```python
+router = APIRouter(
+    prefix="/api/sensors", tags=["sensors"],
+    dependencies=[Depends(get_current_user), Depends(require_admin)],
+)
+```
 
-**Avoids:** Pitfall 1 (SVG XSS), Pitfall 2 (CSS injection — Pydantic validator), Pitfall 6 (bytea vs filesystem), Pitfall 9 (reset-to-defaults divergence)
-**Research flag:** None — well-documented patterns. Skip research-phase.
+Every `/api/sensors/*` route is admin-only. Test enumerates `app.routes` asserting admin dep present.
 
-### Phase 2: Frontend Plumbing — ThemeProvider + NavBar Wiring
-**Rationale:** SettingsPage calls `previewSettings()` which lives in ThemeProvider. NavBar consumes `useSettings()`. FOUC mitigation must be designed here — retrofitting the skeleton architecture later requires rewriting the provider. This phase produces a working themed app even before the Settings UI exists.
+### Scheduler pattern
 
-**Delivers:**
-- `ThemeContext.tsx` — settings fetch, CSS var injection, `useSettings()` / `previewSettings()` hooks, neutral skeleton during load
-- `App.tsx` — `ThemeProvider` wrapper, `/settings` route added
-- `NavBar.tsx` — logo slot (`<img>` with `?v=` cache-buster), app name from hook, Settings nav link
-- Settings query configured: `staleTime: Infinity, gcTime: Infinity`
+```python
+SENSOR_POLL_JOB_ID = "sensor_poll"
+scheduler.add_job(
+    _run_scheduled_sensor_poll, "interval", seconds=sensor_interval_s,
+    id=SENSOR_POLL_JOB_ID, replace_existing=True,
+    max_instances=1, coalesce=True, misfire_grace_time=30,
+)
+```
 
-**Avoids:** Pitfall 3 (FOUC), Pitfall 4 (logo cache — URL construction in NavBar), Pitfall 5 (polling — single query in provider)
-**Research flag:** None — TanStack Query + CSS var injection is well-documented. Skip research-phase.
+Non-negotiables: `max_instances=1`, `coalesce=True`, outer `asyncio.wait_for(poll_all(), timeout=min(45, interval-5))`. `--workers 1` comment in compose is mandatory.
 
-### Phase 3: Frontend — SettingsPage and Sub-components
-**Rationale:** Depends on ThemeProvider (Phase 2) and API (Phase 1). ColorPicker and LogoUpload are independent sub-components; build them before assembling the page. The live-preview wiring, unsaved-changes guard, and Save/Reset flows all assemble here.
+### Frontend integration
 
-**Delivers:**
-- `ColorPicker.tsx` — hex `<input type="color">` + text input + culori hex→oklch conversion + WCAG contrast badge (warn only)
-- `LogoUpload.tsx` — react-dropzone (PNG/SVG, 1 MB limit) + `URL.createObjectURL` preview; posts to logo endpoint
-- `SettingsPage.tsx` — full Settings UI: draft state, live preview, Save, Reset, unsaved-changes warning (beforeunload + wouter intercept + shadcn Dialog)
-- Color preset swatches (4–6 hardcoded oklch options)
+| Surface | Decision |
+|---|---|
+| Route | `/sensors`, admin-only |
+| Launcher tile | Add 5th tile or replace coming-soon slot in `LauncherPage.tsx`, admin-gated. `Thermometer` icon. |
+| Page shell | Mirror `HRPage` |
+| Chart | Recharts `LineChart` + `ReferenceLine`; extend `chartDefaults.ts` with `sensorPalette` |
+| Time window | `SegmentedControl`: `1h · 6h · 24h · 7d · 30d`. Local state — NOT `DateRangeContext`. |
+| Data fetch | `refetchInterval: 15_000`, `refetchIntervalInBackground: false`, `refetchOnWindowFocus: true`, `staleTime: 5_000` |
+| Admin config | Dedicated sub-page `/settings/sensors` (recommended) vs. card on `/settings`. Phase 40 kickoff. |
+| i18n | `sensors.*` namespace, full DE/EN parity — hard gate |
+| Styling | Token-only Tailwind, no `dark:`, no hex literals |
 
-**Avoids:** Pitfall 2 (CSS injection — frontend format validation before setProperty), Pitfall 4 (logo cache — `?v=` in URL), Pitfall 8 (accessibility — contrast badge)
-**Research flag:** Wouter navigation guard requires explicit testing — no `<Prompt>` equivalent; use `beforeunload` + Dialog pattern. Not a research gap, but a testing checkpoint.
+### Phase sizing
 
-### Phase 4: i18n Integration + Polish
-**Rationale:** Translation keys can be added after the page is built — English strings work as fallback throughout Phase 3. Deferring keeps Phase 3 focused on interaction logic. This phase closes the loop on language default persistence and end-to-end verification.
-
-**Delivers:**
-- DE/EN locale files updated with `settings.*` and `nav.settings` keys
-- `i18n.changeLanguage(settings.default_language)` wired in ThemeProvider before first render
-- Language dropdown in SettingsPage wired to PUT + immediate `i18n.changeLanguage()`
-- Toast success/error feedback on Save (existing toast infrastructure)
-- E2E verification: `docker compose up --build` after logo upload confirms logo survives
-
-**Avoids:** Pitfall 7 (language detection loop — changeLanguage before render, no localStorage, no detector)
-**Research flag:** None — i18next changeLanguage() is straightforward. Skip research-phase.
-
-### Phase Ordering Rationale
-
-- Schema before API is a hard dependency — no table, no endpoint
-- Security (SVG XSS + CSS injection) must be backend-first, Phase 1 — cannot be retrofitted post-ship without invalidating stored data
-- ThemeProvider before SettingsPage is a near-hard dependency — SettingsPage calls `previewSettings()` from context; building against a mock doubles the wiring work
-- i18n last is deliberate — English fallback strings serve during Phase 3 development; deferring key additions avoids back-and-forth
-
-### Research Flags
-
-Needs deeper research during planning: None identified. All patterns have official docs + direct codebase evidence.
-
-Standard patterns (skip research-phase during planning):
-- Phase 1 — SQLAlchemy singleton row, Alembic migration, FastAPI UploadFile, nh3 API all have clear documentation and codebase precedent
-- Phase 2 — TanStack Query + CSS var injection is the established shadcn live-theming pattern (tweakcn reference)
-- Phase 3 — react-dropzone already installed; WCAG contrast formula is 10 lines of JS; culori is a focused library with a clear API
-- Phase 4 — i18next changeLanguage() is documented in official i18next API docs
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | All versions verified against PyPI/npm registries; single new dep (nh3) confirmed. Codebase inspection confirmed oklch format, @theme inline structure, i18n setup. |
-| Features | HIGH (table stakes) / MEDIUM (differentiators) | Table stakes confirmed against established shadcn/Tailwind patterns. Full 6-token scope is a user-overridden decision — complexity acknowledged and accepted. |
-| Architecture | HIGH | Based on direct codebase inspection of all relevant files. Integration points are precise, confirmed file paths. No guesses. |
-| Pitfalls | HIGH | Critical pitfalls have real-world CVE/PR precedent (Ghost CMS SVG XSS 2025; lxml CVE). Moderate pitfalls have well-sourced mitigations. Phase assignments validated. |
-
-**Overall confidence: HIGH**
-
-### Gaps to Address
-
-- **culori bundle impact:** culori's tree-shaken size in this Vite project was not benchmarked. If bundle impact is unacceptable, an inline ~20-line function covers hex→oklch conversion for the specific values produced by `<input type="color">`. Flag for Phase 3 implementation.
-
-- **wouter navigation guard:** The `beforeunload` + Dialog intercept pattern for unsaved-changes warning requires careful implementation — verify it fires on NavBar link clicks (not just tab close). Not a research gap; a testing checkpoint for Phase 3.
-
-- **Optimistic locking coordination:** PITFALLS.md recommends `updated_at`-based concurrency control (WHERE id=1 AND updated_at=$last_known → 409 on conflict). Implement the 409 response in Phase 1; wire the frontend 409 handler in Phase 3. Requires coordination across phases — note this in the requirements.
-
-- **Color preset swatch values:** Specific oklch values for the 4–6 preset palettes are not defined in research. Requirements or implementation phase should define these or delegate to the implementer.
+Three phases:
+1. **Phase 38** — Backend + schema + scheduler
+2. **Phase 39** — `/sensors` dashboard UI + launcher tile
+3. **Phase 40** — Admin settings + docs + hardening
 
 ---
 
-## Sources
+## 3. Top Risks (with Phase Mapping)
 
-### Primary (HIGH confidence — verified against live registries, official docs, direct codebase inspection)
-- SQLAlchemy 2.0 LargeBinary / BYTEA PostgreSQL — type mapping
-- SQLAlchemy issue #9739 — LargeBinary multi-object commit bug — singleton-row avoidance
-- lxml html.clean SVG/math context bypass CVE GHSA-5jfw-gq64-q45f
-- nh3 PyPI 0.3.3 (Feb 2026) — version confirmed
-- FastAPI Custom Response docs — Response vs StreamingResponse
-- Tailwind CSS v4 @theme directive — runtime CSS variable behavior
-- shadcn/ui Tailwind v4 theming — CSS variable names and oklch format
-- i18next API — changeLanguage programmatic switching
-- Codebase: `frontend/src/index.css` — oklch format, @theme inline structure confirmed
-- Codebase: `frontend/src/i18n.ts` — no language detector, hardcoded `lng: "de"` confirmed
-- Codebase: `backend/app/models.py`, `schemas.py`, `main.py`, `routers/kpis.py` — patterns confirmed
-- Codebase: `frontend/src/App.tsx`, `NavBar.tsx`, `DropZone.tsx` — integration points confirmed
+Full list in [PITFALLS.md](./PITFALLS.md):
 
-### Secondary (MEDIUM confidence — multiple community sources agree)
-- Ghost CMS SVG XSS PR #19646 (2025) — real-world SVG upload XSS precedent
-- OWASP CSS Injection Testing Guide — CSS injection risk classification
-- MDN: HTTP Caching (ETag / Cache-Control) — logo cache-busting strategy
-- PostgreSQL BinaryFilesInDB wiki + CYBERTEC binary data performance — bytea trade-offs
-- i18next-browser-languageDetector GitHub issue #250 — localStorage overwrite behavior
-- WCAG color contrast 2025 (AllAccessible) — 4.5:1 ratio requirement for AA
-- Vite FOUC fix patterns — skeleton approach for dark-mode-on-first-paint
-- tweakcn.com — confirmed CSS var injection pattern used in production at scale
-- Cloudscape unsaved-changes pattern — "Leave / Stay" dialog wording
+| # | Risk | Phase | Guardrail |
+|---|------|-------|-----------|
+| C-1 | `SnmpEngine()` per call → RAM leak | 38 | Shared engine on `app.state.snmp_engine`; `pysnmp>=7.1.23` |
+| C-2 | Sync DB calls from ref impl block event loop | 38 | `AsyncSessionLocal` only; CI grep ban |
+| C-3 | Community string leaked in logs / Directus / pg_dump | 38 | Fernet-encrypt; `SecretStr`; `DB_EXCLUDE_TABLES` |
+| C-4 | APScheduler job re-entry | 38 | `max_instances=1, coalesce=True`; `wait_for` |
+| C-5 | Duplicate rows from scheduled + manual poll | 38 | `UNIQUE(sensor_id, recorded_at)` + `ON CONFLICT DO NOTHING` |
+| C-6 | Docker bridge cannot reach 192.9.201.x | 38 | Pre-flight in-container `snmpget`; host-mode fallback documented |
+| C-7 | `uvicorn --workers N>1` runs jobs N times | 38 | `--workers 1` + compose comment |
+| C-8 | `time.sleep` blocks loop | 38 | CI grep ban in `services/snmp*` |
+| M-3 | `asyncio.gather` default cancels siblings | 38 | `return_exceptions=True` |
+| M-4 | NULL-row flood confuses offline vs. no data | 38 | Two-table schema |
+| M-5 | TanStack refetch fights poll cadence | 39 | 15s + 5s stale + invalidate on "Poll now" |
+| M-6 | Migration not idempotent | 38 | Round-trip test; full reverse drop |
+| M-7 | Index bloat on insert-only table | 38 | Per-table autovacuum; retention DELETE |
+| N-3 | UDP loss → "offline" false positive | 38 | `retries=2, timeout=2`; 3-consecutive threshold |
+| N-6/N-7 | "public" default community; Pydantic echoing secrets | 40 | `SecretStr` no default, `min_length=1`; admin guide |
 
-### Tertiary (informational — no implementation decisions rest solely on these)
-- CairoSVG documentation — nuclear fallback option (rasterize SVG→PNG), not used
-- Docker volumes data persistence guide — named volume requirement context
-- culori library — hex→oklch conversion; bundle size not benchmarked
+**Critical-path:** C-6 gates everything. C-3 bakes into Phase 38 schema.
 
 ---
 
-*Research completed: 2026-04-11*
-*Ready for roadmap: yes*
+## 4. Open Questions (need user input before REQUIREMENTS.md)
+
+| # | Question | Default |
+|---|----------|---------|
+| OQ-1 | Sensor count at ship time | Assume 3 |
+| OQ-2 | Admin UX: sub-page `/settings/sensors` or card on `/settings`? | Sub-page |
+| OQ-3 | Polling interval: global or per-sensor? | Global on `app_settings` |
+| OQ-4 | Thresholds: global or per-sensor overrides (DIFF-09)? | Global MVP; per-sensor deferred |
+| OQ-5 | Retention: fixed 90d or admin-configurable? | Fixed 90d |
+| OQ-6 | Legacy SQLite `data.db` import? | Skip |
+| OQ-7 | Differentiators: DIFF-01 (deltas), DIFF-04 (downsample), DIFF-10 ("OK seit X")? | Ship DIFF-01+DIFF-10; defer DIFF-04 |
+| OQ-8 | Alerting (DIFF-02/03) explicit out-of-scope confirm? | Out of scope (no SMTP) |
+
+---
+
+## 5. Suggested REQ-ID Groups
+
+| Prefix | Scope | Est. | Phase |
+|--------|-------|------|-------|
+| **SEN-DB-*** | Alembic migration, tables, indexes, autovacuum, seed, DB_EXCLUDE_TABLES, Fernet | 6–8 | 38 |
+| **SEN-BE-*** | `snmp_poller`, `/api/sensors/*` routes, `require_admin`, `SecretStr`, exception boundaries | 10–14 | 38 |
+| **SEN-SCH-*** | APScheduler job, guards, reschedule, `--workers 1`, retention cleanup | 4–6 | 38 |
+| **SEN-FE-*** | `/sensors` page, cards, charts, time-window, Poll-now, freshness, thresholds | 10–12 | 39 |
+| **SEN-LNCH-*** | Launcher admin tile + icon + i18n | 2–3 | 39 |
+| **SEN-ADM-*** | Admin settings sub-page, CRUD, probe/walk, poll-interval, thresholds | 6–8 | 40 |
+| **SEN-OPS-*** | Docker SNMP smoke test, admin guide (EN+DE), host-mode runbook | 3–5 | 38 + 40 |
+| **SEN-I18N-*** | `sensors.*` parity gate, "du" tone | 1–2 | Cross-phase |
+
+**Total:** ~42–58 REQs.
+
+---
+
+## 6. Suggested Phase Structure
+
+### Phase 38 — Backend + Schema + Scheduler
+API testable via curl, scheduler producing readings, zero UI.
+- Alembic migration, `pysnmp>=7.1.23`, models, schemas, `snmp_poller.py`, router with `require_admin`, scheduler wiring
+- `DB_EXCLUDE_TABLES` + `--workers 1`; Fernet for community; CI grep checks; router dep-audit test
+- **Gating:** `docker compose exec api snmpget ...` against 192.9.201.x must succeed
+
+### Phase 39 — Dashboard UI + Launcher Tile
+Admin clicks tile → sees live data with auto-refresh.
+- `SensorsPage.tsx`, `components/sensors/*`, `sensorPalette`, route + admin-gated tile
+- API client + query keys; `useSensorReadings` with refetch + stale + focus
+- SegmentedControl time-window; full `sensors.*` DE/EN parity
+- Optional DIFF-01 + DIFF-10
+- **Verify:** viewer can't see tile; admin sees live data; Poll-now invalidates
+
+### Phase 40 — Admin Settings + Docs + Hardening
+Admin onboards sensors from UI; operator has runbook.
+- Kickoff decision: sub-page (recommended) vs. card
+- CRUD form; probe + walk (collapsible); poll-interval input → reschedule; global thresholds
+- Admin guide: `docs/admin/sensor-monitor.{en,de}.md`
+- Optional SQLite import script if OQ-6 reversed
+- **Verify:** admin CRUD works; probe/walk work; interval change effective without restart; bilingual docs
+
+---
+
+## 7. Confidence
+
+| Area | Level |
+|------|-------|
+| Stack additions | HIGH |
+| Schema shape | HIGH |
+| Backend integration | HIGH |
+| Admin-gate | HIGH |
+| Single-scheduler | HIGH |
+| Frontend integration | HIGH |
+| Pitfalls | HIGH |
+| Phase sizing | MEDIUM (39+40 could merge) |
+| Docker networking | MEDIUM (Linux default likely; Mac dev needs snmpsim) |
+| Retention details | LOW (OQ-5 needs user input) |
+
+---
+
+## 8. Sources
+
+- [PySNMP 7.1 v3arch asyncio examples](https://docs.lextudio.com/pysnmp/v7.1/examples/hlapi/v3arch/asyncio/)
+- [PySNMP 7.1 changelog — dispatcher leak fix](https://docs.lextudio.com/pysnmp/v7.1/changelog)
+- [APScheduler 3.x user guide + FAQ](https://apscheduler.readthedocs.io/en/3.x/)
+- [SQLAlchemy 2.0 Async I/O](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
+- [PostgreSQL TIMESTAMPTZ](https://www.postgresql.org/docs/current/datatype-datetime.html)
+- PyPI direct query 2026-04-17: `pysnmp` 7.1.23 current; `pysnmp-lextudio` deprecated
+- [TimescaleDB vs Postgres threshold](https://www.influxdata.com/comparison/postgres-vs-timescaledb/)
+- [pganalyze VACUUM tuning](https://pganalyze.com/blog/5mins-postgres-tuning-vacuum-autovacuum)

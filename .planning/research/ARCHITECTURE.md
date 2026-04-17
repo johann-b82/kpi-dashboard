@@ -1,327 +1,263 @@
-# Architecture Research
+# ARCHITECTURE — v1.15 Sensor Monitor Integration
 
-**Domain:** In-app Markdown documentation site integrated into existing React SPA
-**Researched:** 2026-04-16
-**Confidence:** HIGH
-
-## Standard Architecture
-
-### System Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Vite Build (compile-time)                   │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  docs/                                                    │   │
-│  │    admin/de/*.md   admin/en/*.md                         │   │
-│  │    user/de/*.md    user/en/*.md                          │   │
-│  │                                                           │   │
-│  │  import.meta.glob("../docs/**/*.md", { eager: true })   │   │
-│  └────────────────────┬─────────────────────────────────────┘   │
-│                       │ bundled JS (strings)                     │
-└───────────────────────┼─────────────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────────────┐
-│                      React SPA (runtime)                         │
-│                                                                  │
-│  AuthContext (role: "admin" | "viewer")                          │
-│       │                                                          │
-│  AppShell (/docs/* routes added to wouter Switch)                │
-│       │                                                          │
-│  ┌────▼───────────────────────────────────────────────────┐      │
-│  │ DocsPage                                                │      │
-│  │  ├── DocsSidebar  (nav tree, role-filtered)            │      │
-│  │  └── DocsContent  (Markdown -> HTML, slug-driven)      │      │
-│  │        └── react-markdown + remark-gfm                 │      │
-│  └────────────────────────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| `docs/` folder | Markdown source tree, co-located with frontend source | `frontend/src/docs/` — inside `src/` so Vite glob works without config changes |
-| `docsManifest.ts` | Derive typed doc tree from glob import; filter by role and lang | Module-level computation on `import.meta.glob` result |
-| `DocsPage.tsx` | Top-level page for all `/docs/*` routes | Single wouter route: `<Route path="/docs/:slug*">` |
-| `DocsSidebar.tsx` | Tree navigation; role-filtered; links to slugs | Renders manifest; uses wouter `Link`; highlights current slug |
-| `DocsContent.tsx` | Renders Markdown string to HTML | `react-markdown` + `remark-gfm`; Tailwind prose classes |
-| `NavBar.tsx` (modified) | Adds docs icon (BookOpen) left of UploadIcon | Visible to all authenticated users; wraps in `Link href="/docs"` |
-
-## Recommended Project Structure
-
-```
-frontend/src/
-├── docs/                         # Markdown content files
-│   ├── admin/
-│   │   ├── de/
-│   │   │   ├── 01-setup.md
-│   │   │   ├── 02-architecture.md
-│   │   │   └── 03-user-management.md
-│   │   └── en/
-│   │       ├── 01-setup.md
-│   │       ├── 02-architecture.md
-│   │       └── 03-user-management.md
-│   └── user/
-│       ├── de/
-│       │   ├── 01-upload.md
-│       │   ├── 02-sales-dashboard.md
-│       │   └── 03-hr-dashboard.md
-│       └── en/
-│           ├── 01-upload.md
-│           ├── 02-sales-dashboard.md
-│           └── 03-hr-dashboard.md
-├── pages/
-│   └── DocsPage.tsx              # NEW
-├── components/
-│   └── docs/
-│       ├── DocsSidebar.tsx       # NEW
-│       ├── DocsContent.tsx       # NEW
-│       └── docsManifest.ts       # NEW -- compile-time glob -> typed tree
-└── locales/
-    ├── de.json                   # MODIFIED -- add docs.* keys
-    └── en.json                   # MODIFIED -- add docs.* keys
-```
-
-### Structure Rationale
-
-- **`src/docs/`** (inside `src/`): Vite only processes `import.meta.glob` on paths under the project root and relative imports. Placing docs here means zero vite.config.ts changes.
-- **`admin/` vs `user/` split**: Role enforcement is structural. The manifest builder excludes the `admin/` subtree for viewers. No risk of accidentally rendering admin content.
-- **`de/` and `en/` as folder segment**: Language is a folder key in the glob path — content lookup is `docs[section][lang][slug]`, a direct key access.
-- **Numeric filename prefixes** (`01-`, `02-`): Controls sidebar ordering without a separate config file. Parse the prefix for sort order, strip it from the display title.
-
-## Architectural Patterns
-
-### Pattern 1: Compile-Time Glob Import (Static Bundling)
-
-**What:** Vite's `import.meta.glob` resolves all matching file paths at build time and bundles their content as JS string literals. No runtime fetches.
-
-**When to use:** Documentation that ships with the app, no CMS, content authored by developers alongside code.
-
-**Trade-offs:**
-- Pro: Zero runtime HTTP requests; works offline; no fetch error states to handle.
-- Pro: TypeScript-typed manifest at build time — slug mismatches caught at compile time.
-- Con: Adding a doc page requires a frontend rebuild and redeploy. Acceptable for internal ops docs.
-- Con: Very large doc sets inflate bundle size. Not a concern here (a few KB of Markdown).
-
-**Example:**
-```typescript
-// docsManifest.ts
-const modules = import.meta.glob("../docs/**/*.md", { eager: true, as: "raw" });
-// modules is Record<string, string> — key = path, value = Markdown text
-// e.g. { "../docs/admin/de/01-setup.md": "# Setup\n..." }
-```
-
-**Alternative rejected:** Lazy `fetch("/docs/admin/en/setup.md")` from `public/`. This requires placing Markdown files in `public/` (unprocessed, untyped), adds fetch lifecycle management per page, and means role enforcement must happen at fetch time rather than at manifest filter time.
-
-### Pattern 2: Role Gate via Manifest Filtering
-
-**What:** `docsManifest.ts` exports a `getManifest(role, lang)` function. Admin gets all entries; Viewer gets only `section === "user"` entries. `DocsPage` also checks before rendering a slug directly via URL.
-
-**When to use:** Two-tier role system where the privileged tier is a strict superset of the unprivileged tier.
-
-**Trade-offs:**
-- Pro: Gating is in one place (manifest), not scattered across components.
-- Pro: URL-direct access to an admin slug by a Viewer renders an access-denied state, not a content leak — content is never rendered.
-- Con: Admin Markdown text is technically in the JS bundle for all users. For operational setup docs this is acceptable; these are not secrets.
-
-**Example:**
-```typescript
-// docsManifest.ts
-export function getManifest(role: Role, lang: string): DocEntry[] {
-  return ALL_ENTRIES
-    .filter(e => e.lang === lang)
-    .filter(e => role === "admin" ? true : e.section === "user")
-    .sort((a, b) => a.order - b.order);
-}
-```
-
-### Pattern 3: Slug-Driven Single Wildcard Route
-
-**What:** One wouter route `/docs/:slug*` handles all doc pages. The `slug` param maps to a manifest entry. Adding new pages requires zero routing changes.
-
-**When to use:** Any multi-page doc site within a SPA.
-
-**Trade-offs:**
-- Pro: Direct URL linking works (`/docs/admin/setup`).
-- Pro: Zero `App.tsx` changes when new doc pages are added.
-- Con: Slug namespace must be unique. Using `section/filename` (e.g., `user/01-upload`) is unique by construction.
-
-**Example:**
-```typescript
-// App.tsx addition
-<Route path="/docs/:slug*" component={DocsPage} />
-
-// DocsPage.tsx
-const params = useParams<{ slug: string }>();
-const slug = params.slug ?? "";
-const entry = manifest.find(e => e.slug === slug);
-if (!entry) return <DocsNotFound />;
-if (entry.section === "admin" && role !== "admin") return <DocsAccessDenied />;
-return <DocsContent markdown={entry.content} />;
-```
-
-### Pattern 4: i18n for UI Chrome, Language Folder for Content
-
-**What:** Sidebar section titles, page heading, "not found" messages use `react-i18next` as normal `t("docs.*")` keys. The Markdown content itself is selected by language folder, driven by `i18n.language`. No translation files needed for doc prose.
-
-**When to use:** Bilingual doc site where content is written differently in each language (different prose, different examples) rather than just translated strings.
-
-**Trade-offs:**
-- Pro: No need to embed Markdown in JSON locale files. Keeps `de.json`/`en.json` manageable.
-- Pro: Language switch reactively re-filters the manifest (component reads `i18n.language`).
-- Con: Two parallel Markdown files must be maintained per document. Acceptable for a small, stable doc set.
-
-## Data Flow
-
-### Docs Page Load
-
-```
-User navigates to /docs/user/01-upload
-    |
-wouter matches <Route path="/docs/:slug*">
-    |
-DocsPage receives slug = "user/01-upload"
-    |
-getManifest(role, i18n.language)  <- role from AuthContext, lang from i18next
-    |
-manifest.find(e => e.slug === slug)
-    |
-entry.section check vs role -> render DocsContent OR DocsAccessDenied
-    |
-DocsContent: <ReactMarkdown>{entry.content}</ReactMarkdown>
-    |
-DocsSidebar: same manifest, highlights current slug, groups by section
-```
-
-### Language Switch
-
-```
-User changes DE <-> EN via existing LanguageToggle (no change to LanguageToggle)
-    |
-i18n.changeLanguage("de" | "en")
-    |
-DocsPage re-renders (reads i18n.language)
-    |
-getManifest(role, "de") returns German entries
-    |
-slug "user/01-upload" still valid (same slug across languages)
-    |
-Content switches to German Markdown -- no navigation required
-```
-
-### Role Change
-
-```
-signOut() -> AuthContext clears user -> role = null
-    |
-AuthGate redirects to /login (existing behavior, unchanged)
-    |
-On next login, AuthContext sets new role
-    |
-DocsPage re-derives manifest from new role
-    |
-Admin content appears or disappears from sidebar accordingly
-```
-
-## Integration Points
-
-### New Components
-
-| Component | Type | Depends On |
-|-----------|------|------------|
-| `docsManifest.ts` | NEW lib | `import.meta.glob`, `Role` type from AuthContext |
-| `DocsContent.tsx` | NEW component | `react-markdown`, `remark-gfm`, Tailwind prose |
-| `DocsSidebar.tsx` | NEW component | `docsManifest`, wouter `Link`, `i18next` |
-| `DocsPage.tsx` | NEW page | `AuthContext`, all three above |
-| `docs/` folder | NEW content | (static Markdown files) |
-
-### Modified Components
-
-| Component | Change |
-|-----------|--------|
-| `App.tsx` | Add `<Route path="/docs/:slug*" component={DocsPage} />` to Switch; extend `isLogin` exclusion or back-button logic to `/docs` prefix |
-| `NavBar.tsx` | Add `BookOpen` icon link left of `UploadIcon`; visible to all authenticated users (not inside `AdminOnly`); extend back-button check to include `/docs` prefix |
-| `locales/de.json` | Add `docs.*` keys: section titles, "not found", "access denied", aria-labels |
-| `locales/en.json` | Same |
-
-### New npm Dependencies
-
-| Package | Purpose | Notes |
-|---------|---------|-------|
-| `react-markdown` | Render Markdown string to React elements | De facto standard; React 19 compatible |
-| `remark-gfm` | GitHub Flavored Markdown (tables, task lists, strikethrough) | Official remark plugin, always paired with react-markdown |
-
-No Vite plugin required. `import.meta.glob` with `{ as: "raw" }` handles `.md` files as plain strings natively since Vite 4 — zero config change to `vite.config.ts`.
-
-### No Backend Changes Required
-
-The docs feature is entirely frontend. No new FastAPI routes, no DB schema changes, no Alembic migrations, no Docker Compose changes.
-
-## Build Order Recommendation
-
-1. **`docsManifest.ts` + `docs/` folder structure** — No React dependencies. Build and unit-test with Vitest in isolation. Establishes the typed slug system that everything else depends on.
-
-2. **`DocsContent.tsx`** — Depends only on `react-markdown` and Tailwind prose classes. Verify Markdown rendering and dark mode styles work before wiring navigation.
-
-3. **i18n keys** — Add `docs.*` keys to `de.json`/`en.json`. Can run in parallel with step 2. No code changes depend on specific key names until DocsSidebar/DocsPage are written.
-
-4. **`DocsSidebar.tsx`** — Depends on manifest shape and wouter Link. Role filtering tested here against mock role values.
-
-5. **`DocsPage.tsx`** — Composes Sidebar + Content. Role gate logic lives here (reads from existing `AuthContext` — no auth work required).
-
-6. **`App.tsx` + `NavBar.tsx` changes** — Wire the route and add the navbar icon. Last step because all linked components must exist first.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Fetching Markdown from `public/`
-
-**What people do:** Place `.md` files in `frontend/public/docs/`, then `fetch("/docs/setup.md")` at runtime.
-
-**Why it's wrong:** Creates async loading state per page (spinner on every navigation), bypasses TypeScript type checking (slug typos become 404s not compile errors), requires role enforcement at fetch time (easy to miss), and splits content from code in a way that complicates the Docker build.
-
-**Do this instead:** `import.meta.glob` with `{ as: "raw", eager: true }` — all content bundled, synchronous, TypeScript-typed slugs.
-
-### Anti-Pattern 2: Per-Doc i18n Keys in Locale JSON Files
-
-**What people do:** Add `"docs.setup.body": "# Setup\nThis guide..."` inside `de.json`/`en.json`.
-
-**Why it's wrong:** JSON does not support multi-line strings cleanly; loses Markdown syntax highlighting in editors; inflates locale files; mixes content with UI strings.
-
-**Do this instead:** Keep Markdown in `.md` files under language-namespaced folders. Use locale JSON only for UI chrome (section headings, error states, aria-labels).
-
-### Anti-Pattern 3: Registering One Route Per Doc Page
-
-**What people do:** `<Route path="/docs/setup" component={SetupDoc} />` for each page.
-
-**Why it's wrong:** Every new doc page requires a code change to `App.tsx`. Content and routing are coupled.
-
-**Do this instead:** Single wildcard route `/docs/:slug*` — routing is data-driven from the manifest.
-
-### Anti-Pattern 4: Role Check Inside Markdown Content
-
-**What people do:** Conditionally render Markdown sections based on role within a single file.
-
-**Why it's wrong:** Admin content ends up in the JS bundle for all users. Content authoring becomes complex and error-prone.
-
-**Do this instead:** Separate files per role section. The `admin/` subtree is structurally excluded from the Viewer manifest.
-
-## Scaling Considerations
-
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Current (small internal team, ~10 doc pages) | Static glob import is ideal — zero operational overhead |
-| Growing doc set (50+ pages) | Consider lazy glob (`eager: false`) to split doc strings into separate JS chunks; not needed today |
-| CMS-managed content | Switch from glob to fetch from a CMS API; keep the `docsManifest.ts` interface stable so components don't change |
-
-## Sources
-
-- Vite `import.meta.glob` with `{ as: "raw" }`: https://vite.dev/guide/features#glob-import — confirmed in Vite 4+ docs. Confidence: HIGH.
-- `react-markdown` npm package: standard React Markdown renderer, React 19 compatible. Confidence: HIGH.
-- `remark-gfm` npm package: official remark GFM plugin, standard pairing with react-markdown. Confidence: HIGH.
-- Existing codebase: `AdminOnly.tsx` and `useAuth.ts` confirm `useRole()` hook returns `"admin" | "viewer" | null` anywhere in the component tree.
-- wouter wildcard routes: `path="/docs/:slug*"` captures `slug = "user/01-upload"` for path `/docs/user/01-upload`. Confirmed in wouter 3.x source and README.
+**Researched:** 2026-04-17
+**Confidence:** HIGH on backend integration (verified against actual file paths); MEDIUM on Docker networking and pysnmp version pin.
 
 ---
-*Architecture research for: In-app Markdown documentation site (v1.13)*
-*Researched: 2026-04-16*
+
+## 1. Backend Integration Points
+
+The existing backend is flatter than the STACK template implies — **no `app/models/` package**, and **no `app/security/` beyond `directus_auth.py`**.
+
+| Concern | Existing file | SNMP work |
+|---------|--------------|-----------|
+| SQLAlchemy models | `backend/app/models.py` (flat single module: `UploadBatch`, `SalesRecord`, `AppSettings`, `PersonioEmployee`, `PersonioAttendance`, `PersonioAbsence`, `PersonioSyncMeta`) | **Append** `Sensor`, `SensorReading` — do NOT create a `models/` package |
+| Pydantic schemas | `backend/app/schemas.py` | **Append** v1.15 section with `SensorRead`, `SensorCreate`, `SensorUpdate`, `SensorReadingRead`, `PollNowResult`, `SnmpProbeRequest`, `SnmpWalkRequest` |
+| Routers | `backend/app/routers/{uploads,kpis,settings,sync,hr_kpis,data,me}.py` | **New:** `backend/app/routers/sensors.py` with `APIRouter(prefix="/api/sensors", dependencies=[Depends(get_current_user), Depends(require_admin)])` — entire feature is admin-only |
+| Service layer | `backend/app/services/*.py` | **New:** `backend/app/services/snmp_poller.py` (`snmp_get`, `snmp_walk`, `poll_sensor`, `poll_all` — AsyncSession-based) |
+| Auth | `backend/app/security/directus_auth.py` | **Reuse as-is** — `get_current_user` + `require_admin` |
+| Main app wiring | `backend/app/main.py` (8 `include_router` calls) | **Modify:** add `app.include_router(sensors_router)` |
+| ASGI lifespan / scheduler | `backend/app/scheduler.py` (module-level `scheduler = AsyncIOScheduler()`, job id `"personio_sync"`, `_load_sync_interval()`) | **Modify same file:** add `SENSOR_POLL_JOB_ID = "sensor_poll"`, `_load_sensor_interval`, `_run_scheduled_sensor_poll` |
+| DB session | `backend/app/database.py` — `AsyncSessionLocal`, `get_async_db_session` dep | Reuse; scheduler job opens its own session `async with AsyncSessionLocal()` |
+| Alembic | `backend/alembic/versions/*.py` | **New migration** — point `down_revision` to current head |
+| Backend deps | `backend/requirements.txt` | **Add:** `pysnmp>=7.1.23,<8.0` (NOT `pysnmp-lextudio` — deprecated) |
+
+**Convention call-outs (verified):**
+- Routers use module-level `dependencies=[Depends(get_current_user)]` and per-endpoint `dependencies=[Depends(require_admin)]`. For sensors, put both at module level since every endpoint is admin.
+- Scheduled jobs open their own session — don't use `Depends`.
+- 403 body is `{"detail": "admin role required"}` — frontend `apiClient.ts` 403 handling works unchanged.
+
+---
+
+## 2. APScheduler — Single Scheduler, Two Jobs
+
+**Decision: single scheduler singleton.** Verified from `scheduler.py:17` (`scheduler = AsyncIOScheduler()` module-level, exposed on `app.state.scheduler`). FastAPI allows only one `lifespan`. Adding a second scheduler would break lifespan + confuse graceful shutdown.
+
+```python
+SYNC_JOB_ID = "personio_sync"          # existing
+SENSOR_POLL_JOB_ID = "sensor_poll"     # NEW
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.scheduler = scheduler
+    # existing Personio wiring...
+    # NEW:
+    sensor_interval_s = await _load_sensor_interval()
+    if sensor_interval_s > 0:
+        scheduler.add_job(
+            _run_scheduled_sensor_poll, "interval", seconds=sensor_interval_s,
+            id=SENSOR_POLL_JOB_ID, replace_existing=True, max_instances=1,
+        )
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+```
+
+**Reschedule on settings change** (matches reference `scheduler.reschedule_job` call): `PUT /api/settings` (sensor poll interval) calls `scheduler.reschedule_job(SENSOR_POLL_JOB_ID, trigger="interval", seconds=new_seconds)` in try/except.
+
+**Gotcha:** `max_instances=1` is mandatory. 3s timeout × N sensors × 2 retries × 2 OIDs could overlap a 60s interval. Personio uses this guard too.
+
+---
+
+## 3. Admin Role Enforcement
+
+```python
+# backend/app/routers/sensors.py
+router = APIRouter(
+    prefix="/api/sensors",
+    tags=["sensors"],
+    dependencies=[Depends(get_current_user), Depends(require_admin)],
+)
+```
+
+Applies to every endpoint (list, readings, poll-now, config CRUD, probe, walk).
+
+---
+
+## 4. Frontend Integration
+
+| Concern | Existing file | SNMP work |
+|---------|--------------|-----------|
+| Routing | `frontend/src/App.tsx` | Add `<Route path="/sensors" component={SensorsPage} />`. LauncherPage is at `/` (not `/home`). |
+| Launcher tile | `frontend/src/pages/LauncherPage.tsx` — `isAdmin = user?.role === "admin"` already wired but unused | Replace one coming-soon slot (or add 5th tile) with `<AdminOnly>`-wrapped Sensors tile. Icon: `Thermometer` or `Activity` from lucide-react. i18n: `launcher.tile.sensors`. |
+| Sensors page | **new:** `frontend/src/pages/SensorsPage.tsx` | Follow HRPage shell pattern |
+| Sensor components | — | **New folder:** `frontend/src/components/sensors/{SensorStatusCards,SensorTimeSeriesChart,PollNowButton}.tsx` |
+| Admin config | `frontend/src/pages/SettingsPage.tsx`, `frontend/src/components/settings/{PersonioCard,HrTargetsCard}.tsx` | **Recommendation:** new dedicated sub-page `/settings/sensors`. Alternate: new `SensorsCard` in SettingsPage (PersonioCard pattern). **Roadmap decision at Phase 40 kickoff.** |
+| API client | `frontend/src/lib/api.ts` + `apiClient.ts` | Append `fetchSensors`, `fetchSensorReadings`, `pollNow`, CRUD, probe, walk |
+| Query keys | `frontend/src/lib/queryKeys.ts` | Append `sensorKeys` |
+| i18n | `frontend/src/locales/{en,de}.json` | New `sensors.*` namespace, full parity |
+
+**NavBar note:** Sensors is admin-only, accessed from launcher — do NOT add a top-nav tab.
+
+---
+
+## 5. Data Flow
+
+```
+APScheduler "sensor_poll" (every N seconds)
+  └─ async with AsyncSessionLocal() as session
+       snmp_poller.poll_all(session)
+         └─ asyncio.gather over sensors
+              snmp_get(host, port, community, oid)  # UDP 161 outbound
+         └─ session.add(SensorReading(sensor_id, ts=UTC, temperature, humidity))
+       session.commit()
+
+GET /api/sensors/{id}/readings?hours=24
+  └─ require_admin
+  └─ query SensorReading WHERE sensor_id=? AND ts >= now() - interval
+  └─ returns SensorReadingRead[]
+     TanStack Query caches (sensorKeys.readings(id, 24))
+     SensorTimeSeriesChart renders via Recharts
+
+POST /api/sensors/poll-now
+  └─ require_admin
+  └─ await snmp_poller.poll_all(session)  # blocking — matches Personio POST /api/sync
+  └─ returns PollNowResult { sensors_polled, errors }
+     onSuccess → queryClient.invalidateQueries(sensorKeys.all)
+```
+
+**Manual poll bypasses scheduler** — directly calls `poll_all()`. Avoids `max_instances=1` blocking on-demand poll during scheduled run.
+
+**Timeout:** add `asyncio.wait_for(poll_all(session), timeout=30)` if N>5 sensors likely (N=1 now).
+
+---
+
+## 6. Schema Migration
+
+New `backend/alembic/versions/v1_15_sensor_schema.py`:
+
+```python
+op.create_table(
+    "sensors",
+    sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
+    sa.Column("name", sa.String(100), nullable=False, unique=True),
+    sa.Column("host", sa.String(255), nullable=False),
+    sa.Column("port", sa.Integer(), nullable=False, server_default="161"),
+    sa.Column("community", sa.String(100), nullable=False, server_default="public"),
+    sa.Column("temperature_oid", sa.String(255), nullable=True),
+    sa.Column("humidity_oid", sa.String(255), nullable=True),
+    sa.Column("temperature_scale", sa.Numeric(10, 4), nullable=False, server_default="1.0"),
+    sa.Column("humidity_scale", sa.Numeric(10, 4), nullable=False, server_default="1.0"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.text("CURRENT_TIMESTAMP")),
+)
+
+op.create_table(
+    "sensor_readings",
+    sa.Column("id", sa.BigInteger(), primary_key=True, autoincrement=True),
+    sa.Column("sensor_id", sa.Integer(),
+              sa.ForeignKey("sensors.id", ondelete="CASCADE"), nullable=False),
+    sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
+    sa.Column("temperature", sa.Numeric(8, 3), nullable=True),
+    sa.Column("humidity", sa.Numeric(8, 3), nullable=True),
+)
+op.create_index("ix_sensor_readings_sensor_ts", "sensor_readings", ["sensor_id", "ts"])
+
+# app_settings singleton extensions
+op.add_column("app_settings", sa.Column("sensor_poll_interval_s", sa.Integer(),
+              nullable=False, server_default="60"))
+op.add_column("app_settings", sa.Column("sensor_temperature_min", sa.Numeric(8,3), nullable=True))
+op.add_column("app_settings", sa.Column("sensor_temperature_max", sa.Numeric(8,3), nullable=True))
+op.add_column("app_settings", sa.Column("sensor_humidity_min", sa.Numeric(8,3), nullable=True))
+op.add_column("app_settings", sa.Column("sensor_humidity_max", sa.Numeric(8,3), nullable=True))
+```
+
+**Thresholds live on `app_settings`, not per-sensor row** — matches reference impl + existing singleton pattern. Per-sensor override is additive if ever needed.
+
+**Directus visibility:** add `sensors` and `sensor_readings` to `DB_EXCLUDE_TABLES` in `docker-compose.yml` (critical — otherwise Directus exposes them in Data Model UI).
+
+**BigInteger for readings.id:** 60s × 1 sensor = ~525k rows/year. BigInt is cheap insurance.
+
+**Seed:** one default sensor row in the migration (Produktion, 192.9.201.27, OIDs from reference `config.yaml`) so the scheduler has work from first tick.
+
+**SQLite data.db import: skip.** Re-poll from fresh; not worth scope. Optional post-launch tool `scripts/import_legacy_sensor_sqlite.py` if ever needed.
+
+---
+
+## 7. Phase Breakdown — 3 Phases
+
+**Phase 38 — Sensor backend + schema + scheduler (foundation)**
+- Alembic revision: `sensors`, `sensor_readings`, `app_settings` column extensions
+- `app/models.py`: `Sensor`, `SensorReading`
+- `app/schemas.py`: Pydantic schemas
+- `app/services/snmp_poller.py`
+- `app/routers/sensors.py`: CRUD + `/readings` + `/poll-now` + `/snmp-probe` + `/snmp-walk`
+- `app/main.py`: register router
+- `app/scheduler.py`: add sensor job wiring
+- `backend/requirements.txt`: `pysnmp>=7.1.23,<8.0`
+- `docker-compose.yml`: extend `DB_EXCLUDE_TABLES`
+- Seed one sensor row in migration
+- **Verification:** `/api/sensors` returns seeded row; `/api/sensors/poll-now` returns 200 with data; scheduled tick populates readings. No UI yet.
+
+**Phase 39 — /sensors dashboard UI + launcher tile**
+- `frontend/src/pages/SensorsPage.tsx`
+- `frontend/src/components/sensors/{SensorStatusCards,SensorTimeSeriesChart,PollNowButton}.tsx`
+- `frontend/src/lib/api.ts` + `queryKeys.ts`
+- `App.tsx`: `<Route path="/sensors">`
+- `LauncherPage.tsx`: admin-gated Sensors tile
+- Full `sensors.*` i18n DE/EN parity
+- **Verification:** tile visible only to admins; page shows live data; poll-now refreshes via invalidation.
+
+**Phase 40 — Admin settings + docs + hardening**
+- Decide at kickoff: sub-page vs. card — recommend `/settings/sensors` sub-page
+- Sensor CRUD form, probe + walk UI, polling interval input, thresholds
+- `scheduler.reschedule_job` on interval change
+- Admin guide Markdown: `docs/admin/sensor-monitor.md` (EN + DE)
+- Optional: `scripts/import_legacy_sensor_sqlite.py`
+- **Verification:** admin CRUD works; probe/walk tools function; interval rescheduling effective without restart; bilingual docs rendered.
+
+**Rationale:** Phase 38 before 39 (UI needs real endpoints). Phase 39 before 40 (user-visible win ships early; admin tooling is polish).
+
+**Cross-cutting hazards for every phase:**
+- DE/EN i18n parity is a hard gate
+- No direct `fetch()` — everything through `apiClient<T>()`
+- No `dark:` variants — token-only Tailwind (v1.9 rule)
+- D-rule parity in phase plans
+
+---
+
+## 8. Docker Networking to 192.9.201.27
+
+**Most likely: no compose changes needed.**
+
+- `api` service uses default bridge (no `networks:` or `network_mode:` override)
+- Docker bridge NATs outbound through host default route
+- UDP 161 outbound is standard — works if the **host** can reach the target
+
+**Pre-flight check before Phase 38:** from Docker host, run:
+```bash
+snmpget -v2c -c public 192.9.201.27 1.3.6.1.4.1.21796.4.9.3.1.5.2
+```
+If this works from host, it works from container.
+
+**If host reaches 192.9.201.27 only via non-default interface** (VPN `tun0`, bridge requiring host MAC), then `network_mode: host` on `api` is needed — but that breaks port mapping and internal DNS. **Less invasive alternative:** `macvlan` network.
+
+**Recommendation:** assume default bridge works; add pre-flight to Phase 38 plan. Flag as PITFALL.
+
+**`extra_hosts:` is NOT helpful** — it only rewrites DNS, not routing.
+
+---
+
+## 9. Open Questions / Pre-flight Items
+
+- Exact pysnmp version pin — confirm >=7.1.23 at Phase 38 kickoff; v7 import path is `pysnmp.hlapi.v3arch.asyncio` (reference impl uses the OLD v6 `pysnmp.hlapi.asyncio` path — will break on port).
+- Docker host reachability to 192.9.201.27 — ad-hoc snmpget test on deploy host.
+- Admin-config UI location (sub-page vs. card) — Phase 40 kickoff decision.
+- Poll interval: global in `app_settings` (recommended) vs. per-sensor. Global matches reference + Personio.
+
+---
+
+## Confidence Summary
+
+| Area | Level | Reason |
+|------|-------|--------|
+| Backend integration | HIGH | Verified against actual file paths |
+| Single-scheduler decision | HIGH | Verified from `scheduler.py` |
+| `require_admin` reuse | HIGH | Pattern confirmed in `directus_auth.py` + `sync.py` |
+| Frontend integration | HIGH | Verified from `App.tsx`, `LauncherPage.tsx`, `AdminOnly.tsx`, `PersonioCard.tsx` |
+| Schema shape | HIGH | Mirrors v1.3 HR migration |
+| Phase sizing | MEDIUM | Could shrink to 2 phases by merging 39+40 |
+| Docker networking | MEDIUM | Default bridge almost certainly works; depends on host routing |
+| pysnmp version | MEDIUM | Stack research recommends >=7.1.23; v7 import path change is a real porting gotcha |
