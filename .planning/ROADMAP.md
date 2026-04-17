@@ -183,7 +183,10 @@ Full details: [milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
   5. Clicking Poll now blocks for up to 30 s, shows a success or failure toast, and invalidates all `sensorKeys` so cards and charts refresh immediately with the new row
   6. DIFF-01 delta badges render on each card (`+0.3 °C vs. 1 h`, `−2 % vs. 24 h`) via the `DeltaBadgeStack` pattern; DIFF-10 "OK seit Xh" / "Offline seit X min" health chip computes from `sensor_poll_log`
   7. Every surface uses Tailwind tokens only — no `dark:` variants, no hex literals outside the documented `sensorPalette` exception in `chartDefaults.ts`; all visible strings in the `sensors.*` dashboard-scope keys exist with full DE/EN parity in "du" tone; `launcher.tile.sensors` exists in both locales
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 39-01-PLAN.md — Foundation: route, launcher tile (AdminOnly), SensorsPage shell, KPI cards, stacked time-series charts, SegmentedControl time-window, TanStack Query auto-refetch, SubHeader freshness, sensorPalette, dashboard-scope DE/EN i18n
+- [ ] 39-02-PLAN.md — Interactions + differentiators: PollNowButton (blocking + invalidation), threshold coloring + ReferenceLines, DIFF-01 delta badges, DIFF-10 health chip, Settings API threshold exposure, full-flow human UAT
+
 **Research flag**: no — FEATURES.md + ARCHITECTURE.md §4 cover the UI component layout; existing HRPage + launcher tile patterns are the reference implementations
 **UI hint**: yes
 
@@ -244,5 +247,5 @@ All 49 active v1.15 requirements are mapped to exactly one phase.
 |-------|-----------|----------------|--------|-----------|
 | 37. App Launcher | v1.14 | 2/2 | Complete | 2026-04-17 |
 | 38. Backend + Schema + Scheduler | v1.15 | 0/TBD | Not started | — |
-| 39. Dashboard UI + Launcher Tile | v1.15 | 0/TBD | Not started | — |
+| 39. Dashboard UI + Launcher Tile | v1.15 | 0/2 | Not started | — |
 | 40. Admin Settings + Docs + Hardening | v1.15 | 0/TBD | Not started | — |
