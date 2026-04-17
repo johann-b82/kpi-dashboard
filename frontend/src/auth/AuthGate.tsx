@@ -23,7 +23,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (!user && location !== "/login") {
       setLocation("/login");
     } else if (user && location === "/login") {
-      setLocation("/");
+      setLocation("/home");
     }
   }, [isLoading, user, location, setLocation]);
 
