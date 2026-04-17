@@ -8,28 +8,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.13 In-App Documentation
-
-**Goal:** Role-aware in-app documentation site with admin (setup/architecture) and user (usage) content, accessible via a header icon.
-
-**Target features:**
-- Documentation icon in navbar (left of upload icon) linking to docs
-- Admin documentation: system setup, architecture, Docker config, Personio setup, user management
-- User documentation: uploading files, reading Sales/HR dashboards, filters, dark mode
-- Role-based visibility: Admins see both admin + user docs, Viewers see only user docs
-- Markdown-authored content rendered in-app (bundled with frontend, no external CMS)
-- Bilingual DE/EN support consistent with existing i18n
-
 ## Current State
 
-**Shipped:** v1.12 Chart Polish & Rebrand — 2026-04-16
-**Phase 33 complete** — Markdown rendering pipeline (react-markdown + rehype plugins), lazy /docs route, prose styling with dark mode, syntax highlighting, heading anchors, TOC sidebar with scroll tracking.
-**Phase 34 complete** — Navigation shell: NavBar Library icon entry point, DocsSidebar with role-gated admin section (AdminOnly), three-column DocsPage layout with /docs/:section/:slug routing, role-aware default redirect, article registry, bilingual i18n chrome (docs.nav.* keys).
-**Phase 35 complete** — User Guide content: 5 articles (intro, uploading data, sales dashboard, HR dashboard, filters, language/theme) in EN and DE (12 markdown files), wired into docs registry and i18n locale files.
-**Phase 36 complete** — Admin Guide content: 4 articles (system-setup, architecture, personio, user-management) + intro replacement in EN and DE (10 markdown files), wired into docs registry and i18n. All admin guide requirements (AGUIDE-01–04) and bilingual coverage (I18N-01) satisfied. This is the last phase of v1.13.
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page.
-**Codebase:** ~14,000 LOC (Python + TypeScript), 11 versions shipped (v1.0–v1.12).
-**Audit status:** All v1.0–v1.6, v1.11-directus, and v1.12 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.13 In-App Documentation — 2026-04-17
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and 22 bilingual (DE/EN) Markdown articles covering user guide and admin guide.
+**Codebase:** ~14,000 LOC (Python + TypeScript), 12 versions shipped (v1.0–v1.13).
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, and v1.13 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+
+## Shipped: v1.13 In-App Documentation (2026-04-17)
+
+Role-aware in-app documentation site: Markdown rendering pipeline (react-markdown + rehype-highlight + rehype-slug + remark-gfm), dark-mode prose styling, syntax highlighting, heading anchors, TOC sidebar with Intersection Observer scroll tracking, lazy-loaded /docs route. NavBar Library icon entry point, DocsSidebar with AdminOnly role gating, three-column DocsPage layout with /docs/:section/:slug routing, role-aware default redirect. 22 Markdown articles (9 user guide + 4 admin guide, each in EN and DE) covering uploading data, Sales/HR dashboards, filters, language/theme, system setup, architecture, Personio integration, and user management. 19/19 requirements satisfied.
 
 ## Shipped: v1.12 Chart Polish & Rebrand (2026-04-16)
 
@@ -166,6 +154,14 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ BRAND-02: Login page shows uploaded logo — v1.12 Phase 32
 - ✓ BRAND-03: Login page card styling matches app aesthetic — v1.12 Phase 32
 
+### Validated in v1.13
+
+- ✓ NAV-01..04: Docs navbar icon, role-filtered sidebar, role-aware default article, lazy-loaded route — v1.13
+- ✓ RENDER-01..04: Markdown prose with dark mode, syntax highlighting, heading anchors, generated TOC — v1.13
+- ✓ UGUIDE-01..05: 5 user guide articles (uploading, Sales dashboard, HR dashboard, filters, language/theme) — v1.13
+- ✓ AGUIDE-01..04: 4 admin guide articles (system setup, architecture, Personio, user management) — v1.13
+- ✓ I18N-01..02: Full bilingual DE/EN content and UI chrome — v1.13
+
 ### Validated in v1.6
 
 - ✓ MIG-01: Database migration converts 3 Personio config columns to JSON array columns — v1.6
@@ -209,6 +205,10 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Bundled Markdown docs over external CMS (v1.13) | Git-managed static content; no new service dependency; < 20 articles navigable via sidebar | ✓ Good — 22 articles shipped, zero infra overhead |
+| react-markdown + rehype plugin pipeline (v1.13) | Mature ecosystem; rehype-highlight for syntax, rehype-slug for anchors, remark-gfm for tables; composable | ✓ Good — clean pipeline, dark mode prose via @tailwindcss/typography |
+| GithubSlugger for TOC slug alignment (v1.13) | Guarantees extractToc slugs match rehype-slug output — no drift between TOC links and heading IDs | ✓ Good |
+| Registry pattern for docs content (v1.13) | O(1) lookup by lang/section/slug; easy to add articles without touching routing | ✓ Good |
 | Directus for auth + admin UI (v1.11) | Single container; reuses existing Postgres; built-in user/role admin UI; mature (7+ years); lower host complexity than Supabase's 5-service stack | — Pending v1.11 |
 | Pivot from Authentik/Dex to Directus | Phase 32 silent-SSO flow (Dex + oauth2-proxy + NPM auth_request) hit cascading cookie/CSRF/config-gen failures; single-app scope doesn't justify a multi-service identity stack; Supabase briefly considered but ruled out in favor of Directus's simpler single-container footprint | ✓ Adopted 2026-04-15 |
 | Keep existing Postgres container | Directus connects to our `db` service; no migration needed; Alembic owns `public.*`, Directus owns `directus_*` in the same DB | — v1.11 Phase 26 |
@@ -247,4 +247,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-16 after Phase 34 navigation-shell complete*
+*Last updated: 2026-04-17 after v1.13 milestone*

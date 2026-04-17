@@ -1,5 +1,21 @@
 # Milestones
 
+## v1.13 In-App Documentation (Shipped: 2026-04-17)
+
+**Phases completed:** 4 phases, 8 plans
+**Git range:** `02cd57d` → `beb7080` (82 files, +11,177/−1,538 LOC)
+**Timeline:** 2026-04-16 (single day)
+
+**Key accomplishments:**
+
+- **Markdown rendering pipeline (Phase 33)** — react-markdown + rehype-highlight + rehype-slug + remark-gfm, dark-mode-aware prose styling via @tailwindcss/typography, extractToc with GithubSlugger alignment, lazy-loaded /docs route
+- **TOC with scroll tracking (Phase 33)** — TableOfContents sidebar with Intersection Observer active-heading highlighting
+- **Navigation shell (Phase 34)** — NavBar Library icon, DocsSidebar with AdminOnly role gating, three-column DocsPage layout, /docs/:section/:slug routing, role-aware default redirect, article registry, bilingual i18n chrome
+- **User Guide content (Phase 35)** — 5 articles (intro, uploading data, sales dashboard, HR dashboard, filters, language/theme) in EN and DE (12 markdown files)
+- **Admin Guide content (Phase 36)** — 4 articles (system-setup, architecture, personio, user-management) + intro replacement in EN and DE (10 markdown files), completing full bilingual documentation coverage
+
+---
+
 ## v1.12 Chart Polish & Rebrand (Shipped: 2026-04-16)
 
 **Phases completed:** 2 phases, 4 plans, 0 tasks

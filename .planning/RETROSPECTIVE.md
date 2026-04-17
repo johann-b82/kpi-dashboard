@@ -243,6 +243,41 @@
 
 ---
 
+## Milestone: v1.13 — In-App Documentation
+
+**Shipped:** 2026-04-17
+**Phases:** 4 | **Plans:** 8
+
+### What Was Built
+
+- **Markdown rendering pipeline (Phase 33)** — react-markdown + rehype-highlight + rehype-slug + remark-gfm, @tailwindcss/typography dark-mode prose, extractToc with GithubSlugger alignment, TableOfContents with Intersection Observer scroll tracking, lazy-loaded /docs route
+- **Navigation shell (Phase 34)** — NavBar Library icon, DocsSidebar with AdminOnly role gating, three-column DocsPage layout, /docs/:section/:slug routing via wouter, role-aware default redirect, article registry keyed by lang/section/slug
+- **User Guide content (Phase 35)** — 5 articles × 2 languages (12 markdown files): intro, uploading data, sales dashboard, HR dashboard, filters, language/theme
+- **Admin Guide content (Phase 36)** — 4 articles × 2 languages + intro replacement (10 markdown files): system-setup, architecture, personio, user-management
+
+### What Worked
+
+- **Infrastructure-first decomposition** — Phase 33 (rendering) → 34 (navigation) → 35/36 (content) meant content phases were pure authoring with zero framework decisions
+- **Registry pattern for docs** — O(1) lookup by lang/section/slug; adding articles required only a markdown file + registry entry + i18n key — no routing changes
+- **GithubSlugger alignment** — using the same slugger as rehype-slug in extractToc eliminated any TOC-to-heading drift
+
+### What Was Inefficient
+
+- **Summary extraction quality** — gsd-tools summary-extract couldn't pull useful one-liners from v1.13 SUMMARY.md files; accomplishments had to be written manually during milestone completion
+- **Content phases are fast but create many files** — Phases 35–36 shipped 22 markdown files; the execution overhead was minimal but the review surface area is large
+
+### Patterns Established
+
+- **Docs article template** — blockquote callouts, cross-reference links, consistent heading structure across all 22 articles
+- **Flat i18n keys for docs** — `docs.nav.*`, `docs.sidebar.*` keys matching existing keySeparator:false convention
+
+### Key Lessons
+
+- **Content authoring is the fastest phase type** — once the rendering + navigation infra was in place, content phases were pure file creation with near-zero risk of runtime errors
+- **Role gating via existing AdminOnly component** — no new auth primitives needed; the Directus role system carried through cleanly to docs visibility
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -254,6 +289,7 @@
 | v1.3 HR+Personio | 1 | 5 | Domain-boundary decomposition, encrypted credentials |
 | v1.4 Nav Polish | 1 | 1 | Visual checkpoint iteration, route-aware SubHeader |
 | v1.9 Dark Mode | 1 | 3 | Pre-computed contrast ratios in research, D-12 operator-waiver pattern |
+| v1.13 Docs | 1 | 4 | Infrastructure-first → content authoring; registry pattern for extensible docs |
 
 ### Cumulative Quality
 
@@ -264,6 +300,7 @@
 | v1.3 HR+Personio | parity script + tsc | Automated verification + audit | httpx, APScheduler, cryptography |
 | v1.4 Nav Polish | tsc + visual UAT | Human checkpoint with iterative fixes | 0 (lucide-react already installed) |
 | v1.9 Dark Mode | grep + pre-computed ratios | Deterministic + D-12 operator waiver | 0 (Tailwind v4 CSS-first, no new deps) |
+| v1.13 Docs | milestone audit 19/19 | Full requirements + integration audit | react-markdown, rehype-highlight, rehype-slug, remark-gfm, @tailwindcss/typography, github-slugger, remark |
 
 ### Top Lessons (Verified Across Milestones)
 
