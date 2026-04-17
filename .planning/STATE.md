@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
 status: Defining requirements
-stopped_at: Completed 40-01-PLAN.md
-last_updated: "2026-04-17T23:15:39.670Z"
+stopped_at: Completed 40-03-PLAN.md
+last_updated: "2026-04-17T23:20:18.919Z"
 last_activity: 2026-04-17 — Milestone v1.15 started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -72,6 +72,7 @@ Progress: [ ] 0%
 | Phase 39 P01 | 3 min | 3 tasks | 12 files |
 | Phase 39 P02 | 377 | 2 tasks | 12 files |
 | Phase 40 P01 | 35m | 3 tasks | 18 files |
+| Phase 40 P03 | 15m | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Progress: [ ] 0%
 - [Phase 40]: PATCH body omits community when communityDirty=false (preserves stored ciphertext)
 - [Phase 40]: useUnsavedGuard gained optional scopePath param (default /settings) to work at /settings/sensors
 - [Phase 40]: Blank threshold input = don't change; clear-to-null carry-forward
+- [Phase 40]: Sensor Monitor admin-guide sidebar entry placed between personio and user-management (integrations cluster); host-mode fallback runbook embedded in Troubleshooting with preferred order bridge -> macvlan -> host
 
 ### Pending Todos
 
@@ -117,6 +119,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T23:15:39.667Z
-**Stopped at:** Completed 40-01-PLAN.md
+**Last session:** 2026-04-17T23:20:18.916Z
+**Stopped at:** Completed 40-03-PLAN.md
 **Resume file:** None

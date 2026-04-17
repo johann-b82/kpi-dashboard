@@ -85,9 +85,9 @@
 ### Operations & Docs (SEN-OPS-*)
 
 - [x] **SEN-OPS-01**: Pre-flight verification step in Phase 38: `docker compose exec api snmpget -v2c -c public 192.9.201.27 1.3.6.1.4.1.21796.4.9.3.1.5.2` returns a valid reading before any business logic is built
-- [ ] **SEN-OPS-02**: Admin guide article `docs/admin/sensor-monitor.md` (EN) + `docs/admin/sensor-monitor.de.md` (DE), following v1.13 admin-guide Markdown pattern; covers: onboarding a new sensor (walk → probe → save), thresholds, polling interval, troubleshooting (offline sensors, Docker network), community-as-secret warning, never-use-public warning
-- [ ] **SEN-OPS-03**: Docs index updated (EN + DE) to list the new admin guide article
-- [ ] **SEN-OPS-04**: Runbook note for operator: host-mode fallback (`network_mode: host` on `api`) if Docker bridge cannot reach 192.9.201.x; documented in admin guide with known trade-offs
+- [x] **SEN-OPS-02**: Admin guide article `docs/admin/sensor-monitor.md` (EN) + `docs/admin/sensor-monitor.de.md` (DE), following v1.13 admin-guide Markdown pattern; covers: onboarding a new sensor (walk → probe → save), thresholds, polling interval, troubleshooting (offline sensors, Docker network), community-as-secret warning, never-use-public warning
+- [x] **SEN-OPS-03**: Docs index updated (EN + DE) to list the new admin guide article
+- [x] **SEN-OPS-04**: Runbook note for operator: host-mode fallback (`network_mode: host` on `api`) if Docker bridge cannot reach 192.9.201.x; documented in admin guide with known trade-offs
 
 ### Internationalization (SEN-I18N-*)
 
