@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import { Thermometer } from "lucide-react";
+import { AdminOnly } from "@/auth/AdminOnly";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -254,6 +256,29 @@ export function SettingsPage() {
           </section>
         </CardContent>
       </Card>
+
+      {/* Phase 40-02 — admin-only link to /settings/sensors */}
+      <AdminOnly>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">
+              {t("settings.sensors_link.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t("settings.sensors_link.body")}
+            </p>
+            <Link
+              to="/settings/sensors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors"
+            >
+              <Thermometer className="h-4 w-4" aria-hidden="true" />
+              {t("settings.sensors_link.cta")}
+            </Link>
+          </CardContent>
+        </Card>
+      </AdminOnly>
 
       {/* HR Card — embeds Personio + Sollwerte as subsections */}
       <Card>

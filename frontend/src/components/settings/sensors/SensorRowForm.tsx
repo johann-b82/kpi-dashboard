@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -5,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import type { SensorDraftRow } from "@/hooks/useSensorDraft";
+import { SensorProbeButton } from "./SensorProbeButton";
+import { SensorRemoveDialog } from "./SensorRemoveDialog";
 
 export interface SensorRowFormProps {
   row: SensorDraftRow;
@@ -25,15 +28,22 @@ export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
   const communityPlaceholder =
     row.hasStoredCommunity && !row.communityDirty ? "••••••" : "";
   const isMarkedForDelete = row._markedForDelete;
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
 
   const handleRemove = () => {
-    // TODO(40-02): swap window.confirm for <DeleteConfirmDialog> once the
-    // shared component lands (SEN-ADM-02 full flow). The confirm text and
-    // i18n keys (sensors.admin.remove_confirm.*) are already defined so
-    // the swap is drop-in.
-    if (window.confirm(t("sensors.admin.remove_confirm.title"))) {
+    // Unsaved new rows (id === null) drop immediately — no server state
+    // to warn about. Existing rows go through the confirmation dialog
+    // (Plan 40-02 SensorRemoveDialog) replacing the old window.confirm().
+    if (row.id === null) {
       onRemove();
+      return;
     }
+    setRemoveDialogOpen(true);
+  };
+
+  const handleRemoveConfirm = () => {
+    setRemoveDialogOpen(false);
+    onRemove();
   };
 
   return (
@@ -197,8 +207,9 @@ export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
         </div>
       </div>
 
-      {/* Row 5: remove */}
-      <div className="flex justify-end">
+      {/* Row 5: probe + remove */}
+      <div className="flex items-center justify-between gap-4">
+        <SensorProbeButton row={row} />
         <Button
           type="button"
           variant="ghost"
@@ -210,6 +221,13 @@ export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
           {t("sensors.admin.remove_sensor")}
         </Button>
       </div>
+
+      <SensorRemoveDialog
+        open={removeDialogOpen}
+        onOpenChange={setRemoveDialogOpen}
+        sensorName={row.name || "(unnamed)"}
+        onConfirm={handleRemoveConfirm}
+      />
     </div>
   );
 }

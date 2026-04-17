@@ -14,6 +14,7 @@ import { SensorAdminHeader } from "@/components/settings/sensors/SensorAdminHead
 import { SensorRowList } from "@/components/settings/sensors/SensorRowList";
 import { PollIntervalCard } from "@/components/settings/sensors/PollIntervalCard";
 import { ThresholdCard } from "@/components/settings/sensors/ThresholdCard";
+import { SnmpWalkCard } from "@/components/settings/sensors/SnmpWalkCard";
 
 /**
  * Phase 40-01 — admin-only sensor configuration sub-page.
@@ -153,6 +154,8 @@ export function SensorsSettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <SnmpWalkCard rows={rows} onUpdateRow={updateRow} />
 
       <PollIntervalCard
         value={globals.sensor_poll_interval_s}

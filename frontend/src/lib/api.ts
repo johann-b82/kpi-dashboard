@@ -512,3 +512,59 @@ export async function updateSensor(
 export async function deleteSensor(id: number): Promise<void> {
   await apiClient<void>(`/api/sensors/${id}`, { method: "DELETE" });
 }
+
+// ---------------------------------------------------------------------------
+// Phase 40-02 — SNMP Probe + Walk (admin tooling)
+// Backend endpoints live since Phase 38-02; both admin-gated at router level.
+// Server-side: asyncio.wait_for(timeout=30). Clients mirror with Promise.race(30_000)
+// at the call site (see SensorProbeButton.tsx, SnmpWalkCard.tsx).
+// ---------------------------------------------------------------------------
+
+export interface SnmpProbeRequestPayload {
+  host: string;
+  port: number;
+  community: string;
+  temperature_oid: string | null;
+  humidity_oid: string | null;
+  temperature_scale: string;
+  humidity_scale: string;
+}
+
+export interface SnmpProbeResult {
+  temperature: number | null;
+  humidity: number | null;
+}
+
+export async function runSnmpProbe(
+  body: SnmpProbeRequestPayload,
+): Promise<SnmpProbeResult> {
+  return apiClient<SnmpProbeResult>("/api/sensors/snmp-probe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export interface SnmpWalkRequestPayload {
+  host: string;
+  port: number;
+  community: string;
+  base_oid: string;
+  max_results?: number;
+}
+
+export interface SnmpWalkEntry {
+  oid: string;
+  value: string;
+  type: string;
+}
+
+export async function runSnmpWalk(
+  body: SnmpWalkRequestPayload,
+): Promise<SnmpWalkEntry[]> {
+  return apiClient<SnmpWalkEntry[]>("/api/sensors/snmp-walk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
