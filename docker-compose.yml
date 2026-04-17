@@ -21,7 +21,13 @@ services:
 
   api:
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # APScheduler runs in-process with an in-memory jobstore — `--workers 1`
+    # is mandatory. N workers would run every scheduled job N times (duplicate
+    # Personio sync, duplicate sensor_poll ⇒ duplicate UDP/161 traffic + DB
+    # constraint contention on UNIQUE(sensor_id, recorded_at)). See SEN-SCH-05
+    # and PITFALLS C-7. If horizontal scaling is ever required, extract the
+    # scheduler into its own container first (see ops runbook).
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --reload
     env_file: .env
     ports:
       - "8000:8000"
