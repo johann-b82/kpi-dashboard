@@ -37,9 +37,18 @@ import { useEffect } from "react";
  *   `window.history.back()` (or `back()` twice because we pushed state
  *   to keep the user on /settings) before discarding the draft.
  */
+/**
+ * Phase 40-01 extension: the guard's pathname checks previously hardcoded
+ * `/settings`. Added an optional `scopePath` so /settings/sensors (SensorsSettingsPage)
+ * can reuse this hook. Defaults to "/settings" to preserve the original
+ * SettingsPage behavior 1:1. The scope is an exact-match path; clicks on
+ * links pointing to that same scope are still ignored so intra-page
+ * interactions do not fire the dialog.
+ */
 export function useUnsavedGuard(
   isDirty: boolean,
   onShowDialog: (to: string) => void,
+  scopePath: string = "/settings",
 ): void {
   useEffect(() => {
     if (!isDirty) return;
@@ -57,8 +66,8 @@ export function useUnsavedGuard(
 
     // --- 2. In-app nav click intercept ---
     const handleClick = (e: MouseEvent) => {
-      // Only intercept if we are currently ON /settings
-      if (window.location.pathname !== "/settings") return;
+      // Only intercept if we are currently ON the scoped page
+      if (window.location.pathname !== scopePath) return;
 
       // Only intercept primary (left) mouse clicks without modifier keys.
       // Ctrl/Cmd/Shift clicks open in new tab — the user is not leaving.
@@ -78,9 +87,9 @@ export function useUnsavedGuard(
       if (href.startsWith("http://") || href.startsWith("https://")) return;
       if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
 
-      // Ignore clicks that land on /settings itself (e.g. the NavBar
-      // gear icon while already on /settings)
-      if (href === "/settings") return;
+      // Ignore clicks that land on the scope path itself (e.g. the NavBar
+      // gear icon while already on the scoped page)
+      if (href === scopePath) return;
 
       // Intercept: stop wouter + default navigation, show dialog
       e.preventDefault();
@@ -91,12 +100,12 @@ export function useUnsavedGuard(
 
     // --- 3. Popstate (back/forward) guard ---
     const handlePopState = () => {
-      if (window.location.pathname !== "/settings") {
+      if (window.location.pathname !== scopePath) {
         // User navigated away via back/forward. We can't cancel a
-        // popstate, but we can immediately push /settings back onto
-        // the stack to keep them visually on the page, then show
+        // popstate, but we can immediately push the scope path back
+        // onto the stack to keep them visually on the page, then show
         // the confirmation dialog with a sentinel destination.
-        window.history.pushState(null, "", "/settings");
+        window.history.pushState(null, "", scopePath);
         onShowDialog("__back__");
       }
     };
@@ -107,5 +116,5 @@ export function useUnsavedGuard(
       document.removeEventListener("click", handleClick, { capture: true });
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [isDirty, onShowDialog]);
+  }, [isDirty, onShowDialog, scopePath]);
 }

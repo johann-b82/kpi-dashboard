@@ -9,6 +9,13 @@ export interface ActionBarProps {
   onSave: () => void;
   onDiscard: () => void;
   onResetClick: () => void; // Opens the ResetDialog; actual PUT is inside the dialog flow
+  /**
+   * When true, the "Reset to defaults" button is not rendered. Added in
+   * Phase 40-01 for /settings/sensors, which does not expose a
+   * reset-everything flow (sensor CRUD is non-reversible at row level).
+   * Defaults to false to preserve the original /settings behavior.
+   */
+  hideReset?: boolean;
 }
 
 /**
@@ -27,6 +34,7 @@ export function ActionBar({
   onSave,
   onDiscard,
   onResetClick,
+  hideReset = false,
 }: ActionBarProps) {
   const { t } = useTranslation();
   return (
@@ -57,17 +65,19 @@ export function ActionBar({
               </Button>
             </AdminOnly>
           )}
-          <AdminOnly>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onResetClick}
-              disabled={isSaving}
-            >
-              <RotateCcw className="h-4 w-4 mr-1" aria-hidden="true" />
-              {t("settings.actions.reset")}
-            </Button>
-          </AdminOnly>
+          {!hideReset && (
+            <AdminOnly>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onResetClick}
+                disabled={isSaving}
+              >
+                <RotateCcw className="h-4 w-4 mr-1" aria-hidden="true" />
+                {t("settings.actions.reset")}
+              </Button>
+            </AdminOnly>
+          )}
           <AdminOnly>
             <Button
               type="button"

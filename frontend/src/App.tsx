@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { HRPage } from "./pages/HRPage";
 import { SensorsPage } from "./pages/SensorsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SensorsSettingsPage } from "./pages/SensorsSettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LauncherPage } from "./pages/LauncherPage";
 import { NavBar } from "./components/NavBar";
@@ -16,6 +17,7 @@ const DocsPage = lazy(() => import("./pages/DocsPage"));
 import { SubHeader } from "./components/SubHeader";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
+import { SensorDraftProvider } from "./contexts/SensorDraftContext";
 import { DateRangeProvider } from "./contexts/DateRangeContext";
 import { AuthProvider } from "./auth/AuthContext";
 import { AuthGate } from "./auth/AuthGate";
@@ -41,6 +43,8 @@ function AppShell() {
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
           <Route path="/sensors" component={SensorsPage} />
+          {/* /settings/sensors MUST appear before /settings so wouter's first-match wins */}
+          <Route path="/settings/sensors" component={SensorsSettingsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/docs/:section/:slug">
             <Suspense fallback={
@@ -72,9 +76,11 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <SettingsDraftProvider>
-            <DateRangeProvider>
-              <AppShell />
-            </DateRangeProvider>
+            <SensorDraftProvider>
+              <DateRangeProvider>
+                <AppShell />
+              </DateRangeProvider>
+            </SensorDraftProvider>
           </SettingsDraftProvider>
         </ThemeProvider>
       </AuthProvider>
