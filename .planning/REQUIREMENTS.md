@@ -73,14 +73,14 @@
 
 ### Admin Settings (SEN-ADM-*)
 
-- [ ] **SEN-ADM-01**: New sub-page `/settings/sensors` (admin-only), reached from a link/button in the main `/settings` page; applies existing `SettingsDraft` + `UnsavedGuard` + `ActionBar` patterns
-- [ ] **SEN-ADM-02**: Sensor CRUD form lists configured sensors; each row has Edit and Remove; "+ Sensor hinzufügen" opens a new-row form
-- [ ] **SEN-ADM-03**: Per-sensor fields editable: name, host, port, community (SecretStr — write-only, never displayed), temperature_oid, temperature_scale, humidity_oid, humidity_scale, enabled
-- [ ] **SEN-ADM-04**: Polling-interval input (integer seconds, 5–86400); save triggers `scheduler.reschedule_job`
-- [ ] **SEN-ADM-05**: Global threshold inputs: temperature_min, temperature_max, humidity_min, humidity_max (all optional, all NUMERIC)
+- [x] **SEN-ADM-01**: New sub-page `/settings/sensors` (admin-only), reached from a link/button in the main `/settings` page; applies existing `SettingsDraft` + `UnsavedGuard` + `ActionBar` patterns
+- [x] **SEN-ADM-02**: Sensor CRUD form lists configured sensors; each row has Edit and Remove; "+ Sensor hinzufügen" opens a new-row form
+- [x] **SEN-ADM-03**: Per-sensor fields editable: name, host, port, community (SecretStr — write-only, never displayed), temperature_oid, temperature_scale, humidity_oid, humidity_scale, enabled
+- [x] **SEN-ADM-04**: Polling-interval input (integer seconds, 5–86400); save triggers `scheduler.reschedule_job`
+- [x] **SEN-ADM-05**: Global threshold inputs: temperature_min, temperature_max, humidity_min, humidity_max (all optional, all NUMERIC)
 - [ ] **SEN-ADM-06**: Collapsible "SNMP-Walk (OID-Finder)" section: host/port/community/base-OID inputs → Walk button → results table → click-to-assign to a sensor's OID field
 - [ ] **SEN-ADM-07**: "Probe" button per sensor row: triggers `POST /api/sensors/snmp-probe` with the row's config (uncommitted draft OK) and shows live temp+humidity result inline; success/failure toast
-- [ ] **SEN-ADM-08**: Dirty-guard prompt on navigate-away with unsaved changes (reuse existing `UnsavedChangesDialog`)
+- [x] **SEN-ADM-08**: Dirty-guard prompt on navigate-away with unsaved changes (reuse existing `UnsavedChangesDialog`)
 
 ### Operations & Docs (SEN-OPS-*)
 

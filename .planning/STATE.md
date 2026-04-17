@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
 status: Defining requirements
-stopped_at: Completed 39-02-PLAN.md
-last_updated: "2026-04-17T22:52:43.500Z"
+stopped_at: Completed 40-01-PLAN.md
+last_updated: "2026-04-17T23:15:39.670Z"
 last_activity: 2026-04-17 — Milestone v1.15 started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 0
 ---
 
@@ -71,6 +71,7 @@ Progress: [ ] 0%
 | Phase 38 P03 | 4m 17s | 4 tasks | 4 files |
 | Phase 39 P01 | 3 min | 3 tasks | 12 files |
 | Phase 39 P02 | 377 | 2 tasks | 12 files |
+| Phase 40 P01 | 35m | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Progress: [ ] 0%
 - [Phase 38]: docker-compose.yml api.command: --workers 1 literal kept alongside --reload (redundant in reload mode but load-bearing as CI grep guard and for production deploys that drop --reload)
 - [Phase 39]: Sensor thresholds surfaced read-only via GET /api/settings (Option A)
 - [Phase 39]: Custom AbsoluteDeltaRow for sensor cards (DeltaBadge hard-codes percent format; wrong for °C/%)
+- [Phase 40]: PATCH body omits community when communityDirty=false (preserves stored ciphertext)
+- [Phase 40]: useUnsavedGuard gained optional scopePath param (default /settings) to work at /settings/sensors
+- [Phase 40]: Blank threshold input = don't change; clear-to-null carry-forward
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T22:52:43.497Z
-**Stopped at:** Completed 39-02-PLAN.md
+**Last session:** 2026-04-17T23:15:39.667Z
+**Stopped at:** Completed 40-01-PLAN.md
 **Resume file:** None
