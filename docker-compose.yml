@@ -75,7 +75,7 @@ services:
 
       # --- Hide Alembic-managed app tables from Directus Data Model UI ---
       # Comma-separated, no spaces (per Directus docs). Verified against backend/app/models.py.
-      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version
+      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version,sensors,sensor_readings,sensor_poll_log
 
       # --- First-Admin bootstrap (D-01); ignored on subsequent boots ---
       ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
