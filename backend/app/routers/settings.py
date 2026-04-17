@@ -233,6 +233,27 @@ async def put_settings(
     if payload.target_revenue_per_employee is not None:
         row.target_revenue_per_employee = payload.target_revenue_per_employee
 
+    # v1.15 Sensor Monitor — interval + global thresholds (Phase 40-01)
+    if payload.sensor_poll_interval_s is not None:
+        row.sensor_poll_interval_s = payload.sensor_poll_interval_s
+        # Live reschedule — helper wraps its own try/except + log.exception
+        # (Phase 38-03). Swallowing here is intentional: a broken reschedule
+        # MUST NOT fail the PUT (per Phase 38 decision: "a broken PUT
+        # /api/settings cannot leak scheduler internals").
+        from app.scheduler import reschedule_sensor_poll
+        try:
+            reschedule_sensor_poll(payload.sensor_poll_interval_s)
+        except Exception:  # noqa: BLE001 — defensive; helper already logs.
+            pass
+    if payload.sensor_temperature_min is not None:
+        row.sensor_temperature_min = payload.sensor_temperature_min
+    if payload.sensor_temperature_max is not None:
+        row.sensor_temperature_max = payload.sensor_temperature_max
+    if payload.sensor_humidity_min is not None:
+        row.sensor_humidity_min = payload.sensor_humidity_min
+    if payload.sensor_humidity_max is not None:
+        row.sensor_humidity_max = payload.sensor_humidity_max
+
     # D-07: if the payload exactly matches canonical defaults, this is a
     # "reset to defaults" — also wipe the logo trio. A non-default PUT
     # (e.g. changing only app_name) preserves the logo.

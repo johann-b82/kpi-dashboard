@@ -144,6 +144,16 @@ class SettingsUpdate(BaseModel):
     target_sick_leave_ratio: float | None = None
     target_fluctuation: float | None = None
     target_revenue_per_employee: float | None = None
+    # v1.15 Sensor Monitor — admin writes (Phase 40-01)
+    # None means "don't change" (same pattern as Personio / HR targets above).
+    # Known limitation (40-01): there is no sentinel for "clear threshold back
+    # to NULL" — admin must use a future reset flow. A blank input in the UI
+    # maps to "don't change". Carry-forward for 40-02 or a dedicated reset path.
+    sensor_poll_interval_s: int | None = Field(default=None, ge=5, le=86400)
+    sensor_temperature_min: Decimal | None = None
+    sensor_temperature_max: Decimal | None = None
+    sensor_humidity_min: Decimal | None = None
+    sensor_humidity_max: Decimal | None = None
 
 
 class SettingsRead(BaseModel):
