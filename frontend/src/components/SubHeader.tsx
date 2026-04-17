@@ -42,8 +42,8 @@ export function SubHeader() {
 
   // Launcher surface hides chrome entirely — return null after all hooks
   // so React's rules-of-hooks (constant hook order) are preserved across
-  // navigation between /home and other routes.
-  if (location === "/home") return null;
+  // navigation between / and other routes.
+  if (location === "/") return null;
 
   return (
     <div className="fixed top-16 inset-x-0 h-12 bg-background z-40 shadow-sm">

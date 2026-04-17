@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { Redirect, Route, Switch, useLocation } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -23,7 +23,7 @@ import { queryClient } from "./queryClient";
 function AppShell() {
   const [location] = useLocation();
   const isLogin = location === "/login";
-  const isLauncher = location === "/home";
+  const isLauncher = location === "/";
   return (
     <AuthGate>
       {!isLogin && (
@@ -35,11 +35,8 @@ function AppShell() {
       <main className={isLogin ? "" : isLauncher ? "pt-16" : "pt-28"}>
         <Switch>
           <Route path="/login" component={LoginPage} />
-          <Route path="/home" component={LauncherPage} />
           <Route path="/sales" component={DashboardPage} />
-          <Route path="/">
-            <Redirect to="/home" />
-          </Route>
+          <Route path="/" component={LauncherPage} />
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
           <Route path="/settings" component={SettingsPage} />
