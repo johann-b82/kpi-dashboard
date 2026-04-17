@@ -25,6 +25,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 export function NavBar() {
   const { t } = useTranslation();
   const [location, navigate] = useLocation();
+  const isLauncher = location === "/home";
   const { data } = useSettings();
   const { signOut } = useAuth();
 
@@ -77,55 +78,61 @@ export function NavBar() {
           <span className="text-sm font-medium">{settings.app_name}</span>
         </div>
 
-        {location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
-          <button
-            type="button"
-            onClick={() => navigate(lastDashboard)}
-            className="inline-flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent/10 transition-colors text-foreground text-sm"
-            aria-label={backLabel}
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>{backLabel}</span>
-          </button>
-        ) : (
-          <SegmentedControl
-            segments={[
-              { value: "/", label: t("nav.sales") },
-              { value: "/hr", label: t("nav.hr") },
-            ]}
-            value={location === "/hr" ? "/hr" : "/"}
-            onChange={(path) => navigate(path)}
-            aria-label="Navigation"
-            className="border-transparent"
-          />
+        {!isLauncher && (
+          location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
+            <button
+              type="button"
+              onClick={() => navigate(lastDashboard)}
+              className="inline-flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent/10 transition-colors text-foreground text-sm"
+              aria-label={backLabel}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>{backLabel}</span>
+            </button>
+          ) : (
+            <SegmentedControl
+              segments={[
+                { value: "/", label: t("nav.sales") },
+                { value: "/hr", label: t("nav.hr") },
+              ]}
+              value={location === "/hr" ? "/hr" : "/"}
+              onChange={(path) => navigate(path)}
+              aria-label="Navigation"
+              className="border-transparent"
+            />
+          )
         )}
 
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
           <LanguageToggle />
-          <Link
-            href="/docs"
-            aria-label={t("docs.nav.docsLabel")}
-            className={docsLinkClass}
-          >
-            <Library className="h-5 w-5" />
-          </Link>
-          <AdminOnly>
-            <Link
-              href="/upload"
-              aria-label={t("nav.upload")}
-              className={uploadLinkClass}
-            >
-              <UploadIcon className="h-5 w-5" />
-            </Link>
-          </AdminOnly>
-          <Link
-            href="/settings"
-            aria-label={t("nav.settings")}
-            className={settingsLinkClass}
-          >
-            <SettingsIcon className="h-5 w-5" />
-          </Link>
+          {!isLauncher && (
+            <>
+              <Link
+                href="/docs"
+                aria-label={t("docs.nav.docsLabel")}
+                className={docsLinkClass}
+              >
+                <Library className="h-5 w-5" />
+              </Link>
+              <AdminOnly>
+                <Link
+                  href="/upload"
+                  aria-label={t("nav.upload")}
+                  className={uploadLinkClass}
+                >
+                  <UploadIcon className="h-5 w-5" />
+                </Link>
+              </AdminOnly>
+              <Link
+                href="/settings"
+                aria-label={t("nav.settings")}
+                className={settingsLinkClass}
+              >
+                <SettingsIcon className="h-5 w-5" />
+              </Link>
+            </>
+          )}
           <button
             type="button"
             aria-label="Sign out"
