@@ -42,12 +42,12 @@
 
 ### Scheduler (SEN-SCH-*)
 
-- [ ] **SEN-SCH-01**: `backend/app/scheduler.py` adds `SENSOR_POLL_JOB_ID = "sensor_poll"` and registers a job on the existing singleton `AsyncIOScheduler` (no second scheduler)
-- [ ] **SEN-SCH-02**: Job uses `max_instances=1`, `coalesce=True`, `misfire_grace_time=30`; outer `asyncio.wait_for(poll_all(), timeout=min(45, interval-5))`
-- [ ] **SEN-SCH-03**: On startup, reads `sensor_poll_interval_s` from `app_settings` singleton; if >0, schedules the job
-- [ ] **SEN-SCH-04**: `PUT /api/settings` (or equivalent admin endpoint) calls `scheduler.reschedule_job(SENSOR_POLL_JOB_ID, trigger="interval", seconds=new)` in try/except; logs transition
-- [ ] **SEN-SCH-05**: `docker-compose.yml` `api` service runs with `uvicorn --workers 1`; comment explains why (prevents N-fold duplicate polls)
-- [ ] **SEN-SCH-06**: Retention cleanup job (daily) deletes `sensor_readings` and `sensor_poll_log` rows older than 90 days; fixed retention, not admin-configurable in v1.15
+- [x] **SEN-SCH-01**: `backend/app/scheduler.py` adds `SENSOR_POLL_JOB_ID = "sensor_poll"` and registers a job on the existing singleton `AsyncIOScheduler` (no second scheduler)
+- [x] **SEN-SCH-02**: Job uses `max_instances=1`, `coalesce=True`, `misfire_grace_time=30`; outer `asyncio.wait_for(poll_all(), timeout=min(45, interval-5))`
+- [x] **SEN-SCH-03**: On startup, reads `sensor_poll_interval_s` from `app_settings` singleton; if >0, schedules the job
+- [x] **SEN-SCH-04**: `PUT /api/settings` (or equivalent admin endpoint) calls `scheduler.reschedule_job(SENSOR_POLL_JOB_ID, trigger="interval", seconds=new)` in try/except; logs transition
+- [x] **SEN-SCH-05**: `docker-compose.yml` `api` service runs with `uvicorn --workers 1`; comment explains why (prevents N-fold duplicate polls)
+- [x] **SEN-SCH-06**: Retention cleanup job (daily) deletes `sensor_readings` and `sensor_poll_log` rows older than 90 days; fixed retention, not admin-configurable in v1.15
 
 ### Frontend Dashboard (SEN-FE-*)
 
@@ -84,7 +84,7 @@
 
 ### Operations & Docs (SEN-OPS-*)
 
-- [ ] **SEN-OPS-01**: Pre-flight verification step in Phase 38: `docker compose exec api snmpget -v2c -c public 192.9.201.27 1.3.6.1.4.1.21796.4.9.3.1.5.2` returns a valid reading before any business logic is built
+- [x] **SEN-OPS-01**: Pre-flight verification step in Phase 38: `docker compose exec api snmpget -v2c -c public 192.9.201.27 1.3.6.1.4.1.21796.4.9.3.1.5.2` returns a valid reading before any business logic is built
 - [ ] **SEN-OPS-02**: Admin guide article `docs/admin/sensor-monitor.md` (EN) + `docs/admin/sensor-monitor.de.md` (DE), following v1.13 admin-guide Markdown pattern; covers: onboarding a new sensor (walk → probe → save), thresholds, polling interval, troubleshooting (offline sensors, Docker network), community-as-secret warning, never-use-public warning
 - [ ] **SEN-OPS-03**: Docs index updated (EN + DE) to list the new admin guide article
 - [ ] **SEN-OPS-04**: Runbook note for operator: host-mode fallback (`network_mode: host` on `api`) if Docker bridge cannot reach 192.9.201.x; documented in admin guide with known trade-offs

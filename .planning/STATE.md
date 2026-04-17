@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
 status: In progress
-stopped_at: Completed 38-backend-schema-scheduler-02-PLAN.md
-last_updated: "2026-04-17T22:12:06Z"
-last_activity: 2026-04-17 — Phase 38 Plan 02 complete (API surface)
+stopped_at: Completed 38-03-PLAN.md — Phase 38 code-complete pending operator-run checkpoints on deployment host
+last_updated: "2026-04-17T22:25:50.053Z"
+last_activity: 2026-04-17 — Phase 38 Plan 03 complete (scheduler integration + --workers 1 invariant + SEN-OPS-01 pre-flight scaffold)
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -68,6 +68,7 @@ Progress: [ ] 0%
 | Phase quick P260417-eb8 | 93 | 2 tasks | 6 files |
 | Phase 38-backend-schema-scheduler P01 | 228 | 2 tasks | 6 files |
 | Phase 38-backend-schema-scheduler P02 | 374 | 2 tasks | 6 files |
+| Phase 38 P03 | 4m 17s | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Progress: [ ] 0%
 - [Phase 38-backend-schema-scheduler]: poll_all(session, engine, *, manual=False) -> PollAllResult is the stable signature the scheduler will call in 38-03; poll_sensor is per-sensor exception boundary for PITFALLS M-3
 - [Phase 38-backend-schema-scheduler]: POST /poll-now and /snmp-walk both wrapped in asyncio.wait_for(timeout=30); 504 on timeout; /poll-now mirrors Personio POST /api/sync blocking pattern
 - [Phase 38-backend-schema-scheduler]: request.app.state.snmp_engine is the contract hand-off to 38-03 — router reads (503 if missing); lifespan populates
+- [Phase 38]: Scheduler: module-level _engine ref over APScheduler kwargs — SnmpEngine may not pickle cleanly under MemoryJobStore; module-level ref matches existing singleton pattern and gives the scheduled job direct access without round-tripping through app.state
+- [Phase 38]: reschedule_sensor_poll(0) removes the job entirely (Personio D-07 parity); >0 with missing job uses add_job with full guardrail kwargs; >0 with existing job uses reschedule_job; all wrapped in try/except with log.exception so a broken PUT /api/settings cannot leak scheduler internals
+- [Phase 38]: docker-compose.yml api.command: --workers 1 literal kept alongside --reload (redundant in reload mode but load-bearing as CI grep guard and for production deploys that drop --reload)
 
 ### Pending Todos
 
@@ -105,6 +109,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T22:12:06Z
-**Stopped at:** Completed 38-backend-schema-scheduler-02-PLAN.md
+**Last session:** 2026-04-17T22:25:29.707Z
+**Stopped at:** Completed 38-03-PLAN.md — scheduler integration + --workers 1 invariant + SEN-OPS-01 pre-flight scaffold
 **Resume file:** None
