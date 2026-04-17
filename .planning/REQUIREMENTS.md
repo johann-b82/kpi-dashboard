@@ -25,20 +25,20 @@
 
 ### Backend Service & API (SEN-BE-*)
 
-- [ ] **SEN-BE-01**: `backend/app/services/snmp_poller.py` exposes `snmp_get`, `snmp_walk`, `poll_sensor`, `poll_all` as async functions using `pysnmp.hlapi.v3arch.asyncio` (not deprecated v6 path)
+- [x] **SEN-BE-01**: `backend/app/services/snmp_poller.py` exposes `snmp_get`, `snmp_walk`, `poll_sensor`, `poll_all` as async functions using `pysnmp.hlapi.v3arch.asyncio` (not deprecated v6 path)
 - [x] **SEN-BE-02**: `pysnmp>=7.1.23,<8.0` added to `backend/requirements.txt` (NOT `pysnmp-lextudio`)
-- [ ] **SEN-BE-03**: A single shared `SnmpEngine` is cached on `app.state.snmp_engine` at startup; no per-call instantiation
-- [ ] **SEN-BE-04**: `poll_all` uses `asyncio.gather(..., return_exceptions=True)` so one sensor failure does not cancel sibling polls
-- [ ] **SEN-BE-05**: Per-sensor polling uses `timeout=3.0, retries=2`; 3 consecutive failures surface as "offline" in the UI via `sensor_poll_log`
+- [x] **SEN-BE-03**: A single shared `SnmpEngine` is cached on `app.state.snmp_engine` at startup; no per-call instantiation
+- [x] **SEN-BE-04**: `poll_all` uses `asyncio.gather(..., return_exceptions=True)` so one sensor failure does not cancel sibling polls
+- [x] **SEN-BE-05**: Per-sensor polling uses `timeout=3.0, retries=2`; 3 consecutive failures surface as "offline" in the UI via `sensor_poll_log`
 - [x] **SEN-BE-06**: `Sensor` and `SensorReading` (and `SensorPollLog`) SQLAlchemy models appended to the flat `backend/app/models.py`
 - [x] **SEN-BE-07**: Pydantic schemas (`SensorRead`, `SensorCreate`, `SensorUpdate`, `SensorReadingRead`, `PollNowResult`, `SnmpProbeRequest`, `SnmpWalkRequest`) appended to `backend/app/schemas.py`; community typed as `SecretStr`
-- [ ] **SEN-BE-08**: `backend/app/routers/sensors.py` registers `APIRouter(prefix="/api/sensors", dependencies=[Depends(get_current_user), Depends(require_admin)])` — router-level admin gate
-- [ ] **SEN-BE-09**: Endpoints implemented: `GET /` list sensors, `POST /` create, `PATCH /{id}` update, `DELETE /{id}`, `GET /{id}/readings?hours=N`, `POST /poll-now`, `POST /snmp-probe`, `POST /snmp-walk`, `GET /status` (per-sensor health from poll_log)
-- [ ] **SEN-BE-10**: `POST /poll-now` awaits `poll_all()` synchronously (blocking like Personio `POST /api/sync`), wrapped in `asyncio.wait_for(..., timeout=30)`; returns `PollNowResult { sensors_polled, errors }`
-- [ ] **SEN-BE-11**: Writes use `ON CONFLICT (sensor_id, recorded_at) DO NOTHING` to dedupe scheduled vs manual poll collision
-- [ ] **SEN-BE-12**: Manual poll dedupes if last row for sensor is <2s old (avoids spam clicks creating noise)
-- [ ] **SEN-BE-13**: Router dependency-audit test enumerates `app.routes` and asserts every `/api/sensors/*` route chain contains `require_admin`
-- [ ] **SEN-BE-14**: CI grep check: no `import sqlite3` or `import psycopg2` in `backend/app/`; no `time.sleep` in `backend/app/services/snmp*`
+- [x] **SEN-BE-08**: `backend/app/routers/sensors.py` registers `APIRouter(prefix="/api/sensors", dependencies=[Depends(get_current_user), Depends(require_admin)])` — router-level admin gate
+- [x] **SEN-BE-09**: Endpoints implemented: `GET /` list sensors, `POST /` create, `PATCH /{id}` update, `DELETE /{id}`, `GET /{id}/readings?hours=N`, `POST /poll-now`, `POST /snmp-probe`, `POST /snmp-walk`, `GET /status` (per-sensor health from poll_log)
+- [x] **SEN-BE-10**: `POST /poll-now` awaits `poll_all()` synchronously (blocking like Personio `POST /api/sync`), wrapped in `asyncio.wait_for(..., timeout=30)`; returns `PollNowResult { sensors_polled, errors }`
+- [x] **SEN-BE-11**: Writes use `ON CONFLICT (sensor_id, recorded_at) DO NOTHING` to dedupe scheduled vs manual poll collision
+- [x] **SEN-BE-12**: Manual poll dedupes if last row for sensor is <2s old (avoids spam clicks creating noise)
+- [x] **SEN-BE-13**: Router dependency-audit test enumerates `app.routes` and asserts every `/api/sensors/*` route chain contains `require_admin`
+- [x] **SEN-BE-14**: CI grep check: no `import sqlite3` or `import psycopg2` in `backend/app/`; no `time.sleep` in `backend/app/services/snmp*`
 
 ### Scheduler (SEN-SCH-*)
 

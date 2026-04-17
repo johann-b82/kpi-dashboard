@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: Sensor Monitor
-status: Defining requirements
-stopped_at: Completed 38-backend-schema-scheduler-01-PLAN.md
-last_updated: "2026-04-17T22:04:24.260Z"
-last_activity: 2026-04-17 — Milestone v1.15 started
+status: In progress
+stopped_at: Completed 38-backend-schema-scheduler-02-PLAN.md
+last_updated: "2026-04-17T22:12:06Z"
+last_activity: 2026-04-17 — Phase 38 Plan 02 complete (API surface)
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -67,6 +67,7 @@ Progress: [ ] 0%
 | Phase quick P260417-e45 | 65 | 2 tasks | 6 files |
 | Phase quick P260417-eb8 | 93 | 2 tasks | 6 files |
 | Phase 38-backend-schema-scheduler P01 | 228 | 2 tasks | 6 files |
+| Phase 38-backend-schema-scheduler P02 | 374 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,10 @@ Progress: [ ] 0%
 - [Phase 38-backend-schema-scheduler]: Community strings Fernet-encrypted as BYTEA; reuse FERNET_KEY (no second key); SensorRead omits community entirely (write-only secret)
 - [Phase 38-backend-schema-scheduler]: Two-table sensor schema: sensor_readings (successful polls only) + sensor_poll_log (every attempt) — separates data from liveness per PITFALLS M-4
 - [Phase 38-backend-schema-scheduler]: pysnmp>=7.1.23,<8.0 (not pysnmp-lextudio which is deprecated); v3arch.asyncio import path
+- [Phase 38-backend-schema-scheduler]: Router-level admin gate (APIRouter dependencies=) over per-endpoint, enforced by dep-audit test that walks dependant tree (SEN-BE-13)
+- [Phase 38-backend-schema-scheduler]: poll_all(session, engine, *, manual=False) -> PollAllResult is the stable signature the scheduler will call in 38-03; poll_sensor is per-sensor exception boundary for PITFALLS M-3
+- [Phase 38-backend-schema-scheduler]: POST /poll-now and /snmp-walk both wrapped in asyncio.wait_for(timeout=30); 504 on timeout; /poll-now mirrors Personio POST /api/sync blocking pattern
+- [Phase 38-backend-schema-scheduler]: request.app.state.snmp_engine is the contract hand-off to 38-03 — router reads (503 if missing); lifespan populates
 
 ### Pending Todos
 
@@ -100,6 +105,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T22:04:24.256Z
-**Stopped at:** Completed 38-backend-schema-scheduler-01-PLAN.md
+**Last session:** 2026-04-17T22:12:06Z
+**Stopped at:** Completed 38-backend-schema-scheduler-02-PLAN.md
 **Resume file:** None
