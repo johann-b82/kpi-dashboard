@@ -372,3 +372,72 @@ export async function fetchEmployees(params?: {
   if (params?.search) q.set("search", params.search);
   return apiClient<EmployeeRow[]>(`/api/data/employees?${q}`);
 }
+
+// ---------------------------------------------------------------------------
+// Phase 39 — Sensor Monitor (dashboard read path)
+// Mirrors backend/app/schemas.py SensorRead / SensorReadingRead / SensorStatusEntry
+// / PollNowResult. Decimal fields are serialized as string by Pydantic and must
+// be parsed via Number(...) at render time (never stored as number).
+// ---------------------------------------------------------------------------
+
+export interface SensorRead {
+  id: number;
+  name: string;
+  host: string;
+  port: number;
+  temperature_oid: string | null;
+  humidity_oid: string | null;
+  temperature_scale: string; // Decimal serialized
+  humidity_scale: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SensorReadingRead {
+  id: number;
+  sensor_id: number;
+  recorded_at: string; // ISO8601
+  temperature: string | null; // Decimal, may be null on gaps
+  humidity: string | null;
+  error_code: string | null;
+}
+
+export interface SensorStatusEntry {
+  sensor_id: number;
+  last_attempt_at: string | null;
+  last_success_at: string | null;
+  consecutive_failures: number;
+  offline: boolean; // consecutive_failures >= 3
+}
+
+export interface PollNowResult {
+  sensors_polled: number;
+  errors: string[];
+}
+
+export async function fetchSensors(): Promise<SensorRead[]> {
+  return apiClient<SensorRead[]>("/api/sensors");
+}
+
+export async function fetchSensorReadings(
+  sensorId: number,
+  hours: number,
+): Promise<SensorReadingRead[]> {
+  return apiClient<SensorReadingRead[]>(
+    `/api/sensors/${sensorId}/readings?hours=${hours}`,
+  );
+}
+
+export async function fetchSensorStatus(): Promise<SensorStatusEntry[]> {
+  return apiClient<SensorStatusEntry[]>("/api/sensors/status");
+}
+
+/**
+ * POST /api/sensors/poll-now — triggers an on-demand poll of all enabled sensors.
+ * Exported now (interface-first) so 39-02 can wire the Poll-now button without
+ * re-touching api.ts.
+ */
+export async function pollSensorsNow(): Promise<PollNowResult> {
+  return apiClient<PollNowResult>("/api/sensors/poll-now", { method: "POST" });
+}

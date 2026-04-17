@@ -36,3 +36,26 @@ export const tooltipCursorProps = {
 export const legendWrapperStyle = {
   color: "var(--color-muted-foreground)",
 } as const;
+
+/**
+ * sensorPalette — DOCUMENTED EXCEPTION to the token-only rule (v1.9 D-05).
+ *
+ * Multi-series sensor charts need ≥8 visually distinct hues; the CSS custom
+ * property tokens (primary/accent/muted/destructive/foreground) only supply
+ * the semantic 4–5. Each sensor uses the SAME color index across the
+ * temperature and humidity charts so the legend stays consistent across the
+ * two stacked charts. Cycle with modulo if sensor count > palette length.
+ *
+ * This is the ONLY hex-literal block allowed under `frontend/src/`. Grep
+ * bans check everywhere else; this file is the allow-listed escape hatch.
+ */
+export const sensorPalette = [
+  "#3b82f6", // blue-500
+  "#ef4444", // red-500
+  "#10b981", // emerald-500
+  "#f59e0b", // amber-500
+  "#8b5cf6", // violet-500
+  "#ec4899", // pink-500
+  "#14b8a6", // teal-500
+  "#f97316", // orange-500
+] as const;

@@ -39,3 +39,15 @@ export const syncKeys = {
 export const hrKpiKeys = {
   all: () => ["hr", "kpis"] as const,
 };
+
+/**
+ * Phase 39 — sensor query keys. `readings` embeds the hours window so TanStack
+ * Query invalidates automatically when the SegmentedControl changes.
+ */
+export const sensorKeys = {
+  all: ["sensors"] as const,
+  list: () => ["sensors", "list"] as const,
+  readings: (sensorId: number, hours: number) =>
+    ["sensors", "readings", { sensorId, hours }] as const,
+  status: () => ["sensors", "status"] as const,
+};
