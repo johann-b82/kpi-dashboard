@@ -5,11 +5,13 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import { useSettings } from "@/hooks/useSettings";
 import {
   axisProps,
   gridProps,
@@ -42,13 +44,19 @@ type ChartRow = { ts: string } & Record<string, number | null | string>;
  * D-08: connectNulls={false} — gaps show as absent segments, not straight bridges.
  * D-05: sensorPalette is the only documented hex exception; no Tailwind dark variants.
  *
- * TODO(39-02): Add <ReferenceLine /> for global temperature / humidity thresholds
- * once /api/settings exposes sensor_temperature_min/max + sensor_humidity_min/max.
+ * 39-02 (D-12): Render dashed destructive <ReferenceLine /> at temperature
+ * and humidity thresholds when /api/settings supplies them. Null thresholds
+ * collapse the line entirely (not drawn at 0).
  */
 export function SensorTimeSeriesChart() {
   const { t, i18n } = useTranslation();
   const { window } = useSensorWindow();
   const hours = windowToHours(window);
+  const settingsQuery = useSettings();
+  const tempMin = parseThreshold(settingsQuery.data?.sensor_temperature_min);
+  const tempMax = parseThreshold(settingsQuery.data?.sensor_temperature_max);
+  const humMin = parseThreshold(settingsQuery.data?.sensor_humidity_min);
+  const humMax = parseThreshold(settingsQuery.data?.sensor_humidity_max);
 
   const sensorsQuery = useQuery({
     queryKey: sensorKeys.list(),
@@ -106,7 +114,6 @@ export function SensorTimeSeriesChart() {
         empty={!anyData}
         emptyText={t("sensors.chart.empty")}
       >
-        {/* TODO(39-02): <ReferenceLine y={tempMin} stroke="..." strokeDasharray="4 4"/> */}
         <LineChart data={chartData}>
           <CartesianGrid {...gridProps} />
           <XAxis
@@ -124,6 +131,22 @@ export function SensorTimeSeriesChart() {
             labelFormatter={labelFormatter}
           />
           <Legend wrapperStyle={legendWrapperStyle} />
+          {tempMin != null && (
+            <ReferenceLine
+              y={tempMin}
+              stroke="var(--color-destructive)"
+              strokeDasharray="4 4"
+              label={{ value: t("sensors.threshold.min"), position: "insideTopRight", fill: "var(--color-destructive)", fontSize: 11 }}
+            />
+          )}
+          {tempMax != null && (
+            <ReferenceLine
+              y={tempMax}
+              stroke="var(--color-destructive)"
+              strokeDasharray="4 4"
+              label={{ value: t("sensors.threshold.max"), position: "insideTopRight", fill: "var(--color-destructive)", fontSize: 11 }}
+            />
+          )}
           {perSensor.map(({ sensor }, i) => (
             <Line
               key={sensor.id}
@@ -144,7 +167,6 @@ export function SensorTimeSeriesChart() {
         empty={!anyData}
         emptyText={t("sensors.chart.empty")}
       >
-        {/* TODO(39-02): <ReferenceLine y={humMin} stroke="..." strokeDasharray="4 4"/> */}
         <LineChart data={chartData}>
           <CartesianGrid {...gridProps} />
           <XAxis
@@ -162,6 +184,22 @@ export function SensorTimeSeriesChart() {
             labelFormatter={labelFormatter}
           />
           <Legend wrapperStyle={legendWrapperStyle} />
+          {humMin != null && (
+            <ReferenceLine
+              y={humMin}
+              stroke="var(--color-destructive)"
+              strokeDasharray="4 4"
+              label={{ value: t("sensors.threshold.min"), position: "insideTopRight", fill: "var(--color-destructive)", fontSize: 11 }}
+            />
+          )}
+          {humMax != null && (
+            <ReferenceLine
+              y={humMax}
+              stroke="var(--color-destructive)"
+              strokeDasharray="4 4"
+              label={{ value: t("sensors.threshold.max"), position: "insideTopRight", fill: "var(--color-destructive)", fontSize: 11 }}
+            />
+          )}
           {perSensor.map(({ sensor }, i) => (
             <Line
               key={sensor.id}
@@ -178,6 +216,17 @@ export function SensorTimeSeriesChart() {
       </ChartCard>
     </div>
   );
+}
+
+/**
+ * Parse a Decimal-as-string threshold from /api/settings into a number.
+ * Returns null for missing, null, non-finite, or unparseable values — the
+ * ReferenceLine is then omitted per D-12 (never drawn at 0).
+ */
+function parseThreshold(raw: string | null | undefined): number | null {
+  if (raw == null) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
 }
 
 function buildChartData(
