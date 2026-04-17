@@ -28,6 +28,13 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Language** — DE/EN toggle stored in localStorage (no server round-trip)
 - **Dark Mode** — Sun/moon toggle in navbar; OS `prefers-color-scheme` default + localStorage override; pre-hydration IIFE avoids flash-of-unstyled-content
 
+### App Launcher
+- **iOS-style `/home` entry point** — After login, users land on a 4-tile grid of app icons rather than directly in the Sales Dashboard
+- **Active KPI Dashboard tile** — Rounded-corner 120×120px card with icon; click navigates to the Sales Dashboard
+- **Coming-soon placeholders** — 3 greyed tiles (40% opacity, non-clickable) for future apps
+- **Role-aware scaffold** — Admin-only tiles can be added without structural changes; Viewer-role users see only tiles without the `admin` flag
+- **Settings-driven heading** — Page title reads the `app_name` from Settings; bilingual labels (DE/EN)
+
 ### In-App Documentation
 - **Role-Aware Docs** — Library icon in navbar opens /docs; Admins see User Guide + Admin Guide sections, Viewers see User Guide only
 - **User Guide** — 5 articles: uploading data, Sales dashboard, HR dashboard, filters & controls, language & dark mode
@@ -138,7 +145,7 @@ kpi-light/
 │
 ├── frontend/
 │   └── src/
-│       ├── pages/               # DashboardPage, HRPage, UploadPage, SettingsPage, DocsPage
+│       ├── pages/               # LauncherPage, DashboardPage, HRPage, UploadPage, SettingsPage, DocsPage
 │       ├── components/
 │       │   ├── dashboard/       # KpiCard, RevenueChart, HrKpiCharts, SalesTable, EmployeeTable
 │       │   ├── docs/            # MarkdownRenderer, DocsSidebar, TableOfContents
@@ -262,6 +269,7 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.14 | 2026-04-17 | App Launcher — iOS-style `/home` entry point with 4-tile grid, role-aware scaffold, bilingual labels, AuthGate post-login redirect |
 | v1.13 | 2026-04-17 | In-App Documentation — role-aware docs with Markdown rendering, 22 bilingual articles, TOC with scroll tracking |
 | v1.12 | 2026-04-16 | Chart Polish & Rebrand — year-aware x-axis labels, gap-filled month spines, "KPI Dashboard" rebrand, login page restyling |
 | v1.11-directus | 2026-04-15 | Auth + RBAC via self-hosted Directus; nightly pg_dump backups; Outline wiki and Dex/oauth2-proxy path dropped |
