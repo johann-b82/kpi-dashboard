@@ -278,6 +278,40 @@
 
 ---
 
+## Milestone: v1.14 — App Launcher
+
+**Shipped:** 2026-04-17
+**Phases:** 1 | **Plans:** 2
+
+### What Was Built
+
+- iOS-style `/home` App Launcher — 4-tile CSS auto-fill grid, 1 active KPI Dashboard tile + 3 greyed coming-soon tiles
+- AuthGate post-login redirect from `/` → `/home`; unauthenticated guard unchanged
+- Bilingual `launcher.*` i18n keys (EN/DE), settings-driven heading, admin-role scaffold
+
+### What Worked
+
+- **Single-phase closure** — all 10 requirements fit in one cohesive plan (5 files, zero new dependencies); no backend changes needed
+- **Plan with explicit interface contracts** — embedding `AuthGate.tsx` line 26 and `App.tsx` Switch state directly in the plan eliminated scavenger hunts and the executor needed zero codebase exploration
+- **Human checkpoint plan** — dedicated Plan 02 for 10-step browser walkthrough kept verification scope explicit and forced a live browser session the same day as implementation
+
+### What Was Inefficient
+
+- **Worktree code / docs split** — code commits landed on `worktree-agent-a1514c3e`, docs on `claude/elated-fermat-01a906`; required a manual `git merge` before Docker bring-up. Consistent worktree strategy would eliminate this.
+- **Docker port collision** — a stale process on port 8000 blocked `docker compose up`; required manual `lsof/kill` before restart
+
+### Patterns Established
+
+- **Tile navigation to `/` not `/sales`** — documented as D-10 to prevent future confusion when requirements text says `/sales` but the actual route is `/`
+- **`<button>` over `<div onClick>` for interactive tiles** — accessibility default for all future launcher-style components
+
+### Key Lessons
+
+- **Minimal-dependency frontend features ship fast** — pure TSX + existing hooks + existing i18n infra: 3 tasks, 4 commits, same-day verification
+- **Explicit route clarifications in plan context** — plan included a "IMPORTANT route clarification" block that prevented the executor from creating a broken `/sales` navigation target
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -290,6 +324,7 @@
 | v1.4 Nav Polish | 1 | 1 | Visual checkpoint iteration, route-aware SubHeader |
 | v1.9 Dark Mode | 1 | 3 | Pre-computed contrast ratios in research, D-12 operator-waiver pattern |
 | v1.13 Docs | 1 | 4 | Infrastructure-first → content authoring; registry pattern for extensible docs |
+| v1.14 App Launcher | 1 | 1 | Single-phase pure-frontend closure; plan interface contracts eliminate codebase exploration |
 
 ### Cumulative Quality
 
@@ -301,6 +336,7 @@
 | v1.4 Nav Polish | tsc + visual UAT | Human checkpoint with iterative fixes | 0 (lucide-react already installed) |
 | v1.9 Dark Mode | grep + pre-computed ratios | Deterministic + D-12 operator waiver | 0 (Tailwind v4 CSS-first, no new deps) |
 | v1.13 Docs | milestone audit 19/19 | Full requirements + integration audit | react-markdown, rehype-highlight, rehype-slug, remark-gfm, @tailwindcss/typography, github-slugger, remark |
+| v1.14 App Launcher | 10-step human walkthrough | All 10 steps approved same-day | 0 (pure TSX + existing hooks) |
 
 ### Top Lessons (Verified Across Milestones)
 

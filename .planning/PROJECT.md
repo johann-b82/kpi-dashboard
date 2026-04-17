@@ -8,24 +8,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 
 Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight. **Validated in v1.0:** real ERP export (93 orders, €793k) → dashboard in under a minute, auto-refreshing on upload.
 
-## Current Milestone: v1.14 App Launcher
-
-**Goal:** Add an iOS-style app launcher as the post-login home page, making the KPI Dashboard the first tile in a role-aware grid of app icons.
-
-**Target features:**
-- New `/home` route — iOS-style grid of square rounded-corner tiles (icon + label below)
-- Login redirects to `/home` after this milestone (replaces direct `/sales` redirect)
-- KPI Dashboard tile (active, links to `/sales`)
-- Placeholder "coming soon" tiles (greyed out, no link)
-- Admin-only tiles hidden from Viewer role
-- Full DE/EN i18n and dark-mode support consistent with existing branding
-
 ## Current State
 
-**Shipped:** v1.13 In-App Documentation — 2026-04-17
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and 22 bilingual (DE/EN) Markdown articles covering user guide and admin guide.
-**Codebase:** ~14,000 LOC (Python + TypeScript), 12 versions shipped (v1.0–v1.13).
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, and v1.13 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.14 App Launcher — 2026-04-17
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and 22 bilingual (DE/EN) Markdown articles covering user guide and admin guide. iOS-style `/home` App Launcher (4-tile grid, role-aware scaffold, bilingual labels, settings-driven heading) as authenticated entry point.
+**Codebase:** ~14,100 LOC (Python + TypeScript), 14 versions shipped (v1.0–v1.14).
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, and v1.14 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+
+## Shipped: v1.14 App Launcher (2026-04-17)
+
+iOS-style `/home` App Launcher as the post-login entry point. 4-tile CSS auto-fill grid (1 active KPI Dashboard tile navigating to `/`, 3 greyed coming-soon tiles with `opacity-40 pointer-events-none`). AuthGate post-login redirect changed from `/` to `/home`. Heading driven by `settings.app_name` via `useSettings()`. Bilingual `launcher.*` i18n keys (EN/DE) added. Role-aware admin scaffold wired (`user?.role === "admin"`) for future admin-only tiles. Tailwind token-only classes — dark mode works automatically. All 10 requirements (LAUNCH-01..05, AUTH-01, AUTH-02, BRAND-01..03) verified via 10-step browser walkthrough.
 
 ## Shipped: v1.13 In-App Documentation (2026-04-17)
 
@@ -174,6 +166,13 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ AGUIDE-01..04: 4 admin guide articles (system setup, architecture, Personio, user management) — v1.13
 - ✓ I18N-01..02: Full bilingual DE/EN content and UI chrome — v1.13
 
+### Validated in v1.14
+
+- ✓ LAUNCH-01..05: `/home` route, 4-tile iOS-style grid, KPI Dashboard active tile (→`/`), coming-soon tiles greyed + inert, admin-only tile scaffold — v1.14 Phase 37
+- ✓ AUTH-01: Post-login AuthGate redirect → `/home` — v1.14 Phase 37
+- ✓ AUTH-02: Unauthenticated access to `/home` redirects to `/login` via existing guard — v1.14 Phase 37
+- ✓ BRAND-01..03: Tailwind token-only classes (no `dark:` variants), bilingual `launcher.*` i18n keys (EN/DE), `settings.app_name` heading — v1.14 Phase 37
+
 ### Validated in v1.6
 
 - ✓ MIG-01: Database migration converts 3 Personio config columns to JSON array columns — v1.6
@@ -217,6 +216,9 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| `/home` as post-login entry point instead of direct `/` redirect (v1.14) | iOS-style launcher scales to multiple apps; single `/` shortcut was fine for v1 but doesn't accommodate future tiles | ✓ Good — clean entry point with role-aware scaffold for future admin tiles |
+| Active tile navigates to `/` not `/sales` (v1.14) | No `/sales` route exists; D-10 locks root to DashboardPage; documented in plan + summary to prevent future confusion | ✓ Good — tile correctly lands on Sales Dashboard |
+| `<button>` for active tile over `<div onClick>` (v1.14) | Keyboard accessibility and ARIA semantics; `pointer-events-none` on coming-soon divs already suppresses pointer style | ✓ Good |
 | Bundled Markdown docs over external CMS (v1.13) | Git-managed static content; no new service dependency; < 20 articles navigable via sidebar | ✓ Good — 22 articles shipped, zero infra overhead |
 | react-markdown + rehype plugin pipeline (v1.13) | Mature ecosystem; rehype-highlight for syntax, rehype-slug for anchors, remark-gfm for tables; composable | ✓ Good — clean pipeline, dark mode prose via @tailwindcss/typography |
 | GithubSlugger for TOC slug alignment (v1.13) | Guarantees extractToc slugs match rehype-slug output — no drift between TOC links and heading IDs | ✓ Good |
@@ -259,4 +261,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 — v1.14 App Launcher started*
+*Last updated: 2026-04-17 — after v1.14 App Launcher milestone*

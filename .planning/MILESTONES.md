@@ -1,5 +1,16 @@
 # Milestones
 
+## v1.14 App Launcher (Shipped: 2026-04-17)
+
+**Phases completed:** 1 phases, 2 plans, 5 tasks
+
+**Key accomplishments:**
+
+- iOS-style /home App Launcher with 4-tile grid, bilingual i18n, settings-driven heading, and post-login redirect from AuthGate
+- 10-step browser walkthrough confirmed all App Launcher requirements PASSED: auth redirect, 4-tile grid, navigation, coming-soon inertness, roles, dark mode, i18n, settings-driven heading, and NavBar/SubHeader chrome
+
+---
+
 ## v1.13 In-App Documentation (Shipped: 2026-04-17)
 
 **Phases completed:** 4 phases, 8 plans
