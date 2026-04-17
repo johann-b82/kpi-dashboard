@@ -14,6 +14,7 @@
 - ✅ **v1.11-directus Directus Pivot** — Phases 26–30 (shipped 2026-04-15) — [archive](milestones/v1.11-directus-ROADMAP.md)
 - ✅ **v1.12 Chart Polish & Rebrand** — Phases 31–32 (shipped 2026-04-16) — [archive](milestones/v1.12-ROADMAP.md)
 - ✅ **v1.13 In-App Documentation** — Phases 33–36 (shipped 2026-04-17) — [archive](milestones/v1.13-ROADMAP.md)
+- 🔄 **v1.14 App Launcher** — Phase 37 (active)
 
 ## Phases
 
@@ -132,3 +133,30 @@ Full details: [milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
 Full details: [milestones/v1.13-ROADMAP.md](milestones/v1.13-ROADMAP.md)
 
 </details>
+
+### v1.14 App Launcher (Phase 37) — ACTIVE
+
+- [ ] **Phase 37: App Launcher** - iOS-style `/home` landing page with role-aware tile grid, login redirect, and full DE/EN i18n
+
+## Phase Details
+
+### Phase 37: App Launcher
+**Goal**: Users land on an iOS-style app grid at `/home` after login, with role-aware tile visibility, full dark-mode support, and bilingual labels
+**Depends on**: Phase 36 (existing auth guard pattern, i18n setup, Tailwind token system)
+**Requirements**: LAUNCH-01, LAUNCH-02, LAUNCH-03, LAUNCH-04, LAUNCH-05, AUTH-01, AUTH-02, BRAND-01, BRAND-02, BRAND-03
+**Success Criteria** (what must be TRUE):
+  1. After successful login, the user lands on `/home` — not `/sales`
+  2. `/home` displays a grid of square rounded-corner tile cards, each with an icon and label below
+  3. The KPI Dashboard tile is active and navigates to `/sales` on click; coming-soon tiles are visually greyed out and non-clickable
+  4. Admin-only tiles are completely absent from the page for a Viewer-role user
+  5. The page title uses the app name from Settings and all tile labels render correctly in both DE and EN
+  6. Navigating directly to `/home` while unauthenticated redirects to `/login`
+  7. Dark mode toggles correctly on the launcher page with no additional theming code
+**Plans**: TBD
+**UI hint**: yes
+
+## Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 37. App Launcher | 0/? | Not started | - |

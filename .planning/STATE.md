@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: App Launcher
 status: active
-stopped_at: Defining requirements
+stopped_at: Roadmap created — ready to plan Phase 37
 last_updated: "2026-04-17"
 last_activity: 2026-04-17
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,7 +17,7 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-17
-**Session:** v1.14 App Launcher — defining requirements
+**Session:** v1.14 App Launcher — roadmap created
 
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-17)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.14 App Launcher — requirements and roadmap
+**Current focus:** v1.14 App Launcher — Phase 37 ready to plan
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 37 — App Launcher
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-17 — Milestone v1.14 started
+Status: Not started
+Last activity: 2026-04-17 — Roadmap created
 
 Progress: [ ] 0%
 
@@ -67,21 +67,13 @@ Progress: [ ] 0%
 
 ### Decisions
 
-- **v1.13 scope:** 4 phases (33–36), sequential dependency chain
-- **Phase 33 (Rendering):** Markdown pipeline + dark mode prose + syntax highlight + TOC + anchor links + lazy loading. No content yet — infrastructure only.
-- **Phase 34 (Navigation):** Navbar icon, role-gated sidebar, role-aware default route, i18n chrome. Depends on Phase 33 rendering primitives.
-- **Phase 35 (User Guide):** 5 articles × 2 languages. Content authoring phase; depends on Phase 34 navigation shell.
-- **Phase 36 (Admin Guide):** 4 articles × 2 languages. Closes I18N-01 (full bilingual coverage). Depends on Phase 35.
-- **Coverage:** 19/19 REQs mapped, no orphans, no duplicates.
-- [Phase 33-rendering-foundation]: GithubSlugger used in extractToc to guarantee slug alignment with rehype-slug output
-- [Phase 33-rendering-foundation]: react-markdown + rehype-highlight + rehype-slug pipeline chosen; github-slugger used in extractToc for slug alignment with rehype-slug
-- [Phase 34-navigation-shell]: Registry keyed by lang/section/slug for O(1) content lookup in DocsPage
-- [Phase 34-navigation-shell]: Library icon placed before Upload in NavBar with active state for all /docs/* routes
-- [Phase 35]: i18n keys added as flat keys matching existing keySeparator:false convention
+- **v1.14 scope:** 1 phase (37), pure frontend — no backend routes, no new Docker services
+- **Phase 37 (App Launcher):** iOS-style `/home` grid with role-aware tiles, login redirect update, PrivateRoute guard for `/home`, full DE/EN i18n, dark-mode via existing Tailwind token system, app name from Settings context
+- **Coverage:** 10/10 REQs mapped to Phase 37, no orphans, no duplicates
 
 ### Pending Todos
 
-- Plan Phase 33 via `/gsd:plan-phase 33`
+- Plan Phase 37 via `/gsd:plan-phase 37`
 
 ### Open Blockers
 
@@ -96,6 +88,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-16T15:07:04.832Z
-**Stopped at:** Completed 36-02-PLAN.md
+**Last session:** 2026-04-17
+**Stopped at:** Roadmap created — Phase 37 defined
 **Resume file:** None

@@ -51,6 +51,13 @@
 
 | REQ-ID | Phase | Notes |
 |--------|-------|-------|
-| LAUNCH-01..05 | TBD | |
-| AUTH-01..02 | TBD | |
-| BRAND-01..03 | TBD | |
+| LAUNCH-01 | Phase 37 | |
+| LAUNCH-02 | Phase 37 | |
+| LAUNCH-03 | Phase 37 | |
+| LAUNCH-04 | Phase 37 | |
+| LAUNCH-05 | Phase 37 | |
+| AUTH-01 | Phase 37 | |
+| AUTH-02 | Phase 37 | |
+| BRAND-01 | Phase 37 | |
+| BRAND-02 | Phase 37 | |
+| BRAND-03 | Phase 37 | |
