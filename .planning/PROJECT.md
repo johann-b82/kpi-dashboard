@@ -15,6 +15,24 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Codebase:** ~14,100 LOC (Python + TypeScript), 14 versions shipped (v1.0–v1.14).
 **Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, and v1.14 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
 
+## Current Milestone: v1.15 Sensor Monitor
+
+**Goal:** Port the standalone SNMP temperature/humidity monitor into the KPI Dashboard monorepo as an admin-only launcher app with full CI parity.
+
+**Target features:**
+- Admin-only tile in the App Launcher (Directus role gate) — new `/sensors` route
+- React UI with KPI Dashboard CI: Tailwind tokens, shadcn/ui primitives, Recharts time-series, dark mode, DE/EN i18n, shared app shell (NavBar, SubHeader patterns)
+- FastAPI endpoints under existing backend: list sensors, fetch readings (configurable time range), on-demand poll-now, admin config CRUD
+- PostgreSQL schema for sensors + readings via Alembic migration (replaces standalone SQLite `data.db`)
+- Periodic SNMP polling integrated with existing APScheduler process (no separate container)
+- Admin Settings UI for sensor config (host, community, OIDs, scales, polling interval, min/max thresholds)
+- pysnmp dependency added to backend; backend container network access to internal SNMP hosts (192.9.201.x)
+- Bilingual DE/EN copy throughout; admin guide article entry
+
+**Source:** Existing standalone app at `/Users/johannbechtold/Documents/snmp-monitor` (FastAPI + SQLite + Jinja templates + APScheduler + pysnmp) — reference implementation, not imported verbatim.
+
+---
+
 ## Shipped: v1.14 App Launcher (2026-04-17)
 
 iOS-style `/home` App Launcher as the post-login entry point. 4-tile CSS auto-fill grid (1 active KPI Dashboard tile navigating to `/`, 3 greyed coming-soon tiles with `opacity-40 pointer-events-none`). AuthGate post-login redirect changed from `/` to `/home`. Heading driven by `settings.app_name` via `useSettings()`. Bilingual `launcher.*` i18n keys (EN/DE) added. Role-aware admin scaffold wired (`user?.role === "admin"`) for future admin-only tiles. Tailwind token-only classes — dark mode works automatically. All 10 requirements (LAUNCH-01..05, AUTH-01, AUTH-02, BRAND-01..03) verified via 10-step browser walkthrough.
@@ -261,4 +279,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 — after v1.14 App Launcher milestone*
+*Last updated: 2026-04-17 — v1.15 Sensor Monitor milestone started*
