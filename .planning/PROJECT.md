@@ -10,28 +10,43 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.14 App Launcher — 2026-04-17
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and 22 bilingual (DE/EN) Markdown articles covering user guide and admin guide. iOS-style `/home` App Launcher (4-tile grid, role-aware scaffold, bilingual labels, settings-driven heading) as authenticated entry point.
-**Codebase:** ~14,100 LOC (Python + TypeScript), 14 versions shipped (v1.0–v1.14).
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, and v1.14 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.15 Sensor Monitor — 2026-04-18
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync and SNMP sensor polling. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and bilingual Markdown articles covering user guide and admin guide. iOS-style `/` App Launcher (role-aware tiles, bilingual labels) as authenticated entry point. pysnmp-based SNMP temperature/humidity monitoring with Fernet-encrypted community strings, admin-only dashboard + settings sub-page + SNMP walk/probe tooling.
+**Codebase:** ~14,100 LOC + v1.15 sensor additions (Python + TypeScript), 15 versions shipped (v1.0–v1.15).
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, and v1.15 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
 
-## Current Milestone: v1.15 Sensor Monitor
+## Current Milestone: v1.16 Digital Signage
 
-**Goal:** Port the standalone SNMP temperature/humidity monitor into the KPI Dashboard monorepo as an admin-only launcher app with full CI parity.
+**Goal:** Ship a Directus-backed digital signage CMS within the existing monorepo — admin UI for managing Media/Playlists/Devices, a Chromium-kiosk player for Raspberry Pi, and tag-based playlist-to-device routing. Small-fleet scope (≤5 devices), single-site, cache-and-loop offline mode.
 
-**Target features:**
-- Admin-only tile in the App Launcher (Directus role gate) — new `/sensors` route
-- React UI with KPI Dashboard CI: Tailwind tokens, shadcn/ui primitives, Recharts time-series, dark mode, DE/EN i18n, shared app shell (NavBar, SubHeader patterns)
-- FastAPI endpoints under existing backend: list sensors, fetch readings (configurable time range), on-demand poll-now, admin config CRUD
-- PostgreSQL schema for sensors + readings via Alembic migration (replaces standalone SQLite `data.db`)
-- Periodic SNMP polling integrated with existing APScheduler process (no separate container)
-- Admin Settings UI for sensor config (host, community, OIDs, scales, polling interval, min/max thresholds)
-- pysnmp dependency added to backend; backend container network access to internal SNMP hosts (192.9.201.x)
-- Bilingual DE/EN copy throughout; admin guide article entry
+**Target features (admin side):**
+- Media library — Images (PNG/JPG/WebP), Videos (MP4/WebM), PowerPoint (PPTX → server-side converted to image slides), PDF with page-flip playback, Web URLs, HTML snippets — stored in Directus file storage
+- Playlists — ordered list of media items with per-item duration/transition, targeting device tags
+- Devices — CRUD + tag assignment, pairing-code onboarding for fresh Pis, health/status (last-seen, current playlist)
+- Tag-based routing — Devices carry tags (lobby, production, cafeteria); playlists target tag groups
+- Admin-only launcher tile — new `/signage` route wrapped in `AdminOnly`
 
-**Source:** Existing standalone app at `/Users/johannbechtold/Documents/snmp-monitor` (FastAPI + SQLite + Jinja templates + APScheduler + pysnmp) — reference implementation, not imported verbatim.
+**Target features (player side):**
+- Chromium kiosk player — web page served by backend, auto-refreshes on playlist/media change
+- Hybrid sync — polling baseline (30s) + Server-Sent Events for instant updates
+- Pairing flow — fresh Pi boots → displays 6-digit code → admin enters code in UI → device is claimed and tagged
+- Offline cache-and-loop — when network drops, player keeps looping last-cached playlist until connectivity returns
+- Format handlers — image display with fade, video autoplay, iframe for URLs, PDF page-flip via pdf.js, HTML snippet rendering, PPTX slides as converted images
+
+**Target features (infrastructure):**
+- Directus collections (Alembic-managed schema, hidden from Directus Data Model UI): `media`, `playlists`, `playlist_items`, `devices`, `device_tags`
+- FastAPI `/api/signage/*` endpoints — playlist resolution per device, pairing, device heartbeat, SSE stream
+- PPTX conversion service — backend worker (LibreOffice headless + pdf2image) running async on upload
+- Bilingual admin UI (DE/EN parity, "du" tone for German)
+- Bilingual admin guide article — Pi setup, pairing workflow, playlist management, offline behavior
+
+**Deferred:** Time-based schedules (one-playlist-per-tag for now), per-device calibration, medium/large fleet features (20+ devices), SSO for devices, per-device analytics.
 
 ---
+
+## Shipped: v1.15 Sensor Monitor (2026-04-18)
+
+Live SNMP temperature/humidity monitoring integrated into the KPI Dashboard. PostgreSQL schema (`sensors`, `sensor_readings`, `sensor_poll_log`) via Alembic, pysnmp polling service on the existing APScheduler singleton (`--workers 1` invariant, `max_instances=1`, daily 90-day retention cleanup). Admin-gated `/api/sensors/*` routes with Fernet-encrypted community strings (write-only secret). Admin-only `/sensors` dashboard with KPI cards (threshold-aware badges, DIFF-01 delta badges vs. 1h/24h, DIFF-10 health chip from poll-log), stacked Recharts time-series with reference lines, SegmentedControl time-window (1h/6h/24h/7d/30d), Poll-now button with TanStack Query invalidation. Admin settings sub-page `/settings/sensors` with CRUD form, SNMP-Walk OID-finder with click-to-assign, per-row Probe button, polling-interval live-reschedule, global thresholds, unsaved-changes guard. Bilingual (EN/DE) admin guide article with host-mode fallback runbook. 58/58 requirements satisfied.
 
 ## Shipped: v1.14 App Launcher (2026-04-17)
 

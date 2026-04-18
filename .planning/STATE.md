@@ -1,33 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.15
-milestone_name: Sensor Monitor
+milestone: v1.16
+milestone_name: Digital Signage
 status: Defining requirements
-stopped_at: Completed 40-03-PLAN.md
+stopped_at: —
 last_updated: "2026-04-18T06:41:05.204Z"
-last_activity: 2026-04-18
+last_activity: 2026-04-18 — Milestone v1.16 started
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
 # Project State: KPI Dashboard
 
-**Last updated:** 2026-04-17
-**Session:** v1.15 Sensor Monitor — milestone started
+**Last updated:** 2026-04-18
+**Session:** v1.16 Digital Signage — milestone started
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-17)
+See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.15 Sensor Monitor — requirements to be defined
+**Current focus:** v1.16 Digital Signage — Directus-backed CMS + Chromium-kiosk Raspberry Pi player for ≤5 devices
 
 ---
 
@@ -36,7 +36,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-17)
 Phase: Not started (defining requirements)
 Plan: —
 Status: Defining requirements
-Last activity: 2026-04-18
+Last activity: 2026-04-18 — Milestone v1.16 started
 
 Progress: [ ] 0%
 
