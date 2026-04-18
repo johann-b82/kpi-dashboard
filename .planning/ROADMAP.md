@@ -186,7 +186,7 @@ Full details: [milestones/v1.15-ROADMAP.md](milestones/v1.15-ROADMAP.md)
 **Plans**: 5 plans
 Plans:
 - [ ] 41-01-models-package-and-signage-models-PLAN.md — Split `models.py` into package; add 8 signage ORM classes (wave 1)
-- [ ] 41-02-schemas-package-and-signage-schemas-PLAN.md — Split `schemas.py` into package; add Pydantic v2 schemas for signage (wave 1)
+- [x] 41-02-schemas-package-and-signage-schemas-PLAN.md — Split `schemas.py` into package; add Pydantic v2 schemas for signage (wave 1)
 - [ ] 41-03-alembic-migration-PLAN.md — `v1_16_signage_schema.py` creating all 8 tables + partial-unique index + RESTRICT FK (wave 2)
 - [x] 41-04-docker-compose-directus-exclusion-PLAN.md — `DB_EXCLUDE_TABLES` + `directus_uploads` RO mount on api (wave 1)
 - [ ] 41-05-round-trip-verification-PLAN.md — pytest round-trip test proving SGN-DB-01..05 (wave 3)
@@ -323,7 +323,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 38. Backend + Schema + Scheduler | v1.15 | 3/3 | Complete | 2026-04-17 |
 | 39. Dashboard UI + Launcher Tile | v1.15 | 2/2 | Complete | 2026-04-17 |
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
-| 41. Signage Schema & Models | v1.16 | 1/5 | In Progress|  |
+| 41. Signage Schema & Models | v1.16 | 2/5 | In Progress|  |
 | 42. Device Auth + Pairing Flow | v1.16 | 0/TBD | Not started | — |
 | 43. Media + Playlist + Device Admin API | v1.16 | 0/TBD | Not started | — |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |

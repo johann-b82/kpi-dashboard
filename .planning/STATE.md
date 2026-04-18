@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Phase 41 context gathered
-last_updated: "2026-04-18T15:07:22.192Z"
-last_activity: 2026-04-18 -- Phase 41 execution started
+stopped_at: Completed 41-02-schemas-package-and-signage-schemas-PLAN.md
+last_updated: "2026-04-18T15:09:34.410Z"
+last_activity: 2026-04-18
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -34,9 +34,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 41 (signage-schema-models) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 41
-Last activity: 2026-04-18 -- Phase 41 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-18
 
 Progress: [········] 0% (0/8 phases complete)
 
@@ -62,6 +62,7 @@ Next action: `/gsd:plan-phase 41`
 
 ---
 | Phase 41 P04 | 2min | 1 tasks | 1 files |
+| Phase 41 P02 | 156 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,7 @@ Next action: `/gsd:plan-phase 41`
 - **Phase 46:** `/signage` tabs (Media/Playlists/Devices), `/signage/pair`, launcher tile (MonitorPlay icon), WYSIWYG preview via `react-pdf` admin-side, apiClient-only, no `dark:` variants, DE/EN parity CI.
 - **Phase 47:** Separate Vite entry (<200KB gz target), EventSource + 45s watchdog + 30s polling fallback, pdf.js worker via `?url` import pinned to `pdfjs-dist@5.6.205`, format handlers (img/video muted-autoplay-playsinline/pdf-crossfade/iframe sandbox+HEAD preflight/nh3-sanitized HTML srcdoc/PPTX as image sequence). Offline cache architecture (SW vs. Pi sidecar) deferred to phase planning.
 - **Phase 48:** Pi provisioning as dedicated `signage` user (NOT root), systemd user service with `After=graphical.target`, Chromium kiosk flag set, bilingual admin guide article + docs-index entries, full E2E walkthrough (fresh Pi → pair → play → net drop → loop → restore).
+- [Phase 41]: Plan 41-02: converted schemas.py into package and added 19 Pydantic v2 signage schemas (Base/Create/Read trios + pairing DTOs)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -113,6 +115,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T14:39:21.321Z
-**Stopped at:** Phase 41 context gathered
-**Resume file:** .planning/phases/41-signage-schema-models/41-CONTEXT.md
+**Last session:** 2026-04-18T15:09:34.408Z
+**Stopped at:** Completed 41-02-schemas-package-and-signage-schemas-PLAN.md
+**Resume file:** None
