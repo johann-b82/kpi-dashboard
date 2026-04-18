@@ -263,5 +263,31 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Implemented in Task 2 commit.
-    raise NotImplementedError("downgrade() implemented in subsequent commit")
+    # Drop partial unique index before its table (Pitfall 3)
+    op.drop_index(
+        "uix_signage_pairing_sessions_code_active",
+        table_name="signage_pairing_sessions",
+    )
+    op.drop_table("signage_pairing_sessions")
+
+    # Join tables (depend on devices, tags, playlists) — drop before parents
+    op.drop_table("signage_playlist_tag_map")
+    op.drop_table("signage_device_tag_map")
+
+    # playlist_items depends on playlists + media — drop its indexes then table
+    op.drop_index(
+        "ix_signage_playlist_items_media_id",
+        table_name="signage_playlist_items",
+    )
+    op.drop_index(
+        "ix_signage_playlist_items_playlist_id",
+        table_name="signage_playlist_items",
+    )
+    op.drop_table("signage_playlist_items")
+
+    # Independent tables
+    op.drop_table("signage_devices")
+    op.drop_index("uq_signage_device_tags_name", table_name="signage_device_tags")
+    op.drop_table("signage_device_tags")
+    op.drop_table("signage_playlists")
+    op.drop_table("signage_media")
