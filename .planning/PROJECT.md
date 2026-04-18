@@ -294,4 +294,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-18 — Phase 42 (Device Auth + Pairing Flow) complete*
+*Last updated: 2026-04-18 — Phase 43 (Media + Playlist + Device Admin API, polling) complete — admin CRUD router, tag-to-playlist resolver, player polling + heartbeat endpoints, and 1-min APScheduler heartbeat sweeper all landed and verified (5/5 must-haves, 41/41 phase tests green)*
