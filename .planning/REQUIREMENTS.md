@@ -35,7 +35,7 @@
 
 ### Scheduler (SGN-SCH-*)
 
-- [ ] **SGN-SCH-01**: APScheduler heartbeat sweeper (1-min cadence) marks devices offline when `last_seen_at > 5 min`; `max_instances=1`, `coalesce=True`
+- [x] **SGN-SCH-01**: APScheduler heartbeat sweeper (1-min cadence) marks devices offline when `last_seen_at > 5 min`; `max_instances=1`, `coalesce=True`
 - [x] **SGN-SCH-02**: Daily pairing session cleanup (reuse 03:00 UTC cron slot from v1.15 retention job) — deletes expired `signage_pairing_sessions` rows
 - [ ] **SGN-SCH-03**: PPTX stuck-row reset on scheduler startup — rows in `processing` > 5 min → `failed` (or re-queue to `pending` per Phase 44 decision)
 
@@ -140,7 +140,7 @@
 | SGN-BE-06 | Phase 43 | Complete |
 | SGN-BE-09 | Phase 43 | Pending |
 | SGN-BE-10 | Phase 43 | Pending |
-| SGN-SCH-01 | Phase 43 | Pending |
+| SGN-SCH-01 | Phase 43 | Complete |
 | SGN-BE-07 | Phase 44 | Pending |
 | SGN-BE-08 | Phase 44 | Pending |
 | SGN-SCH-03 | Phase 44 | Pending |

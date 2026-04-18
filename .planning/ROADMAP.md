@@ -224,7 +224,7 @@ Plans:
 - [x] 43-01-etag-column-migration-PLAN.md — Additive Alembic migration + ORM for signage_devices.current_playlist_etag (wave 1)
 - [x] 43-02-resolver-and-schemas-PLAN.md — signage_resolver service + PlaylistEnvelope/HeartbeatRequest schemas (wave 1)
 - [ ] 43-03-admin-crud-router-PLAN.md — signage_admin/ router package (media/playlists/items/devices/tags) + main.py wiring (wave 2)
-- [ ] 43-04-player-router-and-heartbeat-sweeper-PLAN.md — signage_player router (ETag/304 + heartbeat) + 1-min sweeper job (wave 2)
+- [x] 43-04-player-router-and-heartbeat-sweeper-PLAN.md — signage_player router (ETag/304 + heartbeat) + 1-min sweeper job (wave 2)
 - [ ] 43-05-dep-audit-and-ci-grep-guards-PLAN.md — SGN-BE-09 dep-audit test + SGN-BE-10 grep guard tests (wave 3)
 
 ### Phase 44: PPTX Conversion Pipeline
@@ -335,7 +335,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
 | 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
-| 43. Media + Playlist + Device Admin API | v1.16 | 2/5 | In Progress|  |
+| 43. Media + Playlist + Device Admin API | v1.16 | 3/5 | In Progress|  |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |
 | 45. SSE Broadcast | v1.16 | 0/TBD | Not started | — |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
