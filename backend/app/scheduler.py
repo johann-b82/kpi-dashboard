@@ -28,7 +28,7 @@ from pysnmp.hlapi.v3arch.asyncio import SnmpEngine
 from sqlalchemy import delete, select
 
 from app.database import AsyncSessionLocal
-from app.models import AppSettings, SensorPollLog, SensorReading
+from app.models import AppSettings, SensorPollLog, SensorReading, SignagePairingSession
 
 log = logging.getLogger(__name__)
 
@@ -36,9 +36,15 @@ scheduler = AsyncIOScheduler()
 SYNC_JOB_ID = "personio_sync"  # existing — unchanged
 SENSOR_POLL_JOB_ID = "sensor_poll"  # NEW (v1.15)
 SENSOR_RETENTION_JOB_ID = "sensor_retention_cleanup"  # NEW (v1.15)
+PAIRING_CLEANUP_JOB_ID = "signage_pairing_cleanup"  # NEW (v1.16 Phase 42-03)
 
 # OQ-5 fixed retention; not admin-configurable in v1.15 (SEN-SCH-06 / SEN-FUTURE-01).
 SENSOR_RETENTION_DAYS = 90
+
+# SGN-SCH-02: pairing sessions older than this cutoff get swept nightly.
+# 24h grace sits comfortably outside the 10-minute TTL a kiosk might still be
+# polling and leaves the delete-on-deliver path (Plan 42-02) untouched.
+PAIRING_CLEANUP_GRACE_HOURS = 24
 
 # Module-level engine reference. Populated in lifespan; read by the scheduled
 # poll runner. Not a true public API — routers should use
@@ -136,6 +142,44 @@ async def _run_sensor_retention_cleanup() -> None:
             )
         except Exception:
             log.exception("sensor_retention_cleanup failed")
+            await session.rollback()
+
+
+async def _run_signage_pairing_cleanup() -> None:
+    """D-12: delete expired pairing sessions older than 24h.
+
+    D-13: This cron carries the expiration invariant for SGN-DB-02.
+    Phase 41 dropped ``expires_at > now()`` from the partial-unique index
+    predicate because Postgres forbids ``now()`` in IMMUTABLE partial
+    predicates (errcode 42P17). Without this cron, expired-but-unclaimed
+    codes stay in the unique index indefinitely and ``/pair/request`` will
+    eventually trip the 5-retry saturation path. This is correctness,
+    not cosmetics.
+
+    Predicate is ``expires_at < now() - 24h`` only — claim-state is
+    irrelevant. Claimed rows are either already gone (delete-on-deliver
+    in Plan 42-02's GET /status) or stuck because a kiosk never polled;
+    either way the 24h grace window is ample.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=PAIRING_CLEANUP_GRACE_HOURS)
+    async with AsyncSessionLocal() as session:
+        try:
+            result = await asyncio.wait_for(
+                session.execute(
+                    delete(SignagePairingSession).where(
+                        SignagePairingSession.expires_at < cutoff
+                    )
+                ),
+                timeout=30,
+            )
+            await session.commit()
+            log.info(
+                "signage_pairing_cleanup: deleted sessions=%d cutoff=%s",
+                result.rowcount,
+                cutoff.isoformat(),
+            )
+        except Exception:
+            log.exception("signage_pairing_cleanup failed")
             await session.rollback()
 
 
@@ -247,6 +291,21 @@ async def lifespan(app: FastAPI):
         coalesce=True,
         misfire_grace_time=300,  # daily job — 5min grace is fine
     )
+
+    # --- Signage pairing cleanup (daily at 03:00 UTC — v1.16 Phase 42-03) ---
+    # SGN-SCH-02 + D-13: carries expiration invariant for SGN-DB-02 (see
+    # _run_signage_pairing_cleanup docstring). Registered alongside the v1.15
+    # sensor_retention_cleanup; both jobs sit in the 03:00 UTC low-traffic slot.
+    scheduler.add_job(
+        _run_signage_pairing_cleanup,
+        trigger=CronTrigger(hour=3, minute=0, timezone=timezone.utc),
+        id=PAIRING_CLEANUP_JOB_ID,
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=300,
+    )
+    log.info("registered signage_pairing_cleanup cron (03:00 UTC)")
 
     scheduler.start()
     try:
