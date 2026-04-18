@@ -323,7 +323,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 38. Backend + Schema + Scheduler | v1.15 | 3/3 | Complete | 2026-04-17 |
 | 39. Dashboard UI + Launcher Tile | v1.15 | 2/2 | Complete | 2026-04-17 |
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
-| 41. Signage Schema & Models | v1.16 | 5/5 | Complete   | 2026-04-18 |
+| 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 42. Device Auth + Pairing Flow | v1.16 | 0/TBD | Not started | — |
 | 43. Media + Playlist + Device Admin API | v1.16 | 0/TBD | Not started | — |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |
