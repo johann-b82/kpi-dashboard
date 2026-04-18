@@ -4,7 +4,7 @@ milestone: v1.16
 milestone_name: Digital Signage
 status: verifying
 stopped_at: Completed 42-03-cleanup-cron-and-revoke-PLAN.md
-last_updated: "2026-04-18T16:15:06.074Z"
+last_updated: "2026-04-18T16:18:28.025Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 8
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 42 (device-auth-pairing-flow) — EXECUTING
-Plan: 3 of 3
+Phase: 43
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-18
 
