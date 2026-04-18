@@ -15,10 +15,10 @@
 ### Database & Schema (SGN-DB-*)
 
 - [x] **SGN-DB-01**: Alembic migration creates `signage_media`, `signage_playlists`, `signage_playlist_items`, `signage_devices`, `signage_device_tags`, `signage_device_tag_map`, `signage_playlist_tag_map`, `signage_pairing_sessions` (8 tables)
-- [ ] **SGN-DB-02**: Partial-unique index on `signage_pairing_sessions.code WHERE expires_at > now() AND claimed_at IS NULL` (prevents active-code collision while allowing reuse after expiry)
-- [ ] **SGN-DB-03**: `ON DELETE RESTRICT` on `signage_playlist_items.media_id` (prevents deleting media currently referenced by any playlist)
+- [x] **SGN-DB-02**: Partial-unique index on `signage_pairing_sessions.code WHERE expires_at > now() AND claimed_at IS NULL` (prevents active-code collision while allowing reuse after expiry)
+- [x] **SGN-DB-03**: `ON DELETE RESTRICT` on `signage_playlist_items.media_id` (prevents deleting media currently referenced by any playlist)
 - [x] **SGN-DB-04**: `DB_EXCLUDE_TABLES` in `docker-compose.yml` excludes `signage_devices` + `signage_pairing_sessions` (sensitive); exposes `signage_media`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags` to Directus CMS UI for admin UX
-- [ ] **SGN-DB-05**: Migration round-trips cleanly — `upgrade → downgrade → upgrade` on fresh DB drops and recreates all tables + indexes cleanly
+- [x] **SGN-DB-05**: Migration round-trips cleanly — `upgrade → downgrade → upgrade` on fresh DB drops and recreates all tables + indexes cleanly
 
 ### Backend API (SGN-BE-*)
 
@@ -127,10 +127,10 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | SGN-DB-01 | Phase 41 | Complete |
-| SGN-DB-02 | Phase 41 | Pending |
-| SGN-DB-03 | Phase 41 | Pending |
+| SGN-DB-02 | Phase 41 | Complete |
+| SGN-DB-03 | Phase 41 | Complete |
 | SGN-DB-04 | Phase 41 | Complete |
-| SGN-DB-05 | Phase 41 | Pending |
+| SGN-DB-05 | Phase 41 | Complete |
 | SGN-INF-02 | Phase 41 | Complete |
 | SGN-BE-03 | Phase 42 | Pending |
 | SGN-BE-04 | Phase 42 | Pending |
