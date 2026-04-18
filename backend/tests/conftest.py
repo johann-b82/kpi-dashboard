@@ -11,6 +11,7 @@ import os
 os.environ.setdefault("DIRECTUS_SECRET", "test-directus-secret-phase-27")
 os.environ.setdefault("DIRECTUS_ADMINISTRATOR_ROLE_UUID", "c1111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 os.environ.setdefault("DIRECTUS_VIEWER_ROLE_UUID", "a2222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+os.environ.setdefault("SIGNAGE_DEVICE_JWT_SECRET", "test-signage-device-jwt-secret-phase-42")
 # Defaults required for app.database module import during test collection
 os.environ.setdefault("POSTGRES_USER", "test")
 os.environ.setdefault("POSTGRES_PASSWORD", "test")
