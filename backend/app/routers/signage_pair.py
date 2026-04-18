@@ -35,6 +35,7 @@ Design notes:
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, insert, select, update
@@ -224,3 +225,52 @@ async def claim_pairing_code(
 
     await db.commit()
     # 204 — no response body
+
+
+# ---------------------------------------------------------------------------
+# POST /devices/{device_id}/revoke — admin-only device revocation (D-14)
+# ---------------------------------------------------------------------------
+#
+# Minimal revoke endpoint to satisfy ROADMAP SC #5 inside Phase 42. Phase 43
+# may consolidate device admin CRUD under /api/signage/devices/{id}; until
+# that router lands, the revoke operation lives on the pair router so
+# Phase 42 can be verified end-to-end.
+#
+# SGN-DB-02 / D-13 note: we never write to signage_devices.device_token_hash —
+# that column is reserved for an opaque-token variant we deliberately did
+# not pick. The scoped-JWT scheme carries revocation state via revoked_at
+# alone; get_current_device (Plan 42-01) re-reads this column on every
+# request, so the 401 on subsequent calls is automatic.
+
+
+@router.post(
+    "/devices/{device_id}/revoke",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(get_current_user), Depends(require_admin)],
+)
+async def revoke_device(
+    device_id: UUID,
+    db: AsyncSession = Depends(get_async_db_session),
+) -> None:
+    """Flip ``signage_devices.revoked_at = now()`` for the given device.
+
+    Idempotent: if the device is already revoked, the original timestamp
+    is preserved (audit-friendly — "when was this revoked?" stays stable).
+    """
+    result = await db.execute(
+        select(SignageDevice).where(SignageDevice.id == device_id)
+    )
+    device = result.scalar_one_or_none()
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="device not found"
+        )
+    if device.revoked_at is None:
+        await db.execute(
+            update(SignageDevice)
+            .where(SignageDevice.id == device_id)
+            .values(revoked_at=func.now())
+        )
+        await db.commit()
+    # else: idempotent no-op — original revoked_at preserved on repeat calls.
+    return None
