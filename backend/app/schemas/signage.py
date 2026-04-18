@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --------------------------------------------------------------------------
@@ -176,3 +176,52 @@ class SignagePairingSessionRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     model_config = {"from_attributes": True}
+
+
+# -------------------- Phase 43: Player envelopes (D-06, D-07, D-11) --------------------
+
+
+class PlaylistEnvelopeItem(BaseModel):
+    """Single item in the resolved playlist envelope. D-07.
+
+    Field mapping from ORM:
+      - ``media_id``    <- ``SignagePlaylistItem.media_id``
+      - ``kind``        <- ``SignageMedia.kind``
+      - ``uri``         <- ``SignageMedia.uri`` (may be empty string if NULL)
+      - ``duration_ms`` <- ``SignagePlaylistItem.duration_s * 1000``
+      - ``transition``  <- ``SignagePlaylistItem.transition`` (empty string if NULL)
+      - ``position``    <- ``SignagePlaylistItem.position``
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    media_id: uuid.UUID
+    kind: str
+    uri: str
+    duration_ms: int
+    transition: str
+    position: int
+
+
+class PlaylistEnvelope(BaseModel):
+    """Tag-resolved playlist envelope returned by GET /api/signage/player/playlist.
+
+    Empty when ``playlist_id`` is None and ``items`` is ``[]`` (D-06).
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    playlist_id: uuid.UUID | None = None
+    name: str | None = None
+    items: list[PlaylistEnvelopeItem] = Field(default_factory=list)
+    resolved_at: datetime
+
+
+class HeartbeatRequest(BaseModel):
+    """Player -> server heartbeat payload. D-11.
+
+    Both fields are nullable so a just-booted player without a current item
+    or cached ETag can still heartbeat.
+    """
+    model_config = ConfigDict(extra="ignore")
+
+    current_item_id: uuid.UUID | None = None
+    playlist_etag: str | None = None
