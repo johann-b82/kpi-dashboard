@@ -25,10 +25,12 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
 from pysnmp.hlapi.v3arch.asyncio import SnmpEngine
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
+from sqlalchemy.sql import func
 
 from app.database import AsyncSessionLocal
 from app.models import AppSettings, SensorPollLog, SensorReading, SignagePairingSession
+from app.models.signage import SignageDevice
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +39,7 @@ SYNC_JOB_ID = "personio_sync"  # existing — unchanged
 SENSOR_POLL_JOB_ID = "sensor_poll"  # NEW (v1.15)
 SENSOR_RETENTION_JOB_ID = "sensor_retention_cleanup"  # NEW (v1.15)
 PAIRING_CLEANUP_JOB_ID = "signage_pairing_cleanup"  # NEW (v1.16 Phase 42-03)
+HEARTBEAT_SWEEPER_JOB_ID = "signage_heartbeat_sweeper"  # NEW (v1.16 Phase 43-04)
 
 # OQ-5 fixed retention; not admin-configurable in v1.15 (SEN-SCH-06 / SEN-FUTURE-01).
 SENSOR_RETENTION_DAYS = 90
@@ -183,6 +186,42 @@ async def _run_signage_pairing_cleanup() -> None:
             await session.rollback()
 
 
+async def _run_signage_heartbeat_sweeper() -> None:
+    """SGN-SCH-01 / D-15: flip stale signage devices to offline.
+
+    Runs every minute. For every device whose last_seen_at is older than
+    5 minutes and is not already offline and is not revoked, set
+    ``status = 'offline'``. Idempotent — already-offline devices are
+    excluded so the rowcount stays truthy only on state transitions.
+
+    D-10 note: GET /playlist does NOT touch last_seen_at; heartbeat does.
+    This job therefore observes real kiosk liveness, not polling activity.
+    """
+    async with AsyncSessionLocal() as session:
+        try:
+            result = await asyncio.wait_for(
+                session.execute(
+                    update(SignageDevice)
+                    .where(
+                        SignageDevice.last_seen_at
+                        < func.now() - timedelta(minutes=5),
+                        SignageDevice.status != "offline",
+                        SignageDevice.revoked_at.is_(None),
+                    )
+                    .values(status="offline", updated_at=func.now())
+                ),
+                timeout=20,
+            )
+            await session.commit()
+            log.info(
+                "signage_heartbeat_sweeper: flipped devices=%d",
+                result.rowcount,
+            )
+        except Exception:
+            log.exception("signage_heartbeat_sweeper failed")
+            await session.rollback()
+
+
 def reschedule_sensor_poll(new_interval_s: int) -> None:
     """Phase 40 admin-settings hook — re-pins sensor_poll to a new interval.
 
@@ -306,6 +345,22 @@ async def lifespan(app: FastAPI):
         misfire_grace_time=300,
     )
     log.info("registered signage_pairing_cleanup cron (03:00 UTC)")
+
+    # --- Signage heartbeat sweeper (1-min interval — v1.16 Phase 43-04) ---
+    # SGN-SCH-01 / D-15: flips stale devices (last_seen_at < now - 5min) to
+    # offline. max_instances=1 + coalesce=True matches the --workers 1
+    # invariant (cross-cutting hazard #4) and the v1.15 sensor-poll shape.
+    scheduler.add_job(
+        _run_signage_heartbeat_sweeper,
+        trigger="interval",
+        minutes=1,
+        id=HEARTBEAT_SWEEPER_JOB_ID,
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=30,
+    )
+    log.info("registered signage_heartbeat_sweeper (1-min interval)")
 
     scheduler.start()
     try:
