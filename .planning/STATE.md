@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: Defining requirements
+status: Ready for planning
 stopped_at: —
-last_updated: "2026-04-18T06:41:05.204Z"
-last_activity: 2026-04-18 — Milestone v1.16 started
+last_updated: "2026-04-18T07:00:00.000Z"
+last_activity: 2026-04-18 — v1.16 roadmap created, 8 phases (41–48), 47/47 requirements mapped
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,7 +17,7 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-18
-**Session:** v1.16 Digital Signage — milestone started
+**Session:** v1.16 Digital Signage — roadmap approved, ready for phase planning
 
 ---
 
@@ -27,84 +27,76 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.16 Digital Signage — Directus-backed CMS + Chromium-kiosk Raspberry Pi player for ≤5 devices
+**Current focus:** v1.16 Digital Signage — Directus-backed CMS + Chromium-kiosk Raspberry Pi player for ≤5 devices (Phases 41–48)
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 41 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-18 — Milestone v1.16 started
+Status: Ready for planning
+Last activity: 2026-04-18 — ROADMAP.md written, 47/47 requirements mapped across 8 phases
 
-Progress: [ ] 0%
+Progress: [········] 0% (0/8 phases complete)
+
+Next action: `/gsd:plan-phase 41`
 
 ---
 
 ## Performance Metrics
 
-**Velocity (v1.12):**
+**Velocity (v1.15):**
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
-| Phase 31 P01 | 300s | 1 task | 3 files |
-| Phase 31 P02 | 111s | 2 tasks | 2 files |
-| Phase 32 P01 | — | — | — |
-| Phase 32 P02 | — | — | — |
+| Phase 38 P01 | 228s | 2 tasks | 6 files |
+| Phase 38 P02 | 374s | 2 tasks | 6 files |
+| Phase 38 P03 | 4m 17s | 4 tasks | 4 files |
+| Phase 39 P01 | 3 min | 3 tasks | 12 files |
+| Phase 39 P02 | 377s | 2 tasks | 12 files |
+| Phase 40 P01 | 35m | 3 tasks | 18 files |
+| Phase 40 P03 | 15m | 1 task | 5 files |
 
 *Updated after each plan completion*
 
 ---
-| Phase 33-rendering-foundation P01 | 8min | 2 tasks | 11 files |
-| Phase 33-rendering-foundation P01 | 600 | 2 tasks | 11 files |
-| Phase 34-navigation-shell P01 | 600 | 2 tasks | 8 files |
-| Phase 34-navigation-shell P02 | 360 | 2 tasks | 3 files |
-| Phase 35 P02 | 600 | 2 tasks | 7 files |
-| Phase 36 P02 | 138 | 2 tasks | 7 files |
-| Phase 37-launcher-shell-auth-wiring P01 | 900 | 3 tasks | 5 files |
-| Phase quick P260417-dzd | 75 | 2 tasks | 3 files |
-| Phase quick P260417-e45 | 65 | 2 tasks | 6 files |
-| Phase quick P260417-eb8 | 93 | 2 tasks | 6 files |
-| Phase 38-backend-schema-scheduler P01 | 228 | 2 tasks | 6 files |
-| Phase 38-backend-schema-scheduler P02 | 374 | 2 tasks | 6 files |
-| Phase 38 P03 | 4m 17s | 4 tasks | 4 files |
-| Phase 39 P01 | 3 min | 3 tasks | 12 files |
-| Phase 39 P02 | 377 | 2 tasks | 12 files |
-| Phase 40 P01 | 35m | 3 tasks | 18 files |
-| Phase 40 P03 | 15m | 1 tasks | 5 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-- **v1.14 scope:** 1 phase (37), pure frontend — no backend routes, no new Docker services
-- **Phase 37 (App Launcher):** iOS-style `/home` grid with role-aware tiles, login redirect update, PrivateRoute guard for `/home`, full DE/EN i18n, dark-mode via existing Tailwind token system, app name from Settings context
-- **Coverage:** 10/10 REQs mapped to Phase 37, no orphans, no duplicates
-- [Phase 37-launcher-shell-auth-wiring]: Active tile navigates to / (not /sales) — /sales route does not exist; Sales Dashboard served at root per App.tsx D-10
-- [Phase 37-launcher-shell-auth-wiring]: LauncherPage uses <button> for active tile for keyboard accessibility; coming-soon tiles are aria-hidden divs
-- [Phase quick]: Quick 260417-dzd: /home launcher hides NavBar center + docs/upload/settings links + SubHeader; main padding collapses to pt-16. Component-local chrome suppression pattern (isLauncher guard per component) preferred over App.tsx route-matching.
-- [Phase quick]: Quick 260417-eb8: Launcher moved /home → /. Brand slot now a wouter Link → /. Settings gear always visible; docs + upload + segmented-control gated on !isLauncher. Tiles restructured to icon-only 120x120 + external centered label (iOS style).
-- [Phase 38-backend-schema-scheduler]: Community strings Fernet-encrypted as BYTEA; reuse FERNET_KEY (no second key); SensorRead omits community entirely (write-only secret)
-- [Phase 38-backend-schema-scheduler]: Two-table sensor schema: sensor_readings (successful polls only) + sensor_poll_log (every attempt) — separates data from liveness per PITFALLS M-4
-- [Phase 38-backend-schema-scheduler]: pysnmp>=7.1.23,<8.0 (not pysnmp-lextudio which is deprecated); v3arch.asyncio import path
-- [Phase 38-backend-schema-scheduler]: Router-level admin gate (APIRouter dependencies=) over per-endpoint, enforced by dep-audit test that walks dependant tree (SEN-BE-13)
-- [Phase 38-backend-schema-scheduler]: poll_all(session, engine, *, manual=False) -> PollAllResult is the stable signature the scheduler will call in 38-03; poll_sensor is per-sensor exception boundary for PITFALLS M-3
-- [Phase 38-backend-schema-scheduler]: POST /poll-now and /snmp-walk both wrapped in asyncio.wait_for(timeout=30); 504 on timeout; /poll-now mirrors Personio POST /api/sync blocking pattern
-- [Phase 38-backend-schema-scheduler]: request.app.state.snmp_engine is the contract hand-off to 38-03 — router reads (503 if missing); lifespan populates
-- [Phase 38]: Scheduler: module-level _engine ref over APScheduler kwargs — SnmpEngine may not pickle cleanly under MemoryJobStore; module-level ref matches existing singleton pattern and gives the scheduled job direct access without round-tripping through app.state
-- [Phase 38]: reschedule_sensor_poll(0) removes the job entirely (Personio D-07 parity); >0 with missing job uses add_job with full guardrail kwargs; >0 with existing job uses reschedule_job; all wrapped in try/except with log.exception so a broken PUT /api/settings cannot leak scheduler internals
-- [Phase 38]: docker-compose.yml api.command: --workers 1 literal kept alongside --reload (redundant in reload mode but load-bearing as CI grep guard and for production deploys that drop --reload)
-- [Phase 39]: Sensor thresholds surfaced read-only via GET /api/settings (Option A)
-- [Phase 39]: Custom AbsoluteDeltaRow for sensor cards (DeltaBadge hard-codes percent format; wrong for °C/%)
-- [Phase 40]: PATCH body omits community when communityDirty=false (preserves stored ciphertext)
-- [Phase 40]: useUnsavedGuard gained optional scopePath param (default /settings) to work at /settings/sensors
-- [Phase 40]: Blank threshold input = don't change; clear-to-null carry-forward
-- [Phase 40]: Sensor Monitor admin-guide sidebar entry placed between personio and user-management (integrations cluster); host-mode fallback runbook embedded in Troubleshooting with preferred order bridge -> macvlan -> host
+- **v1.16 scope:** 8 phases (41–48), 47 requirements across DB/BE/SCH/ADM/PLY/DIFF/OPS/INF
+- **Phase structure:** Schema → Auth/Pair → Admin/Player API (polling) → PPTX → SSE → Admin UI → Player Bundle → Pi/E2E/Docs. Polling ships first, SSE grafts on top (belt-and-braces).
+- **Phase 41:** 8-table Alembic migration, partial-unique index on pairing codes, `ON DELETE RESTRICT` on playlist_items.media_id, Directus `DB_EXCLUDE_TABLES` for devices + pairing_sessions, migrate→directus startup ordering via `service_completed_successfully`.
+- **Phase 42:** Device auth dep, pair/request/status/claim flow, pairing cleanup in 03:00 UTC cron slot. Token format decision (opaque vs. JWT scoped) deferred to phase planning.
+- **Phase 43:** Admin router with `APIRouter(dependencies=[Depends(get_current_user), Depends(require_admin)])`, tag-to-playlist resolver (priority DESC, updated_at DESC, LIMIT 1), polling /playlist + /heartbeat, heartbeat sweeper, CI grep guards + dep-audit test.
+- **Phase 44:** PPTX conversion — `asyncio.subprocess_exec` + `asyncio.wait_for(60)` + `Semaphore(1)`, per-conv tempdir, 50MB cap, state machine, startup reset. Worker location (api container vs. dedicated pptx-worker) deferred to phase planning.
+- **Phase 45:** SSE via `sse-starlette==3.2.0`, per-device `asyncio.Queue(maxsize=32)`, 15s server pings, admin-mutation notify fanout, explicit `--workers 1` invariant comment block.
+- **Phase 46:** `/signage` tabs (Media/Playlists/Devices), `/signage/pair`, launcher tile (MonitorPlay icon), WYSIWYG preview via `react-pdf` admin-side, apiClient-only, no `dark:` variants, DE/EN parity CI.
+- **Phase 47:** Separate Vite entry (<200KB gz target), EventSource + 45s watchdog + 30s polling fallback, pdf.js worker via `?url` import pinned to `pdfjs-dist@5.6.205`, format handlers (img/video muted-autoplay-playsinline/pdf-crossfade/iframe sandbox+HEAD preflight/nh3-sanitized HTML srcdoc/PPTX as image sequence). Offline cache architecture (SW vs. Pi sidecar) deferred to phase planning.
+- **Phase 48:** Pi provisioning as dedicated `signage` user (NOT root), systemd user service with `After=graphical.target`, Chromium kiosk flag set, bilingual admin guide article + docs-index entries, full E2E walkthrough (fresh Pi → pair → play → net drop → loop → restore).
+
+### Cross-cutting hazards (hard gates, see ROADMAP.md)
+
+1. DE/EN i18n parity (CI script)
+2. apiClient-only in admin frontend (no direct `fetch()`)
+3. No `dark:` Tailwind variants (tokens only)
+4. `--workers 1` invariant preserved
+5. Router-level admin gate via `APIRouter(dependencies=[…])`
+6. No `import sqlite3` / no `import psycopg2`
+7. No sync `subprocess.run` in signage services
+
+### Open decisions deferred to phase planning
+
+- **Decision 1 (Phase 44):** PPTX worker location — api container + BackgroundTasks vs. isolated pptx-worker container with `cap_drop`/`read_only`/no DB net. Recommendation: isolated worker (CVE blast-radius).
+- **Decision 2 (Phase 41):** Media storage — Directus uploads read-only volume mount vs. backend-owned `/app/media/`. Binds 43+44.
+- **Decision 3 (Phase 47):** Player offline cache — `vite-plugin-pwa` SW + Cache API vs. Pi-side sidecar writing to `/var/lib/signage/`. Binds 48.
+- **Decision 4 (Phase 42):** Device token format — opaque `secrets.token_urlsafe(32)` sha256-hashed vs. scoped JWT HS256 with rotation-on-heartbeat.
 
 ### Pending Todos
 
-- Plan Phase 37 via `/gsd:plan-phase 37`
+- Plan Phase 41 via `/gsd:plan-phase 41`
 
 ### Open Blockers
 
@@ -114,11 +106,12 @@ None.
 
 - Phase 2 human-UAT: 5 visual items (drag-drop spinner, toast, inline error list) — non-blocking
 - DASH-02 monthly-only: granularity toggle removed by user request
+- v1.9 D-12 waiver: axe + WebAIM skipped at operator request
 
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-04-17T23:20:18.916Z
-**Stopped at:** Completed 40-03-PLAN.md
+**Last session:** 2026-04-18T07:00:00.000Z
+**Stopped at:** v1.16 ROADMAP.md written, REQUIREMENTS.md traceability updated, ready to plan Phase 41
 **Resume file:** None

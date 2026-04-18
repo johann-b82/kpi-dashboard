@@ -124,23 +124,62 @@
 
 ## Traceability
 
-| REQ-ID | Phase | Notes |
-|--------|-------|-------|
-| SGN-DB-01..05 | TBD (roadmap) | Schema foundation |
-| SGN-BE-01..10 | TBD (roadmap) | API + services split across backend-feature phases |
-| SGN-SCH-01..03 | TBD (roadmap) | Scheduler integration alongside backend or admin phases |
-| SGN-ADM-01..10 | TBD (roadmap) | Admin UI phase |
-| SGN-PLY-01..10 | TBD (roadmap) | Player bundle phase |
-| SGN-DIFF-01..03 | TBD (roadmap) | Differentiators distributed across backend + admin + player |
-| SGN-OPS-01..03 | TBD (roadmap) | Docs + runbook phase |
-| SGN-INF-01..03 | TBD (roadmap) | Infrastructure split across schema + conversion phases |
+| REQ-ID | Phase | Status |
+|--------|-------|--------|
+| SGN-DB-01 | Phase 41 | Pending |
+| SGN-DB-02 | Phase 41 | Pending |
+| SGN-DB-03 | Phase 41 | Pending |
+| SGN-DB-04 | Phase 41 | Pending |
+| SGN-DB-05 | Phase 41 | Pending |
+| SGN-INF-02 | Phase 41 | Pending |
+| SGN-BE-03 | Phase 42 | Pending |
+| SGN-BE-04 | Phase 42 | Pending |
+| SGN-SCH-02 | Phase 42 | Pending |
+| SGN-BE-01 | Phase 43 | Pending |
+| SGN-BE-02 | Phase 43 | Pending |
+| SGN-BE-06 | Phase 43 | Pending |
+| SGN-BE-09 | Phase 43 | Pending |
+| SGN-BE-10 | Phase 43 | Pending |
+| SGN-SCH-01 | Phase 43 | Pending |
+| SGN-BE-07 | Phase 44 | Pending |
+| SGN-BE-08 | Phase 44 | Pending |
+| SGN-SCH-03 | Phase 44 | Pending |
+| SGN-INF-01 | Phase 44 | Pending |
+| SGN-BE-05 | Phase 45 | Pending |
+| SGN-DIFF-01 | Phase 45 | Pending |
+| SGN-INF-03 | Phase 45 | Pending |
+| SGN-ADM-01 | Phase 46 | Pending |
+| SGN-ADM-02 | Phase 46 | Pending |
+| SGN-ADM-03 | Phase 46 | Pending |
+| SGN-ADM-04 | Phase 46 | Pending |
+| SGN-ADM-05 | Phase 46 | Pending |
+| SGN-ADM-06 | Phase 46 | Pending |
+| SGN-ADM-07 | Phase 46 | Pending |
+| SGN-ADM-08 | Phase 46 | Pending |
+| SGN-ADM-09 | Phase 46 | Pending |
+| SGN-ADM-10 | Phase 46 | Pending |
+| SGN-DIFF-02 | Phase 46 | Pending |
+| SGN-PLY-01 | Phase 47 | Pending |
+| SGN-PLY-02 | Phase 47 | Pending |
+| SGN-PLY-03 | Phase 47 | Pending |
+| SGN-PLY-04 | Phase 47 | Pending |
+| SGN-PLY-05 | Phase 47 | Pending |
+| SGN-PLY-06 | Phase 47 | Pending |
+| SGN-PLY-07 | Phase 47 | Pending |
+| SGN-PLY-08 | Phase 47 | Pending |
+| SGN-PLY-09 | Phase 47 | Pending |
+| SGN-PLY-10 | Phase 47 | Pending |
+| SGN-DIFF-03 | Phase 47 | Pending |
+| SGN-OPS-01 | Phase 48 | Pending |
+| SGN-OPS-02 | Phase 48 | Pending |
+| SGN-OPS-03 | Phase 48 | Pending |
 
 **Coverage:**
 - Active requirements: 47 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 47
+- Mapped to phases: 47 ✓
+- Unmapped: 0
 
 ---
 
 *Requirements defined: 2026-04-18*
-*Last updated: 2026-04-18 — initial v1.16 scope*
+*Last updated: 2026-04-18 — traceability filled per v1.16 roadmap (Phases 41–48)*
