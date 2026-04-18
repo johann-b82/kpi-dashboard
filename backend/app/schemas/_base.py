@@ -404,3 +404,36 @@ class SnmpWalkRequest(BaseModel):
     community: SecretStr = Field(..., min_length=1)
     base_oid: str = Field(..., min_length=1, max_length=255)
     max_results: int = Field(default=200, ge=1, le=500)
+
+
+__all__ = [
+    "ValidationErrorDetail",
+    "UploadResponse",
+    "UploadBatchSummary",
+    "KpiSummaryComparison",
+    "KpiSummary",
+    "ChartPoint",
+    "ChartResponse",
+    "LatestUploadResponse",
+    "OklchColor",
+    "SettingsUpdate",
+    "SettingsRead",
+    "SyncResult",
+    "SyncTestResult",
+    "AbsenceTypeOption",
+    "PersonioOptions",
+    "SyncMetaRead",
+    "HrKpiValue",
+    "HrKpiResponse",
+    "SalesRecordRead",
+    "HrKpiHistoryPoint",
+    "EmployeeRead",
+    "CurrentUser",
+    "SensorRead",
+    "SensorCreate",
+    "SensorUpdate",
+    "SensorReadingRead",
+    "PollNowResult",
+    "SnmpProbeRequest",
+    "SnmpWalkRequest",
+]
