@@ -23,7 +23,7 @@
 ### Backend API (SGN-BE-*)
 
 - [ ] **SGN-BE-01**: `backend/app/routers/signage_admin.py` with `APIRouter(prefix="/api/signage", dependencies=[Depends(get_current_user), Depends(require_admin)])` — full CRUD for media, playlists, playlist_items, devices, tags
-- [ ] **SGN-BE-02**: `backend/app/routers/signage_player.py` with device-token dep — `GET /playlist`, `POST /heartbeat`, `GET /stream` (SSE via `sse-starlette==3.2.0`)
+- [x] **SGN-BE-02**: `backend/app/routers/signage_player.py` with device-token dep — `GET /playlist`, `POST /heartbeat`, `GET /stream` (SSE via `sse-starlette==3.2.0`)
 - [x] **SGN-BE-03**: `backend/app/routers/signage_pair.py` (unauthenticated) — `POST /request`, `GET /status`; admin-gated `POST /claim`
 - [x] **SGN-BE-04**: `backend/app/security/device_auth.py` — `get_current_device` dep resolving `Authorization: Bearer <device_token>` (token format decided in Phase 42: opaque sha256-hashed OR scoped JWT)
 - [ ] **SGN-BE-05**: `backend/app/services/signage_broadcast.py` — in-process `asyncio.Queue` per device with `QueueFull` drop + reconnect (compatible with `max_instances=1`/`--workers 1` invariant)
@@ -136,7 +136,7 @@
 | SGN-BE-04 | Phase 42 | Complete |
 | SGN-SCH-02 | Phase 42 | Complete |
 | SGN-BE-01 | Phase 43 | Pending |
-| SGN-BE-02 | Phase 43 | Pending |
+| SGN-BE-02 | Phase 43 | Complete |
 | SGN-BE-06 | Phase 43 | Pending |
 | SGN-BE-09 | Phase 43 | Pending |
 | SGN-BE-10 | Phase 43 | Pending |
