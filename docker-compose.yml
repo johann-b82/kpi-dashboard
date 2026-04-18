@@ -33,6 +33,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      # Directus owns the uploads volume (rw on directus service, ro here).
+      # FastAPI reads media files by path resolved from signage_media.uri (Directus asset UUID) — SGN-INF-02.
+      - directus_uploads:/directus/uploads:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -81,7 +84,7 @@ services:
 
       # --- Hide Alembic-managed app tables from Directus Data Model UI ---
       # Comma-separated, no spaces (per Directus docs). Verified against backend/app/models.py.
-      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version,sensors,sensor_readings,sensor_poll_log
+      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version,sensors,sensor_readings,sensor_poll_log,signage_devices,signage_pairing_sessions
 
       # --- First-Admin bootstrap (D-01); ignored on subsequent boots ---
       ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
