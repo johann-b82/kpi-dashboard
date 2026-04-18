@@ -335,7 +335,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
 | 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
-| 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete   | 2026-04-18 |
+| 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |
 | 45. SSE Broadcast | v1.16 | 0/TBD | Not started | — |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
