@@ -10,6 +10,7 @@ from app.routers.uploads import router as uploads_router
 from app.routers.hr_kpis import router as hr_kpis_router
 from app.routers.data import router as data_router
 from app.routers.me import router as me_router
+from app.routers.signage_pair import router as signage_pair_router
 from app.scheduler import lifespan
 
 app = FastAPI(title="KPI Dashboard", lifespan=lifespan)
@@ -23,6 +24,7 @@ app.include_router(sensors_router)
 app.include_router(hr_kpis_router)
 app.include_router(data_router)
 app.include_router(me_router)
+app.include_router(signage_pair_router)
 
 
 @app.get("/health")
