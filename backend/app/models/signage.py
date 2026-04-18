@@ -277,9 +277,14 @@ class SignagePlaylistTagMap(Base):
 class SignagePairingSession(Base):
     """6-digit pairing code a fresh Pi displays until an admin claims it.
 
-    Partial-unique index on `code` scoped to rows where `expires_at > now()`
-    AND `claimed_at IS NULL` — guarantees only one active pairing session
-    per code without blocking historical reuse of codes (D-15).
+    Partial-unique index on `code` scoped to rows where `claimed_at IS NULL` —
+    guarantees only one unclaimed pairing session per code at a time (D-15).
+
+    SGN-DB-02 amendment (2026-04-18): the original plan included
+    `expires_at > now()` in the predicate, but PostgreSQL rejects non-IMMUTABLE
+    functions (like `now()`, which is STABLE) in partial-index predicates
+    (errcode 42P17). Expiration is instead enforced by the Phase 42 03:00 UTC
+    cron cleanup, which transitions expired rows out of the unclaimed state.
     """
 
     __tablename__ = "signage_pairing_sessions"
@@ -288,7 +293,7 @@ class SignagePairingSession(Base):
             "uix_signage_pairing_sessions_code_active",
             "code",
             unique=True,
-            postgresql_where=text("expires_at > now() AND claimed_at IS NULL"),
+            postgresql_where=text("claimed_at IS NULL"),
         ),
     )
 

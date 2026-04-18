@@ -258,7 +258,14 @@ def upgrade() -> None:
         "signage_pairing_sessions",
         ["code"],
         unique=True,
-        postgresql_where=sa.text("expires_at > now() AND claimed_at IS NULL"),
+        # Note: `expires_at > now()` was removed from this predicate because
+        # PostgreSQL requires functions in partial-index predicates to be
+        # IMMUTABLE; `now()` is STABLE and is rejected at CREATE INDEX time
+        # (errcode 42P17, "functions in index predicate must be marked
+        # IMMUTABLE"). The active-pairing-session invariant is instead
+        # enforced by the Phase 42 03:00 UTC cron cleanup which expires
+        # rows by setting a terminal state. SGN-DB-02 amended 2026-04-18.
+        postgresql_where=sa.text("claimed_at IS NULL"),
     )
 
 
