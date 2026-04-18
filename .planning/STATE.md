@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: executing
-stopped_at: Completed 42-02-signage-pair-router-PLAN.md
-last_updated: "2026-04-18T16:08:09.347Z"
+status: verifying
+stopped_at: Completed 42-03-cleanup-cron-and-revoke-PLAN.md
+last_updated: "2026-04-18T16:15:06.074Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 Phase: 42 (device-auth-pairing-flow) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-18
 
 Progress: [········] 0% (0/8 phases complete)
@@ -68,6 +68,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 41 P05 | 35m | 1 tasks | 3 files |
 | Phase 42 P01 | 12m | 3 tasks | 10 files |
 | Phase 42 P02 | 3m | 1 tasks | 3 files |
+| Phase 42 P03 | 278s | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 41]: Plan 41-05: SGN-DB-02 amended — partial-index predicate on signage_pairing_sessions.code is claimed_at IS NULL only. now() rejected by Postgres (errcode 42P17, non-IMMUTABLE). Expiration invariant now carried by the Phase 42 03:00 UTC pairing-cleanup cron. Round-trip test authored (test_signage_schema_roundtrip.py) catches the regression.
 - [Phase 42]: SIGNAGE_DEVICE_JWT_SECRET required, no default (D-04); revoked device → 401 not 403 (D-14); in-process rate limit viable under --workers 1 invariant
 - [Phase 42]: Plan 42-02: /api/signage/pair router delivers SGN-BE-03; Q1 resolved (unknown id → 200 expired, not 404); delete-on-deliver inside transaction; intentional exception to router-level admin-gate documented inline for Phase 43 dep-audit
+- [Phase 42]: Plan 42-03: signage_pairing_cleanup 03:00 UTC cron carries SGN-DB-02 expiration invariant (D-13); device revoke endpoint lives on pair router (not new /devices router) to avoid preempting Phase 43 CRUD; idempotent revoke preserves original revoked_at for audit
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -124,6 +126,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T16:08:09.345Z
-**Stopped at:** Completed 42-02-signage-pair-router-PLAN.md
+**Last session:** 2026-04-18T16:15:03.718Z
+**Stopped at:** Completed 42-03-cleanup-cron-and-revoke-PLAN.md
 **Resume file:** None
