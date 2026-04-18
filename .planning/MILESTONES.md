@@ -1,5 +1,21 @@
 # Milestones
 
+## v1.15 Sensor Monitor (Shipped: 2026-04-18)
+
+**Phases completed:** 3 phases, 8 plans, 4 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- Wired the v1.15 sensor pipeline into the existing APScheduler singleton — new sensor_poll job (max_instances=1, coalesce=True, misfire_grace_time=30, outer asyncio.wait_for), daily 90-day retention cleanup on CronTrigger(03:00 UTC), shared SnmpEngine on app.state — pinned the uvicorn --workers 1 deployment invariant in docker-compose.yml with SEN-SCH-05/C-7 comment, exposed reschedule_sensor_poll(int) for Phase 40, and scaffolded both gating checkpoints (SEN-OPS-01 pre-flight + Plan 38-03 E2E) in 38-VERIFICATION.md for the operator to run on the deployment host.
+- Interaction + differentiators (not in 39-01):
+- Backend (Task 1):
+- api.ts fetchers (Task 1):
+- One-liner:
+
+---
+
 ## v1.14 App Launcher (Shipped: 2026-04-17)
 
 **Phases completed:** 1 phases, 2 plans, 5 tasks
