@@ -202,10 +202,10 @@ Plans:
   3. `curl -X POST /api/signage/pair/claim` with no admin token returns 401/403; unauthenticated `POST /pair/request` with >5 req/min from the same IP is rate-limited.
   4. APScheduler cleanup job (reusing 03:00 UTC slot) deletes `signage_pairing_sessions` rows with `expires_at < now() - 24h`; verified by seeding an expired row and asserting it's gone after the job runs.
   5. Admin "Revoke device" flips `signage_devices.revoked_at`; subsequent requests with the revoked token return 401.
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [x] 42-01-device-auth-foundations-PLAN.md — Config + device_auth.py + rate_limit.py + pairing service (wave 1)
-- [ ] 42-02-signage-pair-router-PLAN.md — signage_pair router (/request, /status, /claim) + main.py wiring (wave 2)
+- [x] 42-02-signage-pair-router-PLAN.md — signage_pair router (/request, /status, /claim) + main.py wiring (wave 2)
 - [ ] 42-03-cleanup-cron-and-revoke-PLAN.md — 03:00 UTC cleanup cron + admin revoke endpoint + integration tests (wave 3)
 **Decisions resolved in planning**: Decision 4 — device token format — scoped JWT HS256 24h TTL, NO rotation (re-issue on re-pair only); per-request revoked_at check is the kill path (locked in CONTEXT D-01..D-04).
 
@@ -328,7 +328,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 39. Dashboard UI + Launcher Tile | v1.15 | 2/2 | Complete | 2026-04-17 |
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
 | 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
-| 42. Device Auth + Pairing Flow | v1.16 | 1/3 | In Progress|  |
+| 42. Device Auth + Pairing Flow | v1.16 | 2/3 | In Progress|  |
 | 43. Media + Playlist + Device Admin API | v1.16 | 0/TBD | Not started | — |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |
 | 45. SSE Broadcast | v1.16 | 0/TBD | Not started | — |
