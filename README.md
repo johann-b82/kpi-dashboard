@@ -29,11 +29,23 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Dark Mode** — Sun/moon toggle in navbar; OS `prefers-color-scheme` default + localStorage override; pre-hydration IIFE avoids flash-of-unstyled-content
 
 ### App Launcher
-- **iOS-style entry point at `/`** — After login, users land on a grid of app icons rather than directly in a dashboard; dashboards live at `/sales` and `/hr`
+- **iOS-style entry point at `/`** — After login, users land on a grid of app icons rather than directly in a dashboard; dashboards live at `/sales`, `/hr`, and `/sensors`
 - **Active KPI Dashboard tile** — Rounded-corner 120×120px card with icon only; label sits below the tile (iOS-style); click navigates to `/sales`
-- **Coming-soon placeholders** — 3 greyed tiles (40% opacity, non-clickable) for future apps
+- **Sensors tile** — Admin-only environmental monitoring dashboard with live temperature/humidity readings from SNMP devices
+- **Coming-soon placeholders** — Greyed tiles (40% opacity, non-clickable) for future apps
 - **Role-aware scaffold** — Admin-only tiles can be added without structural changes; Viewer-role users see only tiles without the `admin` flag
 - **Minimal launcher chrome** — Header on `/` shows brand (clickable → launcher), theme toggle, language toggle, settings gear, and sign-out; dashboard-scoped controls (SALES/HR toggle, docs, upload) appear only on dashboard routes
+
+### Sensor Monitoring (v1.15+)
+- **Live Sensor Dashboard** — KPI cards per sensor with current temperature/humidity, threshold-aware badges, stacked time-series charts with reference lines
+- **Time-Window Selector** — View 1h, 6h, 24h, 7d, or 30d windows on sensor readings with gap-aware rendering
+- **Poll-Now Button** — Trigger immediate sensor poll with live refresh of cards and charts; includes delta badges vs. 1h and 24h ago
+- **Health Status Chip** — Per-sensor "OK since Xh" or "Offline since X min" indicator computed from SNMP poll log
+- **Admin Settings Sub-Page** — `/settings/sensors` for CRUD operations on sensors, polling interval tuning, global temperature/humidity thresholds
+- **SNMP Walk Tool** — OID discovery utility for network sensor enumeration; click-to-assign discovered OIDs to sensor fields
+- **SNMP Probe Button** — Per-sensor connectivity validation with live temperature/humidity test result
+- **Encrypted Community Strings** — Fernet-encrypted at rest, write-only secrets (never displayed post-save, shown as `••••••`)
+- **Bilingual Admin Guide** — Complete operational runbook (DE/EN) with onboarding workflows, threshold configuration, polling interval tuning, and Docker network troubleshooting
 
 ### In-App Documentation
 - **Role-Aware Docs** — Library icon in navbar opens /docs; Admins see User Guide + Admin Guide sections, Viewers see User Guide only
@@ -136,20 +148,23 @@ kpi-light/
 │   │   │   ├── hr_kpis.py       # HR KPI current + 12-month history
 │   │   │   ├── data.py          # Raw data listing (sales records, employees)
 │   │   │   ├── settings.py      # App settings + Personio options
-│   │   │   └── sync.py          # Personio sync trigger + meta
+│   │   │   ├── sync.py          # Personio sync trigger + meta
+│   │   │   └── sensors.py       # Sensor CRUD, SNMP probe/walk, polling endpoints
 │   │   └── services/
 │   │       ├── kpi_aggregation.py
-│   │       └── hr_kpi_aggregation.py
+│   │       ├── hr_kpi_aggregation.py
+│   │       └── snmp_poller.py   # SNMP polling, walk, probe utilities
 │   ├── alembic/                 # Migration chain
 │   └── requirements.txt
 │
 ├── frontend/
 │   └── src/
-│       ├── pages/               # LauncherPage, DashboardPage, HRPage, UploadPage, SettingsPage, DocsPage
+│       ├── pages/               # LauncherPage, DashboardPage, HRPage, SensorsPage, UploadPage, SettingsPage, SensorsSettingsPage, DocsPage
 │       ├── components/
 │       │   ├── dashboard/       # KpiCard, RevenueChart, HrKpiCharts, SalesTable, EmployeeTable
+│       │   ├── sensors/         # SensorStatusCards, SensorTimeSeriesChart, PollNowButton
 │       │   ├── docs/            # MarkdownRenderer, DocsSidebar, TableOfContents
-│       │   ├── settings/        # PersonioCard, CheckboxList, HrTargetsCard, ColorPicker, LogoUpload, ActionBar
+│       │   ├── settings/        # PersonioCard, CheckboxList, HrTargetsCard, ColorPicker, LogoUpload, ActionBar, SensorRowForm, PollIntervalCard, ThresholdCard, SnmpWalkCard, SensorProbeButton
 │       │   ├── NavBar.tsx, ThemeProvider.tsx, DropZone.tsx
 │       │   └── ui/              # shadcn primitives (checkbox, segmented-control, etc.)
 │       ├── docs/                # Markdown articles (en/ and de/ subdirectories)
@@ -183,6 +198,15 @@ kpi-light/
 | POST | `/api/sync` | Trigger Personio data sync |
 | POST | `/api/sync/test` | Test Personio credential validity |
 | GET | `/api/sync/meta` | Last sync status and counts |
+| GET | `/api/sensors` | List all sensors (admin-only) |
+| POST | `/api/sensors` | Create a new sensor (admin-only) |
+| PATCH | `/api/sensors/{id}` | Update sensor config (admin-only) |
+| DELETE | `/api/sensors/{id}` | Delete sensor (admin-only) |
+| GET | `/api/sensors/{id}/readings` | Sensor reading history (filterable by hours window) |
+| GET | `/api/sensors/status` | Sensor health status from poll log (admin-only) |
+| POST | `/api/sensors/poll-now` | Trigger immediate poll of all sensors (admin-only) |
+| POST | `/api/sensors/snmp-probe` | Test SNMP connectivity with config (admin-only) |
+| POST | `/api/sensors/snmp-walk` | Discover OIDs on network with SNMP walk (admin-only) |
 
 ---
 
@@ -269,7 +293,8 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
-| v1.14 | 2026-04-17 | App Launcher — iOS-style `/home` entry point with 4-tile grid, role-aware scaffold, bilingual labels, AuthGate post-login redirect |
+| v1.15 | 2026-04-18 | Sensor Monitor — Live SNMP temperature/humidity readings with KPI cards, time-series charts, admin settings sub-page, SNMP walk/probe tools, encrypted community strings, bilingual admin guide |
+| v1.14 | 2026-04-17 | App Launcher — iOS-style `/` entry point with 4-tile grid, role-aware scaffold, bilingual labels, AuthGate post-login redirect |
 | v1.13 | 2026-04-17 | In-App Documentation — role-aware docs with Markdown rendering, 22 bilingual articles, TOC with scroll tracking |
 | v1.12 | 2026-04-16 | Chart Polish & Rebrand — year-aware x-axis labels, gap-filled month spines, "KPI Dashboard" rebrand, login page restyling |
 | v1.11-directus | 2026-04-15 | Auth + RBAC via self-hosted Directus; nightly pg_dump backups; Outline wiki and Dex/oauth2-proxy path dropped |
