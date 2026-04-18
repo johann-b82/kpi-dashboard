@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Phase 42 context gathered
-last_updated: "2026-04-18T15:39:09.711Z"
+stopped_at: Completed 42-01-device-auth-foundations-PLAN.md
+last_updated: "2026-04-18T16:02:51.866Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 0
 ---
 
@@ -27,14 +27,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 41 — signage-schema-models
+**Current focus:** Phase 42 — device-auth-pairing-flow
 
 ---
 
 ## Current Position
 
-Phase: 42
-Plan: Not started
+Phase: 42 (device-auth-pairing-flow) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
 Last activity: 2026-04-18
 
@@ -66,6 +66,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 41 P01 | 12m | 2 tasks | 2 files |
 | Phase 41 P03 | 152s | 2 tasks | 1 files |
 | Phase 41 P05 | 35m | 1 tasks | 3 files |
+| Phase 42 P01 | 12m | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 41]: Plan 41-02: converted schemas.py into package and added 19 Pydantic v2 signage schemas (Base/Create/Read trios + pairing DTOs)
 - [Phase 41]: Plan 41-03: handwritten v1_16_signage Alembic revision creating 8 signage tables, partial-unique pairing-code index, RESTRICT FK on playlist_items.media_id; no pgcrypto (PG17 gen_random_uuid builtin); no ENUM types (CHECK constraints for clean round-trip)
 - [Phase 41]: Plan 41-05: SGN-DB-02 amended — partial-index predicate on signage_pairing_sessions.code is claimed_at IS NULL only. now() rejected by Postgres (errcode 42P17, non-IMMUTABLE). Expiration invariant now carried by the Phase 42 03:00 UTC pairing-cleanup cron. Round-trip test authored (test_signage_schema_roundtrip.py) catches the regression.
+- [Phase 42]: SIGNAGE_DEVICE_JWT_SECRET required, no default (D-04); revoked device → 401 not 403 (D-14); in-process rate limit viable under --workers 1 invariant
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -120,6 +122,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T15:39:09.709Z
-**Stopped at:** Phase 42 context gathered
-**Resume file:** .planning/phases/42-device-auth-pairing-flow/42-CONTEXT.md
+**Last session:** 2026-04-18T16:02:51.864Z
+**Stopped at:** Completed 42-01-device-auth-foundations-PLAN.md
+**Resume file:** None
