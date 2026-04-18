@@ -17,7 +17,7 @@
 - [ ] **SGN-DB-01**: Alembic migration creates `signage_media`, `signage_playlists`, `signage_playlist_items`, `signage_devices`, `signage_device_tags`, `signage_device_tag_map`, `signage_playlist_tag_map`, `signage_pairing_sessions` (8 tables)
 - [ ] **SGN-DB-02**: Partial-unique index on `signage_pairing_sessions.code WHERE expires_at > now() AND claimed_at IS NULL` (prevents active-code collision while allowing reuse after expiry)
 - [ ] **SGN-DB-03**: `ON DELETE RESTRICT` on `signage_playlist_items.media_id` (prevents deleting media currently referenced by any playlist)
-- [ ] **SGN-DB-04**: `DB_EXCLUDE_TABLES` in `docker-compose.yml` excludes `signage_devices` + `signage_pairing_sessions` (sensitive); exposes `signage_media`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags` to Directus CMS UI for admin UX
+- [x] **SGN-DB-04**: `DB_EXCLUDE_TABLES` in `docker-compose.yml` excludes `signage_devices` + `signage_pairing_sessions` (sensitive); exposes `signage_media`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags` to Directus CMS UI for admin UX
 - [ ] **SGN-DB-05**: Migration round-trips cleanly — `upgrade → downgrade → upgrade` on fresh DB drops and recreates all tables + indexes cleanly
 
 ### Backend API (SGN-BE-*)
@@ -80,7 +80,7 @@
 ### Infrastructure (SGN-INF-*)
 
 - [ ] **SGN-INF-01**: Backend Dockerfile adds LibreOffice (`libreoffice-impress` + `libreoffice-core` 24.x), `poppler-utils`, Carlito/Caladea/Noto/DejaVu fonts to apt layer (font metrics match Calibri/Cambria for PPTX fidelity)
-- [ ] **SGN-INF-02**: `docker-compose.yml` adds `directus_uploads:/directus/uploads:ro` mount into `api`; `migrate → directus` startup ordering enforced via `depends_on.migrate.condition: service_completed_successfully` (prevents Directus introspection race on fresh tables)
+- [x] **SGN-INF-02**: `docker-compose.yml` adds `directus_uploads:/directus/uploads:ro` mount into `api`; `migrate → directus` startup ordering enforced via `depends_on.migrate.condition: service_completed_successfully` (prevents Directus introspection race on fresh tables)
 - [ ] **SGN-INF-03**: `--workers 1` invariant preserved and documented inline — SSE + APScheduler singleton + in-process asyncio.Queue fanout all depend on it; comment block added to `signage_broadcast.py` mirroring existing comment in `docker-compose.yml` + `scheduler.py`
 
 ---
@@ -129,9 +129,9 @@
 | SGN-DB-01 | Phase 41 | Pending |
 | SGN-DB-02 | Phase 41 | Pending |
 | SGN-DB-03 | Phase 41 | Pending |
-| SGN-DB-04 | Phase 41 | Pending |
+| SGN-DB-04 | Phase 41 | Complete |
 | SGN-DB-05 | Phase 41 | Pending |
-| SGN-INF-02 | Phase 41 | Pending |
+| SGN-INF-02 | Phase 41 | Complete |
 | SGN-BE-03 | Phase 42 | Pending |
 | SGN-BE-04 | Phase 42 | Pending |
 | SGN-SCH-02 | Phase 42 | Pending |
