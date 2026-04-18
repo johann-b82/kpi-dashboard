@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 43-04-PLAN.md
-last_updated: "2026-04-18T21:48:04.224Z"
+stopped_at: Completed 43-03-PLAN.md
+last_updated: "2026-04-18T21:48:30.344Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 43 (media-playlist-device-admin-api-polling) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-18
 
@@ -72,6 +72,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 43 P01 | 6m | 2 tasks | 3 files |
 | Phase 43 P02 | 3m | 2 tasks | 3 files |
 | Phase 43 P04 | 8m | 3 tasks | 5 files |
+| Phase 43 P03 | 3m 28s | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 42]: Plan 42-03: signage_pairing_cleanup 03:00 UTC cron carries SGN-DB-02 expiration invariant (D-13); device revoke endpoint lives on pair router (not new /devices router) to avoid preempting Phase 43 CRUD; idempotent revoke preserves original revoked_at for audit
 - [Phase 43]: Plan 43-02: resolver duration_s->duration_ms conversion centralized at envelope boundary; compute_playlist_etag uses sha256('empty') sentinel for unmatched polls; resolver is pure-read (D-10)
 - [Phase 43]: Plan 43-04: player router uses router-level Depends(get_current_device); /playlist is pure-read (D-10); heartbeat sweeper runs 1-min interval and excludes already-offline + revoked devices (D-15 idempotency)
+- [Phase 43]: Plan 43-03: signage_admin router package with single router-level admin gate (D-01); 409-with-playlist_ids via JSONResponse on media FK RESTRICT (Pitfall 6); bulk-replace items + device/playlist tags in single-tx; D-21 (b) via directus_file_id -> uri mapping (no schema change)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -131,6 +133,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T21:48:04.221Z
-**Stopped at:** Completed 43-04-PLAN.md
+**Last session:** 2026-04-18T21:48:30.342Z
+**Stopped at:** Completed 43-03-PLAN.md
 **Resume file:** None
