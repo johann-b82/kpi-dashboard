@@ -55,7 +55,7 @@ EXPECTED_TABLES = {
     "signage_pairing_sessions",
 }
 
-SIGNAGE_HEAD_REVISION = "v1_16_signage"
+SIGNAGE_HEAD_REVISION = "v1_16_signage_devices_etag"
 
 # Re-export the sync helpers so static checkers + the plan's acceptance-grep
 # (which looks for `create_engine`, `text`, IntegrityError) still sees them as
@@ -224,8 +224,9 @@ def test_round_trip_clean(engine):
 
     _assert_full_upgrade_state()
 
-    # Downgrade one step — unwinds v1_16_signage only.
-    _run_alembic("downgrade", "-1")
+    # Downgrade two steps — unwinds v1_16_signage_devices_etag and
+    # v1_16_signage so all Phase 41 signage tables are dropped.
+    _run_alembic("downgrade", "-2")
 
     leftover_tables = _signage_tables()
     assert leftover_tables == set(), (
