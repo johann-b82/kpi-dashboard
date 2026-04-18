@@ -1,0 +1,97 @@
+=== Task 2 DB coexistence check (2026-04-15T17:34:00Z) ===
+
+--- 1. All tables in public schema ---
+                    List of relations
+ Schema |             Name             | Type  |  Owner   
+--------+------------------------------+-------+----------
+ public | alembic_version              | table | acm_user
+ public | app_settings                 | table | acm_user
+ public | app_users                    | table | acm_user
+ public | directus_access              | table | acm_user
+ public | directus_activity            | table | acm_user
+ public | directus_collections         | table | acm_user
+ public | directus_comments            | table | acm_user
+ public | directus_dashboards          | table | acm_user
+ public | directus_deployment_projects | table | acm_user
+ public | directus_deployment_runs     | table | acm_user
+ public | directus_deployments         | table | acm_user
+ public | directus_extensions          | table | acm_user
+ public | directus_fields              | table | acm_user
+ public | directus_files               | table | acm_user
+ public | directus_flows               | table | acm_user
+ public | directus_folders             | table | acm_user
+ public | directus_migrations          | table | acm_user
+ public | directus_notifications       | table | acm_user
+ public | directus_operations          | table | acm_user
+ public | directus_panels              | table | acm_user
+ public | directus_permissions         | table | acm_user
+ public | directus_policies            | table | acm_user
+ public | directus_presets             | table | acm_user
+ public | directus_relations           | table | acm_user
+ public | directus_revisions           | table | acm_user
+ public | directus_roles               | table | acm_user
+ public | directus_sessions            | table | acm_user
+ public | directus_settings            | table | acm_user
+ public | directus_shares              | table | acm_user
+ public | directus_translations        | table | acm_user
+ public | directus_users               | table | acm_user
+ public | directus_versions            | table | acm_user
+ public | personio_absences            | table | acm_user
+ public | personio_attendance          | table | acm_user
+ public | personio_employees           | table | acm_user
+ public | personio_sync_meta           | table | acm_user
+ public | sales_records                | table | acm_user
+ public | upload_batches               | table | acm_user
+(38 rows)
+
+
+--- 2. Alembic app tables (7 + alembic_version) ---
+  OK: upload_batches
+  OK: sales_records
+  OK: app_settings
+  OK: personio_employees
+  OK: personio_attendance
+  OK: personio_absences
+  OK: personio_sync_meta
+  OK: alembic_version
+
+--- 3. Directus system tables (subset) ---
+  OK: directus_users
+  OK: directus_roles
+  OK: directus_policies
+  OK: directus_access
+  OK: directus_permissions
+  OK: directus_sessions
+
+--- 4. directus_roles contents ---
+                  id                  |     name      
+--------------------------------------+---------------
+ aeccfcd7-3dd0-4a0f-9c35-96699a8dd760 | Administrator
+ a2222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb | Viewer
+(2 rows)
+
+
+--- 5. directus_policies contents ---
+                  id                  |      name       | admin_access | app_access 
+--------------------------------------+-----------------+--------------+------------
+ abf8a154-5b1c-4a46-ac9c-7300570f4f17 | $t:public_label | f            | f
+ 860fac7e-1089-41ab-a25f-c17916a0cc8f | Administrator   | t            | t
+ a2222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa | Viewer Read     | f            | t
+(3 rows)
+
+
+--- 6. directus_access link Viewer role <-> Viewer Read policy ---
+                  id                  |     role      |     policy      
+--------------------------------------+---------------+-----------------
+ d9f14c8c-5db1-4ef9-b0d8-fc27c9b93cfc | Administrator | Administrator
+ a2222222-cccc-cccc-cccc-cccccccccccc | Viewer        | Viewer Read
+ 5bb92f6d-2553-4199-a131-77db4a3cbdca |               | $t:public_label
+(3 rows)
+
+
+--- 7. First Admin user ---
+       email       | status 
+-------------------+--------
+ admin@example.com | active
+(1 row)
+

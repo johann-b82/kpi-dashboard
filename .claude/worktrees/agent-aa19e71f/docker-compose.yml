@@ -1,0 +1,252 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  migrate:
+    build: ./backend
+    command: alembic upgrade head
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    # Rule 3 fix (28-02): merge mkcert root CA into system trust store at
+    # container start so OIDC discovery against https://auth.internal works
+    # without replacing the default CA bundle (needed for Personio HTTPS).
+    command: >
+      sh -c "
+      cat /etc/ssl/certs/mkcert-rootCA.pem >> /etc/ssl/certs/ca-certificates.crt 2>/dev/null || true;
+      cp /etc/ssl/certs/mkcert-rootCA.pem /usr/local/share/ca-certificates/mkcert-rootCA.crt 2>/dev/null && update-ca-certificates 2>/dev/null || true;
+      exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    env_file: .env
+    environment:
+      DEX_ISSUER: https://auth.internal/dex
+      DEX_CLIENT_ID: kpi-light
+      DEX_KPI_SECRET: ${DEX_KPI_SECRET}
+      DEX_REDIRECT_URI: https://kpi.internal/api/auth/callback
+      SESSION_SECRET: ${SESSION_SECRET}
+      DISABLE_AUTH: ${DISABLE_AUTH:-false}
+      # Trust the system CA bundle (which we augment with mkcert at startup)
+      # so httpx/authlib trusts https://auth.internal (28-02 Rule 3).
+      SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+    # Host binding removed in Phase 26 — NPM routes /api/* via kpi.internal.
+    # Uncomment for direct curl/debug access bypassing NPM.
+    # ports:
+    #   - "8000:8000"
+    volumes:
+      - ./backend:/app
+      # Rule 3 fix (28-02): trust the mkcert root CA so OIDC discovery against
+      # https://auth.internal (served by NPM with the mkcert SAN cert) does
+      # not fail SSL verification inside the container. SSL_CERT_FILE below
+      # wires OpenSSL (httpx/authlib) to this bundle.
+      - ./certs/rootCA.pem:/etc/ssl/certs/mkcert-rootCA.pem:ro
+    # Rule 3 fix (28-02): api container must reach Dex via https://auth.internal
+    # (the OIDC issuer URL), which is served by NPM on the host. Map the
+    # hostname to the host gateway so OIDC discovery + token exchange work
+    # from inside the docker network. Without this, /etc/hosts inherited from
+    # the host points auth.internal -> 127.0.0.1 (the container itself).
+    extra_hosts:
+      - "auth.internal:host-gateway"
+      - "kpi.internal:host-gateway"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build: ./frontend
+    # Host binding removed in Phase 26 — NPM is the edge (https://kpi.internal).
+    # Uncomment for direct-to-Vite debugging when NPM is not running.
+    # ports:
+    #   - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    # node:22-alpine ships busybox `wget` but NOT `curl`. wget --spider returns
+    # exit 0 on 2xx/3xx and nonzero on connection failure / 4xx/5xx — correct
+    # readiness semantics for the Vite dev server (no /health endpoint exists).
+    # start_period: 30s covers `npm install` + Vite cold-start on first boot.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  npm:
+    image: jc21/nginx-proxy-manager:2.11.3
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"  # admin UI (D-09)
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+      # Read-only bind mount so NPM proxy hosts can reference the
+      # mkcert-generated cert+key (D-04). Read-only prevents NPM writing
+      # into the host cert dir.
+      - ./certs:/etc/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:81 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # INF-05: gate NPM on BOTH api and frontend being healthy so we never
+    # serve a 502 window while Vite is still compiling on first boot.
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+      outline:
+        condition: service_healthy
+
+  dex:
+    image: ghcr.io/dexidp/dex:v2.43.0   # D-20: pinned to GHCR (avoids Docker Hub rate limits)
+    restart: unless-stopped              # D-24
+    # Rule 1 fix (27-02 Task 3): image default user is 1001:1001 but the named
+    # volume /data mounts as root-owned — sqlite3 cannot create /data/dex.db.
+    # Internal-tool scope makes root acceptable here; the alternative is a
+    # chown init sidecar. Revisit when the stack hardens.
+    user: root
+    # Phase 31 debugging: Dex v2.43 does NOT expand $VAR inside staticClients.secret
+    # when loading the config (observed: token exchange failed with invalid_client
+    # even though the env var was set). Preprocess the config with envsubst at
+    # startup so DEX_KPI_SECRET / DEX_OUTLINE_SECRET land as literal values.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache gettext >/dev/null 2>&1 || true
+        envsubst '$$DEX_KPI_SECRET $$DEX_OUTLINE_SECRET' < /etc/dex/config.yaml > /tmp/config.yaml
+        exec dex serve /tmp/config.yaml
+    # D-22: no host port binding — NPM is the edge (Phase 26 D-07 convention).
+    # Uncomment for direct curl/debug bypassing NPM. Matches frontend/api hatch.
+    # ports:
+    #   - "5556:5556"
+    volumes:
+      - ./dex/config.yaml:/etc/dex/config.yaml:ro   # D-17: read-only bind mount
+      - dex_data:/data                              # D-18: SQLite persistence
+    environment:
+      DEX_KPI_SECRET: "${DEX_KPI_SECRET}"           # D-13: $VAR substitution into config.yaml
+      DEX_OUTLINE_SECRET: "${DEX_OUTLINE_SECRET}"
+    healthcheck:
+      # 127.0.0.1 not localhost — busybox IPv6 (D-21, Phase 26 commit eab26c7).
+      # Path is /dex/healthz (not /healthz) because issuer is path-prefixed (D-01).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5556/dex/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # D-23: no depends_on (SQLite is in-container; no DB or Redis dependency)
+
+  outline-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_USER: outline
+      POSTGRES_PASSWORD: ${OUTLINE_DB_PASSWORD}
+    volumes:
+      - outline_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outline -d outline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  outline-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - outline_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  outline:
+    image: outlinewiki/outline:0.86.0
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      URL: https://wiki.internal
+      SECRET_KEY: ${OUTLINE_SECRET_KEY}
+      UTILS_SECRET: ${OUTLINE_UTILS_SECRET}
+      DATABASE_URL: postgres://outline:${OUTLINE_DB_PASSWORD}@outline-db:5432/outline
+      PGSSLMODE: disable
+      REDIS_URL: redis://outline-redis:6379
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
+      FORCE_HTTPS: "true"
+      DEFAULT_LANGUAGE: en_US
+      OIDC_CLIENT_ID: outline
+      OIDC_CLIENT_SECRET: ${DEX_OUTLINE_SECRET}
+      OIDC_AUTH_URI: https://auth.internal/dex/auth
+      OIDC_TOKEN_URI: http://dex:5556/dex/token
+      OIDC_USERINFO_URI: http://dex:5556/dex/userinfo
+      OIDC_USERNAME_CLAIM: preferred_username
+      OIDC_DISPLAY_NAME: name
+      OIDC_SCOPES: openid profile email offline_access
+      NODE_EXTRA_CA_CERTS: /etc/ssl/certs/mkcert-rootCA.pem
+    volumes:
+      # D-05: mount mkcert root CA read-only; Node reads it via NODE_EXTRA_CA_CERTS
+      # (cleaner than the api service's update-ca-certificates dance because Node
+      # honours NODE_EXTRA_CA_CERTS natively — RESEARCH §Architecture Patterns).
+      - ./certs/rootCA.pem:/etc/ssl/certs/mkcert-rootCA.pem:ro
+      # Pitfall 5: named volume (not anonymous) so attachments survive recreate.
+      - outline_uploads:/var/lib/outline/data
+    extra_hosts:
+      # D-05: host-gateway for browser-hostname OIDC discovery + iss validation,
+      # even though token/userinfo use internal docker DNS.
+      - "auth.internal:host-gateway"
+    depends_on:
+      outline-db:
+        condition: service_healthy
+      outline-redis:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+    # No host port binding — NPM is the edge (Phase 26 D-07). Uncomment for debug.
+    # ports:
+    #   - "3000:3000"
+    # Dockerfile HEALTHCHECK already probes http://localhost:3000/_health
+    # (v0.86.0 — the 0.79.0 bug is fixed; no compose-level override needed).
+
+volumes:
+  postgres_data:
+  npm_data:
+  npm_letsencrypt:
+  dex_data:
+  outline_db_data:
+  outline_redis_data:
+  outline_uploads:

@@ -1,0 +1,140 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  migrate:
+    build: ./backend
+    command: alembic upgrade head
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+
+  directus:
+    image: directus/directus:11.17.2
+    env_file: .env
+    ports:
+      - "127.0.0.1:8055:8055"
+    volumes:
+      - directus_uploads:/directus/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      # --- Core secrets (from .env) ---
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      # --- Database connection — reuse existing `db` service ---
+      DB_CLIENT: pg
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # --- Hide Alembic-managed app tables from Directus Data Model UI ---
+      # Comma-separated, no spaces (per Directus docs). Verified against backend/app/models.py.
+      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version
+
+      # --- First-Admin bootstrap (D-01); ignored on subsequent boots ---
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+
+      # --- Public URL for email/oauth redirects (operator-only for v1.11) ---
+      PUBLIC_URL: http://127.0.0.1:8055
+
+      # --- CORS: required for SPA at localhost:5173 to send credentialed requests ---
+      # CORS_CREDENTIALS is load-bearing for the httpOnly refresh cookie (Phase 29 D-02).
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://localhost:5173"
+      CORS_CREDENTIALS: "true"
+      TELEMETRY: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8055/server/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  directus-bootstrap-roles:
+    # Roles-as-code sidecar. Replaces the v10-style snapshot.yml approach
+    # (rejected by Directus 11 — policies/access model). Runs a REST-API
+    # bootstrap script that is idempotent (GET-before-POST).
+    image: curlimages/curl:8.10.1
+    env_file: .env
+    environment:
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+    volumes:
+      - ./directus/bootstrap-roles.sh:/bootstrap-roles.sh:ro
+    depends_on:
+      directus:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/bootstrap-roles.sh"]
+    restart: "no"
+
+  backup:
+    image: postgres:17-alpine
+    container_name: kpi-backup
+    env_file: .env
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      TZ: Europe/Berlin
+    volumes:
+      - ./backups:/backups
+      - ./backup/entrypoint.sh:/entrypoint.sh:ro
+      - ./backup/dump.sh:/usr/local/bin/dump.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  directus_uploads:

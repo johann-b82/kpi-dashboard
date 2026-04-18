@@ -1,0 +1,53 @@
+import i18n, { i18nInitPromise } from "./i18n";
+import { queryClient } from "./queryClient";
+import { fetchSettings } from "./lib/api";
+
+const LANG_STORAGE_KEY = "kpi-light-lang";
+
+// Guard against double-init (hot reload, StrictMode effects, etc.).
+let bootstrapPromise: Promise<void> | null = null;
+
+/**
+ * Single cold-start writer for initial i18n language and the TanStack
+ * `["settings"]` cache entry.
+ *
+ * Language is read from localStorage (frontend-only).
+ * Settings are fetched from /api/settings for theme/Personio config.
+ */
+let htmlLangHookWired = false;
+function wireHtmlLangSync() {
+  if (htmlLangHookWired) return;
+  htmlLangHookWired = true;
+  const apply = (lng: string) => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lng;
+    }
+  };
+  apply(i18n.language);
+  i18n.on("languageChanged", (lng) => {
+    apply(lng);
+    localStorage.setItem(LANG_STORAGE_KEY, lng);
+  });
+}
+
+export function bootstrap(): Promise<void> {
+  if (bootstrapPromise) return bootstrapPromise;
+  bootstrapPromise = (async () => {
+    await i18nInitPromise;
+    wireHtmlLangSync();
+
+    // Language from localStorage (frontend-only)
+    const storedLang = localStorage.getItem(LANG_STORAGE_KEY) || "en";
+    await i18n.changeLanguage(storedLang);
+
+    // Settings from API (theme, Personio config — no language)
+    try {
+      const settings = await fetchSettings();
+      queryClient.setQueryData(["settings"], settings);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[bootstrap] fetchSettings failed:", err);
+    }
+  })();
+  return bootstrapPromise;
+}

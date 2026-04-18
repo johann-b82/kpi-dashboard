@@ -1,0 +1,85 @@
+"""Async test harness for backend/tests/.
+
+Provides:
+  - `client`: httpx.AsyncClient bound to the FastAPI ASGI app via ASGITransport,
+    wrapped in asgi-lifespan's LifespanManager so startup/shutdown events fire.
+  - `reset_settings`: autouse fixture that resets the app_settings singleton row
+    to DEFAULT_SETTINGS before each test, guaranteeing isolation.
+"""
+import pytest_asyncio
+from asgi_lifespan import LifespanManager
+from httpx import ASGITransport, AsyncClient
+
+from app.main import app
+from app.security.auth import SYNTHETIC_USER, get_current_user
+
+# Bypass OIDC auth in tests by returning the synthetic dev user. Phase 28
+# guards all business routers with `get_current_user`; without this override
+# prior-phase tests hit 401 before exercising any business logic.
+app.dependency_overrides[get_current_user] = lambda: SYNTHETIC_USER
+
+
+@pytest_asyncio.fixture
+async def client():
+    # Dispose the shared async engine's pool so this test's event loop gets
+    # fresh connections. Without this, asyncpg raises "another operation is in
+    # progress" / "attached to a different loop" when the module-level engine
+    # (created during earlier tests with different loops) is reused.
+    from app.database import engine
+
+    await engine.dispose()
+    async with LifespanManager(app):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            yield ac
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_settings():
+    """Reset app_settings singleton to DEFAULT_SETTINGS before each test.
+
+    Guarded by ImportError because AppSettings / DEFAULT_SETTINGS are created in
+    Plans 02 and 03 of this phase; before those merge, this fixture is a no-op
+    so `pytest --collect-only` still works on a partial tree.
+    """
+    try:
+        from sqlalchemy import update
+        from sqlalchemy.exc import SQLAlchemyError
+
+        from app.database import AsyncSessionLocal, engine
+        from app.defaults import DEFAULT_SETTINGS
+        from app.models import AppSettings
+    except ImportError:
+        yield
+        return
+
+    # Dispose the pool so this event loop gets fresh connections — avoids
+    # asyncpg "another operation is in progress" when module-level engine
+    # is reused across tests with different loops.
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
+
+    try:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                update(AppSettings)
+                .where(AppSettings.id == 1)
+                .values(
+                    logo_data=None,
+                    logo_mime=None,
+                    logo_updated_at=None,
+                    **DEFAULT_SETTINGS,
+                )
+            )
+            await db.commit()
+    except (SQLAlchemyError, RuntimeError):
+        # Table may not exist yet in a partial Wave 2 tree (Plans 04-02/04-03
+        # create `app_settings`). Pure unit tests that don't need DB isolation
+        # should still run — let them proceed as a no-op. RuntimeError catches
+        # the "attached to a different loop" fragility when the module-scoped
+        # async engine outlives a parametrized test's event loop.
+        pass
+    yield

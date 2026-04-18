@@ -1,0 +1,65 @@
+# SECURITY NOTE: admin and dev users were seeded with placeholder passwords
+# by plan 27-02. The placeholder passwords MUST be rotated before any human
+# shares credentials. See docs/setup.md "Dex first-login" for the rotation
+# workflow. Real passwords are NOT recorded here.
+#
+# ./dex/config.yaml — Dex v2.43.x — see .planning/phases/27-dex-idp-setup/27-RESEARCH.md
+# Static-password connector, SQLite storage, two OIDC clients (kpi-light, outline)
+# Source skeleton: https://github.com/dexidp/dex/blob/v2.43.0/config.yaml.dist
+
+# D-01: path-prefixed issuer; browser-reachable via NPM (no trailing slash)
+issuer: https://auth.internal/dex
+
+storage:
+  type: sqlite3
+  config:
+    file: /data/dex.db              # Persisted via dex_data volume (D-18)
+
+web:
+  http: 0.0.0.0:5556                # D-03: plain HTTP; NPM terminates TLS
+
+logger:
+  level: "info"
+  format: "json"
+
+oauth2:
+  skipApprovalScreen: true          # D-11: internal tool, no consent page
+  responseTypes:
+    - code                          # D-12: Authorization Code flow only
+  grantTypes:
+    - authorization_code
+    - refresh_token
+
+expiry:
+  idTokens: "1h"                    # D-07: satisfies DEX-05 (<= 1h)
+  refreshTokens:
+    validIfNotUsedFor: "720h"       # D-08: 30 days idle timeout
+    absoluteLifetime: "2160h"       # D-09: 90 days hard cap
+    disableRotation: false          # D-10: rotation on
+
+enablePasswordDB: true
+
+staticPasswords:
+  - email: "admin@acm.local"
+    # bcrypt cost 10; generated 2026-04-14 by plan 27-02 (placeholder password rotated per SECURITY NOTE)
+    hash: '$2b$10$jrBtTsBhou/EuibDxxT6L.pqdSaabW.Xnk01zEjyAoEdHuvhL5jjS'
+    username: "admin"
+    userID: "e988b9b7-06b1-4a2e-9ca4-1e2927fd59bf"   # D-05: stable UUID
+
+  - email: "dev@acm.local"
+    hash: '$2b$10$uaALbZW56YTG3sMEdJWeLOz6Rq7wJiWYGiQdAlXoFlnMLp/PL5IBq'
+    username: "dev"
+    userID: "b9ded53c-3aaf-4e76-a942-14aef9bfe922"
+
+staticClients:
+  - id: kpi-light
+    secret: ${DEX_KPI_SECRET}         # D-13: env-var substitution (no quotes)
+    name: "KPI Dashboard"
+    redirectURIs:
+      - https://kpi.internal/api/auth/callback       # D-25
+
+  - id: outline
+    secret: ${DEX_OUTLINE_SECRET}
+    name: "Outline Wiki"
+    redirectURIs:
+      - https://wiki.internal/auth/oidc.callback     # D-25 (note the DOT)

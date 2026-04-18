@@ -257,6 +257,25 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* HR Card — embeds Personio + Sollwerte as subsections */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">
+            {t("settings.hr.title")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <PersonioCard
+            draft={draft}
+            setField={setField}
+            hasCredentials={settingsData?.personio_has_credentials ?? false}
+            embedded
+          />
+          <hr className="border-border" />
+          <HrTargetsCard draft={draft} setField={setField} embedded />
+        </CardContent>
+      </Card>
+
       {/* Phase 40-02 — admin-only link to /settings/sensors */}
       <AdminOnly>
         <Card>
@@ -279,25 +298,6 @@ export function SettingsPage() {
           </CardContent>
         </Card>
       </AdminOnly>
-
-      {/* HR Card — embeds Personio + Sollwerte as subsections */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">
-            {t("settings.hr.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <PersonioCard
-            draft={draft}
-            setField={setField}
-            hasCredentials={settingsData?.personio_has_credentials ?? false}
-            embedded
-          />
-          <hr className="border-border" />
-          <HrTargetsCard draft={draft} setField={setField} embedded />
-        </CardContent>
-      </Card>
 
       <ActionBar
         isDirty={isDirty}

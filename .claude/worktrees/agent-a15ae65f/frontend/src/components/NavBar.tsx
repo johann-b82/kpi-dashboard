@@ -1,0 +1,160 @@
+import { useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
+import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, BookOpen } from "lucide-react";
+
+type Dashboard = "/" | "/hr";
+
+function getLastDashboard(): Dashboard {
+  try {
+    const v = sessionStorage.getItem("lastDashboard");
+    if (v === "/hr") return "/hr";
+  } catch {
+    /* sessionStorage unavailable — fall through to default */
+  }
+  return "/";
+}
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSettings } from "@/hooks/useSettings";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { DEFAULT_SETTINGS } from "@/lib/defaults";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+
+// Wiki edge URL (Phase 30 D-02). Override via VITE_WIKI_URL in .env for
+// real-domain deployments without a code change.
+const WIKI_URL = import.meta.env.VITE_WIKI_URL ?? "https://wiki.internal";
+
+export function NavBar() {
+  const { t } = useTranslation();
+  const [location, navigate] = useLocation();
+  const { data } = useSettings();
+
+  // Fallback chain: cached data > frontend defaults.
+  // ThemeProvider gates render while isLoading, so by the time NavBar renders,
+  // data is present OR ThemeProvider is in error-fallback mode (data undefined).
+  const settings = data ?? DEFAULT_SETTINGS;
+
+  // Track the last visited dashboard (Sales or HR) so the back button on
+  // /settings and /upload can always return to where the user came from.
+  useEffect(() => {
+    if (location === "/" || location === "/hr") {
+      try {
+        sessionStorage.setItem("lastDashboard", location);
+      } catch {
+        /* sessionStorage unavailable — back button falls back to "/" */
+      }
+    }
+  }, [location]);
+
+  const lastDashboard = getLastDashboard();
+  const backLabel = lastDashboard === "/hr" ? t("nav.back_to_hr") : t("nav.back_to_sales");
+
+  // Upload icon link — styled Link directly (no nested <Button> to avoid invalid <a><button>)
+  const uploadLinkClass =
+    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
+    (location === "/upload" ? "text-primary" : "text-foreground");
+
+  // Gear link — styled <Link> directly (no nested <Button> to avoid invalid <a><button>)
+  const settingsLinkClass =
+    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
+    (location === "/settings" ? "text-primary" : "text-foreground");
+
+  return (
+    <nav className="fixed top-0 inset-x-0 h-16 bg-card border-b border-border z-50">
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center gap-6">
+        {/* Brand slot — mutually exclusive logo OR text (D-05, BRAND-03 + BRAND-06) */}
+        <div className="flex items-center gap-2">
+          {settings.logo_url != null && (
+            <img
+              src={settings.logo_url}
+              alt={settings.app_name}
+              className="max-h-8 max-w-8 object-contain"
+            />
+          )}
+          <span className="text-sm font-medium">{settings.app_name}</span>
+        </div>
+
+        {location === "/settings" || location === "/upload" ? (
+          <button
+            type="button"
+            onClick={() => navigate(lastDashboard)}
+            className="inline-flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent/10 transition-colors text-foreground text-sm"
+            aria-label={backLabel}
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>{backLabel}</span>
+          </button>
+        ) : (
+          <SegmentedControl
+            segments={[
+              { value: "/", label: t("nav.sales") },
+              { value: "/hr", label: t("nav.hr") },
+            ]}
+            value={location === "/hr" ? "/hr" : "/"}
+            onChange={(path) => navigate(path)}
+            aria-label="Navigation"
+            className="border-transparent"
+          />
+        )}
+
+        <div className="ml-auto flex items-center gap-4">
+          <ThemeToggle />
+          <LanguageToggle />
+          <a
+            href={WIKI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={t("nav.wiki")}
+            aria-label={t("nav.wiki")}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
+          >
+            <BookOpen className="h-5 w-5" />
+          </a>
+          <Link
+            href="/upload"
+            aria-label={t("nav.upload")}
+            className={uploadLinkClass}
+          >
+            <UploadIcon className="h-5 w-5" />
+          </Link>
+          <Link
+            href="/settings"
+            aria-label={t("nav.settings")}
+            className={settingsLinkClass}
+          >
+            <SettingsIcon className="h-5 w-5" />
+          </Link>
+          <UserChunk />
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/**
+ * Rightmost NavBar cluster: signed-in user display name + native POST-form
+ * logout button (D-23 / KPO-09: MUST be a real <form>, not a fetch).
+ * Display label prefers user.name; falls back to user.email per D-12.
+ */
+function UserChunk() {
+  const { t } = useTranslation();
+  const { data: user } = useCurrentUser();
+  if (!user) return null;
+  const label = user.name ?? user.email; // D-12 fallback
+  return (
+    <div className="flex items-center gap-2 ml-3">
+      <span className="text-sm text-foreground" aria-label="Signed in as">
+        {label}
+      </span>
+      <form method="POST" action="/api/auth/logout">
+        <button
+          type="submit"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          {t("auth.logout")}
+        </button>
+      </form>
+    </div>
+  );
+}

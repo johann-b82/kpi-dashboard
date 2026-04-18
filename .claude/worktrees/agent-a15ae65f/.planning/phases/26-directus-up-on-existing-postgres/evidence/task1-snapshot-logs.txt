@@ -1,0 +1,2 @@
+directus-snapshot-1  | [16:01:05.440] INFO: Extensions loaded
+directus-snapshot-1  | [16:01:05.552] INFO: Snapshot applied successfully
