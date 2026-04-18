@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 41-03-alembic-migration-PLAN.md
-last_updated: "2026-04-18T15:15:23.912Z"
+stopped_at: Completed 41-05-round-trip-verification-PLAN.md
+last_updated: "2026-04-18T15:27:32.742Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 41 (signage-schema-models) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-04-18
 
@@ -65,6 +65,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 41 P02 | 156 | 1 tasks | 4 files |
 | Phase 41 P01 | 12m | 2 tasks | 2 files |
 | Phase 41 P03 | 152s | 2 tasks | 1 files |
+| Phase 41 P05 | 35m | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Next action: `/gsd:plan-phase 41`
 - **Phase 48:** Pi provisioning as dedicated `signage` user (NOT root), systemd user service with `After=graphical.target`, Chromium kiosk flag set, bilingual admin guide article + docs-index entries, full E2E walkthrough (fresh Pi → pair → play → net drop → loop → restore).
 - [Phase 41]: Plan 41-02: converted schemas.py into package and added 19 Pydantic v2 signage schemas (Base/Create/Read trios + pairing DTOs)
 - [Phase 41]: Plan 41-03: handwritten v1_16_signage Alembic revision creating 8 signage tables, partial-unique pairing-code index, RESTRICT FK on playlist_items.media_id; no pgcrypto (PG17 gen_random_uuid builtin); no ENUM types (CHECK constraints for clean round-trip)
+- [Phase 41]: Plan 41-05: SGN-DB-02 amended — partial-index predicate on signage_pairing_sessions.code is claimed_at IS NULL only. now() rejected by Postgres (errcode 42P17, non-IMMUTABLE). Expiration invariant now carried by the Phase 42 03:00 UTC pairing-cleanup cron. Round-trip test authored (test_signage_schema_roundtrip.py) catches the regression.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -118,6 +120,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T15:15:23.910Z
-**Stopped at:** Completed 41-03-alembic-migration-PLAN.md
+**Last session:** 2026-04-18T15:27:32.739Z
+**Stopped at:** Completed 41-05-round-trip-verification-PLAN.md
 **Resume file:** None
