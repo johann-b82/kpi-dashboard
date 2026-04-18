@@ -219,7 +219,13 @@ Plans:
   3. `POST /api/signage/player/heartbeat` with `current_item_id` updates `signage_devices.last_seen_at`; APScheduler sweeper (1-min cadence, `max_instances=1`, `coalesce=True`) flips devices with `last_seen_at > now() - 5 min` to `offline` status.
   4. Router dep-audit test passes: every admin signage route has `require_admin` in its dependant tree; every `/api/signage/player/*` route has `get_current_device`.
   5. CI grep guards pass: no `import sqlite3`, no `import psycopg2`, no `subprocess.run`/`subprocess.Popen` in `backend/app/` signage modules.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 43-01-etag-column-migration-PLAN.md — Additive Alembic migration + ORM for signage_devices.current_playlist_etag (wave 1)
+- [ ] 43-02-resolver-and-schemas-PLAN.md — signage_resolver service + PlaylistEnvelope/HeartbeatRequest schemas (wave 1)
+- [ ] 43-03-admin-crud-router-PLAN.md — signage_admin/ router package (media/playlists/items/devices/tags) + main.py wiring (wave 2)
+- [ ] 43-04-player-router-and-heartbeat-sweeper-PLAN.md — signage_player router (ETag/304 + heartbeat) + 1-min sweeper job (wave 2)
+- [ ] 43-05-dep-audit-and-ci-grep-guards-PLAN.md — SGN-BE-09 dep-audit test + SGN-BE-10 grep guard tests (wave 3)
 
 ### Phase 44: PPTX Conversion Pipeline
 **Goal**: A PPTX upload produces an ordered sequence of 1920×1080 PNG slides server-side without wedging the event loop, OOMing the container, or silently rendering with wrong fonts.
@@ -329,7 +335,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
 | 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
-| 43. Media + Playlist + Device Admin API | v1.16 | 0/TBD | Not started | — |
+| 43. Media + Playlist + Device Admin API | v1.16 | 0/5 | Not started | — |
 | 44. PPTX Conversion Pipeline | v1.16 | 0/TBD | Not started | — |
 | 45. SSE Broadcast | v1.16 | 0/TBD | Not started | — |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
