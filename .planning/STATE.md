@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 43-01-PLAN.md
-last_updated: "2026-04-18T21:40:08.970Z"
-last_activity: 2026-04-18 -- Phase 43 execution started
+stopped_at: Completed 43-02-PLAN.md
+last_updated: "2026-04-18T21:43:04.976Z"
+last_activity: 2026-04-18
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -34,9 +34,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 43 (media-playlist-device-admin-api-polling) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 43
-Last activity: 2026-04-18 -- Phase 43 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-18
 
 Progress: [········] 0% (0/8 phases complete)
 
@@ -70,6 +70,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 42 P02 | 3m | 1 tasks | 3 files |
 | Phase 42 P03 | 278s | 2 tasks | 5 files |
 | Phase 43 P01 | 6m | 2 tasks | 3 files |
+| Phase 43 P02 | 3m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 42]: SIGNAGE_DEVICE_JWT_SECRET required, no default (D-04); revoked device → 401 not 403 (D-14); in-process rate limit viable under --workers 1 invariant
 - [Phase 42]: Plan 42-02: /api/signage/pair router delivers SGN-BE-03; Q1 resolved (unknown id → 200 expired, not 404); delete-on-deliver inside transaction; intentional exception to router-level admin-gate documented inline for Phase 43 dep-audit
 - [Phase 42]: Plan 42-03: signage_pairing_cleanup 03:00 UTC cron carries SGN-DB-02 expiration invariant (D-13); device revoke endpoint lives on pair router (not new /devices router) to avoid preempting Phase 43 CRUD; idempotent revoke preserves original revoked_at for audit
+- [Phase 43]: Plan 43-02: resolver duration_s->duration_ms conversion centralized at envelope boundary; compute_playlist_etag uses sha256('empty') sentinel for unmatched polls; resolver is pure-read (D-10)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -127,6 +129,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-18T21:40:08.968Z
-**Stopped at:** Completed 43-01-PLAN.md
+**Last session:** 2026-04-18T21:42:58.523Z
+**Stopped at:** Completed 43-02-PLAN.md
 **Resume file:** None
