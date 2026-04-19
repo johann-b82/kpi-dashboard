@@ -68,7 +68,7 @@
 ### Differentiators (SGN-DIFF-*)
 
 - [x] **SGN-DIFF-01**: Real-time SSE push (covered by SGN-BE-02 + SGN-PLY-06; reserved ID for audit / ticket tracing)
-- [ ] **SGN-DIFF-02**: WYSIWYG admin preview panel — embeds player component in admin UI for playlist preview before publishing changes; uses `react-pdf` (admin-only) for PDF preview
+- [x] **SGN-DIFF-02**: WYSIWYG admin preview panel — embeds player component in admin UI for playlist preview before publishing changes; uses `react-pdf` (admin-only) for PDF preview
 - [ ] **SGN-DIFF-03**: PDF crossfade transition between pages (smooth opacity fade vs. hard cut); 200ms default, admin-configurable per playlist
 
 ### Operations & Docs (SGN-OPS-*)
@@ -158,7 +158,7 @@
 | SGN-ADM-08 | Phase 46 | Pending |
 | SGN-ADM-09 | Phase 46 | Pending |
 | SGN-ADM-10 | Phase 46 | Pending |
-| SGN-DIFF-02 | Phase 46 | Pending |
+| SGN-DIFF-02 | Phase 46 | Complete |
 | SGN-PLY-01 | Phase 47 | Pending |
 | SGN-PLY-02 | Phase 47 | Pending |
 | SGN-PLY-03 | Phase 47 | Pending |

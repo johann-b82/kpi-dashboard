@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: verifying
-stopped_at: Phase 46 context gathered
-last_updated: "2026-04-19T19:11:20.688Z"
-last_activity: 2026-04-19
+status: executing
+stopped_at: Completed 46-03-player-renderer-PLAN.md
+last_updated: "2026-04-19T20:56:27.557Z"
+last_activity: 2026-04-19 -- Phase 46 execution started
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 27
+  completed_plans: 22
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 45 — sse-broadcast
+**Current focus:** Phase 46 — admin-ui
 
 ---
 
 ## Current Position
 
-Phase: 46
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-19
+Phase: 46 (admin-ui) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 46
+Last activity: 2026-04-19 -- Phase 46 execution started
 
 Progress: [········] 0% (0/8 phases complete)
 
@@ -82,6 +82,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 45 P01 | 15m | 3 tasks | 5 files |
 | Phase 45 P02 | 40m | 3 tasks | 6 files |
 | Phase 45 P03 | 15m | 2 tasks | 2 files |
+| Phase 46 P03 | 152 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 45]: Plan 45-02: SSE /stream uses sse-starlette EventSourceResponse(ping=15); generator re-raises CancelledError and pops _device_queues with None default (Pitfall 1). Admin mutations fire notify_device AFTER db.commit; playlist DELETE captures affected devices pre-commit (FK cascade); playlist tag-PUT unions prev+new affected sets; devices tag-PUT notifies self unconditionally; PPTX _set_done notify wrapped in try/except (broadcast failure must not roll back state).
 - [Phase 45]: Plan 45-02: playlist_id serialized as str(uuid) in SSE payloads (actual schema uses UUIDs despite ROADMAP/CONTEXT <int> wording); disconnect cleanup test exercises the generator body directly rather than httpx.stream() over ASGITransport (infinite SSE generators cannot be cancelled deterministically through the test client).
 - [Phase 45]: Plan 45-03: CI grep guards lock signage_broadcast hygiene (8 new guards including SGN-INF-03 triple-substring invariant assertion); /health (not /api/health) used as latency probe — it's the cheapest real route touching the async DB pool. 5-client benchmark drives generator shape directly (per Plan 02 pattern) rather than httpx.stream to avoid ASGI infinite-generator pitfall; observed p95=0.52ms vs 100ms threshold.
+- [Phase 46]: 46-03: PlayerRenderer is pure presentational (D-10) — items[] in, auto-advance via per-item duration_s, fade-or-cut on next.transition, key={current.id} forces iframe/pdf state reset between items
+- [Phase 46]: 46-03: PdfPlayer uses react-pdf default worker config (NO GlobalWorkerOptions override) per D-11 — Phase 47 owns the pdfjs-dist worker pin
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -153,6 +156,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T19:11:20.684Z
-**Stopped at:** Phase 46 context gathered
-**Resume file:** .planning/phases/46-admin-ui/46-CONTEXT.md
+**Last session:** 2026-04-19T20:56:27.361Z
+**Stopped at:** Completed 46-03-player-renderer-PLAN.md
+**Resume file:** None

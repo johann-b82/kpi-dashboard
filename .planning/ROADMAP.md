@@ -274,7 +274,7 @@ Plans:
 Plans:
 - [ ] 46-01-foundation-routing-launcher-PLAN.md — Install deps, register /signage routes, launcher tile, SignagePage tab shell, locale keys seeded (wave 1)
 - [ ] 46-02-shared-primitives-PLAN.md — TagPicker, DeviceStatusChip, MediaStatusPill, MediaDeleteDialog + signageApi/types wrappers (wave 1)
-- [ ] 46-03-player-renderer-PLAN.md — Shared <PlayerRenderer> + 6 format handlers (image/video/pdf/iframe/html/pptx) for WYSIWYG preview + Phase 47 reuse (wave 1)
+- [x] 46-03-player-renderer-PLAN.md — Shared <PlayerRenderer> + 6 format handlers (image/video/pdf/iframe/html/pptx) for WYSIWYG preview + Phase 47 reuse (wave 1)
 - [ ] 46-04-media-page-PLAN.md — Media tab: upload dropzone (Directus + PPTX routing), URL/HTML register, grid, delete with 409 in-use flow, CI invariant script (wave 2)
 - [ ] 46-05-playlist-editor-PLAN.md — Playlists list + full editor with @dnd-kit drag-reorder, PlayerRenderer preview dock, dirty guard, bulk-replace save (wave 2)
 - [ ] 46-06-devices-pair-PLAN.md — Devices table with 30s live status chips + edit/revoke + /signage/pair claim form (wave 2)
@@ -355,6 +355,6 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 44. PPTX Conversion Pipeline | v1.16 | 5/5 | Complete    | 2026-04-19 |
 | 45. SSE Broadcast | v1.16 | 3/3 | Complete    | 2026-04-19 |
-| 46. Admin UI | v1.16 | 0/6 | Not started | — |
+| 46. Admin UI | v1.16 | 1/6 | In Progress|  |
 | 47. Player Bundle | v1.16 | 0/TBD | Not started | — |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 0/TBD | Not started | — |
