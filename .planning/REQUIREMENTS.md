@@ -26,7 +26,7 @@
 - [x] **SGN-BE-02**: `backend/app/routers/signage_player.py` with device-token dep — `GET /playlist`, `POST /heartbeat`, `GET /stream` (SSE via `sse-starlette==3.2.0`)
 - [x] **SGN-BE-03**: `backend/app/routers/signage_pair.py` (unauthenticated) — `POST /request`, `GET /status`; admin-gated `POST /claim`
 - [x] **SGN-BE-04**: `backend/app/security/device_auth.py` — `get_current_device` dep resolving `Authorization: Bearer <device_token>` (token format decided in Phase 42: opaque sha256-hashed OR scoped JWT)
-- [ ] **SGN-BE-05**: `backend/app/services/signage_broadcast.py` — in-process `asyncio.Queue` per device with `QueueFull` drop + reconnect (compatible with `max_instances=1`/`--workers 1` invariant)
+- [x] **SGN-BE-05**: `backend/app/services/signage_broadcast.py` — in-process `asyncio.Queue` per device with `QueueFull` drop + reconnect (compatible with `max_instances=1`/`--workers 1` invariant)
 - [x] **SGN-BE-06**: `backend/app/services/signage_resolver.py` — tag-to-playlist query with `priority DESC, updated_at DESC` tiebreak; LIMIT 1 per device
 - [x] **SGN-BE-07**: PPTX conversion pipeline — `asyncio.subprocess_exec(soffice)` + `asyncio.wait_for(60)` + `asyncio.Semaphore(1)` + per-conversion tempdir with `-env:UserInstallation=file:///tmp/lo_<uuid>` + 50MB upload cap
 - [x] **SGN-BE-08**: `signage_media.conversion_status` state machine (`pending | processing | done | failed`) + startup reset of stuck `processing` rows > 5 min old
@@ -81,7 +81,7 @@
 
 - [x] **SGN-INF-01**: Backend Dockerfile adds LibreOffice (`libreoffice-impress` + `libreoffice-core` 24.x), `poppler-utils`, Carlito/Caladea/Noto/DejaVu fonts to apt layer (font metrics match Calibri/Cambria for PPTX fidelity)
 - [x] **SGN-INF-02**: `docker-compose.yml` adds `directus_uploads:/directus/uploads:ro` mount into `api`; `migrate → directus` startup ordering enforced via `depends_on.migrate.condition: service_completed_successfully` (prevents Directus introspection race on fresh tables)
-- [ ] **SGN-INF-03**: `--workers 1` invariant preserved and documented inline — SSE + APScheduler singleton + in-process asyncio.Queue fanout all depend on it; comment block added to `signage_broadcast.py` mirroring existing comment in `docker-compose.yml` + `scheduler.py`
+- [x] **SGN-INF-03**: `--workers 1` invariant preserved and documented inline — SSE + APScheduler singleton + in-process asyncio.Queue fanout all depend on it; comment block added to `signage_broadcast.py` mirroring existing comment in `docker-compose.yml` + `scheduler.py`
 
 ---
 
@@ -145,9 +145,9 @@
 | SGN-BE-08 | Phase 44 | Complete |
 | SGN-SCH-03 | Phase 44 | Complete |
 | SGN-INF-01 | Phase 44 | Complete |
-| SGN-BE-05 | Phase 45 | Pending |
+| SGN-BE-05 | Phase 45 | Complete |
 | SGN-DIFF-01 | Phase 45 | Pending |
-| SGN-INF-03 | Phase 45 | Pending |
+| SGN-INF-03 | Phase 45 | Complete |
 | SGN-ADM-01 | Phase 46 | Pending |
 | SGN-ADM-02 | Phase 46 | Pending |
 | SGN-ADM-03 | Phase 46 | Pending |

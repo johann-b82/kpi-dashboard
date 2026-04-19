@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: verifying
-stopped_at: Phase 45 context gathered
-last_updated: "2026-04-19T17:17:42.308Z"
+status: executing
+stopped_at: Completed 45-01-broadcast-service-PLAN.md
+last_updated: "2026-04-19T17:41:06.952Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 21
+  completed_plans: 19
   percent: 0
 ---
 
@@ -27,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 44 — pptx-conversion-pipeline
+**Current focus:** Phase 45 — sse-broadcast
 
 ---
 
 ## Current Position
 
-Phase: 45
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 45 (sse-broadcast) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-19
 
 Progress: [········] 0% (0/8 phases complete)
@@ -79,6 +79,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 44 P02 | 3.5m | 2 tasks | 4 files |
 | Phase 44 P03 | 4m | 2 tasks | 3 files |
 | Phase 44 P05 | 10m | 3 tasks | 5 files |
+| Phase 45 P01 | 15m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 44]: Plan 44-02: DIRECTUS_ADMIN_TOKEN defaults to empty string so module imports don't require a live token; real calls will 401 loudly
 - [Phase 44]: Plan 44-03: PPTX upload endpoint streams via async iter over UploadFile.read(64KB) — HTTPException(413) fires inside uploader's inner generator BEFORE the full body enters memory (D-13); delete_slides_dir is called inline in /reconvert (not deferred into convert_pptx) so cleanup is deterministic
 - [Phase 44]: Plan 44-05: fixtures committed as static blobs (python-pptx used one-off locally, NOT added to requirements); integration tests monkeypatch _download_pptx_from_directus and await convert_pptx directly; skip-without-binaries contract via shutil.which; stuck-reset integration has no binary dep
+- [Phase 45]: Plan 45-01: signage_broadcast uses _warned_full attr stashed on asyncio.Queue instance (not a module-level set) — new queue from subscribe() has no attr so warn-once naturally resets per connection (Pitfall 7)
+- [Phase 45]: Plan 45-01: devices_affected_by_playlist lives in signage_resolver.py (not a new module) per RESEARCH Q1 recommendation; devices_affected_by_device_update wrapper returning [device_id] gives admin notify hooks a uniform call shape for Plan 45-02
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -145,6 +148,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T17:17:42.298Z
-**Stopped at:** Phase 45 context gathered
-**Resume file:** .planning/phases/45-sse-broadcast/45-CONTEXT.md
+**Last session:** 2026-04-19T17:41:02.156Z
+**Stopped at:** Completed 45-01-broadcast-service-PLAN.md
+**Resume file:** None
