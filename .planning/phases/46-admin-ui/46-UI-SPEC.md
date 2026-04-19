@@ -57,18 +57,19 @@ Exceptions:
 
 ## Typography
 
-Inherited from the project's Geist Variable font. Phase 46 does not introduce new type sizes — it reuses the four already in use.
+Inherited from the project's Geist Variable font. Phase 46 declares exactly 4 type sizes and 2 weights.
 
 | Role | Size | Weight | Line Height | Tailwind |
 |------|------|--------|-------------|---------|
 | Body | 14px | 400 (regular) | 1.5 | `text-sm` |
-| Label | 14px | 500 (medium) | 1.4 | `text-sm font-medium` |
+| Label | 14px | 600 (semibold) | 1.4 | `text-sm font-semibold` |
 | Heading (card/section) | 20px | 600 (semibold) | 1.3 | `text-xl font-semibold` |
 | Page title | 30px | 600 (semibold) | 1.2 | `text-3xl font-semibold` |
 
 Notes:
-- Status pill / badge text: `text-xs` (12px, weight 500) — same as existing `<Badge>` primitive usage.
-- Monospace pairing code (`XXX-XXX` on PairPage): `font-mono text-4xl font-semibold tracking-widest` — large and scannable for admin reading off a Pi screen.
+- Status pill / badge text: `text-xs` (12px, weight 400) — same as existing `<Badge>` primitive usage.
+- **One-off component exception — PairPage pairing code display:** `font-mono text-4xl font-semibold tracking-widest text-center w-full`. The 36px monospace size is used exclusively for the 6-digit pairing-code input on PairPage and is not part of the general type scale. It is not declared in the scale table above and must not be reused elsewhere.
+- `font-medium` (`weight 500`) is not used in Phase 46. Any existing or drafted use of `font-medium` in signage components must be changed to `font-semibold`.
 - All sizes sourced from existing project usage; confirmed in `SettingsPage.tsx`, `LauncherPage.tsx`, `DeleteConfirmDialog.tsx`.
 
 ---
@@ -86,7 +87,7 @@ Tokens from `index.css` `:root` and `.dark` blocks. All signage components use t
 | Foreground text | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | `text-foreground` | Primary body copy, headings |
 | Muted text | `oklch(0.556 0 0)` | `oklch(0.708 0 0)` | `text-muted-foreground` | Helper text, metadata, empty state bodies |
 | Accent (10%) | `oklch(0.97 0 0)` | `oklch(0.269 0 0)` | `bg-accent` / `hover:bg-accent/10` | Tile hover state only |
-| Primary (interactive) | `oklch(0.205 0 0)` | `oklch(0.922 0 0)` | `bg-primary` / `text-primary` | Primary CTAs (Save, Claim, Upload buttons) |
+| Primary (interactive) | `oklch(0.205 0 0)` | `oklch(0.922 0 0)` | `bg-primary` / `text-primary` | Primary CTAs (Save playlist, Claim device, Upload buttons) |
 | Destructive | `oklch(0.577 0.245 27.325)` | `oklch(0.704 0.191 22.216)` | `bg-destructive` / `text-destructive` | Delete / Revoke confirm buttons only |
 
 **Accent reserved for:** Launcher tile hover background (`hover:bg-accent/10`) only. No other use.
@@ -177,6 +178,8 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-pdf
 
 ### 1. Launcher Tile (SGN-ADM-02)
 
+**Primary visual anchor: tile grid**
+
 - Dimensions: `w-[120px] h-[120px]` — matches existing tiles exactly
 - Icon: `<MonitorPlay className="w-10 h-10 text-foreground" aria-hidden="true" />` from lucide-react
 - Wrapper: `<AdminOnly>` — tile is absent (not greyed) for Viewer role
@@ -198,6 +201,8 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-pdf
 - Page title: `text-3xl font-semibold` — "Digital Signage" (i18n key `signage.admin.page_title`)
 
 ### 3. Media Library (SGN-ADM-04, D-01, D-02, D-03)
+
+**Primary visual anchor: upload dropzone above the grid**
 
 **Layout:** Card-based grid. Thumbnails at top of card, metadata below.
 
@@ -233,13 +238,17 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-pdf
 
 ### 4. Playlist List Page (SGN-ADM-05)
 
+**Primary visual anchor: playlist table + "New playlist" CTA**
+
 - shadcn `<Table>` — columns: Name, Tags (chips), Items (count), Created, Actions
 - Actions column: Edit (opens `/signage/playlists/:id`), Duplicate (icon button), Delete (icon button → confirm dialog)
-- Delete confirm: standard `<DeleteConfirmDialog>` pattern — "Delete playlist '{{name}}'?" / "Delete" / "Cancel"
+- Delete confirm: standard `<DeleteConfirmDialog>` pattern — "Delete playlist '{{name}}'?" / "Delete playlist" / "Keep"
 - Empty state: full-width centered card with icon + heading + CTA (see Copywriting section)
 - "New playlist" primary button: top-right of page header area
 
 ### 5. Playlist Editor (SGN-ADM-05, D-07, D-08, SGN-DIFF-02)
+
+**Primary visual anchor: live preview pane (right on ≥lg, top on narrow)**
 
 **Route:** `/signage/playlists/:id` — full-width, no max-width constraint on the split layout.
 
@@ -259,7 +268,7 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-pdf
 **Playlist header form** (above the split, full-width):
 - Playlist name input (`text-xl font-semibold`, inline edit style — `border-0 border-b border-border focus:border-primary`)
 - Tags: `<TagPicker>` inline
-- "Save" (primary) + "Cancel" (outline) action buttons — sticky at bottom of left pane or in a top action bar
+- "Save playlist" (primary) + "Discard changes" (outline) action buttons — sticky at bottom of left pane or in a top action bar
 
 **Item list left pane:**
 - Each row: drag handle (`<GripVertical>` icon, 20px) + thumbnail (40×40px) + title (truncated) + duration input (`<Input type="number" min="1" max="3600" className="w-20">`) + transition select + remove button
@@ -282,6 +291,8 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-pdf
 **Dirty guard:** `useUnsavedGuard(isDirty, handler, "/signage/playlists/" + id)` — exact path required (Pitfall 2 prevention).
 
 ### 6. Devices Table (SGN-ADM-06, D-13, D-14)
+
+**Primary visual anchor: device table with status chips**
 
 - shadcn `<Table>` — columns: Name, Status chip, Tags, Current playlist, Last seen, Actions
 - `refetchInterval: 30_000` on the devices query (live chip updates per D-13)
@@ -326,14 +337,16 @@ interface TagPickerProps {
 
 ### 8. Pair Page (SGN-ADM-07, D-05)
 
+**Primary visual anchor: centered pair-code form card**
+
 **Route:** `/signage/pair` — top-level, full-width, centered card layout.
 
 **Form fields:**
-1. Code input: `text-4xl font-mono font-semibold tracking-widest text-center w-full` — 6 characters, auto-format to `XXX-XXX` on input, letter-uppercase, no spaces
+1. Code input: `text-4xl font-mono font-semibold tracking-widest text-center w-full` — 6 characters, auto-format to `XXX-XXX` on input, letter-uppercase, no spaces (one-off exception: 36px monospace, not part of general type scale)
 2. Device name: `<Input>` — `placeholder="e.g. Lobby Screen A"`
 3. Tags: `<TagPicker>` with placeholder `signage.admin.pair.tags_placeholder`
 
-**Actions:** "Claim device" primary button (full-width on mobile, auto-width on desktop) + "Cancel" link back to `/signage/devices`.
+**Actions:** "Claim device" primary button (full-width on mobile, auto-width on desktop) + "Back to devices" link back to `/signage/devices`.
 
 **Success state:** Toast (`sonner`) with `t("signage.admin.pair.success", { name })` + automatic navigation to `/signage/devices`.
 
@@ -473,12 +486,12 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.media.register_url_button` | Register URL / HTML |
 | `signage.admin.media.register_url_title` | Register external content |
 | `signage.admin.media.register_url_label` | URL or HTML snippet |
-| `signage.admin.media.register_url_cta` | Register |
+| `signage.admin.media.register_url_cta` | Register URL |
 | `signage.admin.media.empty_title` | No media yet |
 | `signage.admin.media.empty_body` | Upload images, videos, or PDFs to start building playlists. |
 | `signage.admin.media.delete_title` | Delete media |
 | `signage.admin.media.delete_body` | "{{title}}" will be permanently deleted. |
-| `signage.admin.media.delete_confirm` | Delete |
+| `signage.admin.media.delete_confirm` | Delete media |
 | `signage.admin.media.delete_cancel` | Keep |
 | `signage.admin.media.delete_in_use_title` | Cannot delete — in use |
 | `signage.admin.media.delete_in_use_body` | This media is used by {{count}} playlist(s). Remove it from all playlists first. |
@@ -494,7 +507,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.playlists.empty_cta` | Create playlist |
 | `signage.admin.playlists.delete_title` | Delete playlist |
 | `signage.admin.playlists.delete_body` | "{{name}}" will be permanently deleted. |
-| `signage.admin.playlists.delete_confirm` | Delete |
+| `signage.admin.playlists.delete_confirm` | Delete playlist |
 | `signage.admin.playlists.delete_cancel` | Keep |
 | `signage.admin.playlists.col_name` | Name |
 | `signage.admin.playlists.col_tags` | Target tags |
@@ -503,8 +516,8 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.playlists.col_actions` | Actions |
 | **Playlist editor** | |
 | `signage.admin.editor.name_placeholder` | Playlist name |
-| `signage.admin.editor.save` | Save |
-| `signage.admin.editor.cancel` | Cancel |
+| `signage.admin.editor.save` | Save playlist |
+| `signage.admin.editor.cancel` | Discard changes |
 | `signage.admin.editor.add_item` | Add item |
 | `signage.admin.editor.empty_title` | No items yet |
 | `signage.admin.editor.empty_body` | Add media items to build your playlist. |
@@ -539,8 +552,8 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.device.save_error` | Couldn't save device: {{detail}} |
 | `signage.admin.device.revoke_title` | Revoke device access |
 | `signage.admin.device.revoke_confirm_body` | Revoke access for "{{name}}"? The device will stop playing until it re-pairs. |
-| `signage.admin.device.revoke_confirm` | Revoke |
-| `signage.admin.device.revoke_cancel` | Cancel |
+| `signage.admin.device.revoke_confirm` | Revoke access |
+| `signage.admin.device.revoke_cancel` | Keep access |
 | `signage.admin.device.revoked` | Device access revoked |
 | `signage.admin.device.revoke_error` | Couldn't revoke access: {{detail}} |
 | **Pair page** | |
@@ -553,7 +566,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.pair.tags_label` | Tags |
 | `signage.admin.pair.tags_placeholder` | Add tags… |
 | `signage.admin.pair.submit` | Claim device |
-| `signage.admin.pair.cancel` | Cancel |
+| `signage.admin.pair.cancel` | Back to devices |
 | `signage.admin.pair.success` | "{{name}}" has been paired |
 | `signage.admin.pair.error_not_found` | Code not found or expired |
 | `signage.admin.pair.error_claimed` | This code has already been claimed |
@@ -562,7 +575,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.tag_picker.placeholder` | Add tags… |
 | `signage.admin.tag_picker.create` | Create "{{tag}}" |
 | **Shared errors** | |
-| `signage.admin.error.loading` | Could not load data |
+| `signage.admin.error.loading` | Could not load data. Refresh the page to retry. |
 | `signage.admin.error.generic` | Something went wrong: {{detail}} |
 
 ### German copy (informal "du" tone)
@@ -583,12 +596,12 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.media.register_url_button` | URL / HTML registrieren |
 | `signage.admin.media.register_url_title` | Externen Inhalt registrieren |
 | `signage.admin.media.register_url_label` | URL oder HTML-Snippet |
-| `signage.admin.media.register_url_cta` | Registrieren |
+| `signage.admin.media.register_url_cta` | URL registrieren |
 | `signage.admin.media.empty_title` | Noch keine Medien |
 | `signage.admin.media.empty_body` | Lade Bilder, Videos oder PDFs hoch, um Playlists zu erstellen. |
 | `signage.admin.media.delete_title` | Medium löschen |
 | `signage.admin.media.delete_body` | „{{title}}" wird dauerhaft gelöscht. |
-| `signage.admin.media.delete_confirm` | Löschen |
+| `signage.admin.media.delete_confirm` | Medium löschen |
 | `signage.admin.media.delete_cancel` | Behalten |
 | `signage.admin.media.delete_in_use_title` | Löschen nicht möglich — in Verwendung |
 | `signage.admin.media.delete_in_use_body` | Dieses Medium wird in {{count}} Playlist(s) verwendet. Entferne es zuerst aus allen Playlists. |
@@ -604,7 +617,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.playlists.empty_cta` | Playlist erstellen |
 | `signage.admin.playlists.delete_title` | Playlist löschen |
 | `signage.admin.playlists.delete_body` | „{{name}}" wird dauerhaft gelöscht. |
-| `signage.admin.playlists.delete_confirm` | Löschen |
+| `signage.admin.playlists.delete_confirm` | Playlist löschen |
 | `signage.admin.playlists.delete_cancel` | Behalten |
 | `signage.admin.playlists.col_name` | Name |
 | `signage.admin.playlists.col_tags` | Ziel-Tags |
@@ -613,8 +626,8 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.playlists.col_actions` | Aktionen |
 | **Playlist editor** | |
 | `signage.admin.editor.name_placeholder` | Playlist-Name |
-| `signage.admin.editor.save` | Speichern |
-| `signage.admin.editor.cancel` | Abbrechen |
+| `signage.admin.editor.save` | Playlist speichern |
+| `signage.admin.editor.cancel` | Änderungen verwerfen |
 | `signage.admin.editor.add_item` | Element hinzufügen |
 | `signage.admin.editor.empty_title` | Noch keine Elemente |
 | `signage.admin.editor.empty_body` | Füge Medien hinzu, um deine Playlist aufzubauen. |
@@ -649,8 +662,8 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.device.save_error` | Gerät konnte nicht gespeichert werden: {{detail}} |
 | `signage.admin.device.revoke_title` | Gerätezugang widerrufen |
 | `signage.admin.device.revoke_confirm_body` | Zugang für „{{name}}" widerrufen? Das Gerät hört auf zu spielen, bis es erneut gekoppelt wird. |
-| `signage.admin.device.revoke_confirm` | Widerrufen |
-| `signage.admin.device.revoke_cancel` | Abbrechen |
+| `signage.admin.device.revoke_confirm` | Zugang entziehen |
+| `signage.admin.device.revoke_cancel` | Zugang behalten |
 | `signage.admin.device.revoked` | Gerätezugang widerrufen |
 | `signage.admin.device.revoke_error` | Zugang konnte nicht widerrufen werden: {{detail}} |
 | **Pair page** | |
@@ -663,7 +676,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.pair.tags_label` | Tags |
 | `signage.admin.pair.tags_placeholder` | Tags hinzufügen… |
 | `signage.admin.pair.submit` | Gerät beanspruchen |
-| `signage.admin.pair.cancel` | Abbrechen |
+| `signage.admin.pair.cancel` | Zurück zu Geräten |
 | `signage.admin.pair.success` | „{{name}}" wurde erfolgreich gekoppelt |
 | `signage.admin.pair.error_not_found` | Code nicht gefunden oder abgelaufen |
 | `signage.admin.pair.error_claimed` | Dieser Code wurde bereits verwendet |
@@ -672,7 +685,7 @@ All keys under `signage.admin.*` namespace. Both `en.json` and `de.json` must be
 | `signage.admin.tag_picker.placeholder` | Tags hinzufügen… |
 | `signage.admin.tag_picker.create` | „{{tag}}" erstellen |
 | **Shared errors** | |
-| `signage.admin.error.loading` | Daten konnten nicht geladen werden |
+| `signage.admin.error.loading` | Daten konnten nicht geladen werden. Seite neu laden, um es erneut zu versuchen. |
 | `signage.admin.error.generic` | Etwas ist schiefgelaufen: {{detail}} |
 
 ---
