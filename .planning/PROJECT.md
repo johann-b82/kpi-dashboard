@@ -294,4 +294,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-18 — Phase 43 (Media + Playlist + Device Admin API, polling) complete — admin CRUD router, tag-to-playlist resolver, player polling + heartbeat endpoints, and 1-min APScheduler heartbeat sweeper all landed and verified (5/5 must-haves, 41/41 phase tests green)*
+*Last updated: 2026-04-19 — Phase 44 (PPTX Conversion Pipeline) complete — LibreOffice + poppler + fidelity fonts baked into the backend image; soffice→pdftoppm conversion service with concurrency semaphore, 60s timeout, and full state machine; upload + reconvert endpoints wired to BackgroundTasks; scheduler stuck-row reset on startup; integration tests + CI grep guards for hazards #6/#7 (5/5 plans, 21/21 must-haves, SGN-BE-07/08, SGN-SCH-03, SGN-INF-01 satisfied)*
