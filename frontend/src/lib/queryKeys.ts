@@ -51,3 +51,18 @@ export const sensorKeys = {
     ["sensors", "readings", { sensorId, hours }] as const,
   status: () => ["sensors", "status"] as const,
 };
+
+/**
+ * Phase 46 — signage admin query keys. Mirrors sensorKeys shape.
+ * media()/playlists()/devices()/tags() are the top-level collections.
+ * Item-level keys embed the id for per-row invalidation (e.g. PPTX polling).
+ */
+export const signageKeys = {
+  all: ["signage"] as const,
+  media: () => ["signage", "media"] as const,
+  mediaItem: (id: string) => ["signage", "media", id] as const,
+  playlists: () => ["signage", "playlists"] as const,
+  playlistItem: (id: string) => ["signage", "playlists", id] as const,
+  devices: () => ["signage", "devices"] as const,
+  tags: () => ["signage", "tags"] as const,
+};
