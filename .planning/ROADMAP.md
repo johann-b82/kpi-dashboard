@@ -239,7 +239,7 @@ Plans:
 **Plans**: 5 plans
 Plans:
 - [x] 44-01-dockerfile-libreoffice-fonts-PLAN.md — Dockerfile apt layer (LibreOffice + poppler + fonts) + /app/media/slides mkdir (wave 1)
-- [ ] 44-02-pptx-conversion-service-PLAN.md — signage_pptx service (Semaphore(1) + wait_for(60) + subprocess pipeline + state writes) + directus_uploads helper (wave 1)
+- [x] 44-02-pptx-conversion-service-PLAN.md — signage_pptx service (Semaphore(1) + wait_for(60) + subprocess pipeline + state writes) + directus_uploads helper (wave 1)
 - [ ] 44-03-upload-and-reconvert-endpoints-PLAN.md — POST /media/pptx multipart upload + POST /media/{id}/reconvert (wave 2, depends on 44-02)
 - [x] 44-04-scheduler-stuck-row-reset-PLAN.md — _run_pptx_stuck_reset() one-shot startup hook in scheduler.py (wave 1)
 - [ ] 44-05-integration-tests-PLAN.md — End-to-end integration tests (success/corrupt/stuck-reset) + fixtures + extended CI grep guards (wave 3)
@@ -342,7 +342,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
 | 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
-| 44. PPTX Conversion Pipeline | v1.16 | 2/5 | In Progress|  |
+| 44. PPTX Conversion Pipeline | v1.16 | 3/5 | In Progress|  |
 | 45. SSE Broadcast | v1.16 | 0/TBD | Not started | — |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
 | 47. Player Bundle | v1.16 | 0/TBD | Not started | — |

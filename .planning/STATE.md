@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 44-04-PLAN.md
-last_updated: "2026-04-19T14:58:03.031Z"
+stopped_at: Completed 44-02-pptx-conversion-service-PLAN.md
+last_updated: "2026-04-19T15:00:24.099Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 44 (pptx-conversion-pipeline) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -76,6 +76,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 43 P05 | 4m | 2 tasks | 2 files |
 | Phase 44 P01 | 102s | 1 tasks | 1 files |
 | Phase 44 P04 | 2m | 1 tasks | 2 files |
+| Phase 44 P02 | 3.5m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 43]: Plan 43-03: signage_admin router package with single router-level admin gate (D-01); 409-with-playlist_ids via JSONResponse on media FK RESTRICT (Pitfall 6); bulk-replace items + device/playlist tags in single-tx; D-21 (b) via directus_file_id -> uri mapping (no schema change)
 - [Phase 43]: Plan 43-05: dep-audit PUBLIC_SIGNAGE_ROUTES locks pair/request + pair/status as the only public signage endpoints; CI grep guards enforce no sqlite3/psycopg2 anywhere in backend/app and no sync subprocess in signage modules
 - [Phase 44]: Plan 44-01: Single apt layer adds libreoffice-impress+core, poppler-utils, Carlito/Caladea/Noto/DejaVu fonts; mkdir /app/media/slides at build time; CMD untouched (--reload preserved per plan)
+- [Phase 44]: Plan 44-02: signage_pptx uses own httpx stream for Directus download (separate from directus_uploads.py upload helper) — upload and download have distinct HTTP shapes
+- [Phase 44]: Plan 44-02: DIRECTUS_ADMIN_TOKEN defaults to empty string so module imports don't require a live token; real calls will 401 loudly
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -138,6 +141,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T14:58:03.028Z
-**Stopped at:** Completed 44-04-PLAN.md
+**Last session:** 2026-04-19T15:00:24.096Z
+**Stopped at:** Completed 44-02-pptx-conversion-service-PLAN.md
 **Resume file:** None
