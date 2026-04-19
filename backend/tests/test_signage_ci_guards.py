@@ -10,6 +10,7 @@ Cross-cutting hazard #6/#7 enforcement:
 Tests themselves may use subprocess — they live in backend/tests/, not
 backend/app/, and the guards explicitly only scan backend/app/.
 """
+import re
 import subprocess
 from pathlib import Path
 
@@ -116,3 +117,108 @@ def test_phase44_directus_uploads_no_sync_http():
     # shell out at all, but pin the ban anyway).
     for banned in ("subprocess.run", "subprocess.Popen", "subprocess.call"):
         assert banned not in content, f"{banned} present in {p}"
+
+
+# ---------------------------------------------------------------------------
+# Phase 45 — pin the new broadcast module. signage_broadcast.py is covered
+# by the `signage_*` recursive scanner above, but we pin per-file guards
+# explicitly so removing the invariant comment block or regressing to a
+# sync driver / different queue primitive fails CI with a clear message.
+# SGN-INF-03 is carried here: the `--workers 1` invariant comment block
+# mirrors docker-compose.yml and scheduler.py and MUST be preserved.
+# ---------------------------------------------------------------------------
+
+
+BROADCAST_MODULE = APP_DIR / "services" / "signage_broadcast.py"
+
+
+def test_signage_broadcast_file_exists():
+    assert BROADCAST_MODULE.exists(), (
+        f"Phase 45 broadcast module missing: {BROADCAST_MODULE}"
+    )
+
+
+def test_signage_broadcast_no_sync_subprocess():
+    content = BROADCAST_MODULE.read_text()
+    for banned in (
+        "subprocess.run(",
+        "subprocess.Popen(",
+        "subprocess.call(",
+        "subprocess.check_call(",
+        "subprocess.check_output(",
+        "from subprocess import",
+        "import subprocess",
+    ):
+        assert banned not in content, (
+            f"{banned!r} present in {BROADCAST_MODULE} — hazard #7"
+        )
+
+
+def test_signage_broadcast_no_blocking_sql_drivers():
+    content = BROADCAST_MODULE.read_text()
+    for banned in ("import sqlite3", "import psycopg2", "from psycopg2"):
+        assert banned not in content, (
+            f"{banned!r} present in {BROADCAST_MODULE} — hazard #6"
+        )
+
+
+def test_signage_broadcast_contains_workers_1_invariant_block():
+    """SGN-INF-03: the --workers 1 invariant comment block mirrors the
+    other two pin sites (docker-compose.yml, scheduler.py). Removing any
+    of those three references weakens the paper-trail that keeps the
+    single-process SSE fanout correct."""
+    content = BROADCAST_MODULE.read_text()
+    for substr in ("workers 1", "docker-compose.yml", "scheduler.py"):
+        assert substr in content, (
+            f"{substr!r} missing from {BROADCAST_MODULE} — the SGN-INF-03"
+            " invariant comment block must reference all three pin sites"
+        )
+
+
+def test_signage_broadcast_uses_asyncio_queue():
+    """Protects against a regression that rewrites the fanout on a
+    different primitive (queue.Queue, janus, aio-pika, etc.)."""
+    content = BROADCAST_MODULE.read_text()
+    for substr in ("_device_queues", "asyncio.Queue", "QueueFull"):
+        assert substr in content, (
+            f"{substr!r} missing from {BROADCAST_MODULE} — broadcast"
+            " substrate must stay on asyncio.Queue"
+        )
+
+
+def test_signage_broadcast_uses_percent_style_log_format():
+    """Log format args must be %-style, not f-strings — matches the
+    Phase 43 guard intent and keeps structured-log tooling working."""
+    content = BROADCAST_MODULE.read_text()
+    pattern = re.compile(r"log\.(warning|info|error|debug|exception)\(\s*f['\"]")
+    match = pattern.search(content)
+    assert match is None, (
+        f"f-string log format found in {BROADCAST_MODULE} at offset"
+        f" {match.start()}: {match.group(0)!r} — use %s-style args"
+    )
+
+
+def test_phase45_sse_endpoint_registered():
+    """Route-presence guard: /stream must stay on the signage player
+    router. Guards against a refactor that accidentally moves or deletes
+    the SSE endpoint."""
+    from app.routers.signage_player import router
+
+    paths = {r.path for r in router.routes if hasattr(r, "path")}
+    assert any(p.endswith("/stream") for p in paths), (
+        f"/stream route not registered on signage_player router; paths={paths}"
+    )
+
+
+def test_signage_modules_count_includes_broadcast():
+    """Phase 45 bumps the scanner threshold to >=4 and explicitly pins
+    signage_broadcast in the discovered module-name set."""
+    paths = _signage_modules()
+    assert len(paths) >= 4, (
+        f"expected >=4 signage modules under backend/app/ after Phase 45,"
+        f" found {paths}"
+    )
+    names = {p.stem for p in paths}
+    assert "signage_broadcast" in names, (
+        f"signage_broadcast not discovered by scanner; names={names}"
+    )
