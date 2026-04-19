@@ -28,7 +28,7 @@
 - [x] **SGN-BE-04**: `backend/app/security/device_auth.py` — `get_current_device` dep resolving `Authorization: Bearer <device_token>` (token format decided in Phase 42: opaque sha256-hashed OR scoped JWT)
 - [ ] **SGN-BE-05**: `backend/app/services/signage_broadcast.py` — in-process `asyncio.Queue` per device with `QueueFull` drop + reconnect (compatible with `max_instances=1`/`--workers 1` invariant)
 - [x] **SGN-BE-06**: `backend/app/services/signage_resolver.py` — tag-to-playlist query with `priority DESC, updated_at DESC` tiebreak; LIMIT 1 per device
-- [ ] **SGN-BE-07**: PPTX conversion pipeline — `asyncio.subprocess_exec(soffice)` + `asyncio.wait_for(60)` + `asyncio.Semaphore(1)` + per-conversion tempdir with `-env:UserInstallation=file:///tmp/lo_<uuid>` + 50MB upload cap
+- [x] **SGN-BE-07**: PPTX conversion pipeline — `asyncio.subprocess_exec(soffice)` + `asyncio.wait_for(60)` + `asyncio.Semaphore(1)` + per-conversion tempdir with `-env:UserInstallation=file:///tmp/lo_<uuid>` + 50MB upload cap
 - [x] **SGN-BE-08**: `signage_media.conversion_status` state machine (`pending | processing | done | failed`) + startup reset of stuck `processing` rows > 5 min old
 - [x] **SGN-BE-09**: Router dep-audit test — every `/api/signage/*` admin route contains `require_admin`; every `/api/signage/player/*` route contains `get_current_device`
 - [x] **SGN-BE-10**: CI grep guards — no `import sqlite3`, no `import psycopg2` in `backend/app/`; no sync `subprocess.run` in signage services (must use `asyncio.subprocess_exec`)
@@ -141,7 +141,7 @@
 | SGN-BE-09 | Phase 43 | Complete |
 | SGN-BE-10 | Phase 43 | Complete |
 | SGN-SCH-01 | Phase 43 | Complete |
-| SGN-BE-07 | Phase 44 | Pending |
+| SGN-BE-07 | Phase 44 | Complete |
 | SGN-BE-08 | Phase 44 | Complete |
 | SGN-SCH-03 | Phase 44 | Complete |
 | SGN-INF-01 | Phase 44 | Complete |
