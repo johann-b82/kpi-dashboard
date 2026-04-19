@@ -44,7 +44,7 @@
 - [x] **SGN-ADM-01**: `/signage` route registered in `frontend/src/App.tsx`, wrapped in `<AdminOnly>`
 - [x] **SGN-ADM-02**: Admin-only launcher tile using `MonitorPlay` icon from lucide-react; i18n key `launcher.tiles.signage` (EN: "Digital Signage", DE: "Digital Signage")
 - [x] **SGN-ADM-03**: `SignagePage.tsx` with tabs (Media / Playlists / Devices) via shadcn `<Tabs>`; mirrors `SensorsPage.tsx` shell pattern
-- [ ] **SGN-ADM-04**: Media library — upload via Directus `/files` endpoint, list with thumbnail/type/size/tags, delete with "in use by N playlists" confirm dialog
+- [x] **SGN-ADM-04**: Media library — upload via Directus `/files` endpoint, list with thumbnail/type/size/tags, delete with "in use by N playlists" confirm dialog
 - [ ] **SGN-ADM-05**: Playlist editor — name, tags, ordered item list with drag-reorder, per-item `duration_s` + transition + media picker
 - [ ] **SGN-ADM-06**: Device table — name, tags, status chip (green/amber/red from `last_seen_at`), current playlist, edit + remove + revoke-token actions
 - [ ] **SGN-ADM-07**: `/signage/pair` page — admin enters 6-digit code + device name + tags → `POST /api/signage/pair/claim`
@@ -151,7 +151,7 @@
 | SGN-ADM-01 | Phase 46 | Complete |
 | SGN-ADM-02 | Phase 46 | Complete |
 | SGN-ADM-03 | Phase 46 | Complete |
-| SGN-ADM-04 | Phase 46 | Pending |
+| SGN-ADM-04 | Phase 46 | Complete |
 | SGN-ADM-05 | Phase 46 | Pending |
 | SGN-ADM-06 | Phase 46 | Pending |
 | SGN-ADM-07 | Phase 46 | Pending |

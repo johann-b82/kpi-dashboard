@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 46-02-shared-primitives-PLAN.md
-last_updated: "2026-04-19T20:58:01.826Z"
+stopped_at: Completed 46-04-media-page-PLAN.md
+last_updated: "2026-04-19T21:05:28.926Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 26
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 46 (admin-ui) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -85,6 +85,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 46 P03 | 152 | 2 tasks | 8 files |
 | Phase 46 P01 | 5m | 3 tasks | 13 files |
 | Phase 46 P02 | 4m | 3 tasks | 6 files |
+| Phase 46 P04 | 271s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 46]: Plan 46-02: ApiErrorWithBody is signage-local variant of apiClient (single CI grep guard exemption); status colors light/dark invariant by design (semantic > theming); refetchInterval as terminal-aware function returning false on done/failed
 - [Phase 46]: Plan 46-01: signage locale keys added as flat-dotted top-level entries to match parity script's Object.keys contract; launcher.tiles.signage (plural) is new sibling per D-16 — existing launcher.tile.* (singular) untouched
 - [Phase 46]: Plan 46-01: AdminOnly wraps every /signage/* route at App.tsx level (not inside SignagePage) so viewer roles never instantiate the page; custom button-group sub-nav (NOT shadcn <Tabs>) keeps URL as source of truth
+- [Phase 46]: 46-04: SignageMediaCreate Pydantic v2 default extra='ignore' silently drops unknown fields (tags, metadata, url from plan bodies) — upload + register + delete flows succeed end-to-end while URL/HTML content storage stays a backend follow-up. Frontend signageTypes.ts (from 46-02) also diverges from backend Read shape (directus_file_id/tags vs uri); deferred as cross-cutting reconciliation.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -161,6 +163,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T20:57:56.166Z
-**Stopped at:** Completed 46-02-shared-primitives-PLAN.md
+**Last session:** 2026-04-19T21:05:13.491Z
+**Stopped at:** Completed 46-04-media-page-PLAN.md
 **Resume file:** None
