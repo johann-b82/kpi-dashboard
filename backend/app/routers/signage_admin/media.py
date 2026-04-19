@@ -10,7 +10,15 @@ import shutil
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
@@ -20,8 +28,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.models import SignageMedia, SignagePlaylistItem
 from app.schemas.signage import SignageMediaCreate, SignageMediaRead
+from app.services.directus_uploads import MAX_UPLOAD_BYTES, upload_pptx_to_directus
+from app.services.signage_pptx import convert_pptx
 
 log = logging.getLogger(__name__)
+
+# D-10: canonical PPTX MIME; fallbacks accepted only with the .pptx extension.
+PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+_PPTX_FALLBACK_MIMES = {"application/octet-stream", "application/zip"}
 
 router = APIRouter(prefix="/media", tags=["signage-admin-media"])
 
@@ -150,3 +164,71 @@ async def delete_media(
 
     # 204 No Content
     return None
+
+
+# ---------------------------------------------------------------------------
+# PPTX upload + reconvert (Phase 44 Plan 03 — SGN-BE-07)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/pptx", response_model=SignageMediaRead, status_code=201)
+async def upload_pptx_media(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    title: str = Form(..., max_length=255),
+    db: AsyncSession = Depends(get_async_db_session),
+) -> SignageMedia:
+    """D-10: multipart PPTX upload.
+
+    Streams the uploaded bytes into Directus, inserts a pending SignageMedia
+    row, schedules conversion via BackgroundTasks, and returns 201 immediately.
+    Enforces the 50MB cap (D-13) inside the stream iterator — HTTPException(413)
+    is raised by ``upload_pptx_to_directus`` the moment the running total
+    exceeds ``MAX_UPLOAD_BYTES``, BEFORE the whole body is read into memory.
+    """
+    # D-10: validate MIME / extension first (cheap rejection).
+    filename = (file.filename or "").lower()
+    content_type = (file.content_type or "").lower()
+    is_pptx_mime = content_type == PPTX_MIME
+    is_pptx_ext = filename.endswith(".pptx")
+    is_fallback = content_type in _PPTX_FALLBACK_MIMES and is_pptx_ext
+    if not (is_pptx_mime or is_fallback):
+        raise HTTPException(
+            status_code=400,
+            detail="file must be a .pptx presentation",
+        )
+
+    # Stream body -> Directus. The helper raises HTTPException(413) on cap breach,
+    # BEFORE the whole body is read into memory (MAX_UPLOAD_BYTES=50MB).
+    async def _body_iter():
+        while True:
+            chunk = await file.read(64 * 1024)
+            if not chunk:
+                break
+            yield chunk
+
+    directus_uuid, total_bytes = await upload_pptx_to_directus(
+        filename=file.filename or "upload.pptx",
+        content_type=PPTX_MIME,  # normalise — Directus stores the canonical MIME.
+        body_stream=_body_iter(),
+    )
+
+    row = SignageMedia(
+        kind="pptx",
+        title=title,
+        mime_type=PPTX_MIME,
+        size_bytes=total_bytes,
+        uri=directus_uuid,
+        conversion_status="pending",
+        slide_paths=None,
+        conversion_error=None,
+        conversion_started_at=None,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+
+    # D-08: schedule conversion AFTER the row is committed so the background
+    # task can re-fetch it via its own session.
+    background_tasks.add_task(convert_pptx, row.id)
+    return row
