@@ -17,8 +17,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.models import SignageDevice, SignageDeviceTagMap
 from app.schemas.signage import SignageDeviceRead
+from app.services import signage_broadcast
+from app.services.signage_resolver import (
+    compute_playlist_etag,
+    resolve_playlist_for_device,
+)
 
 router = APIRouter(prefix="/devices", tags=["signage-admin-devices"])
+
+
+async def _notify_device_self(db: AsyncSession, device_id) -> None:
+    """Phase 45 D-02: tell the device to refetch its own playlist.
+
+    Used when a device's tag set changes (tag map bulk-replace) — the
+    resolved playlist may flip to a different one (or none). If the resolved
+    envelope has no match, we still send the sentinel so the player refetches
+    /playlist and observes the empty envelope.
+    """
+    row = (
+        await db.execute(select(SignageDevice).where(SignageDevice.id == device_id))
+    ).scalar_one_or_none()
+    if row is None:
+        return
+    envelope = await resolve_playlist_for_device(db, row)
+    pid = str(envelope.playlist_id) if envelope.playlist_id is not None else ""
+    signage_broadcast.notify_device(
+        device_id,
+        {
+            "event": "playlist-changed",
+            "playlist_id": pid,
+            "etag": compute_playlist_etag(envelope),
+        },
+    )
 
 
 class SignageDeviceAdminUpdate(BaseModel):
@@ -103,4 +133,7 @@ async def replace_device_tags(
             ],
         )
     await db.commit()
+    # Phase 45 D-02: device tags drive resolver output — notify the device
+    # itself so it refetches /playlist and picks up the new routing.
+    await _notify_device_self(db, device_id)
     return {"tag_ids": list(payload.tag_ids)}

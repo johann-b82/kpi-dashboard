@@ -28,8 +28,50 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_async_db_session
 from app.models import SignageMedia, SignagePlaylistItem
 from app.schemas.signage import SignageMediaCreate, SignageMediaRead
+from app.services import signage_broadcast
 from app.services.directus_uploads import MAX_UPLOAD_BYTES, upload_pptx_to_directus
 from app.services.signage_pptx import convert_pptx, delete_slides_dir
+from app.services.signage_resolver import (
+    compute_playlist_etag,
+    devices_affected_by_playlist,
+    resolve_playlist_for_device,
+)
+
+
+async def _notify_media_referenced_playlists(db: AsyncSession, media_id) -> None:
+    """Phase 45 D-02: when a media row changes in a way that affects a
+    resolved envelope (metadata surfaced on wire, delete, reconvert-done),
+    notify every device whose resolved playlist references this media.
+
+    Query: SELECT DISTINCT playlist_id FROM signage_playlist_items WHERE
+    media_id = :mid. For each playlist, fan out to affected devices via the
+    usual tag-overlap path.
+    """
+    rows = await db.execute(
+        select(SignagePlaylistItem.playlist_id)
+        .where(SignagePlaylistItem.media_id == media_id)
+        .distinct()
+    )
+    playlist_ids = [pid for (pid,) in rows.fetchall()]
+    for pl_id in playlist_ids:
+        affected = await devices_affected_by_playlist(db, pl_id)
+        for device_id in affected:
+            from app.models import SignageDevice as _Dev
+
+            dev = (
+                await db.execute(select(_Dev).where(_Dev.id == device_id))
+            ).scalar_one_or_none()
+            if dev is None:
+                continue
+            envelope = await resolve_playlist_for_device(db, dev)
+            signage_broadcast.notify_device(
+                device_id,
+                {
+                    "event": "playlist-changed",
+                    "playlist_id": str(pl_id),
+                    "etag": compute_playlist_etag(envelope),
+                },
+            )
 
 log = logging.getLogger(__name__)
 
@@ -117,6 +159,9 @@ async def update_media(
         setattr(row, k, v)
     await db.commit()
     await db.refresh(row)
+    # Phase 45 D-02: media fields surfaced in the resolved envelope (kind, uri,
+    # etc.) may have changed — notify every playlist that references this row.
+    await _notify_media_referenced_playlists(db, media_id)
     return row
 
 

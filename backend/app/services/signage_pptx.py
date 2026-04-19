@@ -78,7 +78,13 @@ async def _set_failed(media_id: _uuid.UUID, code: str) -> None:
 
 
 async def _set_done(media_id: _uuid.UUID, slide_paths: list[str]) -> None:
-    """Terminal success write."""
+    """Terminal success write.
+
+    Phase 45 Plan 02: on the ``processing → done`` transition, fan a
+    ``playlist-changed`` frame out to every device whose resolved playlist
+    references this media. Notify is wrapped in try/except — a broadcast
+    failure must NEVER roll back or mask the state write.
+    """
     try:
         async with AsyncSessionLocal() as session:
             await session.execute(
@@ -91,8 +97,56 @@ async def _set_done(media_id: _uuid.UUID, slide_paths: list[str]) -> None:
                 )
             )
             await session.commit()
+            # Post-commit notify — AFTER commit per Pitfall 3.
+            try:
+                await _notify_media_referenced_playlists(session, media_id)
+            except Exception:  # noqa: BLE001
+                log.warning(
+                    "signage_pptx: post-done broadcast failed for %s",
+                    media_id,
+                    exc_info=True,
+                )
     except Exception:
         log.exception("signage_pptx: _set_done(%s) db write failed", media_id)
+
+
+async def _notify_media_referenced_playlists(session, media_id: _uuid.UUID) -> None:
+    """Phase 45 D-02: PPTX reconvert-done notify helper.
+
+    Duplicated locally (per plan 45-02) to avoid import-cycle with
+    ``app.routers.signage_admin.media`` and to keep the pptx service's blast
+    radius minimal. Query + fanout are two lines each.
+    """
+    from app.models import SignageDevice as _Dev
+    from app.models import SignagePlaylistItem as _Item
+    from app.services import signage_broadcast
+    from app.services.signage_resolver import (
+        compute_playlist_etag,
+        devices_affected_by_playlist,
+        resolve_playlist_for_device,
+    )
+
+    rows = await session.execute(
+        select(_Item.playlist_id).where(_Item.media_id == media_id).distinct()
+    )
+    playlist_ids = [pid for (pid,) in rows.fetchall()]
+    for pl_id in playlist_ids:
+        affected = await devices_affected_by_playlist(session, pl_id)
+        for device_id in affected:
+            dev = (
+                await session.execute(select(_Dev).where(_Dev.id == device_id))
+            ).scalar_one_or_none()
+            if dev is None:
+                continue
+            envelope = await resolve_playlist_for_device(session, dev)
+            signage_broadcast.notify_device(
+                device_id,
+                {
+                    "event": "playlist-changed",
+                    "playlist_id": str(pl_id),
+                    "etag": compute_playlist_etag(envelope),
+                },
+            )
 
 
 async def _set_processing(media_id: _uuid.UUID) -> None:
