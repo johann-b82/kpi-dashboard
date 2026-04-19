@@ -79,7 +79,7 @@
 
 ### Infrastructure (SGN-INF-*)
 
-- [ ] **SGN-INF-01**: Backend Dockerfile adds LibreOffice (`libreoffice-impress` + `libreoffice-core` 24.x), `poppler-utils`, Carlito/Caladea/Noto/DejaVu fonts to apt layer (font metrics match Calibri/Cambria for PPTX fidelity)
+- [x] **SGN-INF-01**: Backend Dockerfile adds LibreOffice (`libreoffice-impress` + `libreoffice-core` 24.x), `poppler-utils`, Carlito/Caladea/Noto/DejaVu fonts to apt layer (font metrics match Calibri/Cambria for PPTX fidelity)
 - [x] **SGN-INF-02**: `docker-compose.yml` adds `directus_uploads:/directus/uploads:ro` mount into `api`; `migrate → directus` startup ordering enforced via `depends_on.migrate.condition: service_completed_successfully` (prevents Directus introspection race on fresh tables)
 - [ ] **SGN-INF-03**: `--workers 1` invariant preserved and documented inline — SSE + APScheduler singleton + in-process asyncio.Queue fanout all depend on it; comment block added to `signage_broadcast.py` mirroring existing comment in `docker-compose.yml` + `scheduler.py`
 
@@ -144,7 +144,7 @@
 | SGN-BE-07 | Phase 44 | Pending |
 | SGN-BE-08 | Phase 44 | Pending |
 | SGN-SCH-03 | Phase 44 | Pending |
-| SGN-INF-01 | Phase 44 | Pending |
+| SGN-INF-01 | Phase 44 | Complete |
 | SGN-BE-05 | Phase 45 | Pending |
 | SGN-DIFF-01 | Phase 45 | Pending |
 | SGN-INF-03 | Phase 45 | Pending |

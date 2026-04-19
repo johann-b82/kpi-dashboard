@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Phase 44 context gathered
-last_updated: "2026-04-19T08:48:02.514Z"
-last_activity: 2026-04-18
+stopped_at: Completed 44-01 Dockerfile LibreOffice + fonts plan
+last_updated: "2026-04-19T14:57:52.585Z"
+last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 18
+  completed_plans: 15
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 43 — media-playlist-device-admin-api-polling
+**Current focus:** Phase 44 — pptx-conversion-pipeline
 
 ---
 
 ## Current Position
 
-Phase: 44
-Plan: Not started
+Phase: 44 (pptx-conversion-pipeline) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-04-18
+Last activity: 2026-04-19
 
 Progress: [········] 0% (0/8 phases complete)
 
@@ -74,6 +74,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 43 P04 | 8m | 3 tasks | 5 files |
 | Phase 43 P03 | 3m 28s | 2 tasks | 8 files |
 | Phase 43 P05 | 4m | 2 tasks | 2 files |
+| Phase 44 P01 | 102s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 43]: Plan 43-04: player router uses router-level Depends(get_current_device); /playlist is pure-read (D-10); heartbeat sweeper runs 1-min interval and excludes already-offline + revoked devices (D-15 idempotency)
 - [Phase 43]: Plan 43-03: signage_admin router package with single router-level admin gate (D-01); 409-with-playlist_ids via JSONResponse on media FK RESTRICT (Pitfall 6); bulk-replace items + device/playlist tags in single-tx; D-21 (b) via directus_file_id -> uri mapping (no schema change)
 - [Phase 43]: Plan 43-05: dep-audit PUBLIC_SIGNAGE_ROUTES locks pair/request + pair/status as the only public signage endpoints; CI grep guards enforce no sqlite3/psycopg2 anywhere in backend/app and no sync subprocess in signage modules
+- [Phase 44]: Plan 44-01: Single apt layer adds libreoffice-impress+core, poppler-utils, Carlito/Caladea/Noto/DejaVu fonts; mkdir /app/media/slides at build time; CMD untouched (--reload preserved per plan)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -135,6 +137,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T08:48:02.502Z
-**Stopped at:** Phase 44 context gathered
-**Resume file:** .planning/phases/44-pptx-conversion-pipeline/44-CONTEXT.md
+**Last session:** 2026-04-19T14:57:52.582Z
+**Stopped at:** Completed 44-01 Dockerfile LibreOffice + fonts plan
+**Resume file:** None
