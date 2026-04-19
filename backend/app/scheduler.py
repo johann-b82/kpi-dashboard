@@ -29,7 +29,13 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.sql import func
 
 from app.database import AsyncSessionLocal
-from app.models import AppSettings, SensorPollLog, SensorReading, SignagePairingSession
+from app.models import (
+    AppSettings,
+    SensorPollLog,
+    SensorReading,
+    SignageMedia,
+    SignagePairingSession,
+)
 from app.models.signage import SignageDevice
 
 log = logging.getLogger(__name__)
@@ -48,6 +54,11 @@ SENSOR_RETENTION_DAYS = 90
 # 24h grace sits comfortably outside the 10-minute TTL a kiosk might still be
 # polling and leaves the delete-on-deliver path (Plan 42-02) untouched.
 PAIRING_CLEANUP_GRACE_HOURS = 24
+
+# SGN-SCH-03 / D-09: PPTX rows older than this in 'processing' at startup are
+# abandoned (flipped to 'failed / abandoned_on_restart'). Fail-forward only —
+# admin must POST /reconvert explicitly to retry.
+PPTX_STUCK_AGE_MINUTES = 5
 
 # Module-level engine reference. Populated in lifespan; read by the scheduled
 # poll runner. Not a true public API — routers should use
@@ -222,6 +233,55 @@ async def _run_signage_heartbeat_sweeper() -> None:
             await session.rollback()
 
 
+async def _run_pptx_stuck_reset() -> None:
+    """SGN-SCH-03 / D-09 + D-18: one-shot startup reset of stuck PPTX rows.
+
+    Flips any signage_media row that was 'processing' more than 5 minutes
+    ago (by conversion_started_at) into a terminal 'failed' state with
+    conversion_error='abandoned_on_restart'. Fail-forward — admin must
+    call POST /api/signage/media/{id}/reconvert explicitly to retry.
+
+    Runs ONCE at scheduler init, before the cron/interval jobs are
+    registered. Idempotent — a clean DB is a no-op (DEBUG log). Non-zero
+    resets are logged at INFO.
+
+    Predicate: conversion_status == 'processing' AND conversion_started_at
+    < cutoff. Rows with conversion_started_at IS NULL never satisfy the
+    strict-less-than comparison in SQL, so a 'processing' row missing a
+    timestamp (data bug) is naturally excluded rather than silently flipped.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=PPTX_STUCK_AGE_MINUTES)
+    async with AsyncSessionLocal() as session:
+        try:
+            result = await session.execute(
+                update(SignageMedia)
+                .where(
+                    SignageMedia.conversion_status == "processing",
+                    SignageMedia.conversion_started_at < cutoff,
+                )
+                .values(
+                    conversion_status="failed",
+                    conversion_error="abandoned_on_restart",
+                )
+            )
+            await session.commit()
+            reset_count = result.rowcount or 0
+            if reset_count > 0:
+                log.info(
+                    "pptx_stuck_reset: flipped rows=%d cutoff=%s",
+                    reset_count,
+                    cutoff.isoformat(),
+                )
+            else:
+                log.debug(
+                    "pptx_stuck_reset: no stuck rows (cutoff=%s)",
+                    cutoff.isoformat(),
+                )
+        except Exception:
+            log.exception("pptx_stuck_reset failed")
+            await session.rollback()
+
+
 def reschedule_sensor_poll(new_interval_s: int) -> None:
     """Phase 40 admin-settings hook — re-pins sensor_poll to a new interval.
 
@@ -361,6 +421,14 @@ async def lifespan(app: FastAPI):
         misfire_grace_time=30,
     )
     log.info("registered signage_heartbeat_sweeper (1-min interval)")
+
+    # --- PPTX stuck-row reset (one-shot at startup — v1.16 Phase 44) ---
+    # SGN-SCH-03 / D-09 + D-18: flips 'processing' rows older than 5 min to
+    # 'failed / abandoned_on_restart'. Runs BEFORE scheduler.start() so the
+    # reset happens exactly once and does not race interval jobs. Not a
+    # scheduled job — not registered with add_job.
+    await _run_pptx_stuck_reset()
+    log.info("pptx_stuck_reset hook executed")
 
     scheduler.start()
     try:
