@@ -347,7 +347,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
 | 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 44. PPTX Conversion Pipeline | v1.16 | 5/5 | Complete    | 2026-04-19 |
-| 45. SSE Broadcast | v1.16 | 3/3 | Complete   | 2026-04-19 |
+| 45. SSE Broadcast | v1.16 | 3/3 | Complete    | 2026-04-19 |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
 | 47. Player Bundle | v1.16 | 0/TBD | Not started | — |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 0/TBD | Not started | — |
