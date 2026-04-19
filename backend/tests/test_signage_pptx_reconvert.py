@@ -12,6 +12,7 @@ Mirrors the fixture pattern in test_signage_admin_router.py + test_signage_pptx_
 """
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from unittest.mock import MagicMock
@@ -83,7 +84,7 @@ async def _insert_pptx_media(
             "directus-file-uuid",
             status,
             error,
-            slide_paths,
+            json.dumps(slide_paths) if slide_paths is not None else None,
         )
     finally:
         await conn.close()
@@ -106,13 +107,22 @@ async def _insert_image_media(dsn: str) -> uuid.UUID:
 async def _fetch_media_row(dsn: str, mid: uuid.UUID):
     conn = await asyncpg.connect(dsn=dsn)
     try:
-        return await conn.fetchrow(
+        row = await conn.fetchrow(
             "SELECT conversion_status, slide_paths, conversion_error, conversion_started_at "
             "FROM signage_media WHERE id = $1",
             mid,
         )
     finally:
         await conn.close()
+    # asyncpg returns JSONB as raw text — decode so `None` / list comparisons work.
+    slide_paths_raw = row["slide_paths"]
+    slide_paths = json.loads(slide_paths_raw) if slide_paths_raw is not None else None
+    return {
+        "conversion_status": row["conversion_status"],
+        "slide_paths": slide_paths,
+        "conversion_error": row["conversion_error"],
+        "conversion_started_at": row["conversion_started_at"],
+    }
 
 
 @pytest.fixture

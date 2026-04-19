@@ -29,7 +29,7 @@ from app.database import get_async_db_session
 from app.models import SignageMedia, SignagePlaylistItem
 from app.schemas.signage import SignageMediaCreate, SignageMediaRead
 from app.services.directus_uploads import MAX_UPLOAD_BYTES, upload_pptx_to_directus
-from app.services.signage_pptx import convert_pptx
+from app.services.signage_pptx import convert_pptx, delete_slides_dir
 
 log = logging.getLogger(__name__)
 
@@ -230,5 +230,37 @@ async def upload_pptx_media(
 
     # D-08: schedule conversion AFTER the row is committed so the background
     # task can re-fetch it via its own session.
+    background_tasks.add_task(convert_pptx, row.id)
+    return row
+
+
+@router.post("/{media_id}/reconvert", response_model=SignageMediaRead, status_code=202)
+async def reconvert_pptx_media(
+    media_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_async_db_session),
+) -> SignageMedia:
+    """D-12: reset a PPTX row to pending, clear derived slides, re-schedule conversion."""
+    row = (
+        await db.execute(select(SignageMedia).where(SignageMedia.id == media_id))
+    ).scalar_one_or_none()
+    if row is None:
+        raise HTTPException(status_code=404, detail="media not found")
+    if row.kind != "pptx":
+        raise HTTPException(status_code=409, detail="media is not a PPTX")
+    if row.conversion_status == "processing":
+        raise HTTPException(status_code=409, detail="conversion already in progress")
+
+    row.conversion_status = "pending"
+    row.slide_paths = None
+    row.conversion_error = None
+    row.conversion_started_at = None
+    await db.commit()
+    await db.refresh(row)
+
+    # D-12: wipe the old derived slides dir BEFORE the new conversion starts.
+    # delete_slides_dir is best-effort and non-raising (see plan 44-02).
+    delete_slides_dir(media_id)
+
     background_tasks.add_task(convert_pptx, row.id)
     return row
