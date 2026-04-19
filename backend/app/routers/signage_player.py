@@ -1,8 +1,8 @@
-"""Phase 43 SGN-BE-02: device-facing polling endpoints.
+"""Phase 43 SGN-BE-02 + Phase 45 SGN-BE-05/SGN-DIFF-01: device-facing endpoints.
 
 Per CONTEXT D-02: router-level ``get_current_device`` gate applies to every
-endpoint in this module. Only ``/playlist`` and ``/heartbeat`` land this phase;
-``/stream`` (SSE) defers to Phase 45.
+endpoint in this module. ``/playlist`` and ``/heartbeat`` landed in Phase 43;
+``/stream`` (SSE) was added in Phase 45 Plan 02.
 
 Decisions enforced here:
   - D-09: GET /playlist serves an ETag derived from the tag-resolved playlist
@@ -13,19 +13,27 @@ Decisions enforced here:
   - D-11 / D-12: POST /heartbeat updates ``last_seen_at``, ``current_item_id``,
     and ``current_playlist_etag``, and flips ``status`` from ``offline`` to
     ``online`` on the first heartbeat after an offline window. Returns 204.
+  - Phase 45 D-01 / D-03: GET /stream pushes ``{event,playlist_id,etag}`` SSE
+    frames with 15s server pings, uses last-writer-wins semantics on
+    reconnect, and re-raises ``asyncio.CancelledError`` in the generator's
+    finally so the per-device queue is always cleaned up.
 """
 from __future__ import annotations
 
+import asyncio
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sse_starlette.sse import EventSourceResponse
 
 from app.database import get_async_db_session
 from app.models.signage import SignageDevice
 from app.schemas.signage import HeartbeatRequest, PlaylistEnvelope
 from app.security.device_auth import get_current_device
+from app.services import signage_broadcast
 from app.services.signage_resolver import (
     compute_playlist_etag,
     resolve_playlist_for_device,
@@ -94,3 +102,41 @@ async def post_heartbeat(
     )
     await db.commit()
     return Response(status_code=204)
+
+
+@router.get("/stream")
+async def stream_events(
+    device: SignageDevice = Depends(get_current_device),
+) -> EventSourceResponse:
+    """SSE: streams playlist-changed events to connected players.
+
+    Phase 45 SGN-BE-05 / SGN-DIFF-01. Payload shape per CONTEXT D-01:
+    ``{"event": "playlist-changed", "playlist_id": <int>, "etag": "<weak-etag>"}``.
+
+    - ``signage_broadcast.subscribe`` replaces any prior queue for this
+      device (D-03 last-writer-wins).
+    - The ``finally`` block pops with ``None`` default so the OLD generator
+      tearing down AFTER a newer connection replaced its queue does NOT
+      clobber the fresh registration (RESEARCH §Pitfall 1).
+    - ``asyncio.CancelledError`` MUST be re-raised — swallowing it leaves a
+      zombie coroutine (RESEARCH §Pitfall 2).
+    - ``ping=15`` tells sse-starlette to emit a comment-line keepalive every
+      15 seconds, keeping idle intermediaries from closing the connection.
+    """
+    queue = signage_broadcast.subscribe(device.id)
+
+    async def event_generator():
+        try:
+            while True:
+                payload = await queue.get()
+                yield {"data": json.dumps(payload)}
+        except asyncio.CancelledError:
+            raise  # MUST re-raise — per Pitfall 2
+        finally:
+            # D-03 last-writer-wins: pop with None default so the OLD
+            # generator's finally does not delete a NEW connection's
+            # freshly-subscribed queue (per 45-RESEARCH §Pattern 3 +
+            # §Pitfall 1).
+            signage_broadcast._device_queues.pop(device.id, None)
+
+    return EventSourceResponse(event_generator(), ping=15)
