@@ -28,6 +28,8 @@ from app.database import AsyncSessionLocal, engine
 from app.models.signage import SignageDevice
 from app.services.signage_resolver import (
     compute_playlist_etag,
+    devices_affected_by_device_update,
+    devices_affected_by_playlist,
     resolve_playlist_for_device,
 )
 
@@ -455,3 +457,85 @@ async def test_compute_playlist_etag_changes_with_content(dsn):
     etag_b = compute_playlist_etag(env_b)
 
     assert etag_a != etag_b
+
+
+# --------------------------------------------------------------------------
+# devices_affected_by_playlist / devices_affected_by_device_update
+# (Plan 45-01 — broadcast fanout resolver helper)
+# --------------------------------------------------------------------------
+
+
+async def _revoke_device(dsn: str, device_id: uuid.UUID) -> None:
+    conn = await asyncpg.connect(dsn=dsn)
+    try:
+        await conn.execute(
+            "UPDATE signage_devices SET revoked_at = now() WHERE id = $1",
+            device_id,
+        )
+    finally:
+        await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_devices_affected_by_playlist_returns_tag_overlap(dsn):
+    d1 = await _insert_device(dsn, name="pi-lobby")
+    d2 = await _insert_device(dsn, name="pi-kitchen")
+    d3 = await _insert_device(dsn, name="pi-lobby-office")
+
+    t_lobby = await _insert_tag(dsn, "lobby")
+    t_kitchen = await _insert_tag(dsn, "kitchen")
+    t_office = await _insert_tag(dsn, "office")
+
+    await _tag_device(dsn, d1, t_lobby)
+    await _tag_device(dsn, d2, t_kitchen)
+    await _tag_device(dsn, d3, t_lobby)
+    await _tag_device(dsn, d3, t_office)
+
+    pid = await _insert_playlist(dsn, name="lobby-playlist", priority=1)
+    await _tag_playlist(dsn, pid, t_lobby)
+
+    async with AsyncSessionLocal() as db:
+        affected = await devices_affected_by_playlist(db, pid)
+
+    assert affected == sorted([d1, d3])
+
+
+@pytest.mark.asyncio
+async def test_devices_affected_by_playlist_excludes_revoked_devices(dsn):
+    d1 = await _insert_device(dsn, name="pi-live")
+    d2 = await _insert_device(dsn, name="pi-revoked")
+    t = await _insert_tag(dsn, "lobby")
+    await _tag_device(dsn, d1, t)
+    await _tag_device(dsn, d2, t)
+    await _revoke_device(dsn, d2)
+
+    pid = await _insert_playlist(dsn, name="p", priority=1)
+    await _tag_playlist(dsn, pid, t)
+
+    async with AsyncSessionLocal() as db:
+        affected = await devices_affected_by_playlist(db, pid)
+
+    assert affected == [d1]
+
+
+@pytest.mark.asyncio
+async def test_devices_affected_by_playlist_empty_for_untagged_playlist(dsn):
+    # Device exists and is tagged, but the playlist itself has no target-tag rows.
+    d = await _insert_device(dsn)
+    t = await _insert_tag(dsn, "lobby")
+    await _tag_device(dsn, d, t)
+
+    pid = await _insert_playlist(dsn, name="no-targets", priority=1)
+
+    async with AsyncSessionLocal() as db:
+        affected = await devices_affected_by_playlist(db, pid)
+
+    assert affected == []
+
+
+@pytest.mark.asyncio
+async def test_devices_affected_by_device_update_returns_single_id(dsn):
+    d = await _insert_device(dsn)
+    async with AsyncSessionLocal() as db:
+        affected = await devices_affected_by_device_update(db, d)
+    assert affected == [d]

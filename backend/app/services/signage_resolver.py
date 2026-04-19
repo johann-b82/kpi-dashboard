@@ -123,6 +123,55 @@ async def resolve_playlist_for_device(
     )
 
 
+async def devices_affected_by_playlist(
+    db: AsyncSession, playlist_id
+) -> list:
+    """Return device IDs whose resolved playlist could be affected by changes to the given playlist.
+
+    A device is affected iff its tag set overlaps the playlist's target tag set
+    (via signage_playlist_tag_map + signage_device_tag_map). Exact semantics mirror
+    the reverse direction of resolve_playlist_for_device() — any device that could
+    have this playlist chosen by the resolver is returned, regardless of priority
+    (a higher-priority rival playlist may still win; the broadcast policy is "notify
+    all candidates and let the player re-resolve via /playlist ETag").
+
+    Revoked devices (``revoked_at IS NOT NULL``) are excluded — consistent with
+    the other player paths; a revoked Pi has no valid SSE session anyway.
+
+    Output sorted for deterministic test behavior.
+    """
+    stmt = (
+        select(SignageDeviceTagMap.device_id)
+        .join(
+            SignagePlaylistTagMap,
+            SignagePlaylistTagMap.tag_id == SignageDeviceTagMap.tag_id,
+        )
+        .join(
+            SignageDevice,
+            SignageDevice.id == SignageDeviceTagMap.device_id,
+        )
+        .where(
+            SignagePlaylistTagMap.playlist_id == playlist_id,
+            SignageDevice.revoked_at.is_(None),
+        )
+        .distinct()
+    )
+    rows = (await db.execute(stmt)).fetchall()
+    return sorted({row[0] for row in rows})
+
+
+async def devices_affected_by_device_update(
+    db: AsyncSession, device_id
+) -> list:
+    """Return ``[device_id]`` — a device's own resolved playlist changes when its tags change.
+
+    Trivial wrapper; exists so the admin ``devices.py`` notify hook
+    (Plan 45-02) has a single consistent call shape across all mutation
+    types (playlist-level vs. device-level changes).
+    """
+    return [device_id]
+
+
 def compute_playlist_etag(envelope: PlaylistEnvelope) -> str:
     """SHA256 over a deterministic tuple (D-09). Used by Plan 43-04's router.
 
