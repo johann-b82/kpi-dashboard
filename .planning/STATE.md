@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 46-06-devices-pair-PLAN.md
-last_updated: "2026-04-19T21:05:36.719Z"
+stopped_at: Completed 46-05-playlist-editor-PLAN.md
+last_updated: "2026-04-19T21:10:04.770Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 26
+  completed_plans: 27
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 46 (admin-ui) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -87,6 +87,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 46 P02 | 4m | 3 tasks | 6 files |
 | Phase 46 P04 | 271s | 3 tasks | 5 files |
 | Phase 46 P06 | 4m | 3 tasks | 6 files |
+| Phase 46 P05 | 9m | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,9 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 46]: 46-04: SignageMediaCreate Pydantic v2 default extra='ignore' silently drops unknown fields (tags, metadata, url from plan bodies) — upload + register + delete flows succeed end-to-end while URL/HTML content storage stays a backend follow-up. Frontend signageTypes.ts (from 46-02) also diverges from backend Read shape (directus_file_id/tags vs uri); deferred as cross-cutting reconciliation.
 - [Phase 46]: 46-06: Device PATCH body is name-only; tag updates flow through PUT /devices/{id}/tags. updateDevice signageApi accepts {name, tag_ids} for ergonomics, internally only forwards {name}; DeviceEditDialog sequences PATCH then PUT
 - [Phase 46]: 46-06: Revoke endpoint lives at /api/signage/pair/devices/{id}/revoke (not /api/signage/devices/{id}/revoke) per Phase 42 P03 placement; backend collapses pairing-claim 404 errors into one detail string — substring-match for inline UX
+- [Phase 46]: Plan 46-05: backend update_playlist is PATCH (not PUT) and excludes tag_ids; tag mutations route through PUT /playlists/{id}/tags. createPlaylist server-side ignores tag_ids; PlaylistNewDialog collects name only and editor handles tags after.
+- [Phase 46]: Plan 46-05: PlayerRenderer preview is fed by useWatch over react-hook-form items state (Pitfall 9); items not present in mediaLookup are silently skipped.
+- [Phase 46]: Plan 46-05: useUnsavedGuard scopePath = '/signage/playlists/${id}'; '__back__' sentinel triggers history.go(-2) on confirm-discard. Parallel coalesce with 46-06 attributed App.tsx/signageApi.ts/UnsavedChangesDialog edits to commit 5780c41.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -166,6 +170,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T21:05:36.360Z
-**Stopped at:** Completed 46-06-devices-pair-PLAN.md
+**Last session:** 2026-04-19T21:09:57.811Z
+**Stopped at:** Completed 46-05-playlist-editor-PLAN.md
 **Resume file:** None
