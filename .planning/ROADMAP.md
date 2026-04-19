@@ -254,11 +254,11 @@ Plans:
   2. Admin `PUT /api/signage/playlists/{id}` that affects a device via tag overlap causes that device's SSE connection to receive a `playlist-changed` event within 1s; devices whose tags do not overlap receive nothing.
   3. `signage_broadcast.py` uses `asyncio.Queue(maxsize=32)` per device with `QueueFull` drop-on-overflow (30s polling covers the miss); module contains an inline comment block asserting the `--workers 1` invariant mirroring `docker-compose.yml` and `scheduler.py`.
   4. Killing the SSE connection from the client side cleans up the per-device queue in the generator's `finally` block — verified via a test that connects, disconnects, and asserts `_device_queues` has no stale entry for that device_id.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 45-01-broadcast-service-PLAN.md — Add sse-starlette dep + signage_broadcast.py service + devices_affected_by_playlist helper (wave 1)
 - [x] 45-02-stream-endpoint-and-notify-hooks-PLAN.md — GET /stream endpoint + notify_device hooks in all D-02 admin mutation paths + PPTX reconvert-done + integration tests (wave 2)
-- [ ] 45-03-ci-guards-and-latency-bench-PLAN.md — Phase 45 CI grep guards + 5-client SSE concurrency benchmark asserting /api/health p95 <100ms (wave 3)
+- [x] 45-03-ci-guards-and-latency-bench-PLAN.md — Phase 45 CI grep guards + 5-client SSE concurrency benchmark asserting /api/health p95 <100ms (wave 3) (completed 2026-04-19)
 
 ### Phase 46: Admin UI
 **Goal**: An admin can manage media, playlists, devices, and tags — and preview a playlist before publishing — entirely through a bilingual `/signage` page mounted inside the existing SPA.
@@ -347,7 +347,7 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
 | 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
 | 44. PPTX Conversion Pipeline | v1.16 | 5/5 | Complete    | 2026-04-19 |
-| 45. SSE Broadcast | v1.16 | 2/3 | In Progress|  |
+| 45. SSE Broadcast | v1.16 | 3/3 | Complete   | 2026-04-19 |
 | 46. Admin UI | v1.16 | 0/TBD | Not started | — |
 | 47. Player Bundle | v1.16 | 0/TBD | Not started | — |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 0/TBD | Not started | — |

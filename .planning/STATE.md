@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: executing
-stopped_at: Completed 45-02-stream-endpoint-and-notify-hooks-PLAN.md
-last_updated: "2026-04-19T18:48:47.849Z"
+status: verifying
+stopped_at: Completed 45-03-ci-guards-and-latency-bench-PLAN.md
+last_updated: "2026-04-19T18:53:43.414Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 Phase: 45 (sse-broadcast) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-19
 
 Progress: [········] 0% (0/8 phases complete)
@@ -81,6 +81,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 44 P05 | 10m | 3 tasks | 5 files |
 | Phase 45 P01 | 15m | 3 tasks | 5 files |
 | Phase 45 P02 | 40m | 3 tasks | 6 files |
+| Phase 45 P03 | 15m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 45]: Plan 45-01: devices_affected_by_playlist lives in signage_resolver.py (not a new module) per RESEARCH Q1 recommendation; devices_affected_by_device_update wrapper returning [device_id] gives admin notify hooks a uniform call shape for Plan 45-02
 - [Phase 45]: Plan 45-02: SSE /stream uses sse-starlette EventSourceResponse(ping=15); generator re-raises CancelledError and pops _device_queues with None default (Pitfall 1). Admin mutations fire notify_device AFTER db.commit; playlist DELETE captures affected devices pre-commit (FK cascade); playlist tag-PUT unions prev+new affected sets; devices tag-PUT notifies self unconditionally; PPTX _set_done notify wrapped in try/except (broadcast failure must not roll back state).
 - [Phase 45]: Plan 45-02: playlist_id serialized as str(uuid) in SSE payloads (actual schema uses UUIDs despite ROADMAP/CONTEXT <int> wording); disconnect cleanup test exercises the generator body directly rather than httpx.stream() over ASGITransport (infinite SSE generators cannot be cancelled deterministically through the test client).
+- [Phase 45]: Plan 45-03: CI grep guards lock signage_broadcast hygiene (8 new guards including SGN-INF-03 triple-substring invariant assertion); /health (not /api/health) used as latency probe — it's the cheapest real route touching the async DB pool. 5-client benchmark drives generator shape directly (per Plan 02 pattern) rather than httpx.stream to avoid ASGI infinite-generator pitfall; observed p95=0.52ms vs 100ms threshold.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -151,6 +153,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T18:48:47.722Z
-**Stopped at:** Completed 45-02-stream-endpoint-and-notify-hooks-PLAN.md
+**Last session:** 2026-04-19T18:53:43.412Z
+**Stopped at:** Completed 45-03-ci-guards-and-latency-bench-PLAN.md
 **Resume file:** None
