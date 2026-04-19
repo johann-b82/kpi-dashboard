@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import { LayoutDashboard, Box, Thermometer } from "lucide-react";
+import { LayoutDashboard, Box, Thermometer, MonitorPlay } from "lucide-react";
 import { useAuth } from "@/auth/useAuth";
 import { AdminOnly } from "@/auth/AdminOnly";
 
@@ -58,8 +58,28 @@ export function LauncherPage() {
           </div>
         </AdminOnly>
 
-        {/* Coming-soon tiles (2x) — opacity-40 + pointer-events-none per D-04 */}
-        {[0, 1].map((i) => (
+        {/* Phase 46 SGN-ADM-02: Digital Signage tile (admin-only, replaces second coming-soon slot) */}
+        <AdminOnly>
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLocation("/signage")}
+              aria-label={t("launcher.tiles.signage")}
+              className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+                         flex items-center justify-center p-4
+                         cursor-pointer hover:bg-accent/10 transition-colors
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <MonitorPlay className="w-10 h-10 text-foreground" aria-hidden="true" />
+            </button>
+            <span className="text-xs text-muted-foreground text-center">
+              {t("launcher.tiles.signage")}
+            </span>
+          </div>
+        </AdminOnly>
+
+        {/* Coming-soon tiles (1x) — opacity-40 + pointer-events-none per D-04 */}
+        {[0].map((i) => (
           <div key={`coming-soon-${i}`} className="flex flex-col items-center gap-2">
             <div
               aria-hidden="true"

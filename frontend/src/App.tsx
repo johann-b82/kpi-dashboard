@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { Route, Switch, useLocation } from "wouter";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { UploadPage } from "./pages/UploadPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -11,7 +11,9 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { SensorsSettingsPage } from "./pages/SensorsSettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LauncherPage } from "./pages/LauncherPage";
+import { SignagePage } from "./signage/pages/SignagePage";
 import { NavBar } from "./components/NavBar";
+import { AdminOnly } from "./auth/AdminOnly";
 
 const DocsPage = lazy(() => import("./pages/DocsPage"));
 import { SubHeader } from "./components/SubHeader";
@@ -43,6 +45,21 @@ function AppShell() {
           <Route path="/upload" component={UploadPage} />
           <Route path="/hr" component={HRPage} />
           <Route path="/sensors" component={SensorsPage} />
+          {/* Phase 46 — signage routes (specific → general per wouter first-match). */}
+          {/* Plan 46-05 will insert /signage/playlists/:id BEFORE /signage/playlists. */}
+          {/* Plan 46-06 will insert /signage/pair before the /signage redirect. */}
+          <Route path="/signage/playlists">
+            <AdminOnly><SignagePage initialTab="playlists" /></AdminOnly>
+          </Route>
+          <Route path="/signage/devices">
+            <AdminOnly><SignagePage initialTab="devices" /></AdminOnly>
+          </Route>
+          <Route path="/signage/media">
+            <AdminOnly><SignagePage initialTab="media" /></AdminOnly>
+          </Route>
+          <Route path="/signage">
+            <AdminOnly><Redirect to="/signage/media" /></AdminOnly>
+          </Route>
           {/* /settings/sensors MUST appear before /settings so wouter's first-match wins */}
           <Route path="/settings/sensors" component={SensorsSettingsPage} />
           <Route path="/settings" component={SettingsPage} />
