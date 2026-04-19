@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: executing
-stopped_at: Completed 44-03-upload-and-reconvert-endpoints-PLAN.md
-last_updated: "2026-04-19T15:06:37.509Z"
+status: verifying
+stopped_at: Completed 44-05-integration-tests-PLAN.md
+last_updated: "2026-04-19T15:12:10.168Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 Phase: 44 (pptx-conversion-pipeline) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-19
 
 Progress: [········] 0% (0/8 phases complete)
@@ -78,6 +78,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 44 P04 | 2m | 1 tasks | 2 files |
 | Phase 44 P02 | 3.5m | 2 tasks | 4 files |
 | Phase 44 P03 | 4m | 2 tasks | 3 files |
+| Phase 44 P05 | 10m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 44]: Plan 44-02: signage_pptx uses own httpx stream for Directus download (separate from directus_uploads.py upload helper) — upload and download have distinct HTTP shapes
 - [Phase 44]: Plan 44-02: DIRECTUS_ADMIN_TOKEN defaults to empty string so module imports don't require a live token; real calls will 401 loudly
 - [Phase 44]: Plan 44-03: PPTX upload endpoint streams via async iter over UploadFile.read(64KB) — HTTPException(413) fires inside uploader's inner generator BEFORE the full body enters memory (D-13); delete_slides_dir is called inline in /reconvert (not deferred into convert_pptx) so cleanup is deterministic
+- [Phase 44]: Plan 44-05: fixtures committed as static blobs (python-pptx used one-off locally, NOT added to requirements); integration tests monkeypatch _download_pptx_from_directus and await convert_pptx directly; skip-without-binaries contract via shutil.which; stuck-reset integration has no binary dep
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -143,6 +145,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T15:06:37.506Z
-**Stopped at:** Completed 44-03-upload-and-reconvert-endpoints-PLAN.md
+**Last session:** 2026-04-19T15:12:10.165Z
+**Stopped at:** Completed 44-05-integration-tests-PLAN.md
 **Resume file:** None
