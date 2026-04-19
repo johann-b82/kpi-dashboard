@@ -294,4 +294,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 — Phase 44 (PPTX Conversion Pipeline) complete — LibreOffice + poppler + fidelity fonts baked into the backend image; soffice→pdftoppm conversion service with concurrency semaphore, 60s timeout, and full state machine; upload + reconvert endpoints wired to BackgroundTasks; scheduler stuck-row reset on startup; integration tests + CI grep guards for hazards #6/#7 (5/5 plans, 21/21 must-haves, SGN-BE-07/08, SGN-SCH-03, SGN-INF-01 satisfied)*
+*Last updated: 2026-04-19 — Phase 45 (SSE Broadcast) complete — per-device asyncio.Queue fanout via `signage_broadcast.py`, `GET /api/signage/player/stream` with `sse-starlette` `EventSourceResponse(ping=15)`, notify hooks on every D-02 admin mutation path (playlists/items/media/devices/pptx) firing post-commit, invariant `--workers 1` enforced by CI grep guards, 5-client SSE concurrency bench observed `/health` p95 = 0.52ms vs 100ms budget (3/3 plans, SGN-BE-05, SGN-DIFF-01, SGN-INF-03 satisfied)*
