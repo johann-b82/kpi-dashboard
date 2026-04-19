@@ -51,9 +51,14 @@ export interface SignageDevice {
 export interface SignagePlaylist {
   id: string;
   name: string;
+  description: string | null;
   enabled: boolean;
   priority: number;
-  tags: SignageTag[];
+  // Backend SignagePlaylistRead does not currently embed tag objects on
+  // the list/detail responses; `tag_ids` may be present (number[]) or null
+  // depending on the route. `tags` is reserved for a future enhancement.
+  tag_ids: number[] | null;
+  tags?: SignageTag[];
   created_at: string;
   updated_at: string;
 }
