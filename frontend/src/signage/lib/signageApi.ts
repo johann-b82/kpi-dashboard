@@ -72,8 +72,99 @@ export const signageApi = {
     apiClientWithBody<null>(`/api/signage/media/${id}`, { method: "DELETE" }),
   listPlaylists: () => apiClient<SignagePlaylist[]>("/api/signage/playlists"),
   getPlaylist: (id: string) =>
-    apiClient<SignagePlaylist & { items: SignagePlaylistItem[] }>(
-      `/api/signage/playlists/${id}`,
+    apiClient<SignagePlaylist>(`/api/signage/playlists/${id}`),
+  // 46-05 — playlist mutations.
+  //
+  // Backend contract notes (verified against
+  // backend/app/routers/signage_admin/{playlists,playlist_items}.py):
+  //   - createPlaylist: POST body is SignagePlaylistCreate; the router calls
+  //     `payload.model_dump(exclude={"tag_ids"})`, so tags MUST be assigned
+  //     via replacePlaylistTags() AFTER create.
+  //   - updatePlaylist: PATCH (NOT PUT). Accepts only
+  //     {name, description, priority, enabled}; tags also flow through
+  //     replacePlaylistTags().
+  //   - replacePlaylistTags: PUT /playlists/{id}/tags — atomic bulk replace.
+  //   - bulkReplaceItems: PUT /playlists/{id}/items, body
+  //     { items: [{ media_id, position, duration_s, transition }] }.
+  //   - listPlaylistItems: GET /playlists/{id}/items — authoritative path
+  //     for editor item hydration (the GET /playlists/{id} response does
+  //     NOT include items).
+  createPlaylist: (body: {
+    name: string;
+    description?: string | null;
+    priority?: number;
+    enabled?: boolean;
+  }) =>
+    apiClient<SignagePlaylist>("/api/signage/playlists", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updatePlaylist: (
+    id: string,
+    body: {
+      name?: string;
+      description?: string | null;
+      priority?: number;
+      enabled?: boolean;
+    },
+  ) =>
+    apiClient<SignagePlaylist>(`/api/signage/playlists/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  deletePlaylist: (id: string) =>
+    apiClient<null>(`/api/signage/playlists/${id}`, { method: "DELETE" }),
+  replacePlaylistTags: (id: string, tag_ids: number[]) =>
+    apiClient<{ tag_ids: number[] }>(`/api/signage/playlists/${id}/tags`, {
+      method: "PUT",
+      body: JSON.stringify({ tag_ids }),
+    }),
+  listPlaylistItems: (id: string) =>
+    apiClient<SignagePlaylistItem[]>(
+      `/api/signage/playlists/${id}/items`,
+    ),
+  bulkReplaceItems: (
+    id: string,
+    items: Array<{
+      media_id: string;
+      position: number;
+      duration_s: number;
+      transition: string | null;
+    }>,
+  ) =>
+    apiClient<SignagePlaylistItem[]>(
+      `/api/signage/playlists/${id}/items`,
+      { method: "PUT", body: JSON.stringify({ items }) },
     ),
   listDevices: () => apiClient<SignageDevice[]>("/api/signage/devices"),
+  // 46-06 — device admin + pairing claim
+  // Backend SignageDeviceAdminUpdate accepts {name?} only; tags are bulk-replaced
+  // via the separate PUT /devices/{id}/tags endpoint. updateDevice() filters the
+  // body so callers can pass {name, tag_ids} for ergonomics — tag_ids is forwarded
+  // to replaceDeviceTags() by DeviceEditDialog (sequenced PATCH then PUT).
+  updateDevice: (id: string, body: { name?: string; tag_ids?: number[] }) =>
+    apiClient<SignageDevice>(`/api/signage/devices/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: body.name }),
+    }),
+  replaceDeviceTags: (id: string, tag_ids: number[]) =>
+    apiClient<{ tag_ids: number[] }>(`/api/signage/devices/${id}/tags`, {
+      method: "PUT",
+      body: JSON.stringify({ tag_ids }),
+    }),
+  // Revoke lives on the pair router per backend/app/routers/signage_pair.py
+  // (`POST /api/signage/pair/devices/{device_id}/revoke`).
+  revokeDevice: (id: string) =>
+    apiClient<null>(`/api/signage/pair/devices/${id}/revoke`, {
+      method: "POST",
+    }),
+  claimPairingCode: (body: {
+    code: string;
+    device_name: string;
+    tag_ids: number[] | null;
+  }) =>
+    apiClient<null>("/api/signage/pair/claim", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

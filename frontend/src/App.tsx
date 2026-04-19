@@ -12,6 +12,8 @@ import { SensorsSettingsPage } from "./pages/SensorsSettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LauncherPage } from "./pages/LauncherPage";
 import { SignagePage } from "./signage/pages/SignagePage";
+import { PairPage } from "./signage/pages/PairPage";
+import { PlaylistEditorPage } from "./signage/pages/PlaylistEditorPage";
 import { NavBar } from "./components/NavBar";
 import { AdminOnly } from "./auth/AdminOnly";
 
@@ -46,8 +48,10 @@ function AppShell() {
           <Route path="/hr" component={HRPage} />
           <Route path="/sensors" component={SensorsPage} />
           {/* Phase 46 — signage routes (specific → general per wouter first-match). */}
-          {/* Plan 46-05 will insert /signage/playlists/:id BEFORE /signage/playlists. */}
-          {/* Plan 46-06 will insert /signage/pair before the /signage redirect. */}
+          {/* Plan 46-05 — /signage/playlists/:id MUST precede /signage/playlists (Pitfall 1). */}
+          <Route path="/signage/playlists/:id">
+            <AdminOnly><PlaylistEditorPage /></AdminOnly>
+          </Route>
           <Route path="/signage/playlists">
             <AdminOnly><SignagePage initialTab="playlists" /></AdminOnly>
           </Route>
@@ -56,6 +60,9 @@ function AppShell() {
           </Route>
           <Route path="/signage/media">
             <AdminOnly><SignagePage initialTab="media" /></AdminOnly>
+          </Route>
+          <Route path="/signage/pair">
+            <AdminOnly><PairPage /></AdminOnly>
           </Route>
           <Route path="/signage">
             <AdminOnly><Redirect to="/signage/media" /></AdminOnly>
