@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# pi-gen config for KPI Dashboard signage image
+# Source: read by build.sh and build-docker.sh
+# Pin: use pi-gen arm64 branch at a specific commit SHA (set in Makefile or CI)
+
+export IMG_NAME="raspios-bookworm-arm64-signage"
+export RELEASE="bookworm"
+export DEPLOY_COMPRESSION="xz"
+export COMPRESSION_LEVEL=9
+
+# Locale / keyboard (operators can override at first boot via Imager custom settings)
+export LOCALE_DEFAULT="en_GB.UTF-8"
+export TIMEZONE_DEFAULT="Europe/London"
+export KEYBOARD_KEYMAP="gb"
+export KEYBOARD_LAYOUT="English (UK)"
+
+# No default user — operator sets via Imager; firstrun.sh creates the pi user
+export FIRST_USER_NAME="pi"
+export FIRST_USER_PASS=""
+export DISABLE_FIRST_BOOT_USER_RENAME=1
+export ENABLE_SSH=0        # operator enables via Imager custom settings
+
+# Only run stages 0–2 + our custom stage; skip stages 3/4/5 entirely
+export STAGE_LIST="stage0 stage1 stage2 stage-signage"
+
+# Reproducibility: set a fixed date for image metadata (override in CI with tag date)
+export IMG_DATE="$(date -u +%Y-%m-%d)"
+
+# Optional: apt caching proxy if runner has one
+# export APT_PROXY="http://10.0.0.1:3142"
+
+# Cloud-init: leave enabled for forward-compat with Trixie migration
+export ENABLE_CLOUD_INIT=1
