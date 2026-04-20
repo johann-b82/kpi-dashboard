@@ -1,0 +1,13 @@
+# ~/.config/systemd/user/labwc.service
+[Unit]
+Description=labwc Wayland compositor
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/labwc
+Restart=on-failure
+Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__
+
+[Install]
+WantedBy=default.target

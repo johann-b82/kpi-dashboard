@@ -1,0 +1,46 @@
+[Unit]
+Description=Signage kiosk (Chromium)
+Documentation=https://github.com/<org>/<repo>/blob/main/docs/operator-runbook.md
+After=graphical.target signage-sidecar.service
+Requires=signage-sidecar.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+
+# Wayland environment — labwc compositor must be running.
+# XDG_RUNTIME_DIR is set to the signage user's runtime dir.
+# Replace 1001 with the actual UID of the signage user (set by provision script).
+Environment=WAYLAND_DISPLAY=wayland-1
+Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__
+Environment=XDG_SESSION_TYPE=wayland
+
+# Chromium profile dir — writable, outside ProtectSystem strictness
+Environment=CHROMIUM_PROFILE_DIR=/home/signage/.config/chromium
+
+# Guard: only start if Wayland socket exists (prevents crash-loop if labwc is not up).
+ExecStartPre=/bin/bash -c 'while [ ! -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do sleep 1; done'
+
+ExecStart=/usr/bin/chromium-browser \
+    --kiosk \
+    --noerrdialogs \
+    --disable-infobars \
+    --autoplay-policy=no-user-gesture-required \
+    --disable-session-crashed-bubble \
+    --ozone-platform=wayland \
+    --app=http://__SIGNAGE_API_URL__/player/ \
+    --user-data-dir=${CHROMIUM_PROFILE_DIR} \
+    --no-first-run \
+    --disable-component-update \
+    --check-for-update-interval=31536000
+
+# Clean up crashed-session state so Chromium doesn't show recovery dialog.
+ExecStartPost=/bin/bash -c 'sleep 5; find ${CHROMIUM_PROFILE_DIR}/Default -name "Crash Reports" -type d -exec rm -rf {} + 2>/dev/null || true'
+
+# Hardening
+NoNewPrivileges=yes
+# Do NOT add ProtectSystem=strict — Chromium writes profile data to /home/signage.
+
+[Install]
+WantedBy=graphical-session.target
