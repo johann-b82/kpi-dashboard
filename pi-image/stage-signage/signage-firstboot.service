@@ -1,0 +1,20 @@
+[Unit]
+Description=Signage first-boot configuration
+Documentation=https://github.com/johann-bechtold/kpi-dashboard/blob/main/pi-image/README.md
+DefaultDependencies=no
+After=local-fs.target network.target systemd-remount-fs.service
+Before=multi-user.target signage-sidecar.service
+ConditionPathExists=/boot/firmware/signage.conf
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/opt/signage/scripts/firstboot.sh
+StandardOutput=journal
+StandardError=journal
+
+# Self-disables after successful run; errors leave it in a failed state (visible in journal)
+ExecStartPost=/bin/systemctl disable signage-firstboot.service
+
+[Install]
+WantedBy=multi-user.target
