@@ -2,18 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Pi Image Release
-status: planning
-stopped_at: v1.17 milestone opened — Phase 49 awaiting /gsd:discuss-phase or /gsd:plan-phase
-last_updated: "2026-04-20T14:30:00.000Z"
-last_activity: 2026-04-20 -- v1.17 milestone opened
+status: executing
+stopped_at: Completed 49-01-pi-gen-pipeline-and-installer-library-PLAN.md
+last_updated: "2026-04-20T20:55:43.578Z"
+last_activity: 2026-04-20
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
-previous_milestone: v1.16
-previous_milestone_shipped: 2026-04-20
+  total_plans: 4
+  completed_plans: 1
 ---
 
 # Project State: KPI Dashboard
@@ -29,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.17 Pi Image Release — Phase 49 (pi-image-build)
+**Current focus:** Phase 49 — pi-image-build
 
 Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
@@ -38,9 +35,10 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 ## Current Position
 
 Milestone: v1.17 Pi Image Release — PLANNING
-Phase: 49 (pi-image-build) — awaiting plan
-Status: ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 49`
-Last activity: 2026-04-20 — v1.17 opened
+Phase: 49 (pi-image-build) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-20
 
 Progress: [·] Phase 49 pending
 
@@ -101,6 +99,7 @@ Next action: `/gsd:plan-phase 49` (or `/gsd:discuss-phase 49` if you want a disc
 | Phase 48 P02 | 211s | 3 tasks | 5 files |
 | Phase 48 P03 | 7m | 3 tasks | 4 files |
 | Phase 48 P04 | 540s | 2 tasks | 6 files |
+| Phase 49-pi-image-build P01 | 303s | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -164,6 +163,8 @@ Next action: `/gsd:plan-phase 49` (or `/gsd:discuss-phase 49` if you want a disc
 - [Phase 48]: Plan 48-03: postSidecarToken is fire-and-forget (void) in both PairingScreen + useSidecarStatus — sidecar absence must not delay pairing UX; prevStatusRef (useRef) tracks previous sidecar status for restart recovery without extra re-render
 - [Phase 48]: Plan 48-04: toc.ts is heading-extraction utility only; digital-signage registered in registry.ts which owns both sections[] and registry content maps
 - [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
+- [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical; 00-packages-nr committed copy with CI drift-check
+- [Phase 49-pi-image-build]: pi-gen vendored as git submodule at pi-image/pi-gen on arm64 branch SHA 4ad56cc (not master — would produce 32-bit images)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -202,6 +203,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T10:10:00Z
-**Stopped at:** Completed 48-04-admin-guide-and-runbook-PLAN.md
+**Last session:** 2026-04-20T20:55:43.575Z
+**Stopped at:** Completed 49-01-pi-gen-pipeline-and-installer-library-PLAN.md
 **Resume file:** None

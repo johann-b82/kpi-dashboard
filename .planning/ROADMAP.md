@@ -184,7 +184,7 @@ Full details: [milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
   4. `.github/workflows/pi-image.yml` on a `v1.17.*` tag push publishes `.img.xz` + `.sha256` + `.minisig` (or GPG) to GitHub Releases; sha256 verifies after download; signature verifies against a committed public key.
   5. Operator E2E (`.planning/phases/49-pi-image-build/49-E2E-RESULTS.md`) records: flash time, first-boot-to-pairing-code time, claim-to-first-play time, Wi-Fi preseed correctness, `journalctl --user -u signage-player` clean (no --no-sandbox, no root warning).
 **Plans**: 4 plans
-- [ ] 49-01-pi-gen-pipeline-and-installer-library-PLAN.md — pi-gen config + stage-signage + installer-library refactor + local smoke build
+- [x] 49-01-pi-gen-pipeline-and-installer-library-PLAN.md — pi-gen config + stage-signage + installer-library refactor + local smoke build
 - [ ] 49-02-firstboot-preseed-and-oneshot-PLAN.md — signage-firstboot.service + firstboot.sh + preseed schema
 - [ ] 49-03-release-workflow-and-signing-PLAN.md — GitHub Actions workflow + minisign key ceremony + operator docs
 - [ ] 49-04-e2e-walkthrough-and-verification-PLAN.md — real-hardware E2E + VERIFICATION + Phase 48 supersession
@@ -221,4 +221,4 @@ Full details: [milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
 | 46. Admin UI | v1.16 | 6/6 | Complete   | 2026-04-19 |
 | 47. Player Bundle | v1.16 | 5/5 | Complete   | 2026-04-20 |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 5/5 | Complete   | 2026-04-20 |
-| 49. Pi Image Build | v1.17 | 0/4 | Planning   |  |
+| 49. Pi Image Build | v1.17 | 1/4 | In Progress|  |

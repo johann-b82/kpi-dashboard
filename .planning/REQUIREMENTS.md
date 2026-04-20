@@ -21,11 +21,11 @@
 
 ### Image Build Pipeline (SGN-IMG-*)
 
-- [ ] **SGN-IMG-01**: `pi-gen` fork / config lives at `pi-image/` in this repo, builds a valid `.img` from a stock `pi-gen` base (stages 0–2 minimal, stage 3 adds our layer, stages 4–5 omitted since we want Lite).
-- [ ] **SGN-IMG-02**: Custom pi-gen stage `pi-image/stage-signage/` installs: the Phase 48 apt packages (`chromium-browser`, `unclutter-xfixes`, `labwc`, `seatd`, Carlito/Caladea/Noto/DejaVu fonts, `python3-venv`, `git`), creates the `signage` user with `/home/signage` layout, drops the three systemd user unit files from `scripts/systemd/`, provisions the pi-sidecar venv under `/opt/signage/pi-sidecar/.venv/`, and runs `loginctl enable-linger signage` inside the chroot.
-- [ ] **SGN-IMG-03**: `scripts/provision-pi.sh` is refactored into two code paths: (a) library sourced by the pi-gen stage for image-build-time installation, (b) standalone script for runtime use on vanilla Bookworm Lite (existing Phase 48 path). Shared installer logic lives in `scripts/lib/signage-install.sh`. Both paths MUST produce byte-identical filesystem state.
+- [x] **SGN-IMG-01**: `pi-gen` fork / config lives at `pi-image/` in this repo, builds a valid `.img` from a stock `pi-gen` base (stages 0–2 minimal, stage 3 adds our layer, stages 4–5 omitted since we want Lite).
+- [x] **SGN-IMG-02**: Custom pi-gen stage `pi-image/stage-signage/` installs: the Phase 48 apt packages (`chromium-browser`, `unclutter-xfixes`, `labwc`, `seatd`, Carlito/Caladea/Noto/DejaVu fonts, `python3-venv`, `git`), creates the `signage` user with `/home/signage` layout, drops the three systemd user unit files from `scripts/systemd/`, provisions the pi-sidecar venv under `/opt/signage/pi-sidecar/.venv/`, and runs `loginctl enable-linger signage` inside the chroot.
+- [x] **SGN-IMG-03**: `scripts/provision-pi.sh` is refactored into two code paths: (a) library sourced by the pi-gen stage for image-build-time installation, (b) standalone script for runtime use on vanilla Bookworm Lite (existing Phase 48 path). Shared installer logic lives in `scripts/lib/signage-install.sh`. Both paths MUST produce byte-identical filesystem state.
 - [ ] **SGN-IMG-04**: Built image on first boot produces the 6-digit pairing code on the attached display within 60 s of first-boot cloud-init completion (no operator interaction beyond flash + power).
-- [ ] **SGN-IMG-05**: Build is reproducible: given the same git SHA + pi-gen SHA, two back-to-back builds produce `.img` files with byte-for-byte identical `/opt/signage`, `/home/signage`, and `/etc/systemd/user/` contents (timestamps acceptable to differ).
+- [x] **SGN-IMG-05**: Build is reproducible: given the same git SHA + pi-gen SHA, two back-to-back builds produce `.img` files with byte-for-byte identical `/opt/signage`, `/home/signage`, and `/etc/systemd/user/` contents (timestamps acceptable to differ).
 
 ### First-Boot Preseed (SGN-IMG-06, SGN-IMG-07)
 
