@@ -1,6 +1,11 @@
 #!/usr/bin/env node
-// Phase 47 SGN-PLY-01: assert dist/player/assets/*.js gzipped total < 200_000 bytes.
+// Phase 47 SGN-PLY-01: assert dist/player/assets/*.js gzipped total under cap.
 // Deterministic via Node zlib (Pitfall P11) — no system gzip dependency.
+//
+// Phase 48 Plan 48-05 amendment (2026-04-20): LIMIT raised from 200_000 → 210_000
+// to accommodate the Tailwind CSS layer added by Phase 47 DEFECT-1 (pairing-code
+// styling was broken without it). Option A per 47-VERIFICATION.md §Bundle Size.
+// Any future raise is an orchestrator decision — do NOT grow silently.
 //
 // Run AFTER `npm run build` (or `npm run build:player`).
 
@@ -12,7 +17,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const ASSETS = resolve(repoRoot, "dist/player/assets");
-const LIMIT = 200_000;
+const LIMIT = 210_000;
 
 if (!existsSync(ASSETS)) {
   console.error(`check-player-bundle-size: ${ASSETS} does not exist — run \`npm run build\` first`);
