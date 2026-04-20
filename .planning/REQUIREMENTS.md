@@ -73,8 +73,8 @@
 
 ### Operations & Docs (SGN-OPS-*)
 
-- [ ] **SGN-OPS-01**: Bilingual admin guide — `frontend/src/docs/admin/digital-signage.en.md` + `frontend/src/docs/admin/digital-signage.de.md` — covers onboarding a Pi (image → boot → pair → tag), uploading media, building playlists, troubleshooting (offline behavior, Wi-Fi flakiness, font rendering), PPTX best practices (embed fonts)
-- [ ] **SGN-OPS-02**: Docs index updated (both locales) to list the new admin-guide article
+- [x] **SGN-OPS-01**: Bilingual admin guide — `frontend/src/docs/admin/digital-signage.en.md` + `frontend/src/docs/admin/digital-signage.de.md` — covers onboarding a Pi (image → boot → pair → tag), uploading media, building playlists, troubleshooting (offline behavior, Wi-Fi flakiness, font rendering), PPTX best practices (embed fonts) [Path amendment: actual paths are `frontend/src/docs/{en,de}/admin-guide/digital-signage.md` — see 48-04-SUMMARY.md]
+- [x] **SGN-OPS-02**: Docs index updated (both locales) to list the new admin-guide article
 - [x] **SGN-OPS-03**: Operator runbook — Pi image build (Bookworm Lite 64-bit + Chromium 136+ + unclutter + systemd user service), Chromium kiosk flag set (`--kiosk --noerrdialogs --disable-infobars --autoplay-policy=no-user-gesture-required --disable-session-crashed-bubble --ozone-platform=wayland --app=<url>`), systemd unit with `After=graphical.target` + DISPLAY gate + `loginctl enable-linger`, dedicated `signage` user (NOT root — keeps Chromium sandbox enabled), fallback to image-only playlist if PPTX/PDF fail on Pi hardware
 
 ### Infrastructure (SGN-INF-*)
@@ -170,8 +170,8 @@
 | SGN-PLY-09 | Phase 47 | Complete |
 | SGN-PLY-10 | Phase 47 | Complete |
 | SGN-DIFF-03 | Phase 47 | Complete |
-| SGN-OPS-01 | Phase 48 | Pending |
-| SGN-OPS-02 | Phase 48 | Pending |
+| SGN-OPS-01 | Phase 48 | Complete |
+| SGN-OPS-02 | Phase 48 | Complete |
 | SGN-OPS-03 | Phase 48 | Complete |
 
 **Coverage:**

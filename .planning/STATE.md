@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 48-03-d8-fix-and-sidecar-integration-PLAN.md
-last_updated: "2026-04-20T09:48:00.000Z"
+stopped_at: Completed 48-04-admin-guide-and-runbook-PLAN.md
+last_updated: "2026-04-20T10:10:00.000Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 37
-  completed_plans: 35
-  percent: 95
+  completed_plans: 36
+  percent: 97
 ---
 
 # Project State: KPI Dashboard
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 48 (pi-provisioning-e2e-docs) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Next: Phase 48 — Pi provisioning + E2E + docs
 Status: Ready to execute
 Last activity: 2026-04-20
@@ -97,6 +97,7 @@ Next action: `/gsd:discuss-phase 48`
 | Phase 48 P01 | 263 | 3 tasks | 6 files |
 | Phase 48 P02 | 211s | 3 tasks | 5 files |
 | Phase 48 P03 | 7m | 3 tasks | 4 files |
+| Phase 48 P04 | 540s | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Next action: `/gsd:discuss-phase 48`
 - [Phase 48]: Token overwritten on each POST /token; os.chmod(0o600) called after every write to preserve permissions
 - [Phase 48]: Static systemd units with __SIGNAGE_API_URL__/__SIGNAGE_UID__ token substitution over template units (%i) — simpler provision script, cleaner journalctl names
 - [Phase 48]: Plan 48-03: postSidecarToken is fire-and-forget (void) in both PairingScreen + useSidecarStatus — sidecar absence must not delay pairing UX; prevStatusRef (useRef) tracks previous sidecar status for restart recovery without extra re-render
+- [Phase 48]: Plan 48-04: toc.ts is heading-extraction utility only; digital-signage registered in registry.ts which owns both sections[] and registry content maps
+- [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -196,6 +199,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T09:48:00Z
-**Stopped at:** Completed 48-03-d8-fix-and-sidecar-integration-PLAN.md
+**Last session:** 2026-04-20T10:10:00Z
+**Stopped at:** Completed 48-04-admin-guide-and-runbook-PLAN.md
 **Resume file:** None

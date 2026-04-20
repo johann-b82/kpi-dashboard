@@ -313,7 +313,7 @@ Plans:
 - [x] 48-01-sidecar-service-PLAN.md — Pi sidecar FastAPI service with /health, /token, /api proxy + /media proxy + background heartbeat (wave 1)
 - [x] 48-02-provisioning-script-PLAN.md — provision-pi.sh bootstrap script + systemd unit files (wave 1)
 - [x] 48-03-d8-fix-and-sidecar-integration-PLAN.md — D-8 cache: no-store fix + postSidecarToken helper + PairingScreen + useSidecarStatus wiring + 47-VERIFICATION closeout (wave 2)
-- [ ] 48-04-admin-guide-and-docs-index-PLAN.md — bilingual admin guide + docs-index entries (wave 2)
+- [x] 48-04-admin-guide-and-runbook-PLAN.md — bilingual admin guide (EN + DE) + docs-index entries + operator runbook (wave 2)
 - [ ] 48-05-e2e-walkthrough-and-closeout-PLAN.md — E2E walkthrough + bundle cap decision checkpoint + phase closeout (wave 3)
 
 ## v1.16 Cross-Cutting Hazards (hard gates across all 8 phases)
