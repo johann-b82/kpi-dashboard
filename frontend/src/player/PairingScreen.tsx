@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { playerKeys } from "@/player/lib/queryKeys";
+import { postSidecarToken } from "@/player/lib/playerApi";
 import { t } from "@/player/lib/strings";
 import { PairingCode } from "@/player/components/PairingCode";
 
@@ -122,6 +123,11 @@ export function PairingScreen() {
       } catch {
         /* fail soft — URL token still works for this session */
       }
+      // Phase 48: push the new device JWT to the Pi sidecar so it can make
+      // authenticated upstream requests. Fire-and-forget — sidecar absence
+      // must not delay the pairing UX. The 30s re-probe in useSidecarStatus
+      // will re-post if the sidecar comes online later.
+      void postSidecarToken(status.device_token);
       // DEFECT-2: wouter Router base="/player" prepends the base automatically.
       // navigate("/<token>") composes to "/player/<token>"; the prior
       // navigate("/player/<token>") composed to "/player/player/<token>".

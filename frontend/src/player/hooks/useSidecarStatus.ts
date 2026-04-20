@@ -16,7 +16,8 @@
 // This hook owns the ONLY raw fetch() call to localhost:8080 in the player tree.
 // The CI guard (Plan 47-05 check-player-isolation.mjs) allowlists this file.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { postSidecarToken } from "../lib/playerApi";
 
 export type SidecarStatus = "unknown" | "online" | "offline";
 
@@ -47,13 +48,31 @@ async function probeSidecar(): Promise<SidecarStatus> {
 
 export function useSidecarStatus(): SidecarStatus {
   const [status, setStatus] = useState<SidecarStatus>("unknown");
+  // Track previous status to detect unknown/online → offline transitions (sidecar restart).
+  const prevStatusRef = useRef<SidecarStatus>("unknown");
 
   useEffect(() => {
     let cancelled = false;
 
     const runProbe = () => {
       probeSidecar().then((s) => {
-        if (!cancelled) setStatus(s);
+        if (cancelled) return;
+        const prev = prevStatusRef.current;
+        prevStatusRef.current = s;
+        setStatus(s);
+        // Phase 48: sidecar-restart recovery — if the sidecar transitions to
+        // 'offline' from a state where it was previously known to exist
+        // ('unknown' means "just discovered" in this context; 'online' means
+        // it just went down), re-post the cached token so the sidecar can
+        // re-authenticate without re-pairing.
+        if (s === "offline" && (prev === "unknown" || prev === "online")) {
+          try {
+            const stored = window.localStorage.getItem("signage_device_token");
+            if (stored) void postSidecarToken(stored);
+          } catch {
+            /* localStorage unavailable — skip silently */
+          }
+        }
       });
     };
 
