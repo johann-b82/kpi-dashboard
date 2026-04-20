@@ -267,17 +267,36 @@ info "Linger enabled."
 info "Step 8: Enabling and starting systemd user services..."
 XDG_RUNTIME_DIR_SIGNAGE="/run/user/${SIGNAGE_UID}"
 
-# Create the runtime dir if not yet present (may require a re-login on fresh Pi)
-if [ ! -d "${XDG_RUNTIME_DIR_SIGNAGE}" ]; then
-  mkdir -p "${XDG_RUNTIME_DIR_SIGNAGE}"
-  chmod 0700 "${XDG_RUNTIME_DIR_SIGNAGE}"
-  chown signage:signage "${XDG_RUNTIME_DIR_SIGNAGE}"
+# On a freshly-provisioned host, `loginctl enable-linger` alone does not
+# spawn user@UID.service before the next boot — which means the user-scope
+# dbus/systemd socket under /run/user/<UID>/ does not yet exist, so
+# `systemctl --user` fails with "Failed to connect to user scope bus via
+# local transport: No such file or directory". Start the user manager
+# explicitly so the socket is materialised, then wait a beat for dbus.
+info "  Starting user@${SIGNAGE_UID}.service (materialises user-scope bus)..."
+systemctl start "user@${SIGNAGE_UID}.service"
+
+# Wait up to 10s for /run/user/<UID>/bus to appear.
+for _ in $(seq 1 20); do
+  if [ -S "${XDG_RUNTIME_DIR_SIGNAGE}/bus" ]; then
+    break
+  fi
+  sleep 0.5
+done
+
+if [ ! -S "${XDG_RUNTIME_DIR_SIGNAGE}/bus" ]; then
+  warn "User-scope bus socket still missing at ${XDG_RUNTIME_DIR_SIGNAGE}/bus"
+  warn "Attempting systemctl --user anyway; may fail until reboot."
 fi
 
 sudo -u signage XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR_SIGNAGE}" \
-  systemctl --user daemon-reload
+  DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR_SIGNAGE}/bus" \
+  systemctl --user daemon-reload || {
+    warn "daemon-reload failed; services will still be enabled on next boot."
+  }
 
 sudo -u signage XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR_SIGNAGE}" \
+  DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR_SIGNAGE}/bus" \
   systemctl --user enable --now labwc.service signage-sidecar.service signage-player.service || {
     warn "systemctl enable --now returned non-zero (labwc may need a reboot to start)."
     warn "Services are enabled — they will start on next boot."
