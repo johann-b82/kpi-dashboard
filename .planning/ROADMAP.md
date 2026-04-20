@@ -290,12 +290,12 @@ Plans:
   3. Format handlers work: `<img>` with fade, `<video muted autoplay playsinline>`, pdf.js page-flip with 200ms crossfade (worker loaded via `?url` import, version-matched to `pdfjs-dist@5.6.205`), sandboxed iframe URL after HEAD pre-flight, nh3-sanitized HTML in sandboxed `<iframe srcdoc>`, PPTX as image sequence from `slide_paths`.
   4. SSE EventSource reconnects automatically after a 5-minute Wi-Fi drop via a 45s client watchdog that closes and recreates the connection on silence; 30s polling fallback fires when SSE is disconnected.
   5. With DevTools "Offline" enabled, the player keeps looping the last-cached playlist indefinitely; on reconnect, the next poll pulls updates. Service Worker (via `vite-plugin-pwa`) caches media Cache-API, stale-while-revalidate for playlist metadata.
-**Plans:** 2/5 plans executed
+**Plans:** 4/5 plans executed
 Plans:
 - [x] 47-01-foundation-vite-multi-entry-PLAN.md — Vite multi-entry + deps + pdfjs override + player /lib helpers (wave 1)
 - [x] 47-02-pairing-screen-and-token-PLAN.md — useDeviceToken + PairingScreen + PairingCode (wave 2)
-- [ ] 47-03-playback-shell-sse-pdf-crossfade-PLAN.md — PlaybackShell + SSE/watchdog/polling hook + sidecar detector + OfflineChip + VideoPlayer loop prop + PdfPlayer crossfade (wave 2)
-- [ ] 47-04-app-router-pwa-and-backend-mount-PLAN.md — App.tsx wouter router + main.tsx wiring + PWA icon + FastAPI static-mount + SPA fallback (wave 3)
+- [x] 47-03-playback-shell-sse-pdf-crossfade-PLAN.md — PlaybackShell + SSE/watchdog/polling hook + sidecar detector + OfflineChip + VideoPlayer loop prop + PdfPlayer crossfade (wave 2)
+- [x] 47-04-app-router-pwa-and-backend-mount-PLAN.md — App.tsx wouter router + main.tsx wiring + PWA icon + FastAPI static-mount + SPA fallback (wave 3)
 - [ ] 47-05-ci-guards-bundle-size-and-uat-PLAN.md — check-player-isolation + bundle-size <200KB + strings parity + signage-invariants extension + 47-VERIFICATION + 47-UAT + human checkpoint (wave 4)
 **UI hint**: yes
 **Decisions resolved in planning**: Decision 3 — offline cache — hybrid: vite-plugin-pwa Service Worker stale-while-revalidates /api/signage/player/playlist (metadata only); Pi-side sidecar (Phase 48) handles media files; player ships sidecar feature-detector + media-URL rewrite hook (locked in CONTEXT D-1).
@@ -362,5 +362,5 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 44. PPTX Conversion Pipeline | v1.16 | 5/5 | Complete    | 2026-04-19 |
 | 45. SSE Broadcast | v1.16 | 3/3 | Complete    | 2026-04-19 |
 | 46. Admin UI | v1.16 | 6/6 | Complete   | 2026-04-19 |
-| 47. Player Bundle | v1.16 | 2/5 | In Progress|  |
+| 47. Player Bundle | v1.16 | 4/5 | In Progress|  |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 0/TBD | Not started | — |

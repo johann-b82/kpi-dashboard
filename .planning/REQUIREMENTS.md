@@ -57,19 +57,19 @@
 - [x] **SGN-PLY-01**: Separate Vite entry — `frontend/player.html` + `rollupOptions.input.player`; served at `GET /player/:device_token` with target bundle size <200KB gzipped
 - [x] **SGN-PLY-02**: Player auth — reads `:device_token` from URL path, stores in `localStorage`, uses `Authorization: Bearer <token>` in API calls
 - [x] **SGN-PLY-03**: Pairing screen — if no token, Pi calls `POST /api/signage/pair/request`, displays 6-digit code `XXX-XXX` format, polls `/pair/status` every 3s with UUID `pairing_session_id`
-- [ ] **SGN-PLY-04**: Playlist fetch — `GET /api/signage/player/playlist` on boot + on SSE event; 30s polling fallback when SSE disconnected
+- [x] **SGN-PLY-04**: Playlist fetch — `GET /api/signage/player/playlist` on boot + on SSE event; 30s polling fallback when SSE disconnected
 - [ ] **SGN-PLY-05**: Heartbeat — `POST /api/signage/player/heartbeat` every 60s with `current_item_id`
-- [ ] **SGN-PLY-06**: SSE subscription — `GET /api/signage/player/stream` with 45s client watchdog (close + recreate on silence); `sse-starlette` server-side emits 15s heartbeat pings
-- [ ] **SGN-PLY-07**: Format handlers — ImagePlayer (fade transition), VideoPlayer (`<video muted autoplay playsinline>`), PdfPlayer (pdf.js with auto-page-flip + crossfade), IframePlayer (sandboxed `<iframe>` with HEAD pre-flight), HtmlPlayer (nh3-sanitized content + sandboxed `<iframe srcdoc>`), PptxPlayer (renders image sequence from converted slides)
-- [ ] **SGN-PLY-08**: Service Worker + Cache API for media (stale-while-revalidate for playlist metadata, cache-first for media assets); `localStorage` for playlist manifest
-- [ ] **SGN-PLY-09**: Offline cache-and-loop — when network drops, keep looping last-cached playlist until reconnect; service worker serves cached media for SSG-PLY-07 handlers
+- [x] **SGN-PLY-06**: SSE subscription — `GET /api/signage/player/stream` with 45s client watchdog (close + recreate on silence); `sse-starlette` server-side emits 15s heartbeat pings
+- [x] **SGN-PLY-07**: Format handlers — ImagePlayer (fade transition), VideoPlayer (`<video muted autoplay playsinline>`), PdfPlayer (pdf.js with auto-page-flip + crossfade), IframePlayer (sandboxed `<iframe>` with HEAD pre-flight), HtmlPlayer (nh3-sanitized content + sandboxed `<iframe srcdoc>`), PptxPlayer (renders image sequence from converted slides)
+- [x] **SGN-PLY-08**: Service Worker + Cache API for media (stale-while-revalidate for playlist metadata, cache-first for media assets); `localStorage` for playlist manifest
+- [x] **SGN-PLY-09**: Offline cache-and-loop — when network drops, keep looping last-cached playlist until reconnect; service worker serves cached media for SSG-PLY-07 handlers
 - [x] **SGN-PLY-10**: pdf.js worker URL configured via `?url` import: `import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` → `GlobalWorkerOptions.workerSrc` (exact version match with `pdfjs-dist@5.6.205`)
 
 ### Differentiators (SGN-DIFF-*)
 
 - [x] **SGN-DIFF-01**: Real-time SSE push (covered by SGN-BE-02 + SGN-PLY-06; reserved ID for audit / ticket tracing)
 - [x] **SGN-DIFF-02**: WYSIWYG admin preview panel — embeds player component in admin UI for playlist preview before publishing changes; uses `react-pdf` (admin-only) for PDF preview
-- [ ] **SGN-DIFF-03**: PDF crossfade transition between pages (smooth opacity fade vs. hard cut); 200ms default, admin-configurable per playlist
+- [x] **SGN-DIFF-03**: PDF crossfade transition between pages (smooth opacity fade vs. hard cut); 200ms default, admin-configurable per playlist
 
 ### Operations & Docs (SGN-OPS-*)
 
@@ -162,14 +162,14 @@
 | SGN-PLY-01 | Phase 47 | Complete |
 | SGN-PLY-02 | Phase 47 | Complete |
 | SGN-PLY-03 | Phase 47 | Complete |
-| SGN-PLY-04 | Phase 47 | Pending |
+| SGN-PLY-04 | Phase 47 | Complete |
 | SGN-PLY-05 | Phase 47 | Pending |
-| SGN-PLY-06 | Phase 47 | Pending |
-| SGN-PLY-07 | Phase 47 | Pending |
-| SGN-PLY-08 | Phase 47 | Pending |
-| SGN-PLY-09 | Phase 47 | Pending |
+| SGN-PLY-06 | Phase 47 | Complete |
+| SGN-PLY-07 | Phase 47 | Complete |
+| SGN-PLY-08 | Phase 47 | Complete |
+| SGN-PLY-09 | Phase 47 | Complete |
 | SGN-PLY-10 | Phase 47 | Complete |
-| SGN-DIFF-03 | Phase 47 | Pending |
+| SGN-DIFF-03 | Phase 47 | Complete |
 | SGN-OPS-01 | Phase 48 | Pending |
 | SGN-OPS-02 | Phase 48 | Pending |
 | SGN-OPS-03 | Phase 48 | Pending |
