@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 48-02-provisioning-script-PLAN.md
-last_updated: "2026-04-20T09:39:07.193Z"
+stopped_at: Completed 48-03-d8-fix-and-sidecar-integration-PLAN.md
+last_updated: "2026-04-20T09:48:00.000Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 37
-  completed_plans: 34
-  percent: 88
+  completed_plans: 35
+  percent: 95
 ---
 
 # Project State: KPI Dashboard
@@ -34,12 +34,12 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 48 (pi-provisioning-e2e-docs) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Next: Phase 48 — Pi provisioning + E2E + docs
 Status: Ready to execute
 Last activity: 2026-04-20
 
-Progress: [███████·] 88% (7/8 phases complete)
+Progress: [██████████] 95% (7/8 phases complete)
 
 Next action: `/gsd:discuss-phase 48`
 
@@ -96,6 +96,7 @@ Next action: `/gsd:discuss-phase 48`
 | Phase 47-player-bundle P05 | 180m | 5 plan tasks + 11 defect fixes | 20 files |
 | Phase 48 P01 | 263 | 3 tasks | 6 files |
 | Phase 48 P02 | 211s | 3 tasks | 5 files |
+| Phase 48 P03 | 7m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,7 @@ Next action: `/gsd:discuss-phase 48`
 - [Phase 48]: lifespan context manager (not deprecated @app.on_event) for background task lifecycle in Pi sidecar
 - [Phase 48]: Token overwritten on each POST /token; os.chmod(0o600) called after every write to preserve permissions
 - [Phase 48]: Static systemd units with __SIGNAGE_API_URL__/__SIGNAGE_UID__ token substitution over template units (%i) — simpler provision script, cleaner journalctl names
+- [Phase 48]: Plan 48-03: postSidecarToken is fire-and-forget (void) in both PairingScreen + useSidecarStatus — sidecar absence must not delay pairing UX; prevStatusRef (useRef) tracks previous sidecar status for restart recovery without extra re-render
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -194,6 +196,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T09:39:07.190Z
-**Stopped at:** Completed 48-02-provisioning-script-PLAN.md
+**Last session:** 2026-04-20T09:48:00Z
+**Stopped at:** Completed 48-03-d8-fix-and-sidecar-integration-PLAN.md
 **Resume file:** None

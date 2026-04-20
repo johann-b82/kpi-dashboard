@@ -309,7 +309,12 @@ Plans:
   2. `frontend/src/docs/admin/digital-signage.en.md` and `digital-signage.de.md` exist, are linked from both-locale docs indexes, and cover Pi onboarding, media upload, playlist building, offline behavior, and PPTX best practices (embed fonts).
   3. Operator runbook documents the Pi image (Bookworm Lite 64-bit + Chromium 136+ + `unclutter` + systemd user service), the full Chromium kiosk flag set (`--kiosk --noerrdialogs --disable-infobars --autoplay-policy=no-user-gesture-required --disable-session-crashed-bubble --ozone-platform=wayland --app=<url>`), systemd unit with `After=graphical.target` + DISPLAY gate + `loginctl enable-linger`, and the dedicated non-root `signage` user.
   4. Running Chromium as the `signage` user on the Pi shows no `--no-sandbox` flag and no "Running as root" warning in `journalctl --user -u signage-player`; the Pi-side cache fallback (if chosen in Phase 47 decision) is documented with its systemd ordering relative to `chromium-kiosk.service`.
-**Plans**: TBD
+**Plans**:
+- [x] 48-01-sidecar-service-PLAN.md — Pi sidecar FastAPI service with /health, /token, /api proxy + /media proxy + background heartbeat (wave 1)
+- [x] 48-02-provisioning-script-PLAN.md — provision-pi.sh bootstrap script + systemd unit files (wave 1)
+- [x] 48-03-d8-fix-and-sidecar-integration-PLAN.md — D-8 cache: no-store fix + postSidecarToken helper + PairingScreen + useSidecarStatus wiring + 47-VERIFICATION closeout (wave 2)
+- [ ] 48-04-admin-guide-and-docs-index-PLAN.md — bilingual admin guide + docs-index entries (wave 2)
+- [ ] 48-05-e2e-walkthrough-and-closeout-PLAN.md — E2E walkthrough + bundle cap decision checkpoint + phase closeout (wave 3)
 
 ## v1.16 Cross-Cutting Hazards (hard gates across all 8 phases)
 
