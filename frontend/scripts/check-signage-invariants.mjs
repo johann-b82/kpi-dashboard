@@ -17,7 +17,17 @@ const ROOTS = [
   "frontend/src/signage/pages",
   "frontend/src/signage/components",
   "frontend/src/signage/player",
+  "frontend/src/player", // Phase 47: extend invariant coverage to the player bundle tree
 ];
+
+// Phase 47: documented raw-fetch exemptions in the player bundle.
+// Kept in sync with check-player-isolation.mjs FETCH_EXEMPT — both scripts
+// must agree on the set. Entries are paths relative to repoRoot.
+const FETCH_EXEMPT = new Set([
+  resolve(repoRoot, "frontend/src/player/lib/playerApi.ts"),
+  resolve(repoRoot, "frontend/src/player/hooks/useSidecarStatus.ts"),
+  resolve(repoRoot, "frontend/src/player/PairingScreen.tsx"),
+]);
 
 function walk(dir) {
   const out = [];
@@ -45,7 +55,7 @@ for (const f of files) {
   lines.forEach((line, i) => {
     // strip trailing single-line comments naively for both checks
     const stripped = line.replace(/\/\/.*$/, "");
-    if (/\bfetch\(/.test(stripped)) {
+    if (/\bfetch\(/.test(stripped) && !FETCH_EXEMPT.has(f)) {
       console.error(
         `FETCH_VIOLATION: ${f}:${i + 1}: ${line.trim()}`,
       );
