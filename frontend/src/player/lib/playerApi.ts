@@ -31,6 +31,7 @@ export async function playerFetch<T>(url: string, opts: PlayerFetchOpts): Promis
   const { token, on401, headers, ...rest } = opts;
   const r = await fetch(url, {
     ...rest,
+    cache: "no-store", // Phase 47 D-8 closeout — prevent browser HTTP cache from serving stale responses
     headers: {
       Accept: "application/json",
       ...headers,
@@ -48,4 +49,22 @@ export async function playerFetch<T>(url: string, opts: PlayerFetchOpts): Promis
   // 204 No Content path (heartbeat-shaped responses) — caller asks for void.
   if (r.status === 204) return undefined as T;
   return (await r.json()) as T;
+}
+
+// Phase 48: push the device JWT to the Pi sidecar so it can make authenticated
+// upstream requests and own the 60s heartbeat. Fire-and-forget: if the sidecar
+// is not running, the 200ms timeout fails fast and the UX is unaffected.
+const SIDECAR_TOKEN_URL = "http://localhost:8080/token";
+export async function postSidecarToken(token: string): Promise<boolean> {
+  try {
+    const r = await fetch(SIDECAR_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+      signal: AbortSignal.timeout(200),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
