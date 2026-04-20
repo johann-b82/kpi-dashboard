@@ -10,39 +10,26 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.15 Sensor Monitor — 2026-04-18
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts chart overlay, react-i18next with full DE/EN parity, Intl.DateTimeFormat for locale-aware month names, APScheduler for periodic Personio sync and SNMP sensor polling. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE that eliminates theme-flash on reload. Auth via Directus-issued JWT (HS256 shared secret verified in FastAPI); `Admin` / `Viewer` roles enforced on every route; frontend login page via `@directus/sdk`; cookie-mode refresh. Year-aware chart x-axes with gap-filled month spines and year boundary separators. App branded as "KPI Dashboard" with CI-aligned login page. In-app documentation via react-markdown + rehype pipeline with role-gated sidebar, TOC with scroll tracking, and bilingual Markdown articles covering user guide and admin guide. iOS-style `/` App Launcher (role-aware tiles, bilingual labels) as authenticated entry point. pysnmp-based SNMP temperature/humidity monitoring with Fernet-encrypted community strings, admin-only dashboard + settings sub-page + SNMP walk/probe tooling.
-**Codebase:** ~14,100 LOC + v1.15 sensor additions (Python + TypeScript), 15 versions shipped (v1.0–v1.15).
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, and v1.15 requirements satisfied. v1.9 shipped with documented D-12 waiver (automated axe + manual WebAIM verification skipped at operator request; deterministic token fixes and grep cleanliness accepted as substitute).
+**Shipped:** v1.16 Digital Signage — 2026-04-20
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts, react-i18next DE/EN parity, Intl.DateTimeFormat locale-aware month names, APScheduler singleton (`--workers 1`) handling Personio sync, SNMP sensor polling, signage pairing-cleanup cron, PPTX stuck-row reset, and signage heartbeat sweeper. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE. Auth via Directus-issued JWT (HS256) with Admin/Viewer roles enforced on every route. Signage adds: bundle-isolated Vite player entry at `/player/` (210KB gz, PWA-precached shell, 6-digit pairing flow, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast via per-device `asyncio.Queue`, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX conversion via `asyncio.subprocess_exec` on LibreOffice/poppler/Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar on 127.0.0.1:8080 proxy-caching playlist envelope and media to `/var/lib/signage/`, one-script `scripts/provision-pi.sh` Bookworm Lite bootstrap with dedicated non-root `signage` user + labwc + Chromium kiosk systemd user services.
+**Codebase:** ~14,100 LOC baseline + v1.15 sensor additions + v1.16 signage additions (Python + TypeScript + 1 090-line RESEARCH doc + bilingual admin guide + operator runbook), 16 versions shipped (v1.0–v1.16).
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, and v1.16 requirements satisfied. v1.9 shipped with documented D-12 waiver. v1.16 carries one documented carry-forward: real-Pi E2E walkthrough (`48-E2E-RESULTS.md` scaffold ready for operator run-time; code-complete verification via committed systemd units + sidecar source).
 
-## Current Milestone: v1.16 Digital Signage
+## Next Milestone Goals
 
-**Goal:** Ship a Directus-backed digital signage CMS within the existing monorepo — admin UI for managing Media/Playlists/Devices, a Chromium-kiosk player for Raspberry Pi, and tag-based playlist-to-device routing. Small-fleet scope (≤5 devices), single-site, cache-and-loop offline mode.
+No milestone active yet. Candidate directions surfaced during v1.16:
 
-**Target features (admin side):**
-- Media library — Images (PNG/JPG/WebP), Videos (MP4/WebM), PowerPoint (PPTX → server-side converted to image slides), PDF with page-flip playback, Web URLs, HTML snippets — stored in Directus file storage
-- Playlists — ordered list of media items with per-item duration/transition, targeting device tags
-- Devices — CRUD + tag assignment, pairing-code onboarding for fresh Pis, health/status (last-seen, current playlist)
-- Tag-based routing — Devices carry tags (lobby, production, cafeteria); playlists target tag groups
-- Admin-only launcher tile — new `/signage` route wrapped in `AdminOnly`
+- **v1.17 Signage Polish** — dynamic-import `PdfPlayer` for a tighter player bundle, multi-Pi fan-out test, real-hardware E2E walkthrough complete, browser-cache `cache: "no-store"` guard on all signage-player fetches.
+- **v1.17 Fleet Ops** — Ansible-based reimage, fleet-wide config push, remote restart, pre-baked Pi `.img` distribution.
+- **v1.18 Signage Scheduling** — time-based playlist schedules (currently one-playlist-per-tag), per-device calibration overrides, basic per-device analytics.
 
-**Target features (player side):**
-- Chromium kiosk player — web page served by backend, auto-refreshes on playlist/media change
-- Hybrid sync — polling baseline (30s) + Server-Sent Events for instant updates
-- Pairing flow — fresh Pi boots → displays 6-digit code → admin enters code in UI → device is claimed and tagged
-- Offline cache-and-loop — when network drops, player keeps looping last-cached playlist until connectivity returns
-- Format handlers — image display with fade, video autoplay, iframe for URLs, PDF page-flip via pdf.js, HTML snippet rendering, PPTX slides as converted images
-
-**Target features (infrastructure):**
-- Directus collections (Alembic-managed schema, hidden from Directus Data Model UI): `media`, `playlists`, `playlist_items`, `devices`, `device_tags`
-- FastAPI `/api/signage/*` endpoints — playlist resolution per device, pairing, device heartbeat, SSE stream
-- PPTX conversion service — backend worker (LibreOffice headless + pdf2image) running async on upload
-- Bilingual admin UI (DE/EN parity, "du" tone for German)
-- Bilingual admin guide article — Pi setup, pairing workflow, playlist management, offline behavior
-
-**Deferred:** Time-based schedules (one-playlist-per-tag for now), per-device calibration, medium/large fleet features (20+ devices), SSO for devices, per-device analytics.
+Start the next milestone via `/gsd:new-milestone`.
 
 ---
+
+## Shipped: v1.16 Digital Signage (2026-04-20)
+
+Directus-backed digital signage CMS on the existing monorepo. Admin `/signage` page (Media/Playlists/Devices tabs, DE "du" tone, drag-reorder editor, WYSIWYG preview). Bundle-isolated Chromium-kiosk player at `/player/*` (210KB gz, PWA-precached shell, 6-digit pairing code, EventSource + 45s watchdog + 30s polling fallback). Backend: 8-table Alembic migration, scoped device JWT (HS256 24h), SSE fan-out via in-process `asyncio.Queue`, tag-to-playlist resolver, APScheduler singleton for pairing-cleanup cron + PPTX stuck-reset + heartbeat sweeper, `asyncio.subprocess_exec` PPTX pipeline on `libreoffice-impress` + Carlito/Caladea/Noto/DejaVu fonts. Pi side: one-script `scripts/provision-pi.sh` Bookworm Lite bootstrap, dedicated non-root `signage` user, labwc + Chromium wayland kiosk systemd user services, Python FastAPI sidecar on 127.0.0.1:8080 proxy-caching playlist envelope and media to `/var/lib/signage/` for 5-minute Wi-Fi drops + 30s auto-reconnect. Bilingual admin guide + operator runbook. 47/47 requirements landed (real-hardware E2E walkthrough deferred as carry-forward, scaffold ready).
 
 ## Shipped: v1.15 Sensor Monitor (2026-04-18)
 

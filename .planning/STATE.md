@@ -2,16 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
-status: executing
-stopped_at: Completed 48-04-admin-guide-and-runbook-PLAN.md
-last_updated: "2026-04-20T10:10:00.000Z"
-last_activity: 2026-04-20
+status: milestone-complete
+stopped_at: Milestone v1.16 Digital Signage shipped
+last_updated: "2026-04-20T14:00:00.000Z"
+last_activity: 2026-04-20 -- v1.16 shipped
+milestone_shipped: 2026-04-20
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 37
-  completed_plans: 36
-  percent: 97
+  completed_plans: 37
+  percent: 100
 ---
 
 # Project State: KPI Dashboard
