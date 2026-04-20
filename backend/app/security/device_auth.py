@@ -16,7 +16,7 @@ from __future__ import annotations
 from uuid import UUID
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,16 +35,30 @@ _UNAUTHORIZED = HTTPException(
 
 
 async def get_current_device(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: AsyncSession = Depends(get_async_db_session),
 ) -> SignageDevice:
-    """Resolve `Authorization: Bearer <jwt>` → SignageDevice row or 401."""
-    if credentials is None or not credentials.credentials:
+    """Resolve `Authorization: Bearer <jwt>` → SignageDevice row or 401.
+
+    Phase 47 OQ4: fall back to ``?token=<jwt>`` query param when the
+    ``Authorization`` header is absent. Browsers cannot set custom headers on
+    ``EventSource``, and Phase 42 already chose query-string SSE auth at the
+    system level (Phase 45 D-01 / Phase 47 RESEARCH Pitfall P7); this is the
+    wiring catch-up so the device player can subscribe to
+    ``/api/signage/player/stream?token=…``.
+    """
+    token = (
+        credentials.credentials
+        if credentials is not None and credentials.credentials
+        else request.query_params.get("token")
+    )
+    if not token:
         raise _UNAUTHORIZED
 
     try:
         payload = jwt.decode(
-            credentials.credentials,
+            token,
             settings.SIGNAGE_DEVICE_JWT_SECRET,
             algorithms=["HS256"],
         )

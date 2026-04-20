@@ -199,6 +199,22 @@ async def test_valid_device_returns_row(client):
         await _delete_device(dsn, device_id)
 
 
+async def test_valid_device_via_query_token_returns_row(client):
+    """Phase 47 OQ4: EventSource-compatible ?token= fallback works when no
+    ``Authorization`` header is present."""
+    dsn = await _require_db()
+    device_id = await _insert_device(dsn, revoked=False)
+    try:
+        token = mint_device_jwt(device_id)
+        r = await client.get(f"/device-protected?token={token}")
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["id"] == str(device_id)
+        assert body["revoked"] is False
+    finally:
+        await _delete_device(dsn, device_id)
+
+
 async def test_revoked_device_returns_401_not_403(client):
     dsn = await _require_db()
     device_id = await _insert_device(dsn, revoked=True)
