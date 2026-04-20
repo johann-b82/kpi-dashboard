@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 47-01-foundation-vite-multi-entry-PLAN.md
-last_updated: "2026-04-20T04:36:38.188Z"
+stopped_at: Completed 47-02-pairing-screen-and-token-PLAN.md
+last_updated: "2026-04-20T04:40:09.979Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
   percent: 0
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 47 (player-bundle) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-20
 
@@ -89,6 +89,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 46 P06 | 4m | 3 tasks | 6 files |
 | Phase 46 P05 | 9m | 3 tasks | 8 files |
 | Phase 47-player-bundle P01 | 6m | 5 tasks | 10 files |
+| Phase 47-player-bundle P02 | 2m | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,8 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 47-player-bundle]: OQ1 i18n Path B locked — hard-coded EN+DE strings.ts for bundle-size budget (Pitfall P9)
 - [Phase 47-player-bundle]: OQ4 /stream ?token= query auth FAIL — backend dep only reads Authorization header; Plan 47-03 owns the 6-line backend tweak
 - [Phase 47-player-bundle]: Plan 47-01: multi-entry vite + mode branching + manualChunks vendor-react + post-build player.html→index.html rename; react-is added as direct dep to unblock admin build after overrides reshuffle
+- [Phase 47-player-bundle]: Plan 47-02: PairingScreen.tsx uses raw fetch() for /pair/request and /pair/status (unauthenticated per Phase 42 D-15); Plan 47-05 check-player-isolation must exempt as second file alongside playerApi.ts
+- [Phase 47-player-bundle]: Plan 47-02: App.tsx (47-04) must register BOTH /player/:token and /player/ routes — useDeviceToken + clearToken rely on the no-token route for fall-through to PairingScreen
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -174,6 +177,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T04:36:38.185Z
-**Stopped at:** Completed 47-01-foundation-vite-multi-entry-PLAN.md
+**Last session:** 2026-04-20T04:40:09.976Z
+**Stopped at:** Completed 47-02-pairing-screen-and-token-PLAN.md
 **Resume file:** None

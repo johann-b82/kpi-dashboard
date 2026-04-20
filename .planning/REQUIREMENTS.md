@@ -55,8 +55,8 @@
 ### Player Frontend (SGN-PLY-*)
 
 - [x] **SGN-PLY-01**: Separate Vite entry — `frontend/player.html` + `rollupOptions.input.player`; served at `GET /player/:device_token` with target bundle size <200KB gzipped
-- [ ] **SGN-PLY-02**: Player auth — reads `:device_token` from URL path, stores in `localStorage`, uses `Authorization: Bearer <token>` in API calls
-- [ ] **SGN-PLY-03**: Pairing screen — if no token, Pi calls `POST /api/signage/pair/request`, displays 6-digit code `XXX-XXX` format, polls `/pair/status` every 3s with UUID `pairing_session_id`
+- [x] **SGN-PLY-02**: Player auth — reads `:device_token` from URL path, stores in `localStorage`, uses `Authorization: Bearer <token>` in API calls
+- [x] **SGN-PLY-03**: Pairing screen — if no token, Pi calls `POST /api/signage/pair/request`, displays 6-digit code `XXX-XXX` format, polls `/pair/status` every 3s with UUID `pairing_session_id`
 - [ ] **SGN-PLY-04**: Playlist fetch — `GET /api/signage/player/playlist` on boot + on SSE event; 30s polling fallback when SSE disconnected
 - [ ] **SGN-PLY-05**: Heartbeat — `POST /api/signage/player/heartbeat` every 60s with `current_item_id`
 - [ ] **SGN-PLY-06**: SSE subscription — `GET /api/signage/player/stream` with 45s client watchdog (close + recreate on silence); `sse-starlette` server-side emits 15s heartbeat pings
@@ -160,8 +160,8 @@
 | SGN-ADM-10 | Phase 46 | Complete |
 | SGN-DIFF-02 | Phase 46 | Complete |
 | SGN-PLY-01 | Phase 47 | Complete |
-| SGN-PLY-02 | Phase 47 | Pending |
-| SGN-PLY-03 | Phase 47 | Pending |
+| SGN-PLY-02 | Phase 47 | Complete |
+| SGN-PLY-03 | Phase 47 | Complete |
 | SGN-PLY-04 | Phase 47 | Pending |
 | SGN-PLY-05 | Phase 47 | Pending |
 | SGN-PLY-06 | Phase 47 | Pending |
