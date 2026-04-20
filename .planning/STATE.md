@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 46-05-playlist-editor-PLAN.md
-last_updated: "2026-04-19T21:10:04.770Z"
-last_activity: 2026-04-19
+stopped_at: Completed 47-01-foundation-vite-multi-entry-PLAN.md
+last_updated: "2026-04-20T04:36:38.188Z"
+last_activity: 2026-04-20
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 27
-  completed_plans: 27
+  total_plans: 32
+  completed_plans: 28
   percent: 0
 ---
 
@@ -27,16 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 46 — admin-ui
+**Current focus:** Phase 47 — player-bundle
 
 ---
 
 ## Current Position
 
-Phase: 46 (admin-ui) — EXECUTING
-Plan: 6 of 6
+Phase: 47 (player-bundle) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-04-19
+Last activity: 2026-04-20
 
 Progress: [········] 0% (0/8 phases complete)
 
@@ -88,6 +88,7 @@ Next action: `/gsd:plan-phase 41`
 | Phase 46 P04 | 271s | 3 tasks | 5 files |
 | Phase 46 P06 | 4m | 3 tasks | 6 files |
 | Phase 46 P05 | 9m | 3 tasks | 8 files |
+| Phase 47-player-bundle P01 | 6m | 5 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,9 @@ Next action: `/gsd:plan-phase 41`
 - [Phase 46]: Plan 46-05: backend update_playlist is PATCH (not PUT) and excludes tag_ids; tag mutations route through PUT /playlists/{id}/tags. createPlaylist server-side ignores tag_ids; PlaylistNewDialog collects name only and editor handles tags after.
 - [Phase 46]: Plan 46-05: PlayerRenderer preview is fed by useWatch over react-hook-form items state (Pitfall 9); items not present in mediaLookup are silently skipped.
 - [Phase 46]: Plan 46-05: useUnsavedGuard scopePath = '/signage/playlists/${id}'; '__back__' sentinel triggers history.go(-2) on confirm-discard. Parallel coalesce with 46-06 attributed App.tsx/signageApi.ts/UnsavedChangesDialog edits to commit 5780c41.
+- [Phase 47-player-bundle]: OQ1 i18n Path B locked — hard-coded EN+DE strings.ts for bundle-size budget (Pitfall P9)
+- [Phase 47-player-bundle]: OQ4 /stream ?token= query auth FAIL — backend dep only reads Authorization header; Plan 47-03 owns the 6-line backend tweak
+- [Phase 47-player-bundle]: Plan 47-01: multi-entry vite + mode branching + manualChunks vendor-react + post-build player.html→index.html rename; react-is added as direct dep to unblock admin build after overrides reshuffle
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -170,6 +174,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-19T21:09:57.811Z
-**Stopped at:** Completed 46-05-playlist-editor-PLAN.md
+**Last session:** 2026-04-20T04:36:38.185Z
+**Stopped at:** Completed 47-01-foundation-vite-multi-entry-PLAN.md
 **Resume file:** None

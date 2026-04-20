@@ -54,7 +54,7 @@
 
 ### Player Frontend (SGN-PLY-*)
 
-- [ ] **SGN-PLY-01**: Separate Vite entry — `frontend/player.html` + `rollupOptions.input.player`; served at `GET /player/:device_token` with target bundle size <200KB gzipped
+- [x] **SGN-PLY-01**: Separate Vite entry — `frontend/player.html` + `rollupOptions.input.player`; served at `GET /player/:device_token` with target bundle size <200KB gzipped
 - [ ] **SGN-PLY-02**: Player auth — reads `:device_token` from URL path, stores in `localStorage`, uses `Authorization: Bearer <token>` in API calls
 - [ ] **SGN-PLY-03**: Pairing screen — if no token, Pi calls `POST /api/signage/pair/request`, displays 6-digit code `XXX-XXX` format, polls `/pair/status` every 3s with UUID `pairing_session_id`
 - [ ] **SGN-PLY-04**: Playlist fetch — `GET /api/signage/player/playlist` on boot + on SSE event; 30s polling fallback when SSE disconnected
@@ -63,7 +63,7 @@
 - [ ] **SGN-PLY-07**: Format handlers — ImagePlayer (fade transition), VideoPlayer (`<video muted autoplay playsinline>`), PdfPlayer (pdf.js with auto-page-flip + crossfade), IframePlayer (sandboxed `<iframe>` with HEAD pre-flight), HtmlPlayer (nh3-sanitized content + sandboxed `<iframe srcdoc>`), PptxPlayer (renders image sequence from converted slides)
 - [ ] **SGN-PLY-08**: Service Worker + Cache API for media (stale-while-revalidate for playlist metadata, cache-first for media assets); `localStorage` for playlist manifest
 - [ ] **SGN-PLY-09**: Offline cache-and-loop — when network drops, keep looping last-cached playlist until reconnect; service worker serves cached media for SSG-PLY-07 handlers
-- [ ] **SGN-PLY-10**: pdf.js worker URL configured via `?url` import: `import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` → `GlobalWorkerOptions.workerSrc` (exact version match with `pdfjs-dist@5.6.205`)
+- [x] **SGN-PLY-10**: pdf.js worker URL configured via `?url` import: `import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` → `GlobalWorkerOptions.workerSrc` (exact version match with `pdfjs-dist@5.6.205`)
 
 ### Differentiators (SGN-DIFF-*)
 
@@ -159,7 +159,7 @@
 | SGN-ADM-09 | Phase 46 | Complete |
 | SGN-ADM-10 | Phase 46 | Complete |
 | SGN-DIFF-02 | Phase 46 | Complete |
-| SGN-PLY-01 | Phase 47 | Pending |
+| SGN-PLY-01 | Phase 47 | Complete |
 | SGN-PLY-02 | Phase 47 | Pending |
 | SGN-PLY-03 | Phase 47 | Pending |
 | SGN-PLY-04 | Phase 47 | Pending |
@@ -168,7 +168,7 @@
 | SGN-PLY-07 | Phase 47 | Pending |
 | SGN-PLY-08 | Phase 47 | Pending |
 | SGN-PLY-09 | Phase 47 | Pending |
-| SGN-PLY-10 | Phase 47 | Pending |
+| SGN-PLY-10 | Phase 47 | Complete |
 | SGN-DIFF-03 | Phase 47 | Pending |
 | SGN-OPS-01 | Phase 48 | Pending |
 | SGN-OPS-02 | Phase 48 | Pending |
