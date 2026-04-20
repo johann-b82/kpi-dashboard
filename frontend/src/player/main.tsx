@@ -1,26 +1,34 @@
-// Phase 47 player entry. App component + router added in Plan 47-04.
-// pdfWorker MUST be imported before any PdfPlayer instance is rendered.
+// Phase 47 player entry. Final wiring (replaces Plan 47-01 bootstrap skeleton).
+// pdfWorker import MUST come first — pins GlobalWorkerOptions before any PdfPlayer mounts.
 
 import "./lib/pdfWorker";
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PlayerApp } from "./App";
 
 const rootEl = document.getElementById("player-root");
 if (!rootEl) {
   throw new Error("Phase 47: #player-root element missing from player.html");
 }
 
-function PlayerBootstrap() {
-  return (
-    <div className="w-screen h-screen bg-neutral-950 text-neutral-50 grid place-items-center">
-      {/* Plan 47-04 replaces this with the wouter <App /> */}
-      <p className="text-2xl font-semibold">Signage Player — bootstrapping…</p>
-    </div>
-  );
-}
+// Player query client: aggressive retain (offline cache-and-loop relies on never evicting
+// the last-known playlist while the page is mounted).
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: Infinity,
+      staleTime: 5 * 60_000,
+      retry: 2,
+      refetchOnWindowFocus: false, // kiosk never has window focus changes
+    },
+  },
+});
 
 createRoot(rootEl).render(
   <StrictMode>
-    <PlayerBootstrap />
+    <QueryClientProvider client={queryClient}>
+      <PlayerApp />
+    </QueryClientProvider>
   </StrictMode>,
 );
