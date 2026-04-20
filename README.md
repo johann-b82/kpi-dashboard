@@ -36,6 +36,16 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Role-aware scaffold** — Admin-only tiles can be added without structural changes; Viewer-role users see only tiles without the `admin` flag
 - **Minimal launcher chrome** — Header on `/` shows brand (clickable → launcher), theme toggle, language toggle, settings gear, and sign-out; dashboard-scoped controls (SALES/HR toggle, docs, upload) appear only on dashboard routes
 
+### Digital Signage (v1.16+)
+- **Kiosk Player** — Separate Vite entry served at `/player/` on the backend; 204KB gz bundle, PWA with precached app shell; boots to a 256px monospace 6-digit pairing code on first run
+- **Admin UI at `/signage`** — Media (image/video/PDF/PPTX/URL/HTML), Playlists (drag-reorder items, set per-item duration), Devices (pair, tag, revoke); SegmentedControl sub-nav
+- **Tag-Based Targeting** — Playlists target tags, devices carry tags; resolver picks the highest-priority matching playlist per device
+- **Live Updates via SSE** — Admin mutations fan out to connected players via per-device EventSource queues; 45s client watchdog + 30s polling fallback when the stream goes silent
+- **Format Handlers** — Images with fade, videos `muted autoplay playsinline`, PDF pages with 200ms crossfade via react-pdf, sandboxed `<iframe>` for URL and nh3-sanitized HTML, PPTX rendered as an image sequence after LibreOffice conversion
+- **Pi Kiosk Provisioning** — Single `scripts/provision-pi.sh` brings a fresh Bookworm Lite 64-bit Pi to a paired, playing kiosk; dedicated non-root `signage` user; systemd user services with labwc + Chromium kiosk flags
+- **Offline-Resilient Sidecar** — `pi-sidecar/` FastAPI service on the Pi proxy-caches `/api/signage/player/playlist` and media bytes to `/var/lib/signage/`; 5-minute Wi-Fi drop keeps the loop running; auto-reconnect within 30s
+- **Bilingual Admin Guide + Operator Runbook** — `frontend/src/docs/{en,de}/admin-guide/digital-signage.md` covers onboarding, media, playlists, offline behavior, PPTX font-embed tips; `docs/operator-runbook.md` carries the systemd units, Chromium flag set, and recovery procedures
+
 ### Sensor Monitoring (v1.15+)
 - **Live Sensor Dashboard** — KPI cards per sensor with current temperature/humidity, threshold-aware badges, stacked time-series charts with reference lines
 - **Time-Window Selector** — View 1h, 6h, 24h, 7d, or 30d windows on sensor readings with gap-aware rendering
@@ -207,6 +217,15 @@ kpi-light/
 | POST | `/api/sensors/poll-now` | Trigger immediate poll of all sensors (admin-only) |
 | POST | `/api/sensors/snmp-probe` | Test SNMP connectivity with config (admin-only) |
 | POST | `/api/sensors/snmp-walk` | Discover OIDs on network with SNMP walk (admin-only) |
+| POST | `/api/signage/pair/request` | Kiosk requests a pairing session (unauthenticated) |
+| GET | `/api/signage/pair/status` | Kiosk polls until admin claims (unauthenticated) |
+| POST | `/api/signage/pair/claim` | Admin claims a pairing code → binds device JWT (admin-only) |
+| POST | `/api/signage/pair/devices/{id}/revoke` | Revoke a device token (admin-only) |
+| GET,POST,PATCH,DELETE | `/api/signage/{media,playlists,devices,tags}` | Admin signage CRUD (admin-only) |
+| GET | `/api/signage/player/playlist` | Tag-resolved playlist envelope for the kiosk (device-auth) |
+| GET | `/api/signage/player/asset/{media_id}` | Device-auth'd media passthrough (device-auth) |
+| GET | `/api/signage/player/stream` | SSE stream of playlist-change events (device-auth, `?token=` query) |
+| POST | `/api/signage/player/heartbeat` | Kiosk presence beacon (device-auth) |
 
 ---
 
@@ -293,6 +312,7 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.16 | 2026-04-20 | Digital Signage — Pi kiosk + admin UI: tag-targeted playlists, SSE live updates, Python sidecar offline cache on the Pi, bilingual admin guide + operator runbook, one-script Bookworm Lite provisioning |
 | v1.15 | 2026-04-18 | Sensor Monitor — Live SNMP temperature/humidity readings with KPI cards, time-series charts, admin settings sub-page, SNMP walk/probe tools, encrypted community strings, bilingual admin guide |
 | v1.14 | 2026-04-17 | App Launcher — iOS-style `/` entry point with 4-tile grid, role-aware scaffold, bilingual labels, AuthGate post-login redirect |
 | v1.13 | 2026-04-17 | In-App Documentation — role-aware docs with Markdown rendering, 22 bilingual articles, TOC with scroll tracking |
