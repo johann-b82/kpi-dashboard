@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Pi Image Release
 status: executing
-stopped_at: Completed 49-01-pi-gen-pipeline-and-installer-library-PLAN.md
-last_updated: "2026-04-20T20:55:43.578Z"
+stopped_at: "Checkpoint Task 2: Minisign key ceremony (human-action) — 49-03-release-workflow-and-signing-PLAN.md"
+last_updated: "2026-04-20T21:00:58.752Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State: KPI Dashboard
@@ -36,7 +36,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
 Milestone: v1.17 Pi Image Release — PLANNING
 Phase: 49 (pi-image-build) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-20
 
@@ -165,6 +165,8 @@ Next action: `/gsd:plan-phase 49` (or `/gsd:discuss-phase 49` if you want a disc
 - [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
 - [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical; 00-packages-nr committed copy with CI drift-check
 - [Phase 49-pi-image-build]: pi-gen vendored as git submodule at pi-image/pi-gen on arm64 branch SHA 4ad56cc (not master — would produce 32-bit images)
+- [Phase 49-pi-image-build]: Workflow verbatim from RESEARCH: triggers on v1.17.* + workflow_dispatch; runs on self-hosted linux arm64; MINISIGN_SECRET_KEY secret; private key shredded after signing
+- [Phase 49-pi-image-build]: minisign empty passphrase (RESEARCH Pitfall 12): non-empty passphrase hangs CI; operator generates key with Enter/Enter; pi-image/minisign.pub committed, private key as GitHub Actions secret only
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -203,6 +205,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T20:55:43.575Z
-**Stopped at:** Completed 49-01-pi-gen-pipeline-and-installer-library-PLAN.md
+**Last session:** 2026-04-20T21:01:00Z
+**Stopped at:** Checkpoint Task 2 — Minisign key ceremony (human-action) in 49-03
 **Resume file:** None
