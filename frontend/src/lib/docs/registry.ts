@@ -6,6 +6,8 @@ import enSystemSetup from "../../docs/en/admin-guide/system-setup.md?raw";
 import deSystemSetup from "../../docs/de/admin-guide/system-setup.md?raw";
 import enArchitecture from "../../docs/en/admin-guide/architecture.md?raw";
 import deArchitecture from "../../docs/de/admin-guide/architecture.md?raw";
+import enDigitalSignage from "../../docs/en/admin-guide/digital-signage.md?raw";
+import deDigitalSignage from "../../docs/de/admin-guide/digital-signage.md?raw";
 import enPersonio from "../../docs/en/admin-guide/personio.md?raw";
 import dePersonio from "../../docs/de/admin-guide/personio.md?raw";
 import enSensorMonitor from "../../docs/en/admin-guide/sensor-monitor.md?raw";
@@ -40,6 +42,7 @@ export const sections: Record<SectionId, ArticleEntry[]> = {
     { slug: "intro", titleKey: "docs.nav.adminGuideIntro" },
     { slug: "system-setup", titleKey: "docs.nav.adminSystemSetup" },
     { slug: "architecture", titleKey: "docs.nav.adminArchitecture" },
+    { slug: "digital-signage", titleKey: "docs.nav.adminDigitalSignage" },
     { slug: "personio", titleKey: "docs.nav.adminPersonio" },
     { slug: "sensor-monitor", titleKey: "docs.nav.adminSensorMonitor" },
     { slug: "user-management", titleKey: "docs.nav.adminUserManagement" },
@@ -61,6 +64,7 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       intro: enAdminIntro,
       "system-setup": enSystemSetup,
       architecture: enArchitecture,
+      "digital-signage": enDigitalSignage,
       personio: enPersonio,
       "sensor-monitor": enSensorMonitor,
       "user-management": enUserManagement,
@@ -79,6 +83,7 @@ export const registry: Record<string, Record<string, Record<string, string>>> = 
       intro: deAdminIntro,
       "system-setup": deSystemSetup,
       architecture: deArchitecture,
+      "digital-signage": deDigitalSignage,
       personio: dePersonio,
       "sensor-monitor": deSensorMonitor,
       "user-management": deUserManagement,
