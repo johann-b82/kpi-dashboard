@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { MediaPage } from "./MediaPage";
 import { PlaylistsPage } from "./PlaylistsPage";
 import { DevicesPage } from "./DevicesPage";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 type SignageTab = "media" | "playlists" | "devices";
 
@@ -31,31 +32,17 @@ export function SignagePage({ initialTab }: SignagePageProps) {
     <div className="max-w-7xl mx-auto px-6 pt-4 pb-16 space-y-6">
       <h1 className="text-3xl font-semibold">{t("signage.admin.page_title")}</h1>
 
-      {/* Sub-nav button group — custom (D-04: NOT shadcn <Tabs>) */}
-      <nav
-        className="inline-flex rounded-md border border-border overflow-hidden"
+      {/* Sub-nav: same pill SegmentedControl as SALES/HR in the top NavBar
+          for visual consistency with the dashboard navigation. */}
+      <SegmentedControl
+        segments={tabs.map((tab) => ({ value: tab.id, label: t(tab.labelKey) }))}
+        value={active}
+        onChange={(id) => {
+          const target = tabs.find((tab) => tab.id === id);
+          if (target) setLocation(target.path);
+        }}
         aria-label={t("signage.admin.page_title")}
-      >
-        {tabs.map((tab) => {
-          const isActive = tab.id === active;
-          const base =
-            "px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-          const cls = isActive
-            ? `${base} bg-primary text-primary-foreground`
-            : `${base} bg-transparent text-foreground hover:bg-muted`;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setLocation(tab.path)}
-              aria-current={isActive ? "page" : undefined}
-              className={cls}
-            >
-              {t(tab.labelKey)}
-            </button>
-          );
-        })}
-      </nav>
+      />
 
       {active === "media" && <MediaPage />}
       {active === "playlists" && <PlaylistsPage />}

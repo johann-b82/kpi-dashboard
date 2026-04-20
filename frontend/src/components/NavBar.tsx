@@ -26,6 +26,10 @@ export function NavBar() {
   const { t } = useTranslation();
   const [location, navigate] = useLocation();
   const isLauncher = location === "/";
+  // Signage pages own their own sub-nav (Media / Playlists / Devices) and
+  // are not a dashboard context — hide the SALES/HR role pill and the
+  // Upload icon (upload is dashboard-scoped).
+  const isSignage = location === "/signage" || location.startsWith("/signage/");
   const { data } = useSettings();
   const { signOut } = useAuth();
 
@@ -78,7 +82,7 @@ export function NavBar() {
           <span className="text-sm font-medium">{settings.app_name}</span>
         </Link>
 
-        {!isLauncher && (
+        {!isLauncher && !isSignage && (
           location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
             <button
               type="button"
@@ -115,15 +119,17 @@ export function NavBar() {
               >
                 <Library className="h-5 w-5" />
               </Link>
-              <AdminOnly>
-                <Link
-                  href="/upload"
-                  aria-label={t("nav.upload")}
-                  className={uploadLinkClass}
-                >
-                  <UploadIcon className="h-5 w-5" />
-                </Link>
-              </AdminOnly>
+              {!isSignage && (
+                <AdminOnly>
+                  <Link
+                    href="/upload"
+                    aria-label={t("nav.upload")}
+                    className={uploadLinkClass}
+                  >
+                    <UploadIcon className="h-5 w-5" />
+                  </Link>
+                </AdminOnly>
+              )}
             </>
           )}
           <Link

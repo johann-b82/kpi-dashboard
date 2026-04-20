@@ -26,12 +26,14 @@ export function LauncherPage() {
             type="button"
             onClick={() => setLocation("/sales")}
             aria-label={t("launcher.tile.kpi_dashboard")}
-            className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+            className="w-[120px] h-[120px] rounded-2xl
+                       bg-gradient-to-br from-blue-500 to-indigo-600
+                       shadow-md hover:shadow-xl hover:scale-[1.03]
                        flex items-center justify-center p-4
-                       cursor-pointer hover:bg-accent/10 transition-colors
+                       cursor-pointer transition-all
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <LayoutDashboard className="w-10 h-10 text-foreground" aria-hidden="true" />
+            <LayoutDashboard className="w-12 h-12 text-white drop-shadow" aria-hidden="true" />
           </button>
           <span className="text-xs text-muted-foreground text-center">
             {t("launcher.tile.kpi_dashboard")}
@@ -45,12 +47,14 @@ export function LauncherPage() {
               type="button"
               onClick={() => setLocation("/sensors")}
               aria-label={t("launcher.tile.sensors")}
-              className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+              className="w-[120px] h-[120px] rounded-2xl
+                         bg-gradient-to-br from-orange-400 to-red-500
+                         shadow-md hover:shadow-xl hover:scale-[1.03]
                          flex items-center justify-center p-4
-                         cursor-pointer hover:bg-accent/10 transition-colors
+                         cursor-pointer transition-all
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Thermometer className="w-10 h-10 text-foreground" aria-hidden="true" />
+              <Thermometer className="w-12 h-12 text-white drop-shadow" aria-hidden="true" />
             </button>
             <span className="text-xs text-muted-foreground text-center">
               {t("launcher.tile.sensors")}
@@ -65,12 +69,14 @@ export function LauncherPage() {
               type="button"
               onClick={() => setLocation("/signage")}
               aria-label={t("launcher.tiles.signage")}
-              className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+              className="w-[120px] h-[120px] rounded-2xl
+                         bg-gradient-to-br from-violet-500 to-fuchsia-600
+                         shadow-md hover:shadow-xl hover:scale-[1.03]
                          flex items-center justify-center p-4
-                         cursor-pointer hover:bg-accent/10 transition-colors
+                         cursor-pointer transition-all
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <MonitorPlay className="w-10 h-10 text-foreground" aria-hidden="true" />
+              <MonitorPlay className="w-12 h-12 text-white drop-shadow" aria-hidden="true" />
             </button>
             <span className="text-xs text-muted-foreground text-center">
               {t("launcher.tiles.signage")}
@@ -83,11 +89,13 @@ export function LauncherPage() {
           <div key={`coming-soon-${i}`} className="flex flex-col items-center gap-2">
             <div
               aria-hidden="true"
-              className="w-[120px] h-[120px] rounded-2xl bg-card border border-border
+              className="w-[120px] h-[120px] rounded-2xl
+                         bg-gradient-to-br from-neutral-300 to-neutral-400
+                         shadow-md
                          flex items-center justify-center p-4
-                         opacity-40 pointer-events-none"
+                         opacity-60 pointer-events-none"
             >
-              <Box className="w-10 h-10 text-foreground" />
+              <Box className="w-12 h-12 text-white drop-shadow" />
             </div>
             <span className="text-xs text-muted-foreground text-center opacity-40">
               {t("launcher.tile.coming_soon")}
