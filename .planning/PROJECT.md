@@ -15,15 +15,32 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Codebase:** ~14,100 LOC baseline + v1.15 sensor additions + v1.16 signage additions (Python + TypeScript + 1 090-line RESEARCH doc + bilingual admin guide + operator runbook), 16 versions shipped (v1.0–v1.16).
 **Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, and v1.16 requirements satisfied. v1.9 shipped with documented D-12 waiver. v1.16 carries one documented carry-forward: real-Pi E2E walkthrough (`48-E2E-RESULTS.md` scaffold ready for operator run-time; code-complete verification via committed systemd units + sidecar source).
 
-## Next Milestone Goals
+## Current Milestone: v1.17 Pi Image Release
 
-No milestone active yet. Candidate directions surfaced during v1.16:
+**Goal:** Ship a pre-baked, flashable Raspberry Pi OS Bookworm Lite 64-bit image with the Phase 48 signage stack (provision-pi.sh outputs, systemd units, sidecar venv, labwc + Chromium kiosk) already installed and enabled — so a non-developer operator writes one image to an SD card via Raspberry Pi Imager, boots the Pi, and lands on the 6-digit pairing code without any SSH / git / apt steps.
 
-- **v1.17 Signage Polish** — dynamic-import `PdfPlayer` for a tighter player bundle, multi-Pi fan-out test, real-hardware E2E walkthrough complete, browser-cache `cache: "no-store"` guard on all signage-player fetches.
-- **v1.17 Fleet Ops** — Ansible-based reimage, fleet-wide config push, remote restart, pre-baked Pi `.img` distribution.
+**Base:** Raspberry Pi OS Bookworm Lite 64-bit (matches Phase 48 runtime target; no change of distribution). Decision rationale: the Debian Trixie spike (`.planning/research/debian-trixie-pi-image.md`) returned CONDITIONAL-GO but with 5 unresolved hardware-verification unknowns and a mandatory self-hosted arm64 runner. Bookworm Full Desktop was the option-B recommendation; operator preference is thin (labwc + Chromium only, no desktop environment), so the base stays Bookworm **Lite** + the kiosk stack rather than the Full Desktop tier.
+
+**GUI depth (locked):** Thin. labwc compositor runs Chromium kiosk full-screen on boot; no desktop environment installed. Operator accesses the device via SSH (sidecar logs, journal, reboot). Smallest attack surface; smallest image (~600 MB compressed target).
+
+**Target features:**
+- **pi-gen pipeline** — forked or staged `pi-gen` config that bakes the Phase 48 outputs into a standard RPi OS Bookworm Lite 64-bit image. Custom stage adds: provision-pi.sh artifacts (signage user, systemd units, sidecar venv, `/var/lib/signage/`), labwc + Chromium + font layer, `loginctl enable-linger` already applied.
+- **First-boot config via Raspberry Pi Imager "custom settings" preseed** — operator sets Wi-Fi + `SIGNAGE_API_URL` at flash time; a first-boot systemd oneshot reads the preseed file and writes `/etc/signage/config` that the systemd units source. No runtime wizard.
+- **Release pipeline** — self-hosted arm64 runner builds, signs (sha256 + minisign or GPG), and publishes `.img.xz` to GitHub Releases tied to git tags.
+- **One-flash E2E** — flash → first boot → pairing code on screen → admin claims → playback. No SSH between flash and pairing.
+
+**Deferred (noted, not in-scope):**
+- Debian Trixie base (CONDITIONAL-GO — revisit when the 5 unknowns close or Bookworm security support nears end-of-life).
+- Full desktop image (thick GUI) — revisit if operator feedback says SSH-only is too austere.
+- Multi-Pi fleet management (Ansible, fleet dashboard, remote reimage).
+- OTA image updates (rpi-update channel or custom).
+- Cellular/LTE fallback.
+
+## Next Milestone Goals (post-v1.17 candidates)
+
 - **v1.18 Signage Scheduling** — time-based playlist schedules (currently one-playlist-per-tag), per-device calibration overrides, basic per-device analytics.
-
-Start the next milestone via `/gsd:new-milestone`.
+- **v1.18 Fleet Ops** — Ansible-based reimage, fleet-wide config push, remote restart.
+- **v1.18 Signage Polish** — dynamic-import `PdfPlayer` for tighter player bundle, multi-Pi fan-out test, hardware E2E checklist filled.
 
 ---
 

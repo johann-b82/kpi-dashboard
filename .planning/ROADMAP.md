@@ -17,6 +17,7 @@
 - ✅ **v1.14 App Launcher** — Phase 37 (shipped 2026-04-17) — [archive](milestones/v1.14-ROADMAP.md)
 - ✅ **v1.15 Sensor Monitor** — Phases 38–40 (shipped 2026-04-18) — [archive](milestones/v1.15-ROADMAP.md)
 - ✅ **v1.16 Digital Signage** — Phases 41–48 (shipped 2026-04-20) — [archive](milestones/v1.16-ROADMAP.md)
+- 🚧 **v1.17 Pi Image Release** — Phase 49 (active)
 
 ## Phases
 
@@ -163,6 +164,42 @@ Full details: [milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
 
 </details>
 
+<details open>
+<summary>🚧 v1.17 Pi Image Release (Phase 49) — ACTIVE</summary>
+
+- [ ] **Phase 49: Pi Image Build** — pi-gen pipeline bakes Phase 48 stack into Bookworm Lite 64-bit `.img`; Raspberry Pi Imager preseed for `SIGNAGE_API_URL`; self-hosted arm64 runner + GitHub Releases; one-flash E2E
+
+</details>
+
+## v1.17 Phase Details
+
+### Phase 49: Pi Image Build
+**Goal**: Pre-bake the Phase 48 signage stack (provision-pi.sh outputs, systemd units, sidecar venv, labwc + Chromium kiosk) into a flashable Raspberry Pi OS Bookworm Lite 64-bit image so a non-developer operator goes from "downloaded the release" to "kiosk showing pairing code" in under 10 minutes with no SSH/git/apt steps between flash and pairing.
+**Depends on**: Phase 48 (uses scripts/systemd/*, pi-sidecar/, scripts/provision-pi.sh installer logic)
+**Requirements**: SGN-IMG-01..08, SGN-REL-01..03
+**Success Criteria** (what must be TRUE):
+  1. `cd pi-image && make build` on a self-hosted arm64 runner produces a `.img.xz` ≤ 1 GB whose first boot generates a 6-digit pairing code on the HDMI output within 60 s, with no operator interaction beyond flash + Wi-Fi preseed + power.
+  2. Flashing the same image with a different Raspberry Pi Imager preseed (different `SIGNAGE_API_URL` + hostname) produces a second, independently paired device — no image rebuild between the two devices.
+  3. `scripts/provision-pi.sh` and the pi-gen image-build stage share `scripts/lib/signage-install.sh` as the single installer library; running `provision-pi.sh` on a vanilla Bookworm Lite produces byte-identical filesystem state to the baked image (modulo timestamps + machine-id) — guarded by a diff-test in CI.
+  4. `.github/workflows/pi-image.yml` on a `v1.17.*` tag push publishes `.img.xz` + `.sha256` + `.minisig` (or GPG) to GitHub Releases; sha256 verifies after download; signature verifies against a committed public key.
+  5. Operator E2E (`.planning/phases/49-pi-image-build/49-E2E-RESULTS.md`) records: flash time, first-boot-to-pairing-code time, claim-to-first-play time, Wi-Fi preseed correctness, `journalctl --user -u signage-player` clean (no --no-sandbox, no root warning).
+**Plans**: TBD (expect 3–4 plans: pi-gen stage + installer-library refactor, preseed + firstboot oneshot, release workflow + signing, E2E walkthrough).
+
+## v1.17 Coverage Matrix
+
+| REQ-ID range | Phase | Count |
+|--------------|-------|-------|
+| SGN-IMG-01..08 (image build + preseed + E2E) | Phase 49 | 8 |
+| SGN-REL-01..03 (release + distribution) | Phase 49 | 3 |
+
+**Coverage:** 11/11 active v1.17 requirements mapped to Phase 49. No orphans.
+
+## v1.17 Cross-Cutting Hazards (carry-forward from v1.16)
+
+1. DE/EN i18n parity — if any first-boot text is bilingual, parity applies.
+2. No `--no-sandbox` in baked Chromium systemd unit; no "Running as root" warning.
+3. Sidecar binds `127.0.0.1:8080` only in the baked image.
+4. `signage` user NOT root; `loginctl enable-linger` applied at image build time.
 
 ## Progress Table
 
@@ -180,3 +217,4 @@ Full details: [milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
 | 46. Admin UI | v1.16 | 6/6 | Complete   | 2026-04-19 |
 | 47. Player Bundle | v1.16 | 5/5 | Complete   | 2026-04-20 |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 5/5 | Complete   | 2026-04-20 |
+| 49. Pi Image Build | v1.17 | 0/? | Planning   |  |

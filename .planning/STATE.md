@@ -1,18 +1,19 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.16
-milestone_name: Digital Signage
-status: milestone-complete
-stopped_at: Milestone v1.16 Digital Signage shipped
-last_updated: "2026-04-20T14:00:00.000Z"
-last_activity: 2026-04-20 -- v1.16 shipped
-milestone_shipped: 2026-04-20
+milestone: v1.17
+milestone_name: Pi Image Release
+status: planning
+stopped_at: v1.17 milestone opened — Phase 49 awaiting /gsd:discuss-phase or /gsd:plan-phase
+last_updated: "2026-04-20T14:30:00.000Z"
+last_activity: 2026-04-20 -- v1.17 milestone opened
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+previous_milestone: v1.16
+previous_milestone_shipped: 2026-04-20
 ---
 
 # Project State: KPI Dashboard
@@ -28,21 +29,22 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 48 — pi-provisioning-e2e-docs
+**Current focus:** v1.17 Pi Image Release — Phase 49 (pi-image-build)
+
+Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
 ---
 
 ## Current Position
 
-Phase: 48 (pi-provisioning-e2e-docs) — EXECUTING
-Plan: 5 of 5
-Next: Phase 48 — Pi provisioning + E2E + docs
-Status: Ready to execute
-Last activity: 2026-04-20
+Milestone: v1.17 Pi Image Release — PLANNING
+Phase: 49 (pi-image-build) — awaiting plan
+Status: ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 49`
+Last activity: 2026-04-20 — v1.17 opened
 
-Progress: [██████████] 95% (7/8 phases complete)
+Progress: [·] Phase 49 pending
 
-Next action: `/gsd:discuss-phase 48`
+Next action: `/gsd:plan-phase 49` (or `/gsd:discuss-phase 49` if you want a discovery pass first; CONTEXT.md-equivalent decisions are already locked in REQUIREMENTS.md preamble)
 
 ---
 
