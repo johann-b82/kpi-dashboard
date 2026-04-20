@@ -193,3 +193,82 @@ sudo SIGNAGE_API_URL=192.168.1.100:80 /opt/signage/scripts/provision-pi.sh
 
 This is the Phase 48 fallback and produces identical filesystem state to the baked image
 (modulo the firstboot preseed substitution).
+
+---
+
+## Operator: Download, Verify, Flash
+
+1. From the GitHub Releases page for the tag `v1.17.Z`, download:
+   - `raspios-bookworm-arm64-signage-v1.17.Z-YYYY-MM-DD.img.xz`
+   - `raspios-bookworm-arm64-signage-v1.17.Z-YYYY-MM-DD.img.xz.sha256`
+   - `raspios-bookworm-arm64-signage-v1.17.Z-YYYY-MM-DD.img.xz.minisig`
+   - `minisign.pub`
+
+2. Verify SHA256 checksum:
+   ```bash
+   sha256sum -c raspios-bookworm-arm64-signage-v1.17.Z-YYYY-MM-DD.img.xz.sha256
+   ```
+
+3. Verify minisign signature:
+   ```bash
+   minisign -Vm raspios-bookworm-arm64-signage-v1.17.Z-YYYY-MM-DD.img.xz -p minisign.pub
+   ```
+   Expected output: `Signature and comment signature verified`.
+
+4. Flash with Raspberry Pi Imager:
+   - Choose Custom Image → select the `.img.xz`
+   - OS Customisation → set hostname, SSH, Wi-Fi
+   - Write → eject → mount SD on workstation → edit `/boot/firmware/signage.conf` (see preseed schema above)
+   - Eject SD → insert in Pi → power on
+
+---
+
+## Hardware matrix
+
+- **Recommended:** Raspberry Pi 4 (2+ GB RAM)
+- **Supported:** Raspberry Pi 5
+- **Supported (slower):** Raspberry Pi 3B / 3B+ (Wayland forced via raspi-config by `force_wayland_if_pi3`)
+- **Not supported:** Pi Zero 2 W (insufficient RAM for Chromium)
+
+---
+
+## Rollback
+
+Re-flash the previous release's `.img.xz`. The preseed file survives in the FAT partition,
+so the operator does not need to re-edit `signage.conf` unless the `SIGNAGE_API_URL` changed.
+
+---
+
+## minisign install
+
+- Linux: `apt install minisign`
+- macOS: `brew install minisign`
+- Windows: download `minisign-windows-x86_64.zip` from <https://github.com/jedisct1/minisign/releases>
+  or via `scoop install minisign` / `choco install minisign`
+
+See `pi-image/SIGNING.md` for the full key ceremony, rotation procedure, and backup policy.
+
+---
+
+## Operator: Self-hosted CI runner setup (one-time, per release environment)
+
+The pi-image workflow runs on a self-hosted arm64 runner. Recommended spec: Hetzner CAX21
+(4 vCPU Ampere Altra, 8 GB RAM, 80 GB NVMe, ~€5–7/month).
+
+On the Hetzner CAX21 instance (after SSH'ing in as root):
+
+```bash
+# 1. Install runner dependencies
+apt update && apt install -y docker.io minisign xz-utils curl jq
+
+# 2. Install and register the GitHub Actions runner
+#    (follow the on-screen config from:
+#     GitHub repo → Settings → Actions → Runners → New self-hosted runner → Linux arm64)
+./config.sh --url https://github.com/<org>/<repo> --token <provided-token> --labels arm64
+
+# 3. Install the runner as a persistent systemd service
+sudo ./svc.sh install && sudo ./svc.sh start
+```
+
+Confirm the runner appears "Idle" in the GitHub Actions Runners list before the first
+`workflow_dispatch`.
