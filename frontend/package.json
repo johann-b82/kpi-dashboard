@@ -14,7 +14,8 @@
     "test": "vitest",
     "check:signage": "node scripts/check-signage-invariants.mjs",
     "check:player-isolation": "node scripts/check-player-isolation.mjs",
-    "check:player-size": "node scripts/check-player-bundle-size.mjs"
+    "check:player-size": "node scripts/check-player-bundle-size.mjs",
+    "check:player-strings": "node scripts/check-player-strings-parity.mjs"
   },
   "//pdfjs-dist": "Pinned 5.6.205 to defeat react-pdf's transitive bump; matches Phase 46-03 SUMMARY hand-off and SGN-PLY-10. Drop override when react-pdf 11.x ships with matching pin.",
   "//vite-plugin-pwa": "Installed with --legacy-peer-deps because plugin's peer-dep stops at vite ^7. Drop workaround when vite-plugin-pwa publishes a release with vite ^8.0.0 (track issue #918).",
