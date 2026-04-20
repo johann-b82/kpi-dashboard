@@ -363,4 +363,4 @@ These are non-negotiable invariants. Any phase plan that proposes to violate one
 | 45. SSE Broadcast | v1.16 | 3/3 | Complete    | 2026-04-19 |
 | 46. Admin UI | v1.16 | 6/6 | Complete   | 2026-04-19 |
 | 47. Player Bundle | v1.16 | 5/5 | Complete   | 2026-04-20 |
-| 48. Pi Provisioning + E2E + Docs | v1.16 | 0/5 | Planned    |  |
+| 48. Pi Provisioning + E2E + Docs | v1.16 | 2/5 | In Progress|  |

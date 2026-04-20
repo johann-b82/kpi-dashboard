@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 47-05-ci-guards-bundle-size-and-uat-PLAN.md
-last_updated: "2026-04-20T09:30:00.000Z"
+stopped_at: Completed 48-01-sidecar-service-PLAN.md
+last_updated: "2026-04-20T09:38:52.257Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 32
-  completed_plans: 32
+  total_plans: 37
+  completed_plans: 34
   percent: 88
 ---
 
@@ -27,15 +27,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 48 — pi-provisioning & E2E (v1.16 final phase)
+**Current focus:** Phase 48 — pi-provisioning-e2e-docs
 
 ---
 
 ## Current Position
 
-Phase: 47 (player-bundle) — COMPLETE (5/5 plans summarized)
+Phase: 48 (pi-provisioning-e2e-docs) — EXECUTING
+Plan: 2 of 5
 Next: Phase 48 — Pi provisioning + E2E + docs
-Status: Ready for `/gsd:discuss-phase 48`
+Status: Ready to execute
 Last activity: 2026-04-20
 
 Progress: [███████·] 88% (7/8 phases complete)
@@ -93,6 +94,7 @@ Next action: `/gsd:discuss-phase 48`
 | Phase 47-player-bundle P03 | 8m | 5 tasks | 8 files |
 | Phase 47-player-bundle P04 | 6m | 3 tasks | 4 files |
 | Phase 47-player-bundle P05 | 180m | 5 plan tasks + 11 defect fixes | 20 files |
+| Phase 48 P01 | 263 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -149,6 +151,9 @@ Next action: `/gsd:discuss-phase 48`
 - [Phase 47-player-bundle]: Plan 47-04: wouter Router base="/player" aligns with Vite base; FastAPI SPA fallback guards with PLAYER_DIST.exists() so pytest stays no-op; direct-serve with parent-equality path-traversal check keeps sw.js/manifest MIME types correct (Pitfall P6)
 - [Phase 47-player-bundle]: Plan 47-05: SGN-PLY-01 bundle cap at 204,456 gz / 200,000 cap (2.2% over) — orchestrator decision pending at UAT checkpoint
 - [Phase 47-player-bundle]: Plan 47-05: autonomous UAT (chrome-devtools MCP) surfaced 12 defects; 11 auto-fixed in 3334869 + 45f287c (tailwind missing, wouter double-base in 2 paths, localStorage-resume, media passthrough route, PLAYER_DIST container path, schema gap html/slide_paths, absolute-URL routing, devices tags shape). Open: D-7 SW scope cannot intercept /api/signage/player/* (D2-D4 fail), D-8 player fetch cache: no-store missing. Scenarios A/B1/C/E/F1/F3/F4/F5/G1/G3/G4 PASS; B2/B3/F2/F6 not exercised.
+- [Phase 48]: Module-level state (not class) for single-device sidecar — simplest correct design for a process serving exactly one kiosk
+- [Phase 48]: lifespan context manager (not deprecated @app.on_event) for background task lifecycle in Pi sidecar
+- [Phase 48]: Token overwritten on each POST /token; os.chmod(0o600) called after every write to preserve permissions
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -187,6 +192,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T09:30:00.000Z
-**Stopped at:** Completed 47-05-ci-guards-bundle-size-and-uat-PLAN.md (Phase 47 closed)
+**Last session:** 2026-04-20T09:38:52.255Z
+**Stopped at:** Completed 48-01-sidecar-service-PLAN.md
 **Resume file:** None
