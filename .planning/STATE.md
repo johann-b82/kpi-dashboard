@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Digital Signage
 status: executing
-stopped_at: Completed 48-01-sidecar-service-PLAN.md
-last_updated: "2026-04-20T09:38:52.257Z"
+stopped_at: Completed 48-02-provisioning-script-PLAN.md
+last_updated: "2026-04-20T09:39:07.193Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 8
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 ## Current Position
 
 Phase: 48 (pi-provisioning-e2e-docs) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Next: Phase 48 — Pi provisioning + E2E + docs
 Status: Ready to execute
 Last activity: 2026-04-20
@@ -95,6 +95,7 @@ Next action: `/gsd:discuss-phase 48`
 | Phase 47-player-bundle P04 | 6m | 3 tasks | 4 files |
 | Phase 47-player-bundle P05 | 180m | 5 plan tasks + 11 defect fixes | 20 files |
 | Phase 48 P01 | 263 | 3 tasks | 6 files |
+| Phase 48 P02 | 211s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,7 @@ Next action: `/gsd:discuss-phase 48`
 - [Phase 48]: Module-level state (not class) for single-device sidecar — simplest correct design for a process serving exactly one kiosk
 - [Phase 48]: lifespan context manager (not deprecated @app.on_event) for background task lifecycle in Pi sidecar
 - [Phase 48]: Token overwritten on each POST /token; os.chmod(0o600) called after every write to preserve permissions
+- [Phase 48]: Static systemd units with __SIGNAGE_API_URL__/__SIGNAGE_UID__ token substitution over template units (%i) — simpler provision script, cleaner journalctl names
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -192,6 +194,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T09:38:52.255Z
-**Stopped at:** Completed 48-01-sidecar-service-PLAN.md
+**Last session:** 2026-04-20T09:39:07.190Z
+**Stopped at:** Completed 48-02-provisioning-script-PLAN.md
 **Resume file:** None
