@@ -2,11 +2,21 @@
 // in frontend/src/player/**. The CI guard (Plan 47-05 check-player-isolation.mjs) exempts this file.
 // Documented exception per ROADMAP "v1.16 Cross-Cutting Hazards" #2:
 //   "Phase 47 player uses its own minimal fetch with device-token bearer, documented exception."
+//
+// NOTE: project tsconfig runs `erasableSyntaxOnly`, which disallows TS
+// parameter-properties (`constructor(public status: number)`). PlayerApiError
+// uses explicit field declarations instead.
 
 export class PlayerApiError extends Error {
-  constructor(public status: number, public bodyText: string, public url: string) {
+  status: number;
+  bodyText: string;
+  url: string;
+  constructor(status: number, bodyText: string, url: string) {
     super(`PlayerApi ${status} on ${url}: ${bodyText.slice(0, 200)}`);
     this.name = "PlayerApiError";
+    this.status = status;
+    this.bodyText = bodyText;
+    this.url = url;
   }
 }
 

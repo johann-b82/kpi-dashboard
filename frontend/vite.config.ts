@@ -18,6 +18,11 @@ export default defineConfig(({ mode }) => {
       outDir: isPlayer ? "dist/player" : "dist",
       emptyOutDir: true,
       rollupOptions: {
+        // Player mode: build from player.html (separate source from admin's
+        // index.html). Post-build step in package.json renames
+        // dist/player/player.html → dist/player/index.html so the SW
+        // registration script + Workbox navigateFallback resolve correctly
+        // (Pitfall P2 — PWA expects index.html at the scope root).
         input: isPlayer
           ? path.resolve(__dirname, "player.html")
           : path.resolve(__dirname, "index.html"),
