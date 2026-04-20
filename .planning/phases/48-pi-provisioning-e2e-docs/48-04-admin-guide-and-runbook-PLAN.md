@@ -3,7 +3,7 @@ phase: 48-pi-provisioning-e2e-docs
 plan: 04
 type: execute
 wave: 2
-depends_on: []
+depends_on: [48-02]
 files_modified:
   - frontend/src/docs/en/admin-guide/digital-signage.md
   - frontend/src/docs/de/admin-guide/digital-signage.md
