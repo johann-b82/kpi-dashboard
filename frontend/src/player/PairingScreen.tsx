@@ -48,8 +48,27 @@ export function PairingScreen() {
   const [session, setSession] = useState<PairRequestResponse | null>(null);
   const [requestError, setRequestError] = useState(false);
 
+  // DEFECT-4: /player/ must resume from a saved token before allocating a
+  // fresh pairing code. Without this, a reload after claim drops the kiosk
+  // back into the pairing flow with a brand-new code.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved) navigate(`/${saved}`);
+    } catch {
+      /* noop */
+    }
+  }, [navigate]);
+
   // Open a session on mount; re-issue on `expired` or after `expires_in` countdown elapses.
   useEffect(() => {
+    // Skip session allocation if we already hold a token — the effect above
+    // will have fired navigate() and this screen is about to unmount.
+    try {
+      if (window.localStorage.getItem(STORAGE_KEY)) return;
+    } catch {
+      /* noop */
+    }
     let cancelled = false;
     let expiryTimer: number | undefined;
 
@@ -103,7 +122,10 @@ export function PairingScreen() {
       } catch {
         /* fail soft — URL token still works for this session */
       }
-      navigate(`/player/${status.device_token}`);
+      // DEFECT-2: wouter Router base="/player" prepends the base automatically.
+      // navigate("/<token>") composes to "/player/<token>"; the prior
+      // navigate("/player/<token>") composed to "/player/player/<token>".
+      navigate(`/${status.device_token}`);
     } else if (status.status === "expired") {
       // Force re-issue: drop the session so polling pauses, then re-request.
       setSession(null);

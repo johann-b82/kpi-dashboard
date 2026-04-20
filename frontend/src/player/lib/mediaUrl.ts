@@ -17,11 +17,21 @@ export interface MediaForUrl {
  * For the more robust hybrid detector (window flag + 200ms localhost probe), see useSidecarStatus
  * (added in Plan 47-03 per Pitfall P10).
  */
-export function resolveMediaUrl(media: MediaForUrl): string {
+export function resolveMediaUrl(media: MediaForUrl, token?: string | null): string {
+  // DEFECT-11: url/html items carry non-file uris (absolute URL or empty).
+  // Only file-backed kinds (image/video/pdf/pptx) route through the asset
+  // passthrough. Absolute URLs pass through verbatim.
+  if (/^https?:\/\//i.test(media.uri)) return media.uri;
+  if (!media.uri) return "";
+
   if (typeof window !== "undefined" && window.signageSidecarReady === true) {
     return `http://localhost:8080/media/${media.id}`;
   }
-  return media.uri;
+  // DEFECT-5: media.uri is a bare Directus file UUID; route through the
+  // backend device-auth'd asset passthrough. <img>/<video> cannot set the
+  // Authorization header, so use the ?token=… query form (OQ4 contract).
+  const base = `/api/signage/player/asset/${media.id}`;
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base;
 }
 
 export {};

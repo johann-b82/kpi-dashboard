@@ -38,6 +38,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      # Player bundle (Phase 47-04): FastAPI mounts /player/* from the built
+      # Vite player entry. Read-only so container can't mutate build output.
+      - ./frontend/dist:/app/frontend/dist:ro
       # Directus owns the uploads volume (rw on directus service, ro here).
       # FastAPI reads media files by path resolved from signage_media.uri (Directus asset UUID) — SGN-INF-02.
       - directus_uploads:/directus/uploads:ro

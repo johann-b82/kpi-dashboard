@@ -41,7 +41,10 @@ export interface SignageDevice {
   status: "pending" | "online" | "offline";
   last_seen_at: string | null; // ISO-8601 or null
   revoked_at: string | null;
-  tags: SignageTag[];
+  // DEFECT-12: backend currently returns only tag_ids on list/detail; `tags`
+  // is populated on a future enhancement. Keep optional until then.
+  tags?: SignageTag[];
+  tag_ids?: number[] | null;
   current_playlist_id: string | null;
   current_playlist_name?: string | null; // optional; filled by admin list endpoint if present
   created_at: string;

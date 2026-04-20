@@ -46,7 +46,21 @@ app.include_router(signage_admin_router)
 # text/html, the browser refuses to register the SW, and the PWA breaks.
 # ---------------------------------------------------------------------------
 
-PLAYER_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist" / "player"
+# DEFECT-6: in the container, /app is the backend root (not the repo root), so
+# parents[2] resolves to "/" and PLAYER_DIST ends up at /frontend/dist/player
+# — breaking the player mount. Allow an env override, and default to a path
+# that works both on-host (repo-root/frontend/dist/player) and in-container
+# when docker-compose bind-mounts ./frontend/dist to /app/frontend/dist.
+import os as _os
+
+_env_override = _os.environ.get("SIGNAGE_PLAYER_DIST")
+if _env_override:
+    PLAYER_DIST = Path(_env_override)
+else:
+    _backend_root = Path(__file__).resolve().parents[1]  # /app  (container) or repo/backend (host)
+    _in_container = _backend_root / "frontend" / "dist" / "player"
+    _on_host = Path(__file__).resolve().parents[2] / "frontend" / "dist" / "player"
+    PLAYER_DIST = _in_container if _in_container.exists() else _on_host
 
 if PLAYER_DIST.exists():
     # /player/assets/* → static files (hashed JS/CSS chunks). StaticFiles serves

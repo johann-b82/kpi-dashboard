@@ -22,15 +22,18 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid as uuid_lib
 from datetime import datetime, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request, Response
-from sqlalchemy import update
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import FileResponse
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
 from app.database import get_async_db_session
-from app.models.signage import SignageDevice
+from app.models.signage import SignageDevice, SignageMedia
 from app.schemas.signage import HeartbeatRequest, PlaylistEnvelope
 from app.security.device_auth import get_current_device
 from app.services import signage_broadcast
@@ -140,3 +143,34 @@ async def stream_events(
             signage_broadcast._device_queues.pop(device.id, None)
 
     return EventSourceResponse(event_generator(), ping=15)
+
+
+# Phase 47 DEFECT-5: device-auth'd asset passthrough. Without this the envelope's
+# `uri` (a bare Directus file UUID) has no base and <img src> falls back to
+# /player/<uuid>, which the SPA fallback serves as index.html (text/html).
+#
+# Uploads directory is mounted ro via docker-compose (directus_uploads volume).
+# filename_disk convention is "<uuid>.<ext>" — glob for the uuid prefix.
+_UPLOADS_DIR = Path("/directus/uploads")
+
+
+@router.get("/asset/{media_id}")
+async def get_media_asset(
+    media_id: uuid_lib.UUID,
+    device: SignageDevice = Depends(get_current_device),
+    db: AsyncSession = Depends(get_async_db_session),
+) -> FileResponse:
+    media = (
+        await db.execute(select(SignageMedia).where(SignageMedia.id == media_id))
+    ).scalar_one_or_none()
+    if media is None or not media.uri:
+        raise HTTPException(status_code=404, detail="media not found")
+    # `uri` stores the Directus file UUID; file on disk is <uuid>.<ext>.
+    matches = sorted(_UPLOADS_DIR.glob(f"{media.uri}.*"))
+    if not matches:
+        raise HTTPException(status_code=404, detail="asset not on disk")
+    return FileResponse(
+        matches[0],
+        media_type=media.mime_type or None,
+        headers={"Cache-Control": "public, max-age=300"},
+    )

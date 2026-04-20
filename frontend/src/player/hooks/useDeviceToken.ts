@@ -52,7 +52,9 @@ export function useDeviceToken(): UseDeviceTokenResult {
       }
     }
     setToken(null);
-    navigate("/player/");
+    // DEFECT-2 (revoke path): wouter Router base="/player" already prepends
+    // the base. Navigate to "/" to land at "/player/" (not "/player/player/").
+    navigate("/");
   }, [navigate]);
 
   return { token, clearToken };

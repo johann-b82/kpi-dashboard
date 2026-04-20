@@ -2,6 +2,10 @@
 // pdfWorker import MUST come first — pins GlobalWorkerOptions before any PdfPlayer mounts.
 
 import "./lib/pdfWorker";
+// DEFECT-1: player entry must pull in the Tailwind entry — otherwise every
+// utility class in the player is a no-op (pairing code renders as 16px Times,
+// playback canvas drops `bg-black`, etc.).
+import "../index.css";
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

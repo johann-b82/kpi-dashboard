@@ -200,6 +200,11 @@ class PlaylistEnvelopeItem(BaseModel):
     duration_ms: int
     transition: str
     position: int
+    # DEFECT-10: html and pptx items need payload fields on the envelope.
+    # Frontend PlaybackShell already expects `html` and `slide_paths`; without
+    # these, kind='html' renders nothing and kind='pptx' has no image sequence.
+    html: str | None = None
+    slide_paths: list[str] | None = None
 
 
 class PlaylistEnvelope(BaseModel):

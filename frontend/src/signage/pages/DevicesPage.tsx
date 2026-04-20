@@ -120,7 +120,10 @@ export function DevicesPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {d.tags.map((tag) => (
+                    {/* DEFECT-12: backend SignageDeviceRead returns tag_ids,
+                        not a resolved tags array. Defensive guard until the
+                        backend populates `tags` in the list response. */}
+                    {(d.tags ?? []).map((tag) => (
                       <Badge
                         key={tag.id}
                         variant="secondary"

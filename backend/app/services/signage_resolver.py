@@ -112,6 +112,10 @@ async def resolve_playlist_for_device(
                 duration_ms=int(it.duration_s) * 1000,
                 transition=(it.transition or ""),
                 position=it.position,
+                # DEFECT-10: propagate html_content + slide_paths so the player
+                # can render HTML and PPTX items.
+                html=(media.html_content if media is not None else None),
+                slide_paths=(media.slide_paths if media is not None else None),
             )
         )
 

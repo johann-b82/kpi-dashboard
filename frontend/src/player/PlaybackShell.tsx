@@ -89,7 +89,7 @@ export function PlaybackShell() {
       return {
         id: `${it.media_id}-${it.position}`,
         kind: it.kind,
-        uri: resolveMediaUrl({ id: it.media_id, uri: it.uri }),
+        uri: resolveMediaUrl({ id: it.media_id, uri: it.uri }, token),
         html: it.html ?? null,
         slide_paths: it.slide_paths ?? null,
         duration_s: it.duration_ms > 0 ? it.duration_ms / 1000 : 0,
@@ -97,7 +97,7 @@ export function PlaybackShell() {
       };
     });
     return applyDurationDefaults(mapped);
-  }, [envelope]);
+  }, [envelope, token]);
 
   // Hide cursor on playback canvas (UI-SPEC §"No user interaction" safety net).
   useEffect(() => {
