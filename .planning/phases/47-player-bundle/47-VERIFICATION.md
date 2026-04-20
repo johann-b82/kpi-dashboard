@@ -74,3 +74,13 @@ Phase 48 (Pi Provisioning + E2E + Docs) inherits these contracts from Phase 47:
 3. **PWA runtime cache name:** `signage-playlist-v1`. If Phase 48 changes the `/playlist` envelope shape, BUMP this to `v2` in `vite.config.ts` (Pitfall P8).
 
 4. **Token transport:** device JWT travels in `Authorization: Bearer <token>` for `/playlist` + `/heartbeat`, and as `?token=<token>` query string for `/stream` (EventSource limitation, accepted per Pitfall P7).
+
+## Phase 47 Carry-forward Closeouts (updated by Phase 48)
+
+**Date:** 2026-04-20
+
+| Defect | Status | Closed by | Notes |
+|--------|--------|-----------|-------|
+| D-7 (SW scope blocks `/api/*` runtime caching) | RESOLVED | Phase 48 Plan 48-01 | The Pi sidecar replaces the service worker's runtime-cache path entirely. `/api/signage/player/playlist` now flows through `http://localhost:8080/api/signage/player/playlist` when the sidecar is online; `window.signageSidecarReady` + `/health` probe controls the switch-over. SW stays precache-only for app shell at `/player/` scope. No SW re-scoping to `/` needed. |
+| D-8 (`playerFetch` HTTP cache staleness) | RESOLVED | Phase 48 Plan 48-03 Task 1 | `cache: "no-store"` added to `playerFetch`'s fetch() options in `frontend/src/player/lib/playerApi.ts`. Browser HTTP cache can no longer shadow fresh sidecar/backend responses. |
+| G2 (bundle gz 204 505 / 200 000) | OPEN (decision gated) | Orchestrator checkpoint in Plan 48-05 | Recommendation: raise cap to 210_000 per RESEARCH §10 / 47-VERIFICATION §Bundle Size. Plan 48-05 includes a human-decision checkpoint. |
