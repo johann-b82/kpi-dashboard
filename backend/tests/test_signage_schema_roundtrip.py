@@ -53,9 +53,15 @@ EXPECTED_TABLES = {
     "signage_device_tag_map",
     "signage_playlist_tag_map",
     "signage_pairing_sessions",
+    # v1.18 Phase 51 SGN-TIME-01
+    "signage_schedules",
 }
 
-SIGNAGE_HEAD_REVISION = "v1_16_signage_devices_etag"
+# v1.18 head — v1_18_signage_schedules builds on v1_16_signage_devices_etag.
+SIGNAGE_HEAD_REVISION = "v1_18_signage_schedules"
+# Downgrade steps needed to unwind all signage migrations (v1_16_signage,
+# v1_16_signage_devices_etag, v1_18_signage_schedules).
+SIGNAGE_DOWNGRADE_STEPS = 3
 
 # Re-export the sync helpers so static checkers + the plan's acceptance-grep
 # (which looks for `create_engine`, `text`, IntegrityError) still sees them as
@@ -224,9 +230,10 @@ def test_round_trip_clean(engine):
 
     _assert_full_upgrade_state()
 
-    # Downgrade two steps — unwinds v1_16_signage_devices_etag and
-    # v1_16_signage so all Phase 41 signage tables are dropped.
-    _run_alembic("downgrade", "-2")
+    # Downgrade three steps — unwinds v1_18_signage_schedules,
+    # v1_16_signage_devices_etag, and v1_16_signage so all signage tables
+    # and the app_settings.timezone column are dropped.
+    _run_alembic("downgrade", f"-{SIGNAGE_DOWNGRADE_STEPS}")
 
     leftover_tables = _signage_tables()
     assert leftover_tables == set(), (
@@ -320,3 +327,169 @@ def test_playlist_items_media_restrict(engine):
     finally:
         # Cleanup in FK-safe order: item → playlist → media.
         asyncio.run(_cleanup())
+
+
+# --------------------------------------------------------------------------
+# v1.18 Phase 51 SGN-TIME-01: signage_schedules + app_settings.timezone
+# --------------------------------------------------------------------------
+
+
+def test_app_settings_timezone_column_default(engine):
+    """SGN-TIME-01: app_settings.timezone added NOT NULL DEFAULT 'Europe/Berlin'.
+
+    After upgrade head the singleton row is backfilled via the server default.
+    """
+    _run_alembic("upgrade", "head")
+
+    rows = fetch_rows(
+        """
+        SELECT column_name, is_nullable, data_type, column_default
+        FROM information_schema.columns
+        WHERE table_name = 'app_settings' AND column_name = 'timezone'
+        """
+    )
+    assert rows, "app_settings.timezone column missing"
+    _, is_nullable, data_type, col_default = rows[0]
+    assert is_nullable == "NO", f"timezone must be NOT NULL, got {is_nullable!r}"
+    assert data_type in ("character varying", "text"), (
+        f"timezone data_type unexpected: {data_type!r}"
+    )
+    assert col_default and "Europe/Berlin" in col_default, (
+        f"timezone default missing 'Europe/Berlin': {col_default!r}"
+    )
+
+
+def test_signage_schedules_roundtrip(engine):
+    """SGN-TIME-01 round-trip: insert a schedule row, read it back, assert
+    FK and CHECK constraints fire on invalid inputs.
+    """
+    _run_alembic("upgrade", "head")
+
+    playlist_id = uuid.uuid4()
+    schedule_id = uuid.uuid4()
+
+    async def _seed() -> None:
+        conn = await asyncpg.connect(dsn=_pg_dsn())
+        try:
+            async with conn.transaction():
+                await conn.execute(
+                    "INSERT INTO signage_playlists (id, name) VALUES ($1, $2)",
+                    playlist_id,
+                    "sched-rt-playlist",
+                )
+                await conn.execute(
+                    "INSERT INTO signage_schedules"
+                    " (id, playlist_id, weekday_mask, start_hhmm, end_hhmm,"
+                    "  priority, enabled)"
+                    " VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                    schedule_id,
+                    playlist_id,
+                    31,  # Mo-Fr
+                    700,
+                    1100,
+                    10,
+                    True,
+                )
+            row = await conn.fetchrow(
+                "SELECT id, playlist_id, weekday_mask, start_hhmm, end_hhmm,"
+                " priority, enabled"
+                " FROM signage_schedules WHERE id = $1",
+                schedule_id,
+            )
+            assert row is not None
+            assert row["id"] == schedule_id
+            assert row["playlist_id"] == playlist_id
+            assert row["weekday_mask"] == 31
+            assert row["start_hhmm"] == 700
+            assert row["end_hhmm"] == 1100
+            assert row["priority"] == 10
+            assert row["enabled"] is True
+        finally:
+            await conn.close()
+
+    async def _fk_violation() -> None:
+        """Inserting with a non-existent playlist_id must violate the FK."""
+        conn = await asyncpg.connect(dsn=_pg_dsn())
+        try:
+            with pytest.raises(asyncpg.ForeignKeyViolationError):
+                async with conn.transaction():
+                    await conn.execute(
+                        "INSERT INTO signage_schedules"
+                        " (id, playlist_id, weekday_mask, start_hhmm, end_hhmm)"
+                        " VALUES ($1, $2, $3, $4, $5)",
+                        uuid.uuid4(),
+                        uuid.uuid4(),  # playlist doesn't exist
+                        1,
+                        900,
+                        1000,
+                    )
+        finally:
+            await conn.close()
+
+    async def _check_violation(start: int, end: int) -> None:
+        """Inserting values that violate any CHECK constraint must raise."""
+        conn = await asyncpg.connect(dsn=_pg_dsn())
+        try:
+            with pytest.raises(asyncpg.CheckViolationError):
+                async with conn.transaction():
+                    await conn.execute(
+                        "INSERT INTO signage_schedules"
+                        " (id, playlist_id, weekday_mask, start_hhmm, end_hhmm)"
+                        " VALUES ($1, $2, $3, $4, $5)",
+                        uuid.uuid4(),
+                        playlist_id,
+                        1,
+                        start,
+                        end,
+                    )
+        finally:
+            await conn.close()
+
+    async def _cleanup() -> None:
+        conn = await asyncpg.connect(dsn=_pg_dsn())
+        try:
+            async with conn.transaction():
+                await conn.execute(
+                    "DELETE FROM signage_schedules WHERE playlist_id = $1",
+                    playlist_id,
+                )
+                await conn.execute(
+                    "DELETE FROM signage_playlists WHERE id = $1", playlist_id
+                )
+        finally:
+            await conn.close()
+
+    try:
+        asyncio.run(_seed())
+        asyncio.run(_fk_violation())
+        # start_hhmm out of range
+        asyncio.run(_check_violation(2400, 2500))
+        # zero-width window (start == end)
+        asyncio.run(_check_violation(1100, 1100))
+        # midnight-spanning (start > end) — D-07
+        asyncio.run(_check_violation(2200, 200))
+    finally:
+        asyncio.run(_cleanup())
+
+
+def test_signage_schedules_partial_index_present(engine):
+    """Partial index ix_signage_schedules_enabled_weekday WHERE enabled = true."""
+    _run_alembic("upgrade", "head")
+
+    rows = fetch_rows(
+        """
+        SELECT indexname, indexdef
+        FROM pg_indexes
+        WHERE tablename = 'signage_schedules'
+          AND indexname = 'ix_signage_schedules_enabled_weekday'
+        """
+    )
+    assert rows, "partial index ix_signage_schedules_enabled_weekday missing"
+    up = rows[0][1].upper()
+    # Predicate present and on weekday_mask
+    assert "ENABLED" in up and "TRUE" in up, (
+        f"partial predicate `enabled = true` missing: {rows[0][1]}"
+    )
+    assert "WEEKDAY_MASK" in up, (
+        f"index column `weekday_mask` missing: {rows[0][1]}"
+    )

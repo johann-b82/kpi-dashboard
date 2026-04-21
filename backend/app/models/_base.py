@@ -131,6 +131,12 @@ class AppSettings(Base):
     # App identity
     app_name: Mapped[str] = mapped_column(String(100), nullable=False)
 
+    # v1.18 Phase 51 D-01: app-level timezone for signage schedule resolver.
+    # Default 'Europe/Berlin' matches current DACH deployment target.
+    timezone: Mapped[str] = mapped_column(
+        String(64), nullable=False, server_default="Europe/Berlin"
+    )
+
     # Logo — all three are nullable together (no logo = fallback to app_name text)
     logo_data: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
     logo_mime: Mapped[str | None] = mapped_column(String(64), nullable=True)
