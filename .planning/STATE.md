@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 56-01-breadcrumb-component-PLAN.md
-last_updated: "2026-04-21T21:33:45.538Z"
+stopped_at: Completed 56-02-user-menu-PLAN.md
+last_updated: "2026-04-21T21:33:45.796Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
@@ -221,6 +221,8 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 55]: Plan 55-04: Raw <button> CTRL-02 closure — 8 files migrated; 3 LauncherPage tiles annotated as exceptions (gradient card-surface visual); ColorPicker swatch 9->8 honours CTRL-03 over pixel parity; fixed parallel-55-05 implicit-any Select onValueChange parameter
 - [Phase 55]: Plan 55-05: ScheduleEditDialog test file uses vi.mock shim (native <select>) to exercise validator/blur logic because base-ui Select popup cannot be driven in jsdom; empty-option placeholder collapsed into <SelectValue placeholder>
 - [Phase 56]: Plan 56-01: Breadcrumb infrastructure — static route map + pure matcher + component. Leaf renders as span aria-current=page (D-06); dynamic segments collapse to parent leaf (D-02); Home prepended at render (D-04). 3 i18n keys (nav.home, breadcrumb.aria_label, breadcrumb.signage.pair) referenced but land in Plan 04 — tests assert DOM shape only.
+- [Phase 56]: Plan 56-02: Pitfall 3 resolved via render-prop — Menu.LinkItem with render={<WouterLink />} preserves base-ui highlight state in jsdom; fallback to navigate() not needed
+- [Phase 56]: Plan 56-02: Identity row is <div data-testid=usermenu-identity>, not DropdownItem (D-12 #1) — sign-out tests target last role=menuitem so they stay stable across Plan 04 i18n copy
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -262,6 +264,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T21:33:40.642Z
-**Stopped at:** Completed 56-01-breadcrumb-component-PLAN.md
+**Last session:** 2026-04-21T21:33:45.793Z
+**Stopped at:** Completed 56-02-user-menu-PLAN.md
 **Resume file:** None
