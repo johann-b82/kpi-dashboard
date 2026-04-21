@@ -178,7 +178,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 - [ ] **Phase 50: Pi Polish** — close v1.17 carry-forwards (Scenarios 4+5 hardware E2E on a `provision-pi.sh`-provisioned Pi), dynamic-import `PdfPlayer` back under 200 KB gz
 - [ ] **Phase 51: Schedule schema + resolver** — Alembic migration for `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + priority), time-aware resolver, SSE notify, integration tests
 - [ ] **Phase 52: Schedule admin UI** — 4th tab on `/signage`, schedule editor form, bilingual admin-guide update (DE/EN parity), invariants CI
-- [ ] **Phase 53: Analytics-lite** — Uptime-24h + heartbeats-missed badges on Devices table (no new schema)
+- [x] **Phase 53: Analytics-lite** — Uptime-24h + heartbeats-missed badges on Devices table (one append-only `signage_heartbeat_event` log, 25h retention)
 
 </details>
 
