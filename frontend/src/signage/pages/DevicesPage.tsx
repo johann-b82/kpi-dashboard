@@ -26,9 +26,13 @@ import {
 } from "@/components/ui/table";
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
-import type { SignageDevice } from "@/signage/lib/signageTypes";
+import type {
+  SignageDevice,
+  SignageDeviceAnalytics,
+} from "@/signage/lib/signageTypes";
 import { DeviceStatusChip } from "@/signage/components/DeviceStatusChip";
 import { DeviceEditDialog } from "@/signage/components/DeviceEditDialog";
+import { UptimeBadge } from "@/signage/components/UptimeBadge";
 
 /**
  * /signage/devices — admin device table (SGN-ADM-06).
@@ -49,6 +53,21 @@ export function DevicesPage() {
     queryKey: signageKeys.devices(),
     queryFn: signageApi.listDevices,
     refetchInterval: 30_000,
+  });
+
+  // Phase 53 SGN-ANA-01 — per-device analytics. Separate query so the two
+  // streams poll/invalidate independently. 30 s matches existing cadence;
+  // refetchOnWindowFocus covers the tab-visibility refresh requirement (D-11).
+  const { data: analyticsByDevice = {} } = useQuery<
+    Record<string, SignageDeviceAnalytics>
+  >({
+    queryKey: signageKeys.deviceAnalytics(),
+    queryFn: async () => {
+      const rows = await signageApi.listDeviceAnalytics();
+      return Object.fromEntries(rows.map((r) => [r.device_id, r]));
+    },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   const revokeMutation = useMutation({
@@ -101,6 +120,12 @@ export function DevicesPage() {
             <TableRow>
               <TableHead>{t("signage.admin.devices.col_name")}</TableHead>
               <TableHead>{t("signage.admin.devices.col_status")}</TableHead>
+              <TableHead>
+                {t("signage.admin.device.analytics.uptime24h.label")}
+              </TableHead>
+              <TableHead>
+                {t("signage.admin.device.analytics.missed24h.label")}
+              </TableHead>
               <TableHead>{t("signage.admin.devices.col_tags")}</TableHead>
               <TableHead>{t("signage.admin.devices.col_playlist")}</TableHead>
               <TableHead>{t("signage.admin.devices.col_last_seen")}</TableHead>
@@ -117,6 +142,18 @@ export function DevicesPage() {
                 </TableCell>
                 <TableCell>
                   <DeviceStatusChip lastSeenAt={d.last_seen_at} />
+                </TableCell>
+                <TableCell>
+                  <UptimeBadge
+                    variant="uptime"
+                    data={analyticsByDevice[d.id]}
+                  />
+                </TableCell>
+                <TableCell>
+                  <UptimeBadge
+                    variant="missed"
+                    data={analyticsByDevice[d.id]}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
