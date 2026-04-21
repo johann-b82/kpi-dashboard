@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import type { PlayerItem } from "./types";
 import { ImagePlayer } from "./ImagePlayer";
 import { VideoPlayer } from "./VideoPlayer";
-import { PdfPlayer } from "./PdfPlayer";
 import { IframePlayer } from "./IframePlayer";
 import { HtmlPlayer } from "./HtmlPlayer";
 import { PptxPlayer } from "./PptxPlayer";
+
+// SGN-POL-05 (Phase 50): lazy-loaded so react-pdf + pdfjs-dist glue ship in
+// a separate chunk, fetched only when a playlist item with kind='pdf' actually renders.
+// Named-export adapter per 50-RESEARCH.md Pitfall 1.
+const PdfPlayer = lazy(() => import("./PdfPlayer").then((m) => ({ default: m.PdfPlayer })));
 
 export interface PlayerRendererProps {
   items: PlayerItem[];
@@ -19,7 +23,11 @@ function renderItem(item: PlayerItem) {
     case "video":
       return <VideoPlayer uri={item.uri} />;
     case "pdf":
-      return <PdfPlayer uri={item.uri} autoFlipSeconds={item.duration_s} />;
+      return (
+        <Suspense fallback={<div className="w-full h-full bg-black" />}>
+          <PdfPlayer uri={item.uri} autoFlipSeconds={item.duration_s} />
+        </Suspense>
+      );
     case "url":
       return <IframePlayer uri={item.uri} />;
     case "html":
