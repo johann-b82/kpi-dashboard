@@ -14,17 +14,26 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **In progress:** — awaiting `/gsd:new-milestone`.
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (75 KB gz entry + lazy `PdfPlayer`/`pdf` chunks, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–5 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16, v1.17, v1.18 requirements satisfied. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16, v1.17, v1.18 requirements satisfied. v1.19 UI Consistency Pass 2 in progress. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
-## Current Milestone
+## Current Milestone: v1.19 UI Consistency Pass 2
 
-None active. v1.18 shipped 2026-04-21. Start the next milestone via `/gsd:new-milestone`.
+**Goal:** Unify admin UI chrome, controls, and navigation patterns so every route uses the same components, spacing, and interaction patterns.
 
-## Next Milestone Candidates (v1.19+)
+**Target features:**
+- Breadcrumb header (strip content-nav from top header)
+- Section context + standardized trashcan icon across all admin surfaces
+- Consolidated form controls (one Input/Select/Button/Textarea/Dropdown, h-8 token)
+- Sensors layout parity (date-range + Jetzt messen into SubHeader)
+- New pill Toggle with animated indicator (EN/DE, light/dark, all boolean toggles)
 
-- **v1.19 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
-- **v1.19 Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
-- **v1.19 iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
+**Constraints:** No backend changes. DE/EN i18n parity. Keyboard + reduced-motion a11y on Toggle.
+
+## Next Milestone Candidates (v1.20+)
+
+- **v1.20 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
+- **v1.20 Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
+- **v1.20 iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
 - **v1.20 Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
 
 ## Shipped: v1.18 Pi Polish + Scheduling (2026-04-21)
