@@ -1,0 +1,125 @@
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+
+export interface ToggleSegment<T extends string> {
+  value: T;
+  label?: string;
+  icon?: ReactNode;
+}
+
+export interface ToggleProps<T extends string> {
+  // Exactly 2 segments enforced at type + runtime level (D-03)
+  segments: readonly [ToggleSegment<T>, ToggleSegment<T>];
+  value: T;
+  onChange: (value: T) => void;
+  disabled?: boolean;
+  "aria-label"?: string;
+  title?: string;
+  className?: string;
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  return reducedMotion;
+}
+
+function Toggle<T extends string>({
+  segments,
+  value,
+  onChange,
+  disabled = false,
+  "aria-label": ariaLabel,
+  title,
+  className: extraClassName,
+}: ToggleProps<T>) {
+  // Runtime assert — complements the type-level 2-tuple constraint (D-03).
+  if (segments.length !== 2) {
+    throw new Error(
+      "Toggle requires exactly 2 segments; use SegmentedControl for 3+ options.",
+    );
+  }
+
+  const reducedMotion = usePrefersReducedMotion();
+  const buttonRefs = useRef<Array<HTMLButtonElement | null>>([null, null]);
+
+  const foundIndex = segments.findIndex((s) => s.value === value);
+  const activeIndex = foundIndex === -1 ? 0 : foundIndex;
+
+  function handleKey(idx: number, e: KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const next = idx === 0 ? 1 : 0;
+      onChange(segments[next].value);
+      buttonRefs.current[next]?.focus();
+    } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = idx === 1 ? 0 : 1;
+      onChange(segments[next].value);
+      buttonRefs.current[next]?.focus();
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onChange(segments[idx].value);
+    }
+  }
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      aria-disabled={disabled ? "true" : undefined}
+      title={title}
+      className={`relative inline-flex items-center bg-background border border-primary rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}${extraClassName ? ` ${extraClassName}` : ""}`}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-primary"
+        style={{
+          transform: activeIndex === 0 ? "translateX(0)" : "translateX(100%)",
+          transition: reducedMotion ? "none" : "transform 180ms ease-out",
+        }}
+      />
+      {segments.map((segment, i) => {
+        if (segment.icon === undefined && segment.label === undefined) {
+          throw new Error(
+            "Toggle segment requires at least one of `icon` or `label`.",
+          );
+        }
+        const isActive = i === activeIndex;
+        return (
+          <button
+            key={segment.value}
+            ref={(el) => {
+              buttonRefs.current[i] = el;
+            }}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            tabIndex={isActive ? 0 : -1}
+            onClick={() => onChange(segment.value)}
+            onKeyDown={(e) => handleKey(i, e)}
+            className={
+              isActive
+                ? "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-medium text-primary-foreground inline-flex items-center justify-center gap-2 transition-colors"
+                : "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-normal text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 transition-colors"
+            }
+          >
+            {segment.icon}
+            {segment.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export { Toggle };
