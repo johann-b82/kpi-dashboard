@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Sun, Moon } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 /**
- * NavBar theme toggle — single icon button. Shows the icon for the mode
- * clicking will switch TO (Moon while light, Sun while dark).
+ * Theme switch — 2-segment Toggle with sun (light) and moon (dark) icons.
  * Persists to localStorage.theme and toggles the .dark class on <html>.
- * Live-tracks OS prefers-color-scheme until the user clicks once (D-06, D-07).
+ * Live-tracks OS prefers-color-scheme until the user picks a theme (D-06, D-07).
+ * Phase 54 D-11: visual layer migrated to Toggle; all persistence/OS logic preserved.
  */
 type ThemeMode = "light" | "dark";
 
@@ -27,10 +28,6 @@ export function ThemeToggle() {
     setMode(next);
   };
 
-  const handleClick = () => {
-    applyMode(mode === "dark" ? "light" : "dark", true);
-  };
-
   useEffect(() => {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const onOsChange = (e: MediaQueryListEvent) => {
@@ -43,16 +40,15 @@ export function ThemeToggle() {
     return () => mql.removeEventListener("change", onOsChange);
   }, []);
 
-  const Icon = mode === "dark" ? Sun : Moon;
-
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <Toggle<ThemeMode>
+      segments={[
+        { value: "light", icon: <Sun className="h-4 w-4" aria-hidden="true" /> },
+        { value: "dark", icon: <Moon className="h-4 w-4" aria-hidden="true" /> },
+      ] as const}
+      value={mode}
+      onChange={(next) => applyMode(next, true)}
       aria-label={t("theme.toggle.aria_label")}
-      className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
-    >
-      <Icon className="h-5 w-5" />
-    </button>
+    />
   );
 }
