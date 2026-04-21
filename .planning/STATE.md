@@ -40,11 +40,17 @@ Milestone: v1.18 Pi Polish + Scheduling — COMPLETE
 Phase: 53 (approved, deployed)
 Plan: 2/2 complete
 Status: All 4 phases complete (50, 51, 52, 53) — milestone ready to ship
-Last activity: 2026-04-21
+Last activity: 2026-04-21 - Completed quick task 260421-r4b: Fix admin Devices tab (tags render + stale status diagnosed)
 
 Progress: [████] 4/4 phases
 
 Next action: `/gsd:audit-milestone` then `/gsd:ship` for v1.18 tag
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260421-r4b | Fix admin Devices tab: list_devices returns tags and investigate stale heartbeat/uptime | 2026-04-21 | eff6e52 | [260421-r4b-fix-admin-devices-tab-list-devices-retur](./quick/260421-r4b-fix-admin-devices-tab-list-devices-retur/) |
 
 ---
 
