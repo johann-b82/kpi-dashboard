@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: executing
-stopped_at: Completed 52-01-foundation-PLAN.md
-last_updated: "2026-04-21T12:52:03.510Z"
+status: verifying
+stopped_at: Completed 52-02-schedules-ui-PLAN.md
+last_updated: "2026-04-21T13:07:07.712Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State: KPI Dashboard
@@ -39,7 +39,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 Milestone: v1.18 Pi Polish + Scheduling — PLANNING
 Phase: 52 (schedule-admin-ui) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-21
 
 Progress: [····] 0/4 phases
@@ -107,6 +107,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 51 P02 | 7m | 2 tasks | 4 files |
 | Phase 52 P03 | 2m | 2 tasks | 2 files |
 | Phase 52 P01 | 146s | 3 tasks | 6 files |
+| Phase 52 P02 | 644s | 4 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,9 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 51]: Plan 51-02: asyncpg raises FK RESTRICT at db.execute(delete), not only at db.commit — try/except must wrap both
 - [Phase 52]: Plan 52-03: Appended bilingual Schedules/Zeitpläne admin-guide sections verbatim per plan; DE du-tone enforced (0 Sie/Ihre/Ihr); added 33 lines per file (plan's prose block shorter than >=40 acceptance threshold).
 - [Phase 52]: Flat-dotted i18n key style (matches Phase 46 parity contract)
+- [Phase 52]: Plan 52-02: useAdminSignageEvents hook is best-effort (no backend admin SSE channel exists yet); admin correctness preserved via own-mutation invalidation
+- [Phase 52]: Plan 52-02: error.start_after_end reserved for backend-error surfacing only — client validator never emits it (D-07 consolidation)
+- [Phase 52]: Plan 52-02: added testing-library + jsdom + vitest.config.ts (jsdom env) to unblock component tests; pre-existing pure-logic tests kept on node env via environmentMatchGlobs
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -220,6 +224,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T12:52:03.507Z
-**Stopped at:** Completed 52-01-foundation-PLAN.md
+**Last session:** 2026-04-21T13:06:59.623Z
+**Stopped at:** Completed 52-02-schedules-ui-PLAN.md
 **Resume file:** None
