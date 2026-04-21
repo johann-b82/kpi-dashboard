@@ -106,13 +106,21 @@ async def list_playlists(
 async def get_playlist(
     playlist_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_db_session),
-) -> SignagePlaylist:
+) -> SignagePlaylistRead:
     row = (
         await db.execute(select(SignagePlaylist).where(SignagePlaylist.id == playlist_id))
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(404, "playlist not found")
-    return row
+    tag_rows = await db.execute(
+        select(SignagePlaylistTagMap.tag_id).where(
+            SignagePlaylistTagMap.playlist_id == playlist_id
+        )
+    )
+    tag_ids = [tid for (tid,) in tag_rows.fetchall()]
+    out = SignagePlaylistRead.model_validate(row)
+    out.tag_ids = tag_ids or None
+    return out
 
 
 @router.patch("/{playlist_id}", response_model=SignagePlaylistRead)

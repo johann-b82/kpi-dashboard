@@ -93,7 +93,7 @@ export function TagPicker({
   return (
     <div className="relative">
       <div
-        className="border border-input rounded-md p-2 flex flex-wrap gap-1 min-h-[40px] cursor-text bg-background"
+        className="border border-input rounded-md px-3 py-1 flex flex-wrap items-center gap-1 min-h-9 h-9 cursor-text bg-background text-sm"
         onClick={() => inputRef.current?.focus()}
         role="combobox"
         aria-expanded={isOpen}
