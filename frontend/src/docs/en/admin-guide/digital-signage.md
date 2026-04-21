@@ -277,3 +277,27 @@ Schedules play specific playlists at specific times and days. Use them when a de
 ### Deleting a playlist referenced by a schedule
 
 A playlist cannot be deleted while any schedule still references it. The deletion returns an error toast listing the blocking schedules; click "Schedules" in the toast to jump to the Schedules tab with those rows highlighted. Remove or reassign them there, then retry the playlist delete.
+
+## Analytics
+
+The Devices tab shows two badges per row computed from the device's heartbeats in the last 24 hours.
+
+- **Uptime 24h** - percentage of one-minute windows in the last 24 hours that recorded at least one heartbeat.
+- **Missed 24h** - count of one-minute windows in the last 24 hours without a heartbeat.
+
+### Colour scale
+
+- Green - Uptime >= 95 %. Device is healthy.
+- Amber - Uptime 80 % - 95 %. Intermittent dropouts; worth checking the device's network.
+- Red - Uptime < 80 %. Sustained outage; inspect power and network.
+- Neutral (-) - No heartbeats recorded yet (freshly provisioned or never connected).
+
+### How it's computed
+
+Every successful heartbeat is logged in an append-only table. Once per minute, a sweeper drops heartbeat rows older than 25 hours. The Uptime badge counts distinct one-minute windows with at least one heartbeat and divides by the denominator.
+
+For a freshly-provisioned new device that has only been online for e.g. 30 minutes, the denominator is 30 (not 1440) so Uptime shows an honest signal from day one. Hover the badge to see the literal numerator/denominator and the window length.
+
+### Refresh
+
+The table polls every 30 seconds and refreshes automatically when you switch back to the browser tab.

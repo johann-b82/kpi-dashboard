@@ -277,3 +277,27 @@ Zeitpläne spielen bestimmte Playlists zu bestimmten Zeiten und an bestimmten Ta
 ### Playlist löschen, die in einem Zeitplan verwendet wird
 
 Eine Playlist kann nicht gelöscht werden, solange ein Zeitplan darauf verweist. Der Löschversuch zeigt dir eine Fehlermeldung mit den blockierenden Zeitplänen; klicke dort auf "Zeitpläne", um direkt zum Zeitplan-Tab zu springen, wo die betroffenen Zeilen hervorgehoben sind. Entferne oder weise sie dort neu zu und versuche dann die Playlist erneut zu löschen.
+
+## Analyse
+
+Der Tab "Geräte" zeigt pro Zeile zwei Badges, die aus den Heartbeats der letzten 24 Stunden berechnet werden.
+
+- **Betriebszeit 24 h** - Anteil der Ein-Minuten-Fenster der letzten 24 Stunden, in denen mindestens ein Heartbeat eingegangen ist.
+- **Ausfälle 24 h** - Anzahl der Ein-Minuten-Fenster ohne Heartbeat in den letzten 24 Stunden.
+
+### Farbskala
+
+- Grün - Betriebszeit >= 95 %. Gerät läuft stabil.
+- Gelb - Betriebszeit 80 % - 95 %. Sporadische Aussetzer; prüfe das Netzwerk des Geräts.
+- Rot - Betriebszeit < 80 %. Anhaltende Störung; prüfe Stromversorgung und Netzwerk.
+- Neutral (-) - Noch keine Heartbeats vorhanden (gerade eingerichtet oder nie verbunden).
+
+### Wie es berechnet wird
+
+Jeder erfolgreiche Heartbeat wird in einer Append-only-Tabelle protokolliert. Einmal pro Minute entfernt ein Sweeper Heartbeat-Zeilen, die älter als 25 Stunden sind. Das Betriebszeit-Badge zählt die eindeutigen Ein-Minuten-Fenster mit mindestens einem Heartbeat und teilt durch den Nenner.
+
+Für ein frisch eingerichtetes Gerät, das z. B. erst 30 Minuten online ist, beträgt der Nenner 30 (nicht 1440), damit du vom ersten Tag an ein ehrliches Signal siehst. Bewege den Mauszeiger über das Badge, um den exakten Zähler/Nenner und die Fensterlänge zu sehen.
+
+### Aktualisierung
+
+Die Tabelle lädt alle 30 Sekunden neu und aktualisiert sich automatisch, wenn du zum Browser-Tab zurückkehrst.
