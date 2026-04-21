@@ -1,11 +1,15 @@
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { Upload as UploadIcon } from "lucide-react";
+import { AdminOnly } from "@/auth/AdminOnly";
+import { Toggle } from "@/components/ui/toggle";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { fetchSyncMeta, fetchSensorStatus } from "@/lib/api";
 import { syncKeys, sensorKeys } from "@/lib/queryKeys";
+import { cn } from "@/lib/utils";
 
 function HrFreshnessIndicator() {
   const { t, i18n } = useTranslation();
@@ -82,7 +86,8 @@ function SensorFreshnessIndicator() {
 }
 
 export function SubHeader() {
-  const [location] = useLocation();
+  const { t } = useTranslation();
+  const [location, navigate] = useLocation();
   const { preset, range, handleFilterChange } = useDateRange();
 
   // Launcher surface hides chrome entirely — return null after all hooks
@@ -90,10 +95,24 @@ export function SubHeader() {
   // navigation between / and other routes.
   if (location === "/") return null;
 
+  const isDashboard = location === "/sales" || location === "/hr";
+
   return (
     <div className="fixed top-16 inset-x-0 h-12 bg-background z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          {isDashboard && (
+            <Toggle
+              segments={[
+                { value: "/sales", label: t("nav.sales") },
+                { value: "/hr", label: t("nav.hr") },
+              ] as const}
+              value={location === "/hr" ? "/hr" : "/sales"}
+              onChange={(path) => navigate(path)}
+              aria-label={t("nav.dashboardToggleLabel")}
+              className="border-transparent"
+            />
+          )}
           {location === "/sales" && (
             <DateRangeFilter
               value={range}
@@ -102,13 +121,29 @@ export function SubHeader() {
             />
           )}
         </div>
-        {location === "/sensors" ? (
-          <SensorFreshnessIndicator />
-        ) : location === "/hr" ? (
-          <HrFreshnessIndicator />
-        ) : (
-          <FreshnessIndicator />
-        )}
+        <div className="flex items-center gap-3">
+          {isDashboard && (
+            <AdminOnly>
+              <Link
+                href="/upload"
+                aria-label={t("nav.upload")}
+                className={cn(
+                  "inline-flex items-center justify-center rounded-md p-1.5 hover:bg-accent/10 transition-colors",
+                  "text-foreground",
+                )}
+              >
+                <UploadIcon className="h-4 w-4" />
+              </Link>
+            </AdminOnly>
+          )}
+          {location === "/sensors" ? (
+            <SensorFreshnessIndicator />
+          ) : location === "/hr" ? (
+            <HrFreshnessIndicator />
+          ) : (
+            <FreshnessIndicator />
+          )}
+        </div>
       </div>
     </div>
   );
