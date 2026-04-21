@@ -269,5 +269,5 @@ All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, ap
 | 49. Pi Image Build | v1.17 | 4/4 | Complete   | 2026-04-21 |
 | 50. Pi Polish | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 51. Schedule Schema + Resolver | v1.18 | 2/2 | Complete    | 2026-04-21 |
-| 52. Schedule Admin UI | v1.18 | 3/3 | Complete   | 2026-04-21 |
+| 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
 | 53. Analytics-lite | v1.18 | 0/? | Pending    |  |
