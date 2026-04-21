@@ -10,39 +10,22 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.16 Digital Signage — 2026-04-20
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose with Alembic migration service and nightly `pg_dump` backup sidecar. Recharts, react-i18next DE/EN parity, Intl.DateTimeFormat locale-aware month names, APScheduler singleton (`--workers 1`) handling Personio sync, SNMP sensor polling, signage pairing-cleanup cron, PPTX stuck-row reset, and signage heartbeat sweeper. Dark mode via Tailwind v4 class strategy with CSS-variable tokens and a pre-hydration IIFE. Auth via Directus-issued JWT (HS256) with Admin/Viewer roles enforced on every route. Signage adds: bundle-isolated Vite player entry at `/player/` (210KB gz, PWA-precached shell, 6-digit pairing flow, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast via per-device `asyncio.Queue`, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX conversion via `asyncio.subprocess_exec` on LibreOffice/poppler/Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar on 127.0.0.1:8080 proxy-caching playlist envelope and media to `/var/lib/signage/`, one-script `scripts/provision-pi.sh` Bookworm Lite bootstrap with dedicated non-root `signage` user + labwc + Chromium kiosk systemd user services.
-**Codebase:** ~14,100 LOC baseline + v1.15 sensor additions + v1.16 signage additions (Python + TypeScript + 1 090-line RESEARCH doc + bilingual admin guide + operator runbook), 16 versions shipped (v1.0–v1.16).
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, and v1.16 requirements satisfied. v1.9 shipped with documented D-12 waiver. v1.16 carries one documented carry-forward: real-Pi E2E walkthrough (`48-E2E-RESULTS.md` scaffold ready for operator run-time; code-complete verification via committed systemd units + sidecar source).
-
-## Current Milestone: v1.17 Pi Image Release
-
-**Goal:** Ship a pre-baked, flashable Raspberry Pi OS Bookworm Lite 64-bit image with the Phase 48 signage stack (provision-pi.sh outputs, systemd units, sidecar venv, labwc + Chromium kiosk) already installed and enabled — so a non-developer operator writes one image to an SD card via Raspberry Pi Imager, boots the Pi, and lands on the 6-digit pairing code without any SSH / git / apt steps.
-
-**Base:** Raspberry Pi OS Bookworm Lite 64-bit (matches Phase 48 runtime target; no change of distribution). Decision rationale: the Debian Trixie spike (`.planning/research/debian-trixie-pi-image.md`) returned CONDITIONAL-GO but with 5 unresolved hardware-verification unknowns and a mandatory self-hosted arm64 runner. Bookworm Full Desktop was the option-B recommendation; operator preference is thin (labwc + Chromium only, no desktop environment), so the base stays Bookworm **Lite** + the kiosk stack rather than the Full Desktop tier.
-
-**GUI depth (locked):** Thin. labwc compositor runs Chromium kiosk full-screen on boot; no desktop environment installed. Operator accesses the device via SSH (sidecar logs, journal, reboot). Smallest attack surface; smallest image (~600 MB compressed target).
-
-**Target features:**
-- **pi-gen pipeline** — forked or staged `pi-gen` config that bakes the Phase 48 outputs into a standard RPi OS Bookworm Lite 64-bit image. Custom stage adds: provision-pi.sh artifacts (signage user, systemd units, sidecar venv, `/var/lib/signage/`), labwc + Chromium + font layer, `loginctl enable-linger` already applied.
-- **First-boot config via Raspberry Pi Imager "custom settings" preseed** — operator sets Wi-Fi + `SIGNAGE_API_URL` at flash time; a first-boot systemd oneshot reads the preseed file and writes `/etc/signage/config` that the systemd units source. No runtime wizard.
-- **Release pipeline** — self-hosted arm64 runner builds, signs (sha256 + minisign or GPG), and publishes `.img.xz` to GitHub Releases tied to git tags.
-- **One-flash E2E** — flash → first boot → pairing code on screen → admin claims → playback. No SSH between flash and pairing.
-
-**Deferred (noted, not in-scope):**
-- Debian Trixie base (CONDITIONAL-GO — revisit when the 5 unknowns close or Bookworm security support nears end-of-life).
-- Full desktop image (thick GUI) — revisit if operator feedback says SSH-only is too austere.
-- Multi-Pi fleet management (Ansible, fleet dashboard, remote reimage).
-- OTA image updates (rpi-update channel or custom).
-- Cellular/LTE fallback.
+**Shipped:** v1.17 Pi Image Release — 2026-04-21
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (210KB gz, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi runtime + image-build share a single installer library (`scripts/lib/signage-install.sh`) and systemd unit templates; `pi-gen` fork at `pi-image/` (arm64 branch git submodule) with custom `stage-signage` bakes the full stack into an RPi OS Bookworm Lite 64-bit `.img.xz`. GitHub Actions workflow + minisign signing + Imager-preseed first-boot flow. Proven end-to-end on real Pi 4 (E2E Scenarios 1–3 PASS).
+**Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 image pipeline (pi-gen stage, installer library, CI workflow, SIGNING). 17 versions shipped (v1.0–v1.17).
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16 requirements satisfied. v1.9 D-12 waiver still carried. v1.17 carries operator carry-forwards for first `.img.xz` publish (minisign key ceremony, self-hosted arm64 runner registration, `v1.17.0-rc1` tag dry-run) + Scenarios 4/5 numerical hardware E2E — all documented in `49-VERIFICATION.md §Outstanding`.
 
 ## Next Milestone Goals (post-v1.17 candidates)
 
-- **v1.18 Signage Scheduling** — time-based playlist schedules (currently one-playlist-per-tag), per-device calibration overrides, basic per-device analytics.
-- **v1.18 Fleet Ops** — Ansible-based reimage, fleet-wide config push, remote restart.
-- **v1.18 Signage Polish** — dynamic-import `PdfPlayer` for tighter player bundle, multi-Pi fan-out test, hardware E2E checklist filled.
+- **v1.18 Signage Scheduling** — time-based playlist schedules, per-device calibration overrides, per-device analytics.
+- **v1.18 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart.
+- **v1.18 Signage Polish** — complete operator carry-forwards (minisign key ceremony, self-hosted arm64 runner, rc1 dry-run, Scenarios 4+5 hardware E2E, byte-diff test), dynamic-import PdfPlayer.
 
----
+Start the next milestone via `/gsd:new-milestone`.
+
+## Shipped: v1.17 Pi Image Release (2026-04-21)
+
+Pre-baked Raspberry Pi OS Bookworm Lite 64-bit image pipeline + thin-GUI kiosk stack. `pi-gen` fork at `pi-image/` (as git submodule on arm64 branch) bakes: the Phase 48 signage stack, signage user, three systemd user units (labwc + sidecar + player), Python FastAPI sidecar venv, first-boot oneshot that reads `/boot/firmware/signage.conf` and configures the device. Installer library `scripts/lib/signage-install.sh` (7 shared functions + SSOT packages list + CI drift-check) shared between runtime path (`provision-pi.sh`) and image-build path. GitHub Actions workflow at `.github/workflows/pi-image.yml` + minisign signing scaffold + RELEASE_TEMPLATE. Runtime path proven on real Pi 4 hardware 2026-04-21 (E2E Scenarios 1–3 PASS: flash → boot → pair → play → 5-min offline loop); three systemd-unit defects fixed in-flight and propagated to both runtime and image-build paths via shared templates. Operator carry-forwards for first `.img.xz` publish: minisign key ceremony, arm64 runner registration, `v1.17.0-rc1` tag dry-run. 11 / 11 requirements coded, 7 fully verified + 4 with documented operator carry-forward.
 
 ## Shipped: v1.16 Digital Signage (2026-04-20)
 

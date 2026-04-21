@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Pi Image Release
-status: executing
-stopped_at: "Checkpoint Task 2: Minisign key ceremony (human-action) — 49-03-release-workflow-and-signing-PLAN.md"
-last_updated: "2026-04-20T21:00:58.752Z"
-last_activity: 2026-04-20
+status: milestone-complete
+stopped_at: Milestone v1.17 Pi Image Release shipped (Phase 49 closed with operator carry-forwards)
+last_updated: "2026-04-21T10:30:00.000Z"
+last_activity: 2026-04-21 -- v1.17 shipped
+milestone_shipped: 2026-04-21
+previous_milestone: v1.16
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State: KPI Dashboard
