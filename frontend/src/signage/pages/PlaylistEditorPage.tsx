@@ -13,6 +13,7 @@ import type {
   SignagePlaylistItem,
 } from "@/signage/lib/signageTypes";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { TagPicker } from "@/signage/components/TagPicker";
@@ -275,10 +276,9 @@ export function PlaylistEditorPage() {
             <Label className="text-xs text-muted-foreground">
               {t("signage.admin.editor.name_prefix")}
             </Label>
-            <input
+            <Input
               {...form.register("name", { required: true, maxLength: 128 })}
               placeholder={t("signage.admin.editor.name_placeholder")}
-              className="w-full bg-transparent border-0 border-b border-border focus:border-primary focus:outline-none font-medium text-base pb-0.5"
               aria-label={t("signage.admin.editor.name_placeholder")}
             />
           </div>
