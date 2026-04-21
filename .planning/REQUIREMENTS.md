@@ -21,8 +21,8 @@
 ### Header refactor (HDR-*)
 
 - [ ] **HDR-01**: The top header shows only global identity — brand/logo, user menu, language toggle, theme toggle. No content tabs, no route-specific actions, no in-header page controls.
-- [ ] **HDR-02**: The top header renders a breadcrumb trail (`Home › Section › [Subsection]`) derived from the current route; breadcrumb items are `<a>` links and reflect the active location.
-- [ ] **HDR-03**: Breadcrumb items are keyboard-navigable (Tab order, Enter activates) and localized in DE and EN with full key parity.
+- [x] **HDR-02**: The top header renders a breadcrumb trail (`Home › Section › [Subsection]`) derived from the current route; breadcrumb items are `<a>` links and reflect the active location.
+- [x] **HDR-03**: Breadcrumb items are keyboard-navigable (Tab order, Enter activates) and localized in DE and EN with full key parity.
 - [ ] **HDR-04**: All in-header content controls currently living in the top header (Sales/HR segmented toggle, upload button, per-page settings gear) migrate to the SubHeader or their owning page surface.
 
 ### Section context (SECTION-*)

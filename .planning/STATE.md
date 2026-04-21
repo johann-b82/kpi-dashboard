@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Phase 56 context gathered
-last_updated: "2026-04-21T21:04:51.732Z"
+stopped_at: Completed 56-01-breadcrumb-component-PLAN.md
+last_updated: "2026-04-21T21:33:45.538Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 15
+  completed_plans: 13
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 55 — consolidated-form-controls
+**Current focus:** Phase 56 — breadcrumb-header-content-nav-relocation
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,8 +37,8 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 56
-Plan: Not started
+Phase: 56 (breadcrumb-header-content-nav-relocation) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -127,6 +127,8 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 55 P06 | 214s | 4 tasks | 8 files |
 | Phase 55 P04 | 272s | 3 tasks | 8 files |
 | Phase 55 P05 | 313s | 3 tasks | 5 files |
+| Phase 56 P01 | 130s | 2 tasks | 4 files |
+| Phase 56 P02 | 115s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -218,6 +220,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 55]: Plan 55-06: radio/checkbox <input> migrated to <Input> primitive with className overrides (h-auto border-0 bg-transparent px-0 py-0) that reset text-input styling via tailwind-merge — native browser radio/checkbox visuals pass through. File-picker <input {...getInputProps()} /> sites carry CTRL-02 annotation even though type="file" is injected at runtime (not source literal).
 - [Phase 55]: Plan 55-04: Raw <button> CTRL-02 closure — 8 files migrated; 3 LauncherPage tiles annotated as exceptions (gradient card-surface visual); ColorPicker swatch 9->8 honours CTRL-03 over pixel parity; fixed parallel-55-05 implicit-any Select onValueChange parameter
 - [Phase 55]: Plan 55-05: ScheduleEditDialog test file uses vi.mock shim (native <select>) to exercise validator/blur logic because base-ui Select popup cannot be driven in jsdom; empty-option placeholder collapsed into <SelectValue placeholder>
+- [Phase 56]: Plan 56-01: Breadcrumb infrastructure — static route map + pure matcher + component. Leaf renders as span aria-current=page (D-06); dynamic segments collapse to parent leaf (D-02); Home prepended at render (D-04). 3 i18n keys (nav.home, breadcrumb.aria_label, breadcrumb.signage.pair) referenced but land in Plan 04 — tests assert DOM shape only.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -259,6 +262,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T21:04:51.728Z
-**Stopped at:** Phase 56 context gathered
-**Resume file:** .planning/phases/56-breadcrumb-header-content-nav-relocation/56-CONTEXT.md
+**Last session:** 2026-04-21T21:33:40.642Z
+**Stopped at:** Completed 56-01-breadcrumb-component-PLAN.md
+**Resume file:** None
