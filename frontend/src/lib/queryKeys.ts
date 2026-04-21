@@ -64,6 +64,8 @@ export const signageKeys = {
   playlists: () => ["signage", "playlists"] as const,
   playlistItem: (id: string) => ["signage", "playlists", id] as const,
   devices: () => ["signage", "devices"] as const,
+  // Phase 53 SGN-ANA-01
+  deviceAnalytics: () => ["signage", "devices", "analytics"] as const,
   tags: () => ["signage", "tags"] as const,
   // Phase 52 SGN-SCHED-UI-01
   schedules: () => ["signage", "schedules"] as const,

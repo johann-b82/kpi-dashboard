@@ -116,3 +116,17 @@ export interface SignageScheduleUpdate {
   priority?: number;
   enabled?: boolean;
 }
+
+/**
+ * Phase 53 SGN-ANA-01 — mirrors backend DeviceAnalyticsRead.
+ * uptime_24h_pct is null when the server's denominator is 0 (zero
+ * heartbeats retained). missed_windows_24h is 0 in that case.
+ * window_minutes ∈ [0, 1440] — when < 1440 the frontend shows
+ * the "_partial" tooltip variant with windowH = Math.ceil(window_minutes/60).
+ */
+export interface SignageDeviceAnalytics {
+  device_id: string;
+  uptime_24h_pct: number | null;
+  missed_windows_24h: number;
+  window_minutes: number;
+}

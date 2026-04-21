@@ -8,6 +8,7 @@ import type {
   SignageSchedule,
   SignageScheduleCreate,
   SignageScheduleUpdate,
+  SignageDeviceAnalytics,
 } from "./signageTypes";
 
 /**
@@ -145,6 +146,11 @@ export const signageApi = {
       { method: "PUT", body: JSON.stringify({ items }) },
     ),
   listDevices: () => apiClient<SignageDevice[]>("/api/signage/devices"),
+  // Phase 53 SGN-ANA-01 — Analytics-lite. Separate query from listDevices
+  // so the two data streams can poll/invalidate independently (D-11).
+  // Backend: backend/app/routers/signage_admin/analytics.py
+  listDeviceAnalytics: () =>
+    apiClient<SignageDeviceAnalytics[]>("/api/signage/analytics/devices"),
   // 46-06 — device admin + pairing claim
   // Backend SignageDeviceAdminUpdate accepts {name?} only; tags are bulk-replaced
   // via the separate PUT /devices/{id}/tags endpoint. updateDevice() filters the
