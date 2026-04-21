@@ -130,20 +130,22 @@ export function MediaRegisterUrlDialog({
             </legend>
             <div className="flex gap-3 text-sm">
               <label className="flex items-center gap-2">
-                <input
+                <Input
                   type="radio"
                   value="url"
                   checked={kindValue === "url"}
                   onChange={() => setValue("kind", "url")}
+                  className="h-auto w-auto min-w-0 rounded-none border-0 bg-transparent px-0 py-0"
                 />
                 URL
               </label>
               <label className="flex items-center gap-2">
-                <input
+                <Input
                   type="radio"
                   value="html"
                   checked={kindValue === "html"}
                   onChange={() => setValue("kind", "html")}
+                  className="h-auto w-auto min-w-0 rounded-none border-0 bg-transparent px-0 py-0"
                 />
                 HTML
               </label>

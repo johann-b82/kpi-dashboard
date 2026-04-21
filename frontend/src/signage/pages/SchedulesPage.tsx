@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { ScheduleEditDialog } from "@/signage/components/ScheduleEditDialog";
 import { ScheduleDeleteDialog } from "@/signage/components/ScheduleDeleteDialog";
 import {
@@ -287,7 +288,7 @@ export function SchedulesPage() {
                     <TableCell className="text-sm">{s.priority}</TableCell>
                     <TableCell>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
+                        <Input
                           type="checkbox"
                           role="switch"
                           aria-label={t(
@@ -297,6 +298,7 @@ export function SchedulesPage() {
                           onChange={(e) =>
                             handleToggle(s, e.target.checked)
                           }
+                          className="h-auto w-auto min-w-0 rounded-none border-0 bg-transparent px-0 py-0"
                         />
                       </label>
                     </TableCell>
