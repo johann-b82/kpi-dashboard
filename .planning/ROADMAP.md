@@ -175,7 +175,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 <details open>
 <summary>🚧 v1.18 Pi Polish + Scheduling (Phases 50–53) — ACTIVE</summary>
 
-- [ ] **Phase 50: Pi Polish** — close v1.17 carry-forwards (minisign key ceremony, arm64 runner, v1.17.0-rc1 tag dry-run, Scenarios 4+5 hardware E2E), dynamic-import `PdfPlayer` back under 200 KB gz, byte-identical fs diff-test CI
+- [ ] **Phase 50: Pi Polish** — close v1.17 carry-forwards (Scenarios 4+5 hardware E2E on a `provision-pi.sh`-provisioned Pi), dynamic-import `PdfPlayer` back under 200 KB gz
 - [ ] **Phase 51: Schedule schema + resolver** — Alembic migration for `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + priority), time-aware resolver, SSE notify, integration tests
 - [ ] **Phase 52: Schedule admin UI** — 4th tab on `/signage`, schedule editor form, bilingual admin-guide update (DE/EN parity), invariants CI
 - [ ] **Phase 53: Analytics-lite** — Uptime-24h + heartbeats-missed badges on Devices table (no new schema)
@@ -185,17 +185,16 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 ## v1.18 Phase Details
 
 ### Phase 50: Pi Polish
-**Goal**: Close v1.17's four operator carry-forwards by actually shipping the first signed `.img.xz` release, complete the hardware E2E walkthrough for Scenarios 4 + 5, shrink the player bundle back under 200 KB gz by dynamic-importing `PdfPlayer`, and add a byte-identical filesystem diff-test to CI.
+**Goal**: Close v1.17's two remaining operator carry-forwards: complete the hardware E2E walkthrough for Scenarios 4 + 5 on a Pi provisioned via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit, and shrink the player bundle back under 200 KB gz by dynamic-importing `PdfPlayer` + `react-pdf`.
 **Depends on**: Phase 49
-**Requirements**: SGN-POL-01, SGN-POL-02, SGN-POL-03, SGN-POL-04, SGN-POL-05, SGN-POL-06
+**Requirements**: SGN-POL-04, SGN-POL-05
+
+> **Scope change 2026-04-21:** The custom `.img.xz` distribution path was retired. SGN-POL-01 (minisign), SGN-POL-02 (arm64 runner), SGN-POL-03 (signed-image release on tag), and SGN-POL-06 (image↔provision byte-diff) have been removed along with the `pi-image/` directory and the pi-image GitHub Actions workflow. The Pi player ships exclusively via `scripts/provision-pi.sh` on fresh Raspberry Pi OS.
+
 **Success Criteria** (what must be TRUE):
-  1. `pi-image/minisign.pub` committed; `MINISIGN_SECRET_KEY` GitHub Actions secret set; private key backed up in a password manager and shredded from local disk (operator-attested).
-  2. Self-hosted arm64 runner (Lima arm64 VM on the Mac OR Hetzner CAX21) is `Idle` in GitHub's runners UI with labels including `self-hosted`, `linux`, `arm64`.
-  3. `git tag v1.17.0-rc1 && git push origin v1.17.0-rc1` triggers `.github/workflows/pi-image.yml`; it publishes a draft release containing `.img.xz`, `.sha256`, and `.minisig`; `minisign -Vm *.img.xz -p pi-image/minisign.pub` exits 0 on operator laptop.
-  4. Scenarios 4 + 5 recorded in `50-E2E-RESULTS.md` with numerical timings: reconnect → admin-mutation-arrives ≤ 30 s; sidecar restart → playback continuity preserved.
-  5. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT = 200_000` (reset from 210 000); build passes; `PdfPlayer` loads dynamically on first PDF item rather than up-front.
-  6. CI job diffs `/opt/signage`, `/home/signage`, and `/etc/systemd` trees between a `.img`-booted Pi and a fresh `provision-pi.sh`-provisioned Pi; exits 0 on identical content modulo timestamps + machine-id.
-**Plans**: TBD (expect 3–4 plans).
+  1. Scenarios 4 + 5 recorded in `50-E2E-RESULTS.md` with numerical timings on a `provision-pi.sh`-provisioned Pi: reconnect → admin-mutation-arrives ≤ 30 s; sidecar restart → playback continuity preserved.
+  2. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT = 200_000` (reset from 210 000); build passes; `PdfPlayer` loads dynamically on first PDF item rather than up-front.
+**Plans**: TBD (expect 2 plans).
 
 ### Phase 51: Schedule Schema + Resolver
 **Goal**: Extend the signage schema with a time-window-aware playlist resolver so operators can schedule different playlists at different times of day on different days of the week. Backward-compatible: the existing always-on tag-to-playlist resolution still works when no schedule matches.
@@ -233,12 +232,12 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 
 | REQ-ID range | Phase | Count |
 |--------------|-------|-------|
-| SGN-POL-01..06 (polish + first .img.xz release) | Phase 50 | 6 |
+| SGN-POL-04, 05 (E2E Scenarios 4+5 + player bundle <200 KB gz) | Phase 50 | 2 |
 | SGN-TIME-01..04 (schedule schema + resolver + SSE) | Phase 51 | 4 |
 | SGN-SCHED-UI-01..04 (schedule admin UI + docs) | Phase 52 | 4 |
 | SGN-ANA-01 (analytics-lite badges) | Phase 53 | 1 |
 
-**Coverage:** 15/15 active v1.18 requirements mapped. No orphans.
+**Coverage:** 11/11 active v1.18 requirements mapped. No orphans. (SGN-POL-01/02/03/06 retired 2026-04-21 with the `.img.xz` distribution path.)
 
 ## v1.18 Cross-Cutting Hazards (carried from v1.16/v1.17)
 

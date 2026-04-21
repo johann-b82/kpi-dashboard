@@ -167,10 +167,8 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 48]: Plan 48-03: postSidecarToken is fire-and-forget (void) in both PairingScreen + useSidecarStatus — sidecar absence must not delay pairing UX; prevStatusRef (useRef) tracks previous sidecar status for restart recovery without extra re-render
 - [Phase 48]: Plan 48-04: toc.ts is heading-extraction utility only; digital-signage registered in registry.ts which owns both sections[] and registry content maps
 - [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
-- [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical; 00-packages-nr committed copy with CI drift-check
-- [Phase 49-pi-image-build]: pi-gen vendored as git submodule at pi-image/pi-gen on arm64 branch SHA 4ad56cc (not master — would produce 32-bit images)
-- [Phase 49-pi-image-build]: Workflow verbatim from RESEARCH: triggers on v1.17.* + workflow_dispatch; runs on self-hosted linux arm64; MINISIGN_SECRET_KEY secret; private key shredded after signing
-- [Phase 49-pi-image-build]: minisign empty passphrase (RESEARCH Pitfall 12): non-empty passphrase hangs CI; operator generates key with Enter/Enter; pi-image/minisign.pub committed, private key as GitHub Actions secret only
+- [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical (was originally mirrored to 00-packages-nr for the image-build path — that path and its CI drift-check were retired 2026-04-21)
+- [v1.18 scope change 2026-04-21]: Custom Pi image pipeline retired — `pi-image/` directory, `.github/workflows/pi-image.yml`, minisign signing, arm64 self-hosted runner, and the `signage-packages.txt`↔`00-packages-nr` drift-check removed. Pi provisioning is now single-path via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. SGN-POL-01/02/03/06 dropped from v1.18.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 

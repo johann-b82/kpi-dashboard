@@ -10,18 +10,20 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.17 Pi Image Release — 2026-04-21
-**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (210KB gz, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi runtime + image-build share a single installer library (`scripts/lib/signage-install.sh`) and systemd unit templates; `pi-gen` fork at `pi-image/` (arm64 branch git submodule) with custom `stage-signage` bakes the full stack into an RPi OS Bookworm Lite 64-bit `.img.xz`. GitHub Actions workflow + minisign signing + Imager-preseed first-boot flow. Proven end-to-end on real Pi 4 (E2E Scenarios 1–3 PASS).
-**Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 image pipeline (pi-gen stage, installer library, CI workflow, SIGNING). 17 versions shipped (v1.0–v1.17).
+**Shipped:** v1.17 Pi Image Release — 2026-04-21 *(image distribution path retired 2026-04-21 in favour of `provision-pi.sh`-only — see v1.18 scope change below)*
+**Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (210KB gz, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–3 PASS).
+**Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
 **Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16 requirements satisfied. v1.9 D-12 waiver still carried. v1.17 carries operator carry-forwards folded into the v1.18 Pi Polish phase.
 
 ## Current Milestone: v1.18 Pi Polish + Scheduling
 
-**Goal:** Close out the v1.17 operator carry-forwards (ship the first signed `.img.xz` release, finish the E2E hardware walkthrough, shrink the player bundle back under 200 KB gz) AND add time-based playlist scheduling so operators can say "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" through the admin UI. Plus a small analytics-lite read-side surface.
+**Goal:** Close out the v1.17 operator carry-forwards (finish the hardware E2E walkthrough for Scenarios 4 + 5 on a `provision-pi.sh`-provisioned Pi, shrink the player bundle back under 200 KB gz) AND add time-based playlist scheduling so operators can say "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" through the admin UI. Plus a small analytics-lite read-side surface.
 
-**Target scope (4 phases, ~15 requirements):**
+> **Scope change 2026-04-21:** The v1.17 `.img.xz` distribution path (minisign key ceremony, self-hosted arm64 runner, tag-triggered signed-image release, image↔provision byte-diff test) was retired. The Pi player now ships exclusively via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. `pi-image/` and `.github/workflows/pi-image.yml` were removed.
 
-- **Phase 50 — Pi Polish:** minisign key ceremony, self-hosted arm64 runner registration (Lima arm64 VM on the Mac), first `v1.17.0-rc1` tag dry-run that publishes a signed `.img.xz` to GitHub Releases, Scenarios 4 + 5 numerical hardware E2E measurements, dynamic-import `PdfPlayer` so the player bundle drops back under 200 KB gz (resetting the 210 K cap that v1.17 set), byte-identical filesystem diff-test CI between a baked image and a `provision-pi.sh` run.
+**Target scope (4 phases, 11 requirements):**
+
+- **Phase 50 — Pi Polish:** Scenarios 4 + 5 numerical hardware E2E measurements on a `provision-pi.sh`-provisioned Pi (fresh Bookworm Lite 64-bit), and dynamic-import `PdfPlayer` + `react-pdf` so the player bundle drops back under 200 KB gz (resetting the 210 K cap that v1.17 set).
 
 - **Phase 51 — Schedule schema + resolver:** Alembic migration adds `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + playlist_id + priority + enabled). Tag-to-playlist resolver gets time-window awareness: for a device at query time, pick the highest-priority schedule matching (weekday, time-of-day, tag overlap). Falls back to existing always-on tag-based playlist when no schedule matches. Timezone from app settings. Unit + integration tests.
 
@@ -45,13 +47,15 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 - **v1.18 Signage Scheduling** — time-based playlist schedules, per-device calibration overrides, per-device analytics.
 - **v1.18 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart.
-- **v1.18 Signage Polish** — complete operator carry-forwards (minisign key ceremony, self-hosted arm64 runner, rc1 dry-run, Scenarios 4+5 hardware E2E, byte-diff test), dynamic-import PdfPlayer.
+- **v1.18 Signage Polish** — complete operator carry-forwards (Scenarios 4+5 hardware E2E on a `provision-pi.sh`-provisioned Pi, dynamic-import PdfPlayer back under 200 KB gz).
 
 Start the next milestone via `/gsd:new-milestone`.
 
 ## Shipped: v1.17 Pi Image Release (2026-04-21)
 
-Pre-baked Raspberry Pi OS Bookworm Lite 64-bit image pipeline + thin-GUI kiosk stack. `pi-gen` fork at `pi-image/` (as git submodule on arm64 branch) bakes: the Phase 48 signage stack, signage user, three systemd user units (labwc + sidecar + player), Python FastAPI sidecar venv, first-boot oneshot that reads `/boot/firmware/signage.conf` and configures the device. Installer library `scripts/lib/signage-install.sh` (7 shared functions + SSOT packages list + CI drift-check) shared between runtime path (`provision-pi.sh`) and image-build path. GitHub Actions workflow at `.github/workflows/pi-image.yml` + minisign signing scaffold + RELEASE_TEMPLATE. Runtime path proven on real Pi 4 hardware 2026-04-21 (E2E Scenarios 1–3 PASS: flash → boot → pair → play → 5-min offline loop); three systemd-unit defects fixed in-flight and propagated to both runtime and image-build paths via shared templates. Operator carry-forwards for first `.img.xz` publish: minisign key ceremony, arm64 runner registration, `v1.17.0-rc1` tag dry-run. 11 / 11 requirements coded, 7 fully verified + 4 with documented operator carry-forward.
+> **Scope change 2026-04-21:** The custom image-build pipeline (`pi-gen` submodule at `pi-image/`, `.github/workflows/pi-image.yml`, minisign signing, RELEASE_TEMPLATE) was retired in v1.18. The operator carry-forwards around signing and the signed-image release are cancelled; Pi provisioning is now single-path via `scripts/provision-pi.sh`.
+
+Pre-baked Raspberry Pi OS Bookworm Lite 64-bit image pipeline + thin-GUI kiosk stack. `pi-gen` fork at `pi-image/` (as git submodule on arm64 branch) baked: the Phase 48 signage stack, signage user, three systemd user units (labwc + sidecar + player), Python FastAPI sidecar venv, first-boot oneshot that reads `/boot/firmware/signage.conf` and configures the device. Installer library `scripts/lib/signage-install.sh` (7 shared functions + SSOT packages list + CI drift-check) shared between runtime path (`provision-pi.sh`) and image-build path. GitHub Actions workflow at `.github/workflows/pi-image.yml` + minisign signing scaffold + RELEASE_TEMPLATE. Runtime path proven on real Pi 4 hardware 2026-04-21 (E2E Scenarios 1–3 PASS: flash → boot → pair → play → 5-min offline loop); three systemd-unit defects fixed in-flight and propagated to both runtime and image-build paths via shared templates. Operator carry-forwards that remain in v1.18: Scenarios 4 + 5 hardware E2E on a `provision-pi.sh`-provisioned Pi, and player-bundle shrink back under 200 KB gz. 11 / 11 requirements coded, 7 fully verified + 4 carry-forwards — of which the 2 image-distribution carry-forwards were cancelled alongside the image pipeline.
 
 ## Shipped: v1.16 Digital Signage (2026-04-20)
 

@@ -3,16 +3,15 @@
 **Milestone:** v1.18
 **Status:** Active
 **Created:** 2026-04-21
-**Core Value:** Close v1.17's operator carry-forwards (ship the first signed `.img.xz`; shrink the player bundle back under 200 KB gz), then add time-based playlist scheduling so admins can run "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" without touching the device.
+**Core Value:** Close v1.17's operator carry-forwards (hardware E2E Scenarios 4 + 5; shrink the player bundle back under 200 KB gz), then add time-based playlist scheduling so admins can run "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" without touching the device.
 
-**Inherits from:** v1.17 (pi-image pipeline, installer library, sidecar). v1.16 (signage schema, player, admin UI).
+**Inherits from:** v1.17 (installer library, sidecar). v1.16 (signage schema, player, admin UI). The `pi-image/` custom image-build path was retired in v1.18 — the sole Pi provisioning path is `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit.
 
 **Locked defaults (2026-04-21):**
 - Schedule model: **day-of-week mask + time-of-day window** (weekday_mask `0bMoTuWeThFrSaSu` + start_hhmm + end_hhmm + priority + enabled). Not iCal RRULE; not date-specific overrides.
 - Analytics: **heartbeat + last-seen only** (no per-item playtime tracking this milestone).
 - Per-device calibration: **deferred to v1.19.**
-- Self-hosted arm64 runner: **Lima arm64 VM on the Mac** (first choice; Hetzner CAX21 is the escape hatch if the Mac-based runner proves too fragile for regular use).
-- Signing: **minisign** (Ed25519), key ceremony per `pi-image/SIGNING.md`.
+- Pi provisioning: **`scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit** — single path, no custom `.img.xz`.
 
 ---
 
@@ -20,12 +19,10 @@
 
 ### Polish — close v1.17 carry-forwards (SGN-POL-*)
 
-- [ ] **SGN-POL-01**: Minisign key pair generated on a trusted local machine; `pi-image/minisign.pub` committed; private key stored in the GitHub Actions secret `MINISIGN_SECRET_KEY` AND in a password manager; `/tmp/minisign.sec` shredded after handoff. Closes v1.17 carry-forward §1.
-- [ ] **SGN-POL-02**: Self-hosted arm64 runner registered with GitHub and visible as `Idle` in Actions UI. Primary target: Lima arm64 VM on the developer Mac. Fallback: Hetzner CAX21 if Lima runner proves unreliable. Runner labels include `self-hosted`, `linux`, `arm64`.
-- [ ] **SGN-POL-03**: First `v1.17.0-rc1` git tag triggers `.github/workflows/pi-image.yml`, produces `kpi-signage-v1.17.0-rc1.img.xz` + `.sha256` + `.minisig`, publishes to a draft GitHub Release. Build duration ≤ 60 min on the self-hosted runner. Operator verifies the signature with the committed `pi-image/minisign.pub` and then promotes the draft to a published release (or tears it down if anything's off).
-- [ ] **SGN-POL-04**: Real-hardware E2E **Scenario 4** (reconnect → admin mutation arrives within 30 s) and **Scenario 5** (sidecar systemd restart resilience) recorded in `.planning/phases/50-pi-polish/50-E2E-RESULTS.md` with numerical timings. Supersedes the Phase 49 carry-forward.
+> **Scope change 2026-04-21:** The custom `.img.xz` distribution pipeline was retired — the Pi player ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS only. SGN-POL-01 (minisign key ceremony), SGN-POL-02 (arm64 runner), SGN-POL-03 (tag-triggered signed-image release), and SGN-POL-06 (image↔provision byte-diff test) were removed together with the `pi-image/` directory and `.github/workflows/pi-image.yml`.
+
+- [ ] **SGN-POL-04**: Real-hardware E2E **Scenario 4** (reconnect → admin mutation arrives within 30 s) and **Scenario 5** (sidecar systemd restart resilience) run on a Pi provisioned via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit; results recorded in `.planning/phases/50-pi-polish/50-E2E-RESULTS.md` with numerical timings. Supersedes the Phase 49 carry-forward.
 - [ ] **SGN-POL-05**: `PdfPlayer` + `react-pdf` dynamic-imported in the player bundle so the entry chunk drops under 200 KB gz. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT` reset from 210 000 back to 200 000. Build passes.
-- [ ] **SGN-POL-06**: Byte-identical filesystem diff-test: mount the built `.img` rootfs, mount a `provision-pi.sh`-provisioned reference rootfs, `diff -r` on `/opt/signage`, `/home/signage`, `/etc/systemd/system`, `/etc/systemd/user-generator.d`. Timestamps + machine-id acceptable to differ; anything else is a fail. Wired into CI as a post-build job gated on SGN-POL-03 producing an image.
 
 ### Schedule schema + resolver (SGN-TIME-*)
 
@@ -49,12 +46,11 @@
 
 ## Success Criteria (milestone-level)
 
-1. `v1.17.0-rc1` → signed `.img.xz` published on GitHub Releases, verifiable with committed minisign public key. (SGN-POL-01, 02, 03)
-2. Operator flashes the published `.img.xz`, boots, and runs all 5 E2E scenarios to completion with recorded timings. (SGN-POL-04)
-3. Player bundle back under 200 KB gz. (SGN-POL-05)
-4. Admin creates a schedule "Mo–Fr 07:00–11:00 → Playlist X (priority 10)" AND "Mo–So 11:00–14:00 → Playlist Y (priority 5)". At 08:30 on a Wednesday the device resolves Playlist X; at 12:00 it resolves Playlist Y; at 15:00 with no matching schedule it falls back to the device's always-on tag playlist. (SGN-TIME-01, 02, 03)
-5. Scheduling changes propagate to connected players within 2 s via SSE. (SGN-TIME-04)
-6. Devices table shows non-zero uptime numbers for at least one active device under observation. (SGN-ANA-01)
+1. Operator provisions a fresh Pi via `scripts/provision-pi.sh` on Bookworm Lite 64-bit, boots, and runs E2E Scenarios 4 + 5 to completion with recorded timings. (SGN-POL-04)
+2. Player bundle back under 200 KB gz. (SGN-POL-05)
+3. Admin creates a schedule "Mo–Fr 07:00–11:00 → Playlist X (priority 10)" AND "Mo–So 11:00–14:00 → Playlist Y (priority 5)". At 08:30 on a Wednesday the device resolves Playlist X; at 12:00 it resolves Playlist Y; at 15:00 with no matching schedule it falls back to the device's always-on tag playlist. (SGN-TIME-01, 02, 03)
+4. Scheduling changes propagate to connected players within 2 s via SSE. (SGN-TIME-04)
+5. Devices table shows non-zero uptime numbers for at least one active device under observation. (SGN-ANA-01)
 
 ## Hard gates carried forward from v1.16/v1.17
 
