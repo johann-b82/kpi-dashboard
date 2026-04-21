@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
 status: verifying
-stopped_at: Phase 53 context gathered
-last_updated: "2026-04-21T14:48:29.998Z"
+stopped_at: Completed 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md
+last_updated: "2026-04-21T15:58:23.018Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State: KPI Dashboard
@@ -108,6 +108,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 52 P03 | 2m | 2 tasks | 2 files |
 | Phase 52 P01 | 146s | 3 tasks | 6 files |
 | Phase 52 P02 | 644s | 4 tasks | 16 files |
+| Phase 53 P01 | 7m 53s | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -186,6 +187,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 52]: Plan 52-02: useAdminSignageEvents hook is best-effort (no backend admin SSE channel exists yet); admin correctness preserved via own-mutation invalidation
 - [Phase 52]: Plan 52-02: error.start_after_end reserved for backend-error surfacing only — client validator never emits it (D-07 consolidation)
 - [Phase 52]: Plan 52-02: added testing-library + jsdom + vitest.config.ts (jsdom env) to unblock component tests; pre-existing pure-logic tests kept on node env via environmentMatchGlobs
+- [Phase 53]: Plan 53-01: signage_heartbeat_event composite PK (device_id, ts); COUNT(DISTINCT date_trunc('minute', ts)) SQL; 1-decimal uptime precision; zero-heartbeat devices INCLUDED with uptime_24h_pct=null (not omitted); 25h retention for 1h sweeper-vs-analytics buffer
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -224,6 +226,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T14:48:29.989Z
-**Stopped at:** Phase 53 context gathered
-**Resume file:** .planning/phases/53-analytics-lite/53-CONTEXT.md
+**Last session:** 2026-04-21T15:58:15.339Z
+**Stopped at:** Completed 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md
+**Resume file:** None

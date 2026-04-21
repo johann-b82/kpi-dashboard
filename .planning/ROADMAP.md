@@ -234,7 +234,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
   2. Devices table renders two new columns; badges colour-coded (green ≥ 95 %, yellow 80–95 %, red < 80 %).
   3. Refresh on tab-visibility change + 30 s polling. No websocket/SSE required.
 **Plans**: 2 plans
-- [ ] 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md — signage_heartbeat_event migration + heartbeat POST insert + sweeper 25h prune + analytics endpoint (6 D-20 integration tests) + ROADMAP/REQUIREMENTS D-01 amendment (SGN-ANA-01 backend half)
+- [x] 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md — signage_heartbeat_event migration + heartbeat POST insert + sweeper 25h prune + analytics endpoint (6 D-20 integration tests) + ROADMAP/REQUIREMENTS D-01 amendment (SGN-ANA-01 backend half)
 - [ ] 53-02-frontend-devices-analytics-columns-PLAN.md — listDeviceAnalytics API + UptimeBadge + DevicesPage 2 new columns (Status → Uptime → Missed → Last Seen) + 7 i18n key-pairs + §Analytics/§Analyse admin guide + Vitest D-21 coverage (SGN-ANA-01 frontend half)
 
 ## v1.18 Coverage Matrix
@@ -272,4 +272,4 @@ All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, ap
 | 50. Pi Polish | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 51. Schedule Schema + Resolver | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
-| 53. Analytics-lite | v1.18 | 0/? | Pending    |  |
+| 53. Analytics-lite | v1.18 | 1/2 | In Progress|  |

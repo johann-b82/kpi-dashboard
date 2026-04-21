@@ -40,7 +40,7 @@
 
 ### Analytics-lite (SGN-ANA-*)
 
-- [ ] **SGN-ANA-01**: Devices admin table gains two badges per row computed server-side from `signage_devices.last_seen_at` and `signage_heartbeat` log: "Uptime 24h %" (percentage of 60-second windows in the last 24 h with a heartbeat recorded) and "Heartbeats missed" (count of 60-second windows without a heartbeat in the last 24 h, excluding windows where the device was revoked). Admin-only. Refresh on tab visibility + 30 s polling. Adds an append-only `signage_heartbeat_event` log table (composite PK `(device_id, ts)`, 25 h retention pruned by the existing 60 s heartbeat sweeper) so the 60-second-window uptime metric is measurable. Amendment 2026-04-21 per Phase 53 CONTEXT D-01.
+- [x] **SGN-ANA-01**: Devices admin table gains two badges per row computed server-side from `signage_devices.last_seen_at` and `signage_heartbeat` log: "Uptime 24h %" (percentage of 60-second windows in the last 24 h with a heartbeat recorded) and "Heartbeats missed" (count of 60-second windows without a heartbeat in the last 24 h, excluding windows where the device was revoked). Admin-only. Refresh on tab visibility + 30 s polling. Adds an append-only `signage_heartbeat_event` log table (composite PK `(device_id, ts)`, 25 h retention pruned by the existing 60 s heartbeat sweeper) so the 60-second-window uptime metric is measurable. Amendment 2026-04-21 per Phase 53 CONTEXT D-01.
 
 ---
 
