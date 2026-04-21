@@ -226,14 +226,16 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 - [x] 52-03-admin-guide-PLAN.md — §Schedules/§Zeitpläne appended to bilingual admin guide (SGN-SCHED-UI-03)
 
 ### Phase 53: Analytics-lite
-**Goal**: Devices table in the admin UI shows uptime-last-24h + heartbeats-missed badges per device, computed from existing heartbeat data (no new schema).
+**Goal**: Devices table in the admin UI shows uptime-last-24h + heartbeats-missed badges per device (adds a lightweight `signage_heartbeat_event` append-only log; 25 h retention pruned by the existing heartbeat sweeper — see Phase 53 CONTEXT D-01 amendment).
 **Depends on**: Phase 42 (heartbeat data exists since v1.16)
 **Requirements**: SGN-ANA-01
 **Success Criteria** (what must be TRUE):
-  1. New read-only endpoint returns `{device_id, uptime_24h_pct, missed_windows_24h}` per device in one call.
+  1. New read-only endpoint `GET /api/signage/analytics/devices` returns `{device_id, uptime_24h_pct, missed_windows_24h, window_minutes}` per non-revoked device in one call.
   2. Devices table renders two new columns; badges colour-coded (green ≥ 95 %, yellow 80–95 %, red < 80 %).
   3. Refresh on tab-visibility change + 30 s polling. No websocket/SSE required.
-**Plans**: TBD (expect 1 plan).
+**Plans**: 2 plans
+- [ ] 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md — signage_heartbeat_event migration + heartbeat POST insert + sweeper 25h prune + analytics endpoint (6 D-20 integration tests) + ROADMAP/REQUIREMENTS D-01 amendment (SGN-ANA-01 backend half)
+- [ ] 53-02-frontend-devices-analytics-columns-PLAN.md — listDeviceAnalytics API + UptimeBadge + DevicesPage 2 new columns (Status → Uptime → Missed → Last Seen) + 7 i18n key-pairs + §Analytics/§Analyse admin guide + Vitest D-21 coverage (SGN-ANA-01 frontend half)
 
 ## v1.18 Coverage Matrix
 
