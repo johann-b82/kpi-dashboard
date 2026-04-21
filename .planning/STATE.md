@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
 status: "ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`"
-stopped_at: Checkpoint Task 3 — Operator hardware walkthrough (Scenarios 4+5) in 50-02
-last_updated: "2026-04-21T09:18:32.962Z"
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-04-21T09:21:38.297Z"
 last_activity: 2026-04-21 — v1.18 opened
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State: KPI Dashboard
@@ -101,6 +101,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 48 P03 | 7m | 3 tasks | 4 files |
 | Phase 48 P04 | 540s | 2 tasks | 6 files |
 | Phase 49-pi-image-build P01 | 303s | 3 tasks | 15 files |
+| Phase 50-pi-polish P01 | 4m | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -166,6 +167,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
 - [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical (was originally mirrored to 00-packages-nr for the image-build path — that path and its CI drift-check were retired 2026-04-21)
 - [v1.18 scope change 2026-04-21]: Custom Pi image pipeline retired — `pi-image/` directory, `.github/workflows/pi-image.yml`, minisign signing, arm64 self-hosted runner, and the `signage-packages.txt`↔`00-packages-nr` drift-check removed. Pi provisioning is now single-path via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. SGN-POL-01/02/03/06 dropped from v1.18.
+- [Phase 50-pi-polish]: Lazy chunks (PdfPlayer-*/pdf-*) excluded from player entry cap via LAZY_PREFIXES allowlist
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -204,6 +206,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T09:18:32.959Z
-**Stopped at:** Checkpoint Task 3 — Operator hardware walkthrough (Scenarios 4+5) in 50-02
+**Last session:** 2026-04-21T09:21:38.293Z
+**Stopped at:** Completed 50-01-PLAN.md
 **Resume file:** None

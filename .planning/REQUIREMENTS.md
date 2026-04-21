@@ -22,7 +22,7 @@
 > **Scope change 2026-04-21:** The custom `.img.xz` distribution pipeline was retired — the Pi player ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS only. SGN-POL-01 (minisign key ceremony), SGN-POL-02 (arm64 runner), SGN-POL-03 (tag-triggered signed-image release), and SGN-POL-06 (image↔provision byte-diff test) were removed together with the `pi-image/` directory and `.github/workflows/pi-image.yml`.
 
 - [ ] **SGN-POL-04**: Real-hardware E2E **Scenario 4** (reconnect → admin mutation arrives within 30 s) and **Scenario 5** (sidecar systemd restart resilience) run on a Pi provisioned via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit; results recorded in `.planning/phases/50-pi-polish/50-E2E-RESULTS.md` with numerical timings. Supersedes the Phase 49 carry-forward.
-- [ ] **SGN-POL-05**: `PdfPlayer` + `react-pdf` dynamic-imported in the player bundle so the entry chunk drops under 200 KB gz. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT` reset from 210 000 back to 200 000. Build passes.
+- [x] **SGN-POL-05**: `PdfPlayer` + `react-pdf` dynamic-imported in the player bundle so the entry chunk drops under 200 KB gz. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT` reset from 210 000 back to 200 000. Build passes.
 
 ### Schedule schema + resolver (SGN-TIME-*)
 

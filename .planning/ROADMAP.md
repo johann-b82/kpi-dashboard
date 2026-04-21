@@ -195,7 +195,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
   1. Scenarios 4 + 5 recorded in `50-E2E-RESULTS.md` with numerical timings on a `provision-pi.sh`-provisioned Pi: reconnect → admin-mutation-arrives ≤ 30 s; sidecar restart → playback continuity preserved.
   2. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT = 200_000` (reset from 210 000); build passes; `PdfPlayer` loads dynamically on first PDF item rather than up-front.
 **Plans**: 2 plans
-- [ ] 50-01-player-bundle-dynamic-pdf-PLAN.md — Dynamic-import PdfPlayer; reset bundle LIMIT to 200_000 (SGN-POL-05)
+- [x] 50-01-player-bundle-dynamic-pdf-PLAN.md — Dynamic-import PdfPlayer; reset bundle LIMIT to 200_000 (SGN-POL-05)
 - [x] 50-02-e2e-scenarios-4-5-PLAN.md — 50-E2E-RESULTS.md template + operator hardware walkthrough for Scenarios 4+5 (SGN-POL-04)
 
 ### Phase 51: Schedule Schema + Resolver
@@ -262,7 +262,7 @@ All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, ap
 | 47. Player Bundle | v1.16 | 5/5 | Complete   | 2026-04-20 |
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 5/5 | Complete   | 2026-04-20 |
 | 49. Pi Image Build | v1.17 | 4/4 | Complete   | 2026-04-21 |
-| 50. Pi Polish | v1.18 | 1/2 | In Progress|  |
+| 50. Pi Polish | v1.18 | 2/2 | Complete   | 2026-04-21 |
 | 51. Schedule Schema + Resolver | v1.18 | 0/? | Pending    |  |
 | 52. Schedule Admin UI | v1.18 | 0/? | Pending    |  |
 | 53. Analytics-lite | v1.18 | 0/? | Pending    |  |
