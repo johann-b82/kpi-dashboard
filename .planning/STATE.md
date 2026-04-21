@@ -2,18 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: planning
-stopped_at: v1.18 milestone opened — Phase 50 awaiting /gsd:discuss-phase or /gsd:plan-phase
-last_updated: "2026-04-21T11:00:00.000Z"
-last_activity: 2026-04-21 -- v1.18 milestone opened
-previous_milestone: v1.17
-previous_milestone_shipped: 2026-04-21
+status: "ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`"
+stopped_at: Checkpoint Task 3 — Operator hardware walkthrough (Scenarios 4+5) in 50-02
+last_updated: "2026-04-21T09:18:32.962Z"
+last_activity: 2026-04-21 — v1.18 opened
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State: KPI Dashboard
@@ -207,6 +204,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T21:01:00Z
-**Stopped at:** Checkpoint Task 2 — Minisign key ceremony (human-action) in 49-03
+**Last session:** 2026-04-21T09:18:32.959Z
+**Stopped at:** Checkpoint Task 3 — Operator hardware walkthrough (Scenarios 4+5) in 50-02
 **Resume file:** None
