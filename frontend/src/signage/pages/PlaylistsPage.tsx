@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Pencil, Copy, Trash2 } from "lucide-react";
 
 import { signageKeys } from "@/lib/queryKeys";
-import { signageApi } from "@/signage/lib/signageApi";
+import { signageApi, ApiErrorWithBody } from "@/signage/lib/signageApi";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -84,6 +84,37 @@ export function PlaylistsPage() {
       toast.success(t("signage.admin.editor.saved"));
     },
     onError: (err) => {
+      // Phase 52 D-13: detect 409 { detail, schedule_ids } and deep-link to
+      // the Schedules tab with ?highlight=<ids> so the operator can fix the
+      // referring schedules first.
+      if (
+        err instanceof ApiErrorWithBody &&
+        err.status === 409 &&
+        err.body &&
+        typeof err.body === "object" &&
+        "schedule_ids" in err.body &&
+        Array.isArray((err.body as { schedule_ids: unknown }).schedule_ids)
+      ) {
+        const scheduleIds = (err.body as { schedule_ids: string[] })
+          .schedule_ids;
+        toast.error(
+          t("signage.admin.playlists.error.schedules_active_title"),
+          {
+            description: t(
+              "signage.admin.playlists.error.schedules_active_body",
+            ),
+            action: {
+              label: t("signage.admin.nav.schedules"),
+              onClick: () =>
+                navigate(
+                  `/signage/schedules?highlight=${scheduleIds.join(",")}`,
+                ),
+            },
+          },
+        );
+        setDeleteTarget(null);
+        return;
+      }
       const detail = err instanceof Error ? err.message : "Unknown error";
       toast.error(t("signage.admin.editor.save_error", { detail }));
     },

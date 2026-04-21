@@ -115,8 +115,13 @@ export const signageApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  // Phase 52 D-13: uses apiClientWithBody so callers can read the 409
+  // response body { detail, schedule_ids } when a playlist is blocked by
+  // active schedules (FK RESTRICT from signage_schedules.playlist_id).
   deletePlaylist: (id: string) =>
-    apiClient<null>(`/api/signage/playlists/${id}`, { method: "DELETE" }),
+    apiClientWithBody<null>(`/api/signage/playlists/${id}`, {
+      method: "DELETE",
+    }),
   replacePlaylistTags: (id: string, tag_ids: number[]) =>
     apiClient<{ tag_ids: number[] }>(`/api/signage/playlists/${id}/tags`, {
       method: "PUT",

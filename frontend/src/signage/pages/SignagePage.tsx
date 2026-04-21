@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { MediaPage } from "./MediaPage";
 import { PlaylistsPage } from "./PlaylistsPage";
 import { DevicesPage } from "./DevicesPage";
+import { SchedulesPage } from "./SchedulesPage";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
 type SignageTab = "media" | "playlists" | "devices" | "schedules";
@@ -48,7 +49,7 @@ export function SignagePage({ initialTab }: SignagePageProps) {
       {active === "media" && <MediaPage />}
       {active === "playlists" && <PlaylistsPage />}
       {active === "devices" && <DevicesPage />}
-      {active === "schedules" && null /* Phase 52 Plan 02 mounts <SchedulesPage /> here */}
+      {active === "schedules" && <SchedulesPage />}
     </div>
   );
 }

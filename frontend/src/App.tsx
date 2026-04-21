@@ -61,6 +61,9 @@ function AppShell() {
           <Route path="/signage/media">
             <AdminOnly><SignagePage initialTab="media" /></AdminOnly>
           </Route>
+          <Route path="/signage/schedules">
+            <AdminOnly><SignagePage initialTab="schedules" /></AdminOnly>
+          </Route>
           <Route path="/signage/pair">
             <AdminOnly><PairPage /></AdminOnly>
           </Route>
