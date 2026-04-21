@@ -273,7 +273,7 @@ export function PlaylistEditorPage() {
   }
 
   return (
-    <div className="px-6 pt-4 pb-16">
+    <div className="max-w-7xl mx-auto px-6 pt-4 pb-16">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-4">
         <div className="flex-1 space-y-3 max-w-2xl">
           <input
