@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export interface ColorPickerProps {
   /** Visible label rendered above the row (e.g. "Primary"). */
@@ -56,10 +57,12 @@ export function ColorPicker({
         <Popover>
           <PopoverTrigger
             render={
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="icon"
                 aria-label={`Pick ${label} color`}
-                className="w-9 h-9 rounded-md border border-border shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="border-border shadow-sm"
                 style={{ backgroundColor: value }}
               />
             }

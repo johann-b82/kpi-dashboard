@@ -22,6 +22,7 @@ export function LauncherPage() {
       >
         {/* Active tile: KPI Dashboard → navigates to /sales (Sales Dashboard route) */}
         <div className="flex flex-col items-center gap-2">
+          {/* CTRL-02 exception: launcher tile — card-surface click target, Button's fixed chrome does not fit the grid-tile visual. */}
           <button
             type="button"
             onClick={() => setLocation("/sales")}
@@ -43,6 +44,7 @@ export function LauncherPage() {
         {/* v1.15 SEN-LNCH: Sensors tile (admin-only, replaces first coming-soon slot) */}
         <AdminOnly>
           <div className="flex flex-col items-center gap-2">
+            {/* CTRL-02 exception: launcher tile — card-surface click target, Button's fixed chrome does not fit the grid-tile visual. */}
             <button
               type="button"
               onClick={() => setLocation("/sensors")}
@@ -65,6 +67,7 @@ export function LauncherPage() {
         {/* Phase 46 SGN-ADM-02: Digital Signage tile (admin-only, replaces second coming-soon slot) */}
         <AdminOnly>
           <div className="flex flex-col items-center gap-2">
+            {/* CTRL-02 exception: launcher tile — card-surface click target, Button's fixed chrome does not fit the grid-tile visual. */}
             <button
               type="button"
               onClick={() => setLocation("/signage")}

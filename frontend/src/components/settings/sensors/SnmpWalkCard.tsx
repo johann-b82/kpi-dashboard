@@ -113,9 +113,11 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
   return (
     <Card>
       <CardHeader>
-        <button
+        <Button
           type="button"
-          className="flex items-center gap-2 w-full text-left"
+          variant="ghost"
+          size="default"
+          className="w-full h-auto justify-start text-left px-0"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
         >
@@ -127,7 +129,7 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
           <CardTitle className="text-xl font-semibold">
             {t("sensors.admin.walk.title")}
           </CardTitle>
-        </button>
+        </Button>
       </CardHeader>
       {expanded && (
         <CardContent className="space-y-4">

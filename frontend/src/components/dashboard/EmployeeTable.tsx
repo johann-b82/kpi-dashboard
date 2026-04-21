@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { fetchEmployees } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
@@ -93,9 +94,11 @@ export function EmployeeTable() {
             <tr className="border-b border-border bg-muted/50">
               {columns.map((col) => (
                 <th key={col.key} className={`px-3 py-0 font-medium text-${col.align}`}>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => toggleSort(col.key)}
-                    className="flex items-center gap-1 py-2 hover:text-foreground transition-colors w-full"
+                    className="w-full py-2 h-auto font-medium"
                     style={{ justifyContent: col.align === "right" ? "flex-end" : "flex-start" }}
                   >
                     {col.label}
@@ -104,7 +107,7 @@ export function EmployeeTable() {
                         ? <ArrowUp className="h-3 w-3" />
                         : <ArrowDown className="h-3 w-3" />
                     )}
-                  </button>
+                  </Button>
                 </th>
               ))}
             </tr>

@@ -21,6 +21,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { Toggle } from "@/components/ui/toggle";
+import { Button } from "@/components/ui/button";
 
 export function NavBar() {
   const { t } = useTranslation();
@@ -84,15 +85,16 @@ export function NavBar() {
 
         {!isLauncher && !isSignage && (
           location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="default"
               onClick={() => navigate(lastDashboard)}
-              className="inline-flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent/10 transition-colors text-foreground text-sm"
               aria-label={backLabel}
             >
               <ArrowLeft className="h-5 w-5" />
               <span>{backLabel}</span>
-            </button>
+            </Button>
           ) : (
             <Toggle
               segments={[
@@ -139,14 +141,15 @@ export function NavBar() {
           >
             <SettingsIcon className="h-5 w-5" />
           </Link>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label="Sign out"
             onClick={() => signOut()}
-            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors text-foreground"
           >
             <LogOut className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
       </div>
     </nav>
