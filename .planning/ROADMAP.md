@@ -209,7 +209,11 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   3. User toggles theme via the new `Toggle` with sun/moon icons as labels.
   4. User operates `Toggle` via keyboard (Arrow keys change selection, Enter/Space activates) with visible focus ring and `role="radiogroup"` semantics.
   5. When `prefers-reduced-motion` is set, the indicator swaps instantly with no slide animation.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 54-01-toggle-primitive-PLAN.md — Toggle primitive + unit tests (pill, animated indicator, radiogroup a11y, keyboard, reduced-motion)
+  - [ ] 54-02-navbar-sales-hr-migration-PLAN.md — Migrate NavBar Sales/HR switch to Toggle
+  - [ ] 54-03-chart-type-migrations-PLAN.md — Migrate HrKpiCharts (area/bar) and RevenueChart (bar/area) to Toggle
+  - [ ] 54-04-theme-toggle-migration-PLAN.md — Migrate ThemeToggle to 2-segment Toggle with sun/moon icons (preserve OS + localStorage logic)
 **UI hint**: yes
 
 ### Phase 55: Consolidated Form Controls
@@ -278,7 +282,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 51. Schedule Schema + Resolver | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
 | 53. Analytics-lite | v1.18 | 2/2 | Complete   | 2026-04-21 |
-| 54. Toggle Primitive + Migrations | v1.19 | 0/? | Not started | — |
+| 54. Toggle Primitive + Migrations | v1.19 | 0/4 | Not started | — |
 | 55. Consolidated Form Controls | v1.19 | 0/? | Not started | — |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 0/? | Not started | — |
 | 57. Section Context + Standardized Trashcan | v1.19 | 0/? | Not started | — |
