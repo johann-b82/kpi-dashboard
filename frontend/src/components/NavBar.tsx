@@ -20,7 +20,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
-import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Toggle } from "@/components/ui/toggle";
 
 export function NavBar() {
   const { t } = useTranslation();
@@ -94,11 +94,11 @@ export function NavBar() {
               <span>{backLabel}</span>
             </button>
           ) : (
-            <SegmentedControl
+            <Toggle
               segments={[
                 { value: "/sales", label: t("nav.sales") },
                 { value: "/hr", label: t("nav.hr") },
-              ]}
+              ] as const}
               value={location === "/hr" ? "/hr" : "/sales"}
               onChange={(path) => navigate(path)}
               aria-label="Navigation"
