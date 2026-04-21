@@ -526,6 +526,7 @@ Migration head (down_revision target for new migration):
     - `grep -c "async def resolve_schedule_for_device" backend/app/services/signage_resolver.py` returns 1
     - `grep -c "scheduled = await resolve_schedule_for_device" backend/app/services/signage_resolver.py` returns 1
     - `grep -c "(weekday_mask >> " backend/app/services/signage_resolver.py` returns ≥ 1
+    - SQL parameterization enforced (no f-string in text()): `grep -c 'f"(weekday_mask' backend/app/services/signage_resolver.py` returns 0 (use SQLAlchemy bindparams instead — Task 3 action step 1 NOTE)
     - `grep -cE "def test_schedule_(single_match|priority_tiebreak|weekday_miss|time_miss|disabled_skip|tag_mismatch_skip)|def test_empty_schedules_fallback_to_tag_resolver|def test_schedule_worked_example_REQ3" backend/tests/test_signage_schedule_resolver.py` returns 8
     - `pytest backend/tests/test_signage_schedule_resolver.py -x` passes all 8 tests
     - `pytest backend/tests/test_signage_resolver.py -x` still passes (no regression on tag-based path)

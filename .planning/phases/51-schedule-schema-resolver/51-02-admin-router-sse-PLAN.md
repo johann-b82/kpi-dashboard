@@ -281,7 +281,7 @@ Existing media FK RESTRICT 409 pattern (Plan 43-03 — mirror for schedules):
     3. The fanout uses `next(iter(playlist_ids))` for the payload's `playlist_id`. For the union-fanout case (PATCH that changes playlist_id), the executor MUST emit ONE event per affected playlist_id (loop the outer `for pid in playlist_ids:` calling `notify_device` per device per pid) so the player can correlate. Refactor `_fanout_schedule_changed` to send a notify per `(device, playlist_id)` pair when there are multiple playlist_ids. (The above sketch collapses; the implementation must split.)
   </action>
   <verify>
-    <automated>cd backend &amp;&amp; python -c "from app.routers.signage_admin.schedules import router; assert router.prefix == '/schedules'" &amp;&amp; python -c "from app.routers.signage_admin import router as r; paths = [route.path for route in r.routes]; assert any('/schedules' in p for p in paths), paths" &amp;&amp; pytest backend/tests/test_signage_admin_router.py -x</automated>
+    <automated>cd backend &amp;&amp; python -c "from app.routers.signage_admin.schedules import router; assert router.prefix == '/schedules'" &amp;&amp; python -c "from app.routers.signage_admin import router as r; paths = [route.path for route in r.routes]; assert any('/schedules' in p for p in paths), paths" &amp;&amp; pytest tests/test_signage_admin_router.py -x</automated>
   </verify>
   <done>
     - `grep -c "from . import schedules" backend/app/routers/signage_admin/__init__.py` returns 1
@@ -290,6 +290,7 @@ Existing media FK RESTRICT 409 pattern (Plan 43-03 — mirror for schedules):
     - `grep -c "dependencies=" backend/app/routers/signage_admin/schedules.py` returns 0 (sub-router inherits gate per D-01)
     - `grep -cE "@router\\.(post|get|patch|delete)" backend/app/routers/signage_admin/schedules.py` returns 5 (POST, 2x GET, PATCH, DELETE)
     - `grep -c "notify_device" backend/app/routers/signage_admin/schedules.py` returns ≥ 1
+    - Per-(device, playlist_id) fanout loop present: `grep -cE "for pid in playlist_ids|for .* in playlist_ids" backend/app/routers/signage_admin/schedules.py` returns ≥ 1 (confirms PATCH union-fanout refactor per Task 1 step 3)
     - `pytest backend/tests/test_signage_admin_router.py -x` still passes (no regression)
     - Existing CI dep-audit test (`tests/test_signage_router_deps.py`) still passes (admin gate present at parent)
   </done>
