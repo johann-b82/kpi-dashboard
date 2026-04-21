@@ -66,6 +66,16 @@ async def _attach_resolved_playlist(
     out = SignageDeviceRead.model_validate(device)
     out.current_playlist_id = envelope.playlist_id
     out.current_playlist_name = envelope.name
+    # Mirror the playlist tag_ids pattern from commit 877c695
+    # (backend/app/routers/signage_admin/playlists.py::get_playlist) so the
+    # admin Devices tab can render tag Badges by name.
+    tag_rows = await db.execute(
+        select(SignageDeviceTagMap.tag_id).where(
+            SignageDeviceTagMap.device_id == device.id
+        )
+    )
+    tag_ids = [tid for (tid,) in tag_rows.fetchall()]
+    out.tag_ids = tag_ids or None
     return out
 
 
