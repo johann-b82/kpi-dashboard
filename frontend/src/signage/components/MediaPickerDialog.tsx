@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
 import type { SignageMedia } from "@/signage/lib/signageTypes";
@@ -104,14 +105,15 @@ export function MediaPickerDialog({
             {filtered.map((m) => {
               const thumb = thumbnailUrl(m);
               return (
-                <button
+                <Button
                   key={m.id}
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     onPick(m);
                     onOpenChange(false);
                   }}
-                  className="rounded-md border border-border bg-card hover:border-primary hover:bg-muted transition-colors p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-auto flex-col items-stretch p-2 text-left hover:border-primary whitespace-normal"
                 >
                   <div className="aspect-video w-full rounded bg-muted overflow-hidden flex items-center justify-center mb-2">
                     {thumb ? (
@@ -128,7 +130,7 @@ export function MediaPickerDialog({
                     {m.title}
                   </div>
                   <div className="text-xs text-muted-foreground">{m.kind}</div>
-                </button>
+                </Button>
               );
             })}
           </div>

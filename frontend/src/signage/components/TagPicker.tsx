@@ -7,6 +7,7 @@ import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export interface TagPickerProps {
   /** Tag names already selected (controlled). */
@@ -104,18 +105,19 @@ export function TagPicker({
         {value.map((tag) => (
           <Badge key={tag} variant="secondary" className="gap-1 pr-1">
             <span>{tag}</span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               onClick={(event) => {
                 event.stopPropagation();
                 remove(tag);
               }}
-              className="text-muted-foreground hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               aria-label={`Remove ${tag}`}
               disabled={disabled}
             >
               <X className="w-3 h-3" />
-            </button>
+            </Button>
           </Badge>
         ))}
         <Input

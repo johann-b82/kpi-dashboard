@@ -20,6 +20,13 @@ import { GripVertical, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { SignageMedia } from "@/signage/lib/signageTypes";
 
 const DIRECTUS_URL =
@@ -87,16 +94,18 @@ function SortablePlaylistItemRow({
       style={style}
       className="flex items-center gap-3 p-3 border border-border rounded-md bg-card"
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         {...attributes}
         {...listeners}
         aria-label={`Drag to reorder ${title}`}
         aria-roledescription="drag handle"
-        className="cursor-grab touch-none text-muted-foreground hover:text-foreground p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        className="cursor-grab touch-none"
       >
         <GripVertical className="w-5 h-5" />
-      </button>
+      </Button>
 
       <div className="w-10 h-10 rounded-md bg-muted overflow-hidden flex items-center justify-center shrink-0">
         {thumb ? (
@@ -123,20 +132,30 @@ function SortablePlaylistItemRow({
         aria-label={t("signage.admin.editor.duration_label")}
       />
 
-      <select
+      <Select
         value={item.transition}
-        onChange={(e) =>
+        onValueChange={(v: string) =>
           onChangeOne({
             ...item,
-            transition: e.target.value as PlaylistItemTransition,
+            transition: v as PlaylistItemTransition,
           })
         }
-        aria-label={t("signage.admin.editor.transition_label")}
-        className="w-28 text-sm border border-input rounded-lg h-8 px-2.5 bg-background"
       >
-        <option value="fade">{t("signage.admin.editor.transition_fade")}</option>
-        <option value="cut">{t("signage.admin.editor.transition_cut")}</option>
-      </select>
+        <SelectTrigger
+          aria-label={t("signage.admin.editor.transition_label")}
+          className="w-28"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="fade">
+            {t("signage.admin.editor.transition_fade")}
+          </SelectItem>
+          <SelectItem value="cut">
+            {t("signage.admin.editor.transition_cut")}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
       <Button
         type="button"
