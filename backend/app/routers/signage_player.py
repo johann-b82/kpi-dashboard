@@ -29,11 +29,12 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
 from app.database import get_async_db_session
-from app.models.signage import SignageDevice, SignageMedia
+from app.models.signage import SignageDevice, SignageHeartbeatEvent, SignageMedia
 from app.schemas.signage import HeartbeatRequest, PlaylistEnvelope
 from app.security.device_auth import get_current_device
 from app.services import signage_broadcast
@@ -103,6 +104,14 @@ async def post_heartbeat(
         .where(SignageDevice.id == device.id)
         .values(**values)
     )
+    # Phase 53 SGN-ANA-01 — log heartbeat event for Analytics-lite uptime metric.
+    # Idempotent on (device_id, ts) microsecond collision (e.g. network retry).
+    hb_stmt = (
+        pg_insert(SignageHeartbeatEvent)
+        .values(device_id=device.id, ts=now)
+        .on_conflict_do_nothing(index_elements=["device_id", "ts"])
+    )
+    await db.execute(hb_stmt)
     await db.commit()
     return Response(status_code=204)
 

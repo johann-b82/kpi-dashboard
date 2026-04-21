@@ -54,10 +54,39 @@ async def _require_db() -> str:
 async def _cleanup(dsn: str) -> None:
     conn = await asyncpg.connect(dsn=dsn)
     try:
+        await conn.execute("DELETE FROM signage_heartbeat_event")
         await conn.execute("DELETE FROM signage_device_tag_map")
         await conn.execute("DELETE FROM signage_devices")
     finally:
         await conn.close()
+
+
+async def _insert_heartbeat_event(
+    dsn: str, device_id: uuid.UUID, ts: datetime
+) -> None:
+    conn = await asyncpg.connect(dsn=dsn)
+    try:
+        await conn.execute(
+            "INSERT INTO signage_heartbeat_event (device_id, ts) "
+            "VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            device_id,
+            ts,
+        )
+    finally:
+        await conn.close()
+
+
+async def _list_event_ts(dsn: str, device_id: uuid.UUID) -> list[datetime]:
+    conn = await asyncpg.connect(dsn=dsn)
+    try:
+        rows = await conn.fetch(
+            "SELECT ts FROM signage_heartbeat_event WHERE device_id = $1 "
+            "ORDER BY ts",
+            device_id,
+        )
+    finally:
+        await conn.close()
+    return [r["ts"] for r in rows]
 
 
 async def _insert_device(
@@ -192,3 +221,30 @@ async def test_lifespan_registers_sweeper_at_one_minute_interval(client):
     # Interval triggers expose the period via trigger.interval (a timedelta).
     interval = job.trigger.interval
     assert interval == timedelta(minutes=1), interval
+
+
+# ---------- Phase 53 SGN-ANA-01: 25 h event-log prune ----------
+
+
+async def test_sweeper_prunes_old_heartbeat_events():
+    """D-03: rows with ts < now - 25h are removed on every tick."""
+    dsn = await _require_db()
+    from app.scheduler import _run_signage_heartbeat_sweeper
+
+    device_id = await _insert_device(
+        dsn, status="online", last_seen_at=datetime.now(timezone.utc)
+    )
+    now = datetime.now(timezone.utc)
+    await _insert_heartbeat_event(dsn, device_id, now - timedelta(minutes=10))
+    await _insert_heartbeat_event(
+        dsn, device_id, now - timedelta(hours=24, minutes=30)
+    )
+    await _insert_heartbeat_event(dsn, device_id, now - timedelta(hours=26))
+
+    await _run_signage_heartbeat_sweeper()
+
+    remaining = await _list_event_ts(dsn, device_id)
+    assert len(remaining) == 2
+    # Oldest remaining must be within the 25 h window (tolerate a few seconds
+    # of jitter between python-side `now` and Postgres-side now()).
+    assert min(remaining) >= now - timedelta(hours=25, minutes=1)

@@ -36,7 +36,7 @@ from app.models import (
     SignageMedia,
     SignagePairingSession,
 )
-from app.models.signage import SignageDevice
+from app.models.signage import SignageDevice, SignageHeartbeatEvent
 
 log = logging.getLogger(__name__)
 
@@ -223,10 +223,23 @@ async def _run_signage_heartbeat_sweeper() -> None:
                 ),
                 timeout=20,
             )
+            # Phase 53 SGN-ANA-01 (D-03): 25 h rolling retention — 1 h buffer past
+            # the 24 h analytics horizon so rows near the boundary don't get pruned
+            # out from under the /devices/analytics query. Single DELETE; one commit
+            # covers both the device-status flip above and this prune.
+            prune_result = await asyncio.wait_for(
+                session.execute(
+                    delete(SignageHeartbeatEvent).where(
+                        SignageHeartbeatEvent.ts < func.now() - timedelta(hours=25)
+                    )
+                ),
+                timeout=20,
+            )
             await session.commit()
             log.info(
-                "signage_heartbeat_sweeper: flipped devices=%d",
+                "signage_heartbeat_sweeper: flipped devices=%d pruned_events=%d",
                 result.rowcount,
+                prune_result.rowcount,
             )
         except Exception:
             log.exception("signage_heartbeat_sweeper failed")
