@@ -18,6 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
 import type {
@@ -242,28 +249,35 @@ export function ScheduleEditDialog({
               <Label htmlFor="sched-playlist">
                 {t("signage.admin.schedules.field.playlist.label")}
               </Label>
-              <select
-                id="sched-playlist"
-                className="w-full h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
+              <Select
                 value={playlist_id}
-                onChange={(e) => {
-                  setPlaylistId(e.target.value);
+                onValueChange={(v) => {
+                  setPlaylistId(v);
                   if (touched.playlist) revalidateField("playlist");
                 }}
-                onBlur={() => {
-                  markTouched("playlist");
-                  revalidateField("playlist");
-                }}
               >
-                <option value="">
-                  {t("signage.admin.schedules.field.playlist.placeholder")}
-                </option>
-                {playlists.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="sched-playlist"
+                  aria-invalid={errors.playlist ? true : undefined}
+                  onBlur={() => {
+                    markTouched("playlist");
+                    revalidateField("playlist");
+                  }}
+                >
+                  <SelectValue
+                    placeholder={t(
+                      "signage.admin.schedules.field.playlist.placeholder",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {playlists.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.playlist && (
                 <p className="text-sm text-destructive">{t(errors.playlist)}</p>
               )}

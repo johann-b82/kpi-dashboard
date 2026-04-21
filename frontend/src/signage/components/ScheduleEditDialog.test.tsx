@@ -35,6 +35,89 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+// Plan 55-05 migration: the component now uses base-ui Select, whose popup
+// cannot be opened via fireEvent/user-event in jsdom (backdrop intercepts
+// pointer events — same limitation documented in 55-02-SUMMARY). We substitute
+// a native <select> shim so existing tests (which drive the playlist dropdown
+// via fireEvent.change) continue to exercise the same behaviour. This mirrors
+// the "test fixture raw <select>" carve-out noted in Phase 55 RESEARCH.
+vi.mock("@/components/ui/select", () => {
+  const React = require("react");
+  type TriggerProps = Record<string, unknown>;
+  const CtxRoot = React.createContext<{
+    value?: string;
+    onValueChange?: (v: string) => void;
+    triggerRef?: { current: TriggerProps };
+  }>({});
+  function Select({
+    value,
+    onValueChange,
+    children,
+  }: {
+    value?: string;
+    onValueChange?: (v: string) => void;
+    children?: React.ReactNode;
+  }) {
+    const triggerRef = React.useRef<TriggerProps>({});
+    return React.createElement(
+      CtxRoot.Provider,
+      { value: { value, onValueChange, triggerRef } },
+      children,
+    );
+  }
+  function SelectTrigger({
+    children,
+    ...rest
+  }: {
+    children?: React.ReactNode;
+    [k: string]: unknown;
+  }) {
+    const root = React.useContext(CtxRoot);
+    if (root.triggerRef) root.triggerRef.current = rest;
+    return React.createElement(React.Fragment, null, children);
+  }
+  function SelectValue() {
+    return null;
+  }
+  function SelectContent({ children }: { children?: React.ReactNode }) {
+    const root = React.useContext(CtxRoot);
+    const trigger = root.triggerRef?.current ?? {};
+    return React.createElement(
+      "select",
+      {
+        "data-slot": "select-native-shim",
+        value: root.value ?? "",
+        onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>
+          root.onValueChange?.(e.target.value),
+        ...trigger,
+      },
+      React.createElement("option", { value: "" }, ""),
+      children,
+    );
+  }
+  function SelectItem({
+    value,
+    children,
+  }: {
+    value: string;
+    children?: React.ReactNode;
+  }) {
+    return React.createElement("option", { value }, children);
+  }
+  return {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+    SelectGroup: ({ children }: { children?: React.ReactNode }) =>
+      React.createElement(React.Fragment, null, children),
+    SelectGroupLabel: ({ children }: { children?: React.ReactNode }) =>
+      React.createElement(React.Fragment, null, children),
+    SelectSeparator: () => null,
+  };
+});
+
 import { signageApi } from "@/signage/lib/signageApi";
 
 function renderWithProviders(ui: React.ReactElement) {
