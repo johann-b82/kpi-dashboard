@@ -244,3 +244,36 @@ PPTX files are converted on the server using LibreOffice. To ensure reliable con
 - [System Setup](/docs/admin-guide/system-setup) — Docker Compose overview
 - [Architecture](/docs/admin-guide/architecture) — system architecture overview
 - [Operator Runbook](/docs/operator-runbook) — Pi-level technical reference (systemd units, journalctl, recovery procedures)
+
+## Schedules
+
+Schedules play specific playlists at specific times and days. Use them when a device should show one playlist during the workday and another in the evening - for example, a menu board that switches from breakfast to lunch. When no schedule matches the current time, the device falls back to the always-on tag-based playlist.
+
+### Fields
+
+| Field | Description | Required | Notes |
+|-------|-------------|----------|-------|
+| Playlist | Which playlist this schedule plays. | Yes | Pick from existing playlists. Create one in the Playlists tab first. |
+| Days | Weekdays on which this schedule is active. | Yes (>=1) | Weekdays, Weekend, and Daily quick-picks overwrite the checkbox row. |
+| Start time | When the schedule activates (inclusive). | Yes | Format HH:MM. |
+| End time | When the schedule deactivates (exclusive). | Yes | Format HH:MM. Must be strictly after start. |
+| Priority | Tie-breaker when two schedules overlap. | No (default 0) | Higher wins. Last-updated wins on a tie. |
+| Enabled | Whether the schedule is active. | No (default on) | Toggle inline in the list without opening the editor. |
+
+### Invariants
+
+- Start time must be strictly before end time. 11:00 to 11:00 is rejected.
+- Midnight-spanning windows (e.g. 22:00 to 02:00) are not supported in a single schedule. Split them into two rows.
+- The weekday bit order (Monday = bit 0 ... Sunday = bit 6) is an implementation detail. The editor shows a plain Mo-Su checkbox row.
+
+### Worked example
+
+1. Create Schedule A: Mon-Fri, 07:00 to 11:00, Playlist X, priority 10, enabled.
+2. Create Schedule B: every day (Mon-Sun), 11:00 to 14:00, Playlist Y, priority 5, enabled.
+3. At 08:30 on a Wednesday the device plays Playlist X - Schedule A matches.
+4. At 12:00 on a Wednesday the device plays Playlist Y - Schedule B matches; A does not because 11:00 is exclusive.
+5. At 15:00 on a Wednesday no schedule matches - the device falls back to the always-on tag-based playlist.
+
+### Deleting a playlist referenced by a schedule
+
+A playlist cannot be deleted while any schedule still references it. The deletion returns an error toast listing the blocking schedules; click "Schedules" in the toast to jump to the Schedules tab with those rows highlighted. Remove or reassign them there, then retry the playlist delete.
