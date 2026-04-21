@@ -208,7 +208,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
   3. Schedule mutations trigger `notify_device` SSE fanout; connected players re-resolve within 2 s.
   4. Resolver integration tests cover all 7 cases in SGN-TIME-03.
 **Plans**: 2 plans
-- [ ] 51-01-schema-resolver-PLAN.md — Migration (signage_schedules + app_settings.timezone + tzdata dep) + _hhmm helpers + SignageSchedule model + Pydantic schemas + resolver composition + 7 SGN-TIME-03 integration tests (SGN-TIME-01, SGN-TIME-02, SGN-TIME-03)
+- [x] 51-01-schema-resolver-PLAN.md — Migration (signage_schedules + app_settings.timezone + tzdata dep) + _hhmm helpers + SignageSchedule model + Pydantic schemas + resolver composition + 7 SGN-TIME-03 integration tests (SGN-TIME-01, SGN-TIME-02, SGN-TIME-03)
 - [ ] 51-02-admin-router-sse-PLAN.md — signage_admin/schedules.py CRUD router with post-commit schedule-changed SSE fanout + playlists.py DELETE 409 FK handler for active schedules (SGN-TIME-04)
 
 ### Phase 52: Schedule Admin UI
@@ -265,6 +265,6 @@ All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, ap
 | 48. Pi Provisioning + E2E + Docs | v1.16 | 5/5 | Complete   | 2026-04-20 |
 | 49. Pi Image Build | v1.17 | 4/4 | Complete   | 2026-04-21 |
 | 50. Pi Polish | v1.18 | 2/2 | Complete    | 2026-04-21 |
-| 51. Schedule Schema + Resolver | v1.18 | 0/2 | Planned    |  |
+| 51. Schedule Schema + Resolver | v1.18 | 1/2 | In Progress|  |
 | 52. Schedule Admin UI | v1.18 | 0/? | Pending    |  |
 | 53. Analytics-lite | v1.18 | 0/? | Pending    |  |

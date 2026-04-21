@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: "ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`"
-stopped_at: Phase 51 context gathered
-last_updated: "2026-04-21T10:16:24.266Z"
+status: executing
+stopped_at: Completed 51-01-schema-resolver-PLAN.md
+last_updated: "2026-04-21T10:52:10.879Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.18 Pi Polish + Scheduling — Phase 50 (pi-polish) first
+**Current focus:** Phase 51 — schedule-schema-resolver
 
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`) with 4 operator carry-forwards folded into Phase 50.
 
@@ -37,8 +37,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 ## Current Position
 
 Milestone: v1.18 Pi Polish + Scheduling — PLANNING
-Phase: 51
-Status: ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`
+Phase: 51 (schedule-schema-resolver) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-04-21
 
 Progress: [····] 0/4 phases
@@ -102,6 +103,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 48 P04 | 540s | 2 tasks | 6 files |
 | Phase 49-pi-image-build P01 | 303s | 3 tasks | 15 files |
 | Phase 50-pi-polish P01 | 4m | 3 tasks | 2 files |
+| Phase 51 P01 | 9m 5s | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -169,6 +171,9 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [v1.18 scope change 2026-04-21]: Custom Pi image pipeline retired — `pi-image/` directory, `.github/workflows/pi-image.yml`, minisign signing, arm64 self-hosted runner, and the `signage-packages.txt`↔`00-packages-nr` drift-check removed. Pi provisioning is now single-path via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. SGN-POL-01/02/03/06 dropped from v1.18.
 - [Phase 50-pi-polish]: Lazy chunks (PdfPlayer-*/pdf-*) excluded from player entry cap via LAZY_PREFIXES allowlist
 - [Phase 50-pi-polish]: SGN-POL-04 closed via operator hardware walkthrough on 2026-04-21: Scenarios 4+5 both PASS on v1.18 Pi (Bookworm Lite 64-bit, provisioned via scripts/provision-pi.sh). Thresholds (reconnect→admin-mutation ≤30s; sidecar restart visual continuity + /health ≤15s) verified by direct observation; exact numerical timings not captured — documented as 'not recorded' in 50-E2E-RESULTS.md.
+- [Phase 51]: Plan 51-01: Extracted _build_envelope_for_playlist helper so schedule-matched and tag-matched envelopes are byte-identical (ETag invariant preserved, D-08/D-09)
+- [Phase 51]: Plan 51-01: Weekday bit test uses SQLAlchemy bindparam ((weekday_mask >> :wd) & 1 = 1), never f-string interpolation — SQL parameterization hygiene enforced via CI grep guard
+- [Phase 51]: Plan 51-01: app_settings.timezone server_default='Europe/Berlin' backfills singleton row atomically — no op.execute() needed
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -207,6 +212,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T10:16:24.263Z
-**Stopped at:** Phase 51 context gathered
-**Resume file:** .planning/phases/51-schedule-schema-resolver/51-CONTEXT.md
+**Last session:** 2026-04-21T10:52:01.307Z
+**Stopped at:** Completed 51-01-schema-resolver-PLAN.md
+**Resume file:** None
