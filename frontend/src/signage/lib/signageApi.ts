@@ -5,6 +5,9 @@ import type {
   SignageDevice,
   SignagePlaylist,
   SignagePlaylistItem,
+  SignageSchedule,
+  SignageScheduleCreate,
+  SignageScheduleUpdate,
 } from "./signageTypes";
 
 /**
@@ -167,4 +170,21 @@ export const signageApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  // Phase 52 SGN-SCHED-UI-01/02 — Schedules CRUD.
+  // Backend router: backend/app/routers/signage_admin/schedules.py.
+  // All methods use the shared apiClient (hard gate 2 — no raw fetch).
+  listSchedules: () =>
+    apiClient<SignageSchedule[]>("/api/signage/schedules"),
+  createSchedule: (body: SignageScheduleCreate) =>
+    apiClient<SignageSchedule>("/api/signage/schedules", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateSchedule: (id: string, body: SignageScheduleUpdate) =>
+    apiClient<SignageSchedule>(`/api/signage/schedules/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  deleteSchedule: (id: string) =>
+    apiClient<null>(`/api/signage/schedules/${id}`, { method: "DELETE" }),
 };

@@ -79,3 +79,40 @@ export interface MediaInUseError {
   detail: string;
   playlist_ids: string[];
 }
+
+/**
+ * Phase 52 SGN-SCHED-UI-01 — mirrors backend ScheduleRead
+ * (backend/app/schemas/signage.py). weekday_mask bit0=Mo..bit6=So (D-05).
+ * start_hhmm/end_hhmm are integers 0..2359 in HHMM form
+ * (e.g. 730 = 07:30, 1430 = 14:30). Adapter to/from "HH:MM" lives in
+ * the editor dialog (Plan 02).
+ */
+export interface SignageSchedule {
+  id: string;            // uuid
+  playlist_id: string;   // uuid
+  weekday_mask: number;  // 0..127, bit0=Mo..bit6=So
+  start_hhmm: number;    // 0..2359
+  end_hhmm: number;      // 0..2359
+  priority: number;
+  enabled: boolean;
+  created_at: string;    // ISO8601
+  updated_at: string;    // ISO8601
+}
+
+export interface SignageScheduleCreate {
+  playlist_id: string;
+  weekday_mask: number;
+  start_hhmm: number;
+  end_hhmm: number;
+  priority?: number;
+  enabled?: boolean;
+}
+
+export interface SignageScheduleUpdate {
+  playlist_id?: string;
+  weekday_mask?: number;
+  start_hhmm?: number;
+  end_hhmm?: number;
+  priority?: number;
+  enabled?: boolean;
+}
