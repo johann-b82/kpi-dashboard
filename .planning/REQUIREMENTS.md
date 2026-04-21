@@ -34,10 +34,10 @@
 
 ### Consolidated controls (CTRL-*)
 
-- [ ] **CTRL-01**: A single `Input`, `Select`, `Button`, `Textarea`, and `Dropdown` primitive exists under `frontend/src/components/ui/` and is the only supported form-control surface for the app.
+- [x] **CTRL-01**: A single `Input`, `Select`, `Button`, `Textarea`, and `Dropdown` primitive exists under `frontend/src/components/ui/` and is the only supported form-control surface for the app.
 - [ ] **CTRL-02**: All raw `<input>`, `<select>`, `<button>`, and `<textarea>` usages across the frontend are migrated to the shared primitives; intentional exceptions (e.g. file pickers wrapping native `<input type="file">`) are explicitly documented in-source.
-- [ ] **CTRL-03**: All standard-size form controls use the `h-8` height token; `h-9`, `h-10`, and `h-11` variants are removed from default code paths (allowed only for documented exceptional surfaces).
-- [ ] **CTRL-04**: Focus rings, disabled states, and invalid/error states are visually consistent across all primitives and driven by tokens, not per-component color literals.
+- [x] **CTRL-03**: All standard-size form controls use the `h-8` height token; `h-9`, `h-10`, and `h-11` variants are removed from default code paths (allowed only for documented exceptional surfaces).
+- [x] **CTRL-04**: Focus rings, disabled states, and invalid/error states are visually consistent across all primitives and driven by tokens, not per-component color literals.
 
 ### Sensors layout (SENSORS-*)
 

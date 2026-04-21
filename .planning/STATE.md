@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Phase 55 context gathered
-last_updated: "2026-04-21T20:16:10.828Z"
+stopped_at: Completed 55-01-button-cleanup-textarea-PLAN.md
+last_updated: "2026-04-21T20:42:47.227Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 11
+  completed_plans: 6
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 54 — toggle-primitive-migrations
+**Current focus:** Phase 55 — consolidated-form-controls
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,8 +37,8 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 55
-Plan: Not started
+Phase: 55 (consolidated-form-controls) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -121,6 +121,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 54 P03 | 98s | 2 tasks | 2 files |
 | Phase 54 P02 | 121s | 1 tasks | 1 files |
 | Phase 54 P05 | 101s | 1 tasks | 1 files |
+| Phase 55 P01 | 83s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 54]: Plan 54-03: CHART_TYPES narrowed to 2-tuple via 'as const satisfies readonly [ChartType, ChartType]'; Toggle segments built by tuple-indexing (not .map) to satisfy Toggle's 2-tuple contract while preserving constant-as-SSOT.
 - [Phase 54]: Plan 54-02: Toggle primitive drop-in parity with SegmentedControl confirmed in production (NavBar Sales/HR); 'as const' required at call sites for readonly 2-tuple inference
 - [Phase 54]: Plan 54-05: LanguageToggle migrated to Toggle primitive preserving i18n.changeLanguage; no new i18n keys; NavBar call site unchanged
+- [Phase 55]: Plan 55-01: Button lg/icon-lg variants removed (0 call sites); Textarea primitive ships with class-chain parity to Input (D-08) — focus/disabled/invalid fragments byte-identical; 6 unit tests pass
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -247,6 +249,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T20:16:10.825Z
-**Stopped at:** Phase 55 context gathered
-**Resume file:** .planning/phases/55-consolidated-form-controls/55-CONTEXT.md
+**Last session:** 2026-04-21T20:42:47.224Z
+**Stopped at:** Completed 55-01-button-cleanup-textarea-PLAN.md
+**Resume file:** None
