@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
-status: planning
-stopped_at: Phase 54 context gathered
-last_updated: "2026-04-21T19:42:06.519Z"
-last_activity: 2026-04-21 — v1.19 roadmap created (6 phases, 23/23 requirements mapped)
+status: executing
+stopped_at: Completed 54-01-toggle-primitive-PLAN.md
+last_updated: "2026-04-21T19:59:44.084Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 54 — toggle primitive + migrations (TOGGLE-01..05)
+**Current focus:** Phase 54 — toggle-primitive-migrations
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,10 +37,10 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 54 (not started)
-Plan: —
-Status: Roadmap drafted — awaiting phase 54 planning
-Last activity: 2026-04-21 — v1.19 roadmap created (6 phases, 23/23 requirements mapped)
+Phase: 54 (toggle-primitive-migrations) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-21
 
 Progress: 0/6 phases complete, 0 plans
 
@@ -116,6 +116,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 52 P02 | 644s | 4 tasks | 16 files |
 | Phase 53 P01 | 7m 53s | 3 tasks | 13 files |
 | Phase 53 P02 | 15m | 4 tasks | 12 files |
+| Phase 54 P01 | 87s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -196,6 +197,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 52]: Plan 52-02: added testing-library + jsdom + vitest.config.ts (jsdom env) to unblock component tests; pre-existing pure-logic tests kept on node env via environmentMatchGlobs
 - [Phase 53]: Plan 53-01: signage_heartbeat_event composite PK (device_id, ts); COUNT(DISTINCT date_trunc('minute', ts)) SQL; 1-decimal uptime precision; zero-heartbeat devices INCLUDED with uptime_24h_pct=null (not omitted); 25h retention for 1h sweeper-vs-analytics buffer
 - **[v1.19 roadmap 2026-04-21]:** 6 phases (54–59), 23 requirements. Phase sequencing: Toggle (54) → Form Controls (55) → Breadcrumb Header (56) ∥ Section Context (57) → Sensors Parity (58) → A11y Sweep (59). Build primitives first so later phases consume them; A11y sweep runs last over everything touched.
+- [Phase 54]: Plan 54-01: Toggle is an independent primitive (not SegmentedControl extension) — 2-tuple segments enforced at type + runtime; icon-or-label required per segment; usePrefersReducedMotion hook with SSR guard.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -237,6 +239,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T19:42:06.515Z
-**Stopped at:** Phase 54 context gathered
-**Resume file:** .planning/phases/54-toggle-primitive-migrations/54-CONTEXT.md
+**Last session:** 2026-04-21T19:59:44.081Z
+**Stopped at:** Completed 54-01-toggle-primitive-PLAN.md
+**Resume file:** None
