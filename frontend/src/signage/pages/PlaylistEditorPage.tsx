@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,15 +40,6 @@ function resolveMediaUri(media: SignageMedia): string | null {
   if (!media.uri) return null;
   if (media.kind === "url") return media.uri;
   return `${DIRECTUS_URL}/assets/${media.uri}`;
-}
-
-function SubHeaderNamePortal({ children }: { children: ReactNode }) {
-  const [slot, setSlot] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setSlot(document.getElementById("subheader-left-slot"));
-  }, []);
-  if (!slot) return null;
-  return createPortal(children, slot);
 }
 
 function generateKey(): string {
@@ -285,22 +269,20 @@ export function PlaylistEditorPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 pt-4 pb-16">
-      <SubHeaderNamePortal>
-        <div className="flex items-baseline gap-2 text-sm min-w-0">
-          <span className="text-muted-foreground shrink-0">
-            {t("signage.admin.editor.name_prefix")}
-          </span>
-          <input
-            {...form.register("name", { required: true, maxLength: 128 })}
-            placeholder={t("signage.admin.editor.name_placeholder")}
-            className="flex-1 min-w-0 bg-transparent border-0 border-b border-border focus:border-primary focus:outline-none font-medium"
-            aria-label={t("signage.admin.editor.name_placeholder")}
-          />
-        </div>
-      </SubHeaderNamePortal>
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-4">
-        <div className="flex-1 space-y-3 max-w-2xl">
-          <div>
+        <div className="flex flex-1 items-end gap-6 min-w-0">
+          <div className="flex items-baseline gap-2 min-w-0 flex-1">
+            <span className="text-muted-foreground shrink-0 text-sm">
+              {t("signage.admin.editor.name_prefix")}
+            </span>
+            <input
+              {...form.register("name", { required: true, maxLength: 128 })}
+              placeholder={t("signage.admin.editor.name_placeholder")}
+              className="flex-1 min-w-0 bg-transparent border-0 border-b border-border focus:border-primary focus:outline-none font-medium text-base pb-0.5"
+              aria-label={t("signage.admin.editor.name_placeholder")}
+            />
+          </div>
+          <div className="flex-1 min-w-0 max-w-md">
             <Label className="text-xs text-muted-foreground">
               {t("signage.admin.pair.tags_label")}
             </Label>

@@ -93,7 +93,7 @@ export function SubHeader() {
   return (
     <div className="fixed top-16 inset-x-0 h-12 bg-background z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-        <div id="subheader-left-slot" className="flex items-center gap-4 min-w-0">
+        <div>
           {location === "/sales" && (
             <DateRangeFilter
               value={range}
