@@ -10,47 +10,26 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.17 Pi Image Release — 2026-04-21 *(image distribution path retired 2026-04-21 in favour of `provision-pi.sh`-only — see v1.18 scope change below)*
-**In progress:** v1.18 Phase 52 (Schedule admin UI) complete 2026-04-21 — 4th `/signage/schedules` tab under `<AdminOnly>` with list + optimistic enabled-toggle, ScheduleEditDialog (playlist picker + weekday checkbox row + two HH:MM inputs + priority + enabled, D-07/11/12 validation tree emitting 5 i18n error keys, `start_after_end` reserved for backend 409 surfacing), ScheduleDeleteDialog with RESTRICT caveat copy, SSE `schedule-changed` invalidation via new `useAdminSignageEvents` hook, cross-tab 409 UX from PlaylistsPage delete deep-linking `/signage/schedules?highlight=<ids>` with scrollIntoView + ring, bilingual admin-guide Schedules / Zeitpläne section (DE du-tone enforced, 55 EN == 55 DE i18n keys). 37 new vitest component tests; vitest.config.ts + testing-library installed. SGN-SCHED-UI-01..04 closed. Phase 51 previously closed SGN-TIME-01..04.
+**Shipped:** v1.18 Pi Polish + Scheduling — 2026-04-21 (tag `v1.18`, commit 72a5693). Closed v1.17 operator carry-forwards (Scenarios 4 + 5 hardware E2E PASS on `provision-pi.sh`-provisioned Pi; player bundle back under 200 KB gz via lazy `PdfPlayer`/`react-pdf`). Added time-based playlist scheduling: `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + priority + enabled), time-window resolver falling back to tag-based resolution, 4th `/signage/schedules` admin tab with bilingual docs, SSE `schedule-changed` fanout. Analytics-lite: `signage_heartbeat_event` append-only log (25 h retention) + Uptime-24h / Missed-windows badges on Devices table. Scope change: custom `.img.xz` image pipeline retired (SGN-POL-01/02/03/06 dropped); Pi provisioning single-path via `scripts/provision-pi.sh`.
+**In progress:** — awaiting `/gsd:new-milestone`.
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (75 KB gz entry + lazy `PdfPlayer`/`pdf` chunks, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–5 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16 requirements satisfied. v1.9 D-12 waiver still carried. v1.17 carries operator carry-forwards folded into the v1.18 Pi Polish phase.
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16, v1.17, v1.18 requirements satisfied. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
-## Current Milestone: v1.18 Pi Polish + Scheduling
+## Current Milestone
 
-**Goal:** Close out the v1.17 operator carry-forwards (finish the hardware E2E walkthrough for Scenarios 4 + 5 on a `provision-pi.sh`-provisioned Pi, shrink the player bundle back under 200 KB gz) AND add time-based playlist scheduling so operators can say "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" through the admin UI. Plus a small analytics-lite read-side surface.
+None active. v1.18 shipped 2026-04-21. Start the next milestone via `/gsd:new-milestone`.
 
-> **Scope change 2026-04-21:** The v1.17 `.img.xz` distribution path (minisign key ceremony, self-hosted arm64 runner, tag-triggered signed-image release, image↔provision byte-diff test) was retired. The Pi player now ships exclusively via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. `pi-image/` and `.github/workflows/pi-image.yml` were removed.
-
-**Target scope (4 phases, 11 requirements):**
-
-- **Phase 50 — Pi Polish:** Scenarios 4 + 5 numerical hardware E2E measurements on a `provision-pi.sh`-provisioned Pi (fresh Bookworm Lite 64-bit), and dynamic-import `PdfPlayer` + `react-pdf` so the player bundle drops back under 200 KB gz (resetting the 210 K cap that v1.17 set).
-
-- **Phase 51 — Schedule schema + resolver:** Alembic migration adds `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + playlist_id + priority + enabled). Tag-to-playlist resolver gets time-window awareness: for a device at query time, pick the highest-priority schedule matching (weekday, time-of-day, tag overlap). Falls back to existing always-on tag-based playlist when no schedule matches. Timezone from app settings. Unit + integration tests.
-
-- **Phase 52 — Schedule admin UI:** New "Schedules" tab on `/signage` (4th tab alongside Media / Playlists / Devices). Schedule form: playlist picker, weekday checkboxes (Mo–So), two `HH:MM` time inputs, priority, enable toggle. Bilingual (DE "du" tone). Admin guide article updated. Schedule changes fire SSE notify so connected players re-resolve.
-
-- **Phase 53 — Analytics-lite:** Admin UI's Devices table gains "Uptime last 24h" + "Heartbeats missed" badges computed from existing `signage_devices.last_seen_at` and heartbeat sweeper data. No new schema; one read-only endpoint. Not real-time — refreshes on tab visibility/30s poll.
-
-**Deferred (noted):**
-- iCal RRULE + date-specific overrides (reopen when schedule model proves too narrow).
-- Per-device calibration (rotation, brightness, resolution) — v1.19 candidate.
-- Fleet Ops (Ansible, fleet dashboard, OTA) — v1.19/v1.20 candidate; not justified at current fleet size.
-- Per-item playtime analytics (new `signage_item_plays` table) — reopen once heartbeat-only view is insufficient.
-
-## Next Milestone Goals (post-v1.18 candidates)
+## Next Milestone Candidates (v1.19+)
 
 - **v1.19 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
 - **v1.19 Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
-- **v1.20 Rich Analytics** — per-item playtime, heatmaps, export-to-CSV.
+- **v1.19 iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
+- **v1.20 Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
 
-## Next Milestone Goals (post-v1.17 candidates)
+## Shipped: v1.18 Pi Polish + Scheduling (2026-04-21)
 
-- **v1.18 Signage Scheduling** — time-based playlist schedules, per-device calibration overrides, per-device analytics.
-- **v1.18 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart.
-- **v1.18 Signage Polish** — complete operator carry-forwards (Scenarios 4+5 hardware E2E on a `provision-pi.sh`-provisioned Pi, dynamic-import PdfPlayer back under 200 KB gz).
-
-Start the next milestone via `/gsd:new-milestone`.
+Closed v1.17 operator carry-forwards (Scenarios 4 + 5 hardware E2E PASS on `provision-pi.sh`-provisioned Pi with `50-E2E-RESULTS.md` evidence; player bundle back under 200 KB gz via lazy-imported `PdfPlayer` + `react-pdf` behind a LAZY_PREFIXES allowlist) and added time-based playlist scheduling. Alembic migration adds `signage_schedules` (7-bit weekday_mask + `start_hhmm < end_hhmm` + priority + enabled) and `app_settings.timezone` (default `Europe/Berlin`). Resolver gains time-window awareness — picks highest `(priority DESC, updated_at DESC)` matching (weekday, time-of-day, tag overlap), falls back to always-on tag resolution; `_build_envelope_for_playlist` helper keeps scheduled and tag-based envelopes byte-identical (ETag invariant preserved). 4th `/signage/schedules` admin tab under `<AdminOnly>` with `SchedulesPage`, `ScheduleEditDialog` (D-07/11/12 validation tree, 5 i18n error keys), `ScheduleDeleteDialog`, cross-tab 409 deep-link from `PlaylistsPage`. SSE `schedule-changed` fanout via new `useAdminSignageEvents` hook. Analytics-lite: append-only `signage_heartbeat_event` log (composite PK, 25 h retention pruned by the existing heartbeat sweeper), read-only `/api/signage/analytics/devices` endpoint, UptimeBadge (green ≥ 95 / yellow 80–95 / red < 80), two new Devices-table columns. Bilingual admin guide gained §Schedules/§Zeitpläne + §Analytics/§Analyse; EN 55 == DE 55 signage keys, DE du-tone enforced. Scope change 2026-04-21: custom `.img.xz` pipeline retired (SGN-POL-01/02/03/06 dropped; `pi-image/` and `.github/workflows/pi-image.yml` removed); Pi provisioning single-path via `scripts/provision-pi.sh`. 11 / 11 active requirements landed across 4 phases, 9 plans, 83 commits, 120 files, +16,729/−925 in a single-day brownfield speedrun.
 
 ## Shipped: v1.17 Pi Image Release (2026-04-21)
 
@@ -312,4 +291,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-21 — Phase 52 (Schedule admin UI) complete — 4th `/signage/schedules` tab with SchedulesPage list + optimistic toggle, ScheduleEditDialog D-07/11/12 validation tree, weekday bitmask row, HH:MM time inputs + adapters, ScheduleDeleteDialog, SSE `schedule-changed` invalidation via `useAdminSignageEvents`, PlaylistsPage 409 deep-link with highlight, bilingual admin-guide Schedules / Zeitpläne section (EN 55 == DE 55 i18n keys, DE du-tone). SGN-SCHED-UI-01..04 closed (3/3 plans).*
+*Last updated: 2026-04-21 — v1.18 Pi Polish + Scheduling shipped (tag `v1.18`, commit 72a5693). 4 phases (50–53) / 9 plans / 11 requirements / 83 commits / 120 files / +16,729/−925. Next: `/gsd:new-milestone`.*

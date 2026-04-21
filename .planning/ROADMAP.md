@@ -18,7 +18,7 @@
 - ✅ **v1.15 Sensor Monitor** — Phases 38–40 (shipped 2026-04-18) — [archive](milestones/v1.15-ROADMAP.md)
 - ✅ **v1.16 Digital Signage** — Phases 41–48 (shipped 2026-04-20) — [archive](milestones/v1.16-ROADMAP.md)
 - ✅ **v1.17 Pi Image Release** — Phase 49 (shipped 2026-04-21) — [archive](milestones/v1.17-ROADMAP.md)
-- 🚧 **v1.18 Pi Polish + Scheduling** — Phases 50–53 (active)
+- ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
 
 ## Phases
 
@@ -172,85 +172,19 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 
 </details>
 
-<details open>
-<summary>🚧 v1.18 Pi Polish + Scheduling (Phases 50–53) — ACTIVE</summary>
+<details>
+<summary>✅ v1.18 Pi Polish + Scheduling (Phases 50–53) — SHIPPED 2026-04-21</summary>
 
-- [ ] **Phase 50: Pi Polish** — close v1.17 carry-forwards (Scenarios 4+5 hardware E2E on a `provision-pi.sh`-provisioned Pi), dynamic-import `PdfPlayer` back under 200 KB gz
-- [ ] **Phase 51: Schedule schema + resolver** — Alembic migration for `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + priority), time-aware resolver, SSE notify, integration tests
-- [ ] **Phase 52: Schedule admin UI** — 4th tab on `/signage`, schedule editor form, bilingual admin-guide update (DE/EN parity), invariants CI
-- [x] **Phase 53: Analytics-lite** — Uptime-24h + heartbeats-missed badges on Devices table (one append-only `signage_heartbeat_event` log, 25h retention)
+- [x] Phase 50: Pi Polish (2/2 plans) — completed 2026-04-21
+- [x] Phase 51: Schedule Schema + Resolver (2/2 plans) — completed 2026-04-21
+- [x] Phase 52: Schedule Admin UI (3/3 plans) — completed 2026-04-21
+- [x] Phase 53: Analytics-lite (2/2 plans) — completed 2026-04-21
+
+Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 
 </details>
 
-## v1.18 Phase Details
-
-### Phase 50: Pi Polish
-**Goal**: Close v1.17's two remaining operator carry-forwards: complete the hardware E2E walkthrough for Scenarios 4 + 5 on a Pi provisioned via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit, and shrink the player bundle back under 200 KB gz by dynamic-importing `PdfPlayer` + `react-pdf`.
-**Depends on**: Phase 49
-**Requirements**: SGN-POL-04, SGN-POL-05
-
-> **Scope change 2026-04-21:** The custom `.img.xz` distribution path was retired. SGN-POL-01 (minisign), SGN-POL-02 (arm64 runner), SGN-POL-03 (signed-image release on tag), and SGN-POL-06 (image↔provision byte-diff) have been removed along with the `pi-image/` directory and the pi-image GitHub Actions workflow. The Pi player ships exclusively via `scripts/provision-pi.sh` on fresh Raspberry Pi OS.
-
-**Success Criteria** (what must be TRUE):
-  1. Scenarios 4 + 5 recorded in `50-E2E-RESULTS.md` with numerical timings on a `provision-pi.sh`-provisioned Pi: reconnect → admin-mutation-arrives ≤ 30 s; sidecar restart → playback continuity preserved.
-  2. `frontend/scripts/check-player-bundle-size.mjs` `LIMIT = 200_000` (reset from 210 000); build passes; `PdfPlayer` loads dynamically on first PDF item rather than up-front.
-**Plans**: 2 plans
-- [x] 50-01-player-bundle-dynamic-pdf-PLAN.md — Dynamic-import PdfPlayer; reset bundle LIMIT to 200_000 (SGN-POL-05)
-- [x] 50-02-e2e-scenarios-4-5-PLAN.md — 50-E2E-RESULTS.md template + operator hardware walkthrough for Scenarios 4+5 (SGN-POL-04)
-
-### Phase 51: Schedule Schema + Resolver
-**Goal**: Extend the signage schema with a time-window-aware playlist resolver so operators can schedule different playlists at different times of day on different days of the week. Backward-compatible: the existing always-on tag-to-playlist resolution still works when no schedule matches.
-**Depends on**: Phase 50 (not technically — but avoids a 50↔51 merge-race on the resolver module)
-**Requirements**: SGN-TIME-01, SGN-TIME-02, SGN-TIME-03, SGN-TIME-04
-**Success Criteria** (what must be TRUE):
-  1. `alembic upgrade head` creates `signage_schedules` with the documented columns + CHECK constraints; round-trip upgrade/downgrade clean.
-  2. Given schedules "Mo–Fr 07:00–11:00 → Playlist X (priority 10)" and "Mo–So 11:00–14:00 → Playlist Y (priority 5)", a device tagged for both: 08:30 Wednesday resolves X; 12:00 Wednesday resolves Y; 15:00 Wednesday falls back to always-on tag-based playlist.
-  3. Schedule mutations trigger `notify_device` SSE fanout; connected players re-resolve within 2 s.
-  4. Resolver integration tests cover all 7 cases in SGN-TIME-03.
-**Plans**: 2 plans
-- [x] 51-01-schema-resolver-PLAN.md — Migration (signage_schedules + app_settings.timezone + tzdata dep) + _hhmm helpers + SignageSchedule model + Pydantic schemas + resolver composition + 7 SGN-TIME-03 integration tests (SGN-TIME-01, SGN-TIME-02, SGN-TIME-03)
-- [x] 51-02-admin-router-sse-PLAN.md — signage_admin/schedules.py CRUD router with post-commit schedule-changed SSE fanout + playlists.py DELETE 409 FK handler for active schedules (SGN-TIME-04)
-
-### Phase 52: Schedule Admin UI
-**Goal**: Admin can create, edit, enable/disable, and delete schedules through a 4th tab on `/signage`. DE/EN parity. Bilingual admin-guide article updated.
-**Depends on**: Phase 51
-**Requirements**: SGN-SCHED-UI-01, SGN-SCHED-UI-02, SGN-SCHED-UI-03, SGN-SCHED-UI-04
-**Success Criteria** (what must be TRUE):
-  1. `/signage/schedules` renders the new tab under `<AdminOnly>`; `SegmentedControl` includes Schedules as the 4th option.
-  2. Schedule editor validates: start < end, at least one weekday selected, playlist required. Submits via `apiClient`.
-  3. Both `frontend/src/docs/{en,de}/admin-guide/digital-signage.md` have the new §Schedules content, informal "du" tone in DE, i18n parity CI green.
-  4. `npm run check:signage` passes (no `dark:` variants, apiClient-only, no sqlite/psycopg imports in frontend scans).
-**Plans**: 3 plans
-- [x] 52-01-foundation-PLAN.md — Types, signageApi CRUD, query keys, i18n key set (~45 keys EN/DE du-tone), SegmentedControl 4th segment wire (SGN-SCHED-UI-01/02/04)
-- [x] 52-02-schedules-ui-PLAN.md — SchedulesPage + ScheduleEditDialog + ScheduleDeleteDialog + WeekdayCheckboxRow + scheduleAdapters + route + PlaylistsPage 409 deep-link (SGN-SCHED-UI-01/02/04)
-- [x] 52-03-admin-guide-PLAN.md — §Schedules/§Zeitpläne appended to bilingual admin guide (SGN-SCHED-UI-03)
-
-### Phase 53: Analytics-lite
-**Goal**: Devices table in the admin UI shows uptime-last-24h + heartbeats-missed badges per device (adds a lightweight `signage_heartbeat_event` append-only log; 25 h retention pruned by the existing heartbeat sweeper — see Phase 53 CONTEXT D-01 amendment).
-**Depends on**: Phase 42 (heartbeat data exists since v1.16)
-**Requirements**: SGN-ANA-01
-**Success Criteria** (what must be TRUE):
-  1. New read-only endpoint `GET /api/signage/analytics/devices` returns `{device_id, uptime_24h_pct, missed_windows_24h, window_minutes}` per non-revoked device in one call.
-  2. Devices table renders two new columns; badges colour-coded (green ≥ 95 %, yellow 80–95 %, red < 80 %).
-  3. Refresh on tab-visibility change + 30 s polling. No websocket/SSE required.
-**Plans**: 2 plans
-- [x] 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md — signage_heartbeat_event migration + heartbeat POST insert + sweeper 25h prune + analytics endpoint (6 D-20 integration tests) + ROADMAP/REQUIREMENTS D-01 amendment (SGN-ANA-01 backend half)
-- [x] 53-02-frontend-devices-analytics-columns-PLAN.md — listDeviceAnalytics API + UptimeBadge + DevicesPage 2 new columns (Status → Uptime → Missed → Last Seen) + 7 i18n key-pairs + §Analytics/§Analyse admin guide + Vitest D-21 coverage (SGN-ANA-01 frontend half)
-
-## v1.18 Coverage Matrix
-
-| REQ-ID range | Phase | Count |
-|--------------|-------|-------|
-| SGN-POL-04, 05 (E2E Scenarios 4+5 + player bundle <200 KB gz) | Phase 50 | 2 |
-| SGN-TIME-01..04 (schedule schema + resolver + SSE) | Phase 51 | 4 |
-| SGN-SCHED-UI-01..04 (schedule admin UI + docs) | Phase 52 | 4 |
-| SGN-ANA-01 (analytics-lite badges) | Phase 53 | 1 |
-
-**Coverage:** 11/11 active v1.18 requirements mapped. No orphans. (SGN-POL-01/02/03/06 retired 2026-04-21 with the `.img.xz` distribution path.)
-
-## v1.18 Cross-Cutting Hazards (carried from v1.16/v1.17)
-
-All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, apiClient-only, no `dark:` variants. Phase 50 re-exercises: player bundle-size guard (back under 200 KB gz).
+<!-- v1.18 active-body phase details removed on archive 2026-04-21; see milestones/v1.18-ROADMAP.md -->
 
 ## Progress Table
 

@@ -36,15 +36,15 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
 ## Current Position
 
-Milestone: v1.18 Pi Polish + Scheduling — COMPLETE
-Phase: 53 (approved, deployed)
-Plan: 2/2 complete
-Status: All 4 phases complete (50, 51, 52, 53) — milestone ready to ship
-Last activity: 2026-04-21 - Completed quick task 260421-r4b: Fix admin Devices tab (tags render + stale status diagnosed)
+Milestone: v1.18 — SHIPPED (archived)
+Phase: —
+Plan: —
+Status: Awaiting `/gsd:new-milestone`
+Last activity: 2026-04-21 — v1.18 shipped, tagged, archived
 
-Progress: [████] 4/4 phases
+Progress: —
 
-Next action: `/gsd:audit-milestone` then `/gsd:ship` for v1.18 tag
+Next action: `/gsd:new-milestone`
 
 ### Quick Tasks Completed
 
