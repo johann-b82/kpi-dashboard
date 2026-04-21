@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
@@ -59,15 +59,25 @@ export function DeviceEditDialog({
     defaultValues: { name: "", tags: [] },
   });
 
+  const { data: allTags = [] } = useQuery({
+    queryKey: signageKeys.tags(),
+    queryFn: signageApi.listTags,
+    staleTime: 60_000,
+  });
+
   // Reset form whenever the device prop changes (dialog reopened on a new row).
   useEffect(() => {
     if (device) {
+      const tagById = new Map(allTags.map((tag) => [tag.id, tag.name]));
+      const ids = device.tag_ids ?? device.tags?.map((t) => t.id) ?? [];
       form.reset({
         name: device.name,
-        tags: device.tags.map((tag) => tag.name),
+        tags: ids
+          .map((id) => tagById.get(id))
+          .filter((n): n is string => typeof n === "string"),
       });
     }
-  }, [device, form]);
+  }, [device, allTags, form]);
 
   const saveMutation = useMutation({
     mutationFn: async (values: FormValues) => {
