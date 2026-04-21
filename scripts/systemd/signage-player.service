@@ -15,7 +15,10 @@ RestartSec=5
 # Wayland environment — labwc compositor must be running.
 # XDG_RUNTIME_DIR is set to the signage user's runtime dir.
 # Replace 1001 with the actual UID of the signage user (set by provision script).
-Environment=WAYLAND_DISPLAY=wayland-1
+# WAYLAND_DISPLAY: labwc (standalone, no display manager) creates wayland-0.
+# In a compositor-stack with a prior session it can shift to wayland-1; confirm
+# with `ls /run/user/<uid>/wayland-*` if the player can't find its socket.
+Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__
 Environment=XDG_SESSION_TYPE=wayland
 
