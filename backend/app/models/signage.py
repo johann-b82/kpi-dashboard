@@ -387,3 +387,33 @@ class SignageSchedule(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+
+class SignageHeartbeatEvent(Base):
+    """Phase 53 SGN-ANA-01 — per-heartbeat append-only log.
+
+    One row per successful POST /api/signage/player/heartbeat. Retention 25 h,
+    pruned by the existing heartbeat sweeper in app/scheduler.py.
+
+    Composite PK (device_id, ts) — no surrogate id (see 53-RESEARCH Pattern 2):
+      - Insert rate ~1/min/device → natural uniqueness is free.
+      - Prune (WHERE ts < cutoff) → PK-ordered scan, no secondary lookup.
+      - Analytics (WHERE ts >= cutoff GROUP BY device_id) → PK covers filter+group.
+
+    Idempotency on heartbeat insert is achieved at call-site via
+    `sqlalchemy.dialects.postgresql.insert(...).on_conflict_do_nothing(
+        index_elements=["device_id", "ts"])`.
+    """
+
+    __tablename__ = "signage_heartbeat_event"
+
+    device_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("signage_devices.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    ts: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        primary_key=True,
+        server_default=func.now(),
+    )

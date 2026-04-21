@@ -288,6 +288,21 @@ class ScheduleRead(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DeviceAnalyticsRead(BaseModel):
+    """Phase 53 SGN-ANA-01 — per-device analytics row.
+
+    uptime_24h_pct is null ⇔ device has zero retained heartbeats (denominator 0);
+    clients render a neutral '—' badge in that case (D-16).
+    window_minutes is 0..1440 and drives the D-06 "over last Xh" tooltip.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    device_id: uuid.UUID
+    uptime_24h_pct: float | None
+    missed_windows_24h: int
+    window_minutes: int
+
+
 class HeartbeatRequest(BaseModel):
     """Player -> server heartbeat payload. D-11.
 
