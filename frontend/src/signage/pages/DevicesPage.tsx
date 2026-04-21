@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -69,6 +69,17 @@ export function DevicesPage() {
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
+
+  // 260421-r4b: resolve tag_ids → tag names via the shared tags query.
+  const { data: tags = [] } = useQuery({
+    queryKey: signageKeys.tags(),
+    queryFn: signageApi.listTags,
+    staleTime: 60_000,
+  });
+  const tagById = useMemo(
+    () => new Map(tags.map((t) => [t.id, t])),
+    [tags],
+  );
 
   const revokeMutation = useMutation({
     mutationFn: (id: string) => signageApi.revokeDevice(id),
@@ -157,18 +168,19 @@ export function DevicesPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {/* DEFECT-12: backend SignageDeviceRead returns tag_ids,
-                        not a resolved tags array. Defensive guard until the
-                        backend populates `tags` in the list response. */}
-                    {(d.tags ?? []).map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant="secondary"
-                        className="text-xs"
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
+                    {(d.tag_ids ?? []).map((tagId) => {
+                      const tag = tagById.get(tagId);
+                      if (!tag) return null;
+                      return (
+                        <Badge
+                          key={tag.id}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {tag.name}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </TableCell>
                 <TableCell>
