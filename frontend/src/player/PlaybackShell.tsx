@@ -1,7 +1,12 @@
 // Phase 47 UI-SPEC §Playback canvas: wraps <PlayerRenderer> with the SSE/polling
 // lifecycle, duration defaults, sidecar-aware media URLs, and the offline chip
 // overlay.
-// NO heartbeat (D-8 — heartbeat is the Phase 48 sidecar's job, not the JS bundle).
+//
+// Heartbeat: the Pi sidecar owns production heartbeats (Phase 48 D-8). As a
+// browser-testing fallback (no sidecar present), the JS bundle sends a
+// lightweight 60s heartbeat so admin presence/analytics reflect reality. The
+// server-side event insert is idempotent (ON CONFLICT on (device_id, ts)), so
+// Pi-with-sidecar + JS double-heartbeat is harmless.
 
 import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -98,6 +103,31 @@ export function PlaybackShell() {
     });
     return applyDurationDefaults(mapped);
   }, [envelope, token]);
+
+  // Browser-testing heartbeat fallback: 60s interval while the tab is visible.
+  // Pi sidecar still owns production heartbeats; this just closes the gap when
+  // the player is opened directly in a browser (admin QA, internal demos).
+  useEffect(() => {
+    if (!token) return;
+    const tick = () => {
+      if (document.visibilityState !== "visible") return;
+      void playerFetch<void>("/api/signage/player/heartbeat", {
+        token,
+        method: "POST",
+        body: JSON.stringify({
+          current_item_id: null,
+          playlist_etag: null,
+        }),
+        headers: { "Content-Type": "application/json" },
+        on401: clearToken,
+      }).catch(() => {
+        // Heartbeat failures are non-fatal for playback. Silence.
+      });
+    };
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, [token, clearToken]);
 
   // Hide cursor on playback canvas (UI-SPEC §"No user interaction" safety net).
   useEffect(() => {
