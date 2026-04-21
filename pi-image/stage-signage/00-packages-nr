@@ -1,4 +1,0 @@
-# Generated from scripts/lib/signage-packages.txt — drift-check in CI
-chromium-browser unclutter-xfixes labwc seatd
-fonts-crosextra-carlito fonts-crosextra-caladea fonts-noto-core fonts-dejavu-core
-python3-venv python3-pip git ca-certificates curl network-manager

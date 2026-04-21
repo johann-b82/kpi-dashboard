@@ -1,9 +1,0 @@
-# /boot/firmware/signage.conf
-# Required
-SIGNAGE_API_URL=<host:port>
-# Optional — leave blank to keep Imager-set hostname
-SIGNAGE_HOSTNAME=
-# Optional — Wi-Fi configured via Imager custom settings (preferred)
-# If not using Imager, set these:
-WIFI_SSID=
-WIFI_PSK=

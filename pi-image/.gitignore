@@ -1,6 +1,0 @@
-pi-gen/work/
-pi-gen/deploy/
-*.img
-*.img.xz
-*.img.xz.sha256
-*.img.xz.minisig
