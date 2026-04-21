@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 export interface TagPickerProps {
   /** Tag names already selected (controlled). */
@@ -117,7 +118,7 @@ export function TagPicker({
             </button>
           </Badge>
         ))}
-        <input
+        <Input
           ref={inputRef}
           value={inputValue}
           onChange={(event) => {
@@ -128,7 +129,7 @@ export function TagPicker({
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
           onKeyDown={handleKeyDown}
           placeholder={value.length === 0 ? resolvedPlaceholder : ""}
-          className="flex-1 min-w-[100px] outline-none text-sm bg-transparent"
+          className="flex-1 min-w-[100px] border-0 bg-transparent px-0 py-0 h-auto focus-visible:ring-0 focus-visible:border-0"
           disabled={disabled}
         />
       </div>
