@@ -244,3 +244,36 @@ PPTX-Dateien werden auf dem Server mit LibreOffice konvertiert. Um eine zuverlä
 - [Systemeinrichtung](/docs/admin-guide/system-setup) — Docker-Compose-Überblick
 - [Architektur](/docs/admin-guide/architecture) — Systemarchitektur-Überblick
 - [Operator-Runbook](/docs/operator-runbook) — Technisches Pi-Referenzhandbuch (systemd-Units, journalctl, Wiederherstellungsverfahren)
+
+## Zeitpläne
+
+Zeitpläne spielen bestimmte Playlists zu bestimmten Zeiten und an bestimmten Tagen. Nutze sie, wenn ein Gerät tagsüber eine andere Playlist zeigen soll als abends - zum Beispiel eine Menütafel, die von Frühstück auf Mittag wechselt. Wenn kein Zeitplan zur aktuellen Zeit passt, fällt das Gerät auf die immer aktive Tag-basierte Playlist zurück.
+
+### Felder
+
+| Feld | Beschreibung | Pflicht | Hinweise |
+|------|--------------|---------|----------|
+| Playlist | Welche Playlist dieser Zeitplan abspielt. | Ja | Wähle aus den vorhandenen Playlists. Lege bei Bedarf zuerst eine im Playlists-Tab an. |
+| Tage | An welchen Wochentagen der Zeitplan aktiv ist. | Ja (>=1) | Die Schnellauswahl Wochentags, Wochenende und Täglich überschreibt die Checkboxen. |
+| Startzeit | Wann der Zeitplan aktiviert (einschliesslich). | Ja | Format HH:MM. |
+| Endzeit | Wann der Zeitplan deaktiviert (ausschliesslich). | Ja | Format HH:MM. Muss strikt nach der Startzeit liegen. |
+| Priorität | Entscheidet bei Überschneidungen. | Nein (Standard 0) | Höherer Wert gewinnt. Bei Gleichstand gewinnt der zuletzt aktualisierte. |
+| Aktiv | Ob der Zeitplan in Kraft ist. | Nein (Standard an) | Lässt sich in der Liste direkt umschalten, ohne den Editor zu öffnen. |
+
+### Regeln
+
+- Die Startzeit muss strikt vor der Endzeit liegen. 11:00 bis 11:00 wird abgelehnt.
+- Zeiträume über Mitternacht (z.B. 22:00 bis 02:00) sind in einem einzelnen Zeitplan nicht erlaubt. Teile sie in zwei Einträge auf.
+- Die interne Wochentag-Bitreihenfolge (Montag = Bit 0 ... Sonntag = Bit 6) ist ein Implementierungsdetail. Der Editor zeigt dir immer eine Mo-So-Checkbox-Reihe.
+
+### Beispiel
+
+1. Lege Zeitplan A an: Mo-Fr, 07:00 bis 11:00, Playlist X, Priorität 10, aktiv.
+2. Lege Zeitplan B an: jeden Tag (Mo-So), 11:00 bis 14:00, Playlist Y, Priorität 5, aktiv.
+3. Am Mittwoch um 08:30 spielt das Gerät Playlist X - Zeitplan A passt.
+4. Am Mittwoch um 12:00 spielt das Gerät Playlist Y - Zeitplan B passt; A nicht, weil 11:00 ausschliesslich ist.
+5. Am Mittwoch um 15:00 passt kein Zeitplan - das Gerät fällt auf die immer aktive Tag-basierte Playlist zurück.
+
+### Playlist löschen, die in einem Zeitplan verwendet wird
+
+Eine Playlist kann nicht gelöscht werden, solange ein Zeitplan darauf verweist. Der Löschversuch zeigt dir eine Fehlermeldung mit den blockierenden Zeitplänen; klicke dort auf "Zeitpläne", um direkt zum Zeitplan-Tab zu springen, wo die betroffenen Zeilen hervorgehoben sind. Entferne oder weise sie dort neu zu und versuche dann die Playlist erneut zu löschen.
