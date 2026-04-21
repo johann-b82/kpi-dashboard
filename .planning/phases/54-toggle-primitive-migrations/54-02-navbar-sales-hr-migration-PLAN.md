@@ -8,7 +8,7 @@ files_modified:
   - frontend/src/components/NavBar.tsx
 autonomous: true
 requirements:
-  - TOGGLE-02
+  - TOGGLE-04
 must_haves:
   truths:
     - "The Sales/HR switch in the top header renders via the new Toggle primitive."
@@ -27,9 +27,11 @@ must_haves:
 ---
 
 <objective>
-Migrate the NavBar Sales/HR 2-option switch from `SegmentedControl` to the new `Toggle` primitive. Reuses existing `t('nav.sales')` / `t('nav.hr')` keys unchanged. Closes TOGGLE-02 acceptance.
+Migrate the NavBar Sales/HR 2-option switch from `SegmentedControl` to the new `Toggle` primitive. Reuses existing `t('nav.sales')` / `t('nav.hr')` keys unchanged. Closes the Sales/HR portion of TOGGLE-04 (per REQUIREMENTS: "existing 2-option boolean `SegmentedControl` usages (audit Sales/HR toggle, sensor window binary cases, etc.) migrate to the new `Toggle`").
 
-Purpose: First production adoption of the `Toggle` primitive. Proves the prop-shape parity with SegmentedControl in a real call site.
+Note: TOGGLE-02 (the EN/DE language switch) is closed by Plan 54-05, not this plan. The Sales/HR switch is a dashboard-context navigation control, not a language switch, and belongs under TOGGLE-04's SegmentedControl-usage audit.
+
+Purpose: First production adoption of the `Toggle` primitive for a SegmentedControl migration. Proves the prop-shape parity with SegmentedControl in a real call site.
 
 Output: Updated `frontend/src/components/NavBar.tsx` — single import swap + JSX element swap.
 </objective>
@@ -98,7 +100,7 @@ Output: Updated `frontend/src/components/NavBar.tsx` — single import swap + JS
 
     3. Do NOT add new i18n keys. Do NOT rename existing keys. Per CONTEXT D-08, `nav.sales` / `nav.hr` are reused verbatim.
 
-    4. Do NOT touch any other part of NavBar (brand, back button, upload/settings/docs/signout buttons, LanguageToggle, ThemeToggle). Plan 04 owns ThemeToggle migration.
+    4. Do NOT touch any other part of NavBar (brand, back button, upload/settings/docs/signout buttons, LanguageToggle, ThemeToggle). Plan 04 owns ThemeToggle migration; Plan 05 owns LanguageToggle migration.
 
     5. If TypeScript complains that `"/sales" | "/hr"` cannot be passed to Toggle's `value` prop after the `as const`, supply a generic explicitly: `<Toggle<"/sales" | "/hr"> segments={...} ... />`.
   </action>
@@ -127,7 +129,7 @@ Output: Updated `frontend/src/components/NavBar.tsx` — single import swap + JS
 </verification>
 
 <success_criteria>
-- TOGGLE-02 closed: the EN/DE-agnostic Sales/HR top-header switch uses `Toggle`.
+- Sales/HR portion of TOGGLE-04 closed: the 2-option Sales/HR SegmentedControl usage now renders via `Toggle`.
 - NavBar compiles cleanly; no other behavior changes.
 </success_criteria>
 
