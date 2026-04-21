@@ -231,7 +231,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   - [x] 55-02-select-primitive-PLAN.md — Select primitive wrapping @base-ui/react/select (CTRL-01, CTRL-04)
   - [x] 55-03-dropdown-primitive-PLAN.md — Dropdown action-menu primitive wrapping @base-ui/react/menu (CTRL-01, CTRL-04)
   - [x] 55-04-migrate-raw-button-PLAN.md — Migrate raw <button> in 8 consumer files to <Button> (CTRL-02)
-  - [ ] 55-05-migrate-raw-select-PLAN.md — Migrate raw <select> in 4 consumer files to <Select> (CTRL-02)
+  - [x] 55-05-migrate-raw-select-PLAN.md — Migrate raw <select> in 4 consumer files to <Select> (CTRL-02)
   - [x] 55-06-migrate-raw-input-and-h9-strip-PLAN.md — Migrate raw <input> non-file, annotate file-input exceptions, strip h-9 overrides (CTRL-02, CTRL-03)
 **UI hint**: yes
 
@@ -290,7 +290,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
 | 53. Analytics-lite | v1.18 | 2/2 | Complete   | 2026-04-21 |
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
-| 55. Consolidated Form Controls | v1.19 | 5/6 | In Progress|  |
+| 55. Consolidated Form Controls | v1.19 | 6/6 | Complete   | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 0/? | Not started | — |
 | 57. Section Context + Standardized Trashcan | v1.19 | 0/? | Not started | — |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |

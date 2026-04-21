@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 55-04-migrate-raw-button-PLAN.md
-last_updated: "2026-04-21T20:52:44.619Z"
+stopped_at: Completed 55-05-migrate-raw-select-PLAN.md
+last_updated: "2026-04-21T20:53:16.185Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 55 (consolidated-form-controls) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -126,6 +126,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 55 P02 | 122s | 2 tasks | 2 files |
 | Phase 55 P06 | 214s | 4 tasks | 8 files |
 | Phase 55 P04 | 272s | 3 tasks | 8 files |
+| Phase 55 P05 | 313s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -216,6 +217,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 55]: Plan 55-02: Select primitive exports 8 pieces; trigger class chain copied verbatim from Input (not imported) per D-08; Popup class inlined (not shared with Popover); onValueChange test skipped in jsdom (backdrop blocks pointer) with D-12 minimum coverage met via render+interaction+disabled+invalid
 - [Phase 55]: Plan 55-06: radio/checkbox <input> migrated to <Input> primitive with className overrides (h-auto border-0 bg-transparent px-0 py-0) that reset text-input styling via tailwind-merge — native browser radio/checkbox visuals pass through. File-picker <input {...getInputProps()} /> sites carry CTRL-02 annotation even though type="file" is injected at runtime (not source literal).
 - [Phase 55]: Plan 55-04: Raw <button> CTRL-02 closure — 8 files migrated; 3 LauncherPage tiles annotated as exceptions (gradient card-surface visual); ColorPicker swatch 9->8 honours CTRL-03 over pixel parity; fixed parallel-55-05 implicit-any Select onValueChange parameter
+- [Phase 55]: Plan 55-05: ScheduleEditDialog test file uses vi.mock shim (native <select>) to exercise validator/blur logic because base-ui Select popup cannot be driven in jsdom; empty-option placeholder collapsed into <SelectValue placeholder>
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -257,6 +259,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T20:52:44.616Z
-**Stopped at:** Completed 55-04-migrate-raw-button-PLAN.md
+**Last session:** 2026-04-21T20:53:16.182Z
+**Stopped at:** Completed 55-05-migrate-raw-select-PLAN.md
 **Resume file:** None
