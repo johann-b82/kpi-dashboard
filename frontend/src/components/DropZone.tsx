@@ -94,6 +94,7 @@ export function DropZone({ onUploadSuccess, onUploadError }: DropZoneProps) {
     <Card>
       <CardContent className="p-0">
         <div {...getRootProps({ className: containerClass })}>
+          {/* CTRL-02 exception: native file picker — primitive <Input> does not wrap file-type inputs (browser-native styling retained). */}
           <input {...getInputProps()} />
 
           {mutation.isPending ? (

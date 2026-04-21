@@ -106,6 +106,7 @@ export function LogoUpload({ logoUrl }: LogoUploadProps) {
           tabIndex: 0,
         })}
       >
+        {/* CTRL-02 exception: native file picker — primitive <Input> does not wrap file-type inputs (browser-native styling retained). */}
         <input {...getInputProps()} />
         {mutation.isPending ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

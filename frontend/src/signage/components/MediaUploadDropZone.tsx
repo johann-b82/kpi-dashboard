@@ -150,6 +150,7 @@ export function MediaUploadDropZone() {
   return (
     <div>
       <div {...getRootProps({ className: containerClass })}>
+        {/* CTRL-02 exception: native file picker — primitive <Input> does not wrap file-type inputs (browser-native styling retained). */}
         <input {...getInputProps()} />
         {uploadMutation.isPending ? (
           <div className="flex flex-col items-center gap-2">
