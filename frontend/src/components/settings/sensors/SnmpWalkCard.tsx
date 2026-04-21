@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { runSnmpWalk, type SnmpWalkEntry } from "@/lib/api";
 import type { SensorDraftRow } from "@/hooks/useSensorDraft";
 
@@ -265,39 +272,47 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
                   <Label className="text-sm font-medium">
                     {t("sensors.admin.walk.assign_target")}
                   </Label>
-                  <select
-                    className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
+                  <Select
                     value={picker.localId}
-                    onChange={(e) =>
-                      setPicker({ ...picker, localId: e.target.value })
+                    onValueChange={(v) =>
+                      setPicker({ ...picker, localId: v })
                     }
                   >
-                    {liveRows.map((r) => (
-                      <option key={r._localId} value={r._localId}>
-                        {r.name || "(unnamed)"}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {liveRows.map((r) => (
+                        <SelectItem key={r._localId} value={r._localId}>
+                          {r.name || "(unnamed)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label className="text-sm font-medium">Field</Label>
-                  <select
-                    className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
+                  <Select
                     value={picker.field}
-                    onChange={(e) =>
+                    onValueChange={(v) =>
                       setPicker({
                         ...picker,
-                        field: e.target.value as WalkField,
+                        field: v as WalkField,
                       })
                     }
                   >
-                    <option value="temperature_oid">
-                      {t("sensors.admin.walk.assign_to_temp")}
-                    </option>
-                    <option value="humidity_oid">
-                      {t("sensors.admin.walk.assign_to_humidity")}
-                    </option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="temperature_oid">
+                        {t("sensors.admin.walk.assign_to_temp")}
+                      </SelectItem>
+                      <SelectItem value="humidity_oid">
+                        {t("sensors.admin.walk.assign_to_humidity")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2">

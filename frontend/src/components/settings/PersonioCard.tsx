@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CheckboxList } from "@/components/settings/CheckboxList";
 import type { CheckboxOption } from "@/components/settings/CheckboxList";
 import { fetchPersonioOptions, testPersonioConnection, triggerSync } from "@/lib/api";
@@ -142,23 +149,26 @@ export function PersonioCard({ draft, setField, hasCredentials, embedded = false
             <Label htmlFor="personio-sync-interval" className="text-sm font-medium">
               {t("settings.personio.sync_interval.label")}
             </Label>
-            <select
-              id="personio-sync-interval"
+            <Select
               value={String(draft.personio_sync_interval_h)}
-              onChange={(e) =>
+              onValueChange={(v) =>
                 setField(
                   "personio_sync_interval_h",
-                  Number(e.target.value) as 0 | 1 | 6 | 24,
+                  Number(v) as 0 | 1 | 6 | 24,
                 )
               }
-              className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring"
             >
-              {INTERVAL_OPTIONS.map((opt) => (
-                <option key={opt.value} value={String(opt.value)}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="personio-sync-interval">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {INTERVAL_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
