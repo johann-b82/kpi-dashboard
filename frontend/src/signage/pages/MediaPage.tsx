@@ -27,9 +27,9 @@ const DIRECTUS_URL =
 function thumbnailUrl(media: SignageMedia): string | null {
   if (
     (media.kind === "image" || media.kind === "video") &&
-    media.directus_file_id
+    media.uri
   ) {
-    return `${DIRECTUS_URL}/assets/${media.directus_file_id}`;
+    return `${DIRECTUS_URL}/assets/${media.uri}`;
   }
   return null;
 }

@@ -48,9 +48,9 @@ function thumbnailUrl(media: SignageMedia | undefined): string | null {
   if (!media) return null;
   if (
     (media.kind === "image" || media.kind === "video") &&
-    media.directus_file_id
+    media.uri
   ) {
-    return `${DIRECTUS_URL}/assets/${media.directus_file_id}`;
+    return `${DIRECTUS_URL}/assets/${media.uri}`;
   }
   return null;
 }

@@ -24,10 +24,18 @@ export interface SignageMedia {
   id: string; // uuid as string over JSON
   kind: SignageMediaKind;
   title: string;
-  directus_file_id: string | null;
-  url: string | null;
-  tags: SignageTag[]; // backend returns tag objects
-  metadata: Record<string, unknown> | null;
+  // Backend Read shape returns `uri` (Directus asset UUID for image/video/pdf,
+  // or a URL for kind=url). For images/videos, build thumbnail via
+  // `${DIRECTUS_URL}/assets/${uri}`. For `url` kind, `uri` is the full URL.
+  uri: string | null;
+  html_content: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  duration_ms: number | null;
+  // `tags` and `metadata` are not in the current Read shape; kept optional
+  // for forward-compat with future enhancement.
+  tags?: SignageTag[];
+  metadata?: Record<string, unknown> | null;
   conversion_status: SignageConversionStatus | null;
   conversion_error: string | null;
   slide_paths: string[] | null;

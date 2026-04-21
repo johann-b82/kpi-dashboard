@@ -37,11 +37,9 @@ interface FormValues {
 }
 
 function resolveMediaUri(media: SignageMedia): string | null {
-  if (media.url) return media.url;
-  if (media.directus_file_id) {
-    return `${DIRECTUS_URL}/assets/${media.directus_file_id}`;
-  }
-  return null;
+  if (!media.uri) return null;
+  if (media.kind === "url") return media.uri;
+  return `${DIRECTUS_URL}/assets/${media.uri}`;
 }
 
 function generateKey(): string {
@@ -148,10 +146,7 @@ export function PlaylistEditorPage() {
         id: it.key,
         kind,
         uri: resolveMediaUri(media),
-        html:
-          (media.metadata && (media.metadata as Record<string, unknown>).html
-            ? String((media.metadata as Record<string, unknown>).html)
-            : null) as string | null,
+        html: media.html_content,
         slide_paths: media.slide_paths,
         duration_s: it.duration_s,
         transition: it.transition,
