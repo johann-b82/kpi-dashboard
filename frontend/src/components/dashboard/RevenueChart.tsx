@@ -15,7 +15,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Toggle } from "@/components/ui/toggle";
 import {
   axisProps,
   gridProps,
@@ -44,7 +44,7 @@ interface RevenueChartProps {
 type ChartType = "bar" | "area";
 
 const GRANULARITY = "monthly" as const;
-const CHART_TYPES: ChartType[] = ["bar", "area"];
+const CHART_TYPES = ["bar", "area"] as const satisfies readonly [ChartType, ChartType];
 
 export function RevenueChart({
   startDate,
@@ -119,11 +119,11 @@ export function RevenueChart({
   const Header = (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
       <p className="text-xl font-semibold">{t("dashboard.chart.title")}</p>
-      <SegmentedControl
-        segments={CHART_TYPES.map((type) => ({
-          value: type,
-          label: t(`dashboard.chart.type.${type}`),
-        }))}
+      <Toggle<ChartType>
+        segments={[
+          { value: CHART_TYPES[0], label: t(`dashboard.chart.type.${CHART_TYPES[0]}`) },
+          { value: CHART_TYPES[1], label: t(`dashboard.chart.type.${CHART_TYPES[1]}`) },
+        ] as const}
         value={chartType}
         onChange={(type) => setChartType(type)}
         aria-label="Chart type"
