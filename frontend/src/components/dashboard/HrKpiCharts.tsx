@@ -14,7 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Toggle } from "@/components/ui/toggle";
 import { useSettings } from "@/hooks/useSettings";
 import {
   axisProps,
@@ -246,11 +246,11 @@ export function HrKpiCharts() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <SegmentedControl<ChartType>
+        <Toggle<ChartType>
           segments={[
             { value: "area", label: t("hr.chart.type.area") },
             { value: "bar", label: t("dashboard.chart.type.bar") },
-          ]}
+          ] as const}
           value={chartType}
           onChange={setChartType}
           aria-label="Chart type"
