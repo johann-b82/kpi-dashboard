@@ -327,16 +327,27 @@ export function PlaylistEditorPage() {
       </header>
 
       <div className="space-y-6 mt-4">
-        <div>
+        <section>
+          <h2 className="text-base font-semibold">
+            {t("signage.admin.editor.preview_title")}
+          </h2>
+          <p className="text-xs text-muted-foreground mb-2" lang={i18n.language}>
+            {t("signage.admin.editor.preview_help")}
+          </p>
           <div className="rounded-lg border border-border overflow-hidden aspect-video bg-background">
             <PlayerRenderer items={previewItems} />
           </div>
-          <p className="mt-2 text-xs text-muted-foreground" lang={i18n.language}>
-            {t("signage.admin.preview.label")}
-          </p>
-        </div>
+        </section>
 
-        <div className="space-y-3">
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-base font-semibold">
+              {t("signage.admin.editor.items_title")}
+            </h2>
+            <p className="text-xs text-muted-foreground" lang={i18n.language}>
+              {t("signage.admin.editor.items_help")}
+            </p>
+          </div>
           {formItems.length === 0 ? (
             <div className="rounded-md border border-border bg-card p-6 text-center space-y-2">
               <p className="text-sm font-medium">
@@ -363,7 +374,7 @@ export function PlaylistEditorPage() {
             <Plus className="w-4 h-4 mr-2" />
             {t("signage.admin.editor.add_item")}
           </Button>
-        </div>
+        </section>
       </div>
 
       <MediaPickerDialog
