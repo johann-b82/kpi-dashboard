@@ -54,12 +54,12 @@ export function NavBar() {
   const lastDashboard = getLastDashboard();
   const backLabel = lastDashboard === "/hr" ? t("nav.back_to_hr") : t("nav.back_to_sales");
 
-  // Upload icon link — styled Link directly (no nested <Button> to avoid invalid <a><button>)
+  // Upload icon link — styled Link directly (no nested Button to avoid invalid anchor-inside-button nesting)
   const uploadLinkClass =
     "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
     (location === "/upload" ? "text-primary" : "text-foreground");
 
-  // Gear link — styled <Link> directly (no nested <Button> to avoid invalid <a><button>)
+  // Gear link — styled <Link> directly (no nested Button to avoid invalid anchor-inside-button nesting)
   const settingsLinkClass =
     "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
     (location === "/settings" ? "text-primary" : "text-foreground");
