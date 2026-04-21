@@ -50,7 +50,7 @@
 - [x] **TOGGLE-01**: A new `Toggle` component exists under `frontend/src/components/ui/` — pill container with a white/elevated indicator that slides under the active label, matching the reference screenshot.
 - [ ] **TOGGLE-02**: The EN/DE language switch in the top header uses the new `Toggle`.
 - [x] **TOGGLE-03**: The light/dark theme switch uses the new `Toggle` (sun/moon icons as labels).
-- [ ] **TOGGLE-04**: Existing 2-option boolean `SegmentedControl` usages (audit Sales/HR toggle, sensor window binary cases, etc.) migrate to the new `Toggle`. Segmented controls with 3+ options remain as `SegmentedControl`.
+- [x] **TOGGLE-04**: Existing 2-option boolean `SegmentedControl` usages (audit Sales/HR toggle, sensor window binary cases, etc.) migrate to the new `Toggle`. Segmented controls with 3+ options remain as `SegmentedControl`.
 - [x] **TOGGLE-05**: The `Toggle` animation respects `prefers-reduced-motion` (instant indicator swap, no slide) and is keyboard-navigable (Arrow keys move focus/selection, Enter/Space activates, `role="radiogroup"` semantics).
 
 ### Accessibility & parity (A11Y-*)

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 54-04-theme-toggle-migration-PLAN.md
-last_updated: "2026-04-21T20:02:28.429Z"
+stopped_at: Completed 54-03-chart-type-migrations-PLAN.md
+last_updated: "2026-04-21T20:03:04.693Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 5
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 54 (toggle-primitive-migrations) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -118,6 +118,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 53 P02 | 15m | 4 tasks | 12 files |
 | Phase 54 P01 | 87s | 2 tasks | 2 files |
 | Phase 54 P04 | 66s | 1 tasks | 1 files |
+| Phase 54 P03 | 98s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - **[v1.19 roadmap 2026-04-21]:** 6 phases (54–59), 23 requirements. Phase sequencing: Toggle (54) → Form Controls (55) → Breadcrumb Header (56) ∥ Section Context (57) → Sensors Parity (58) → A11y Sweep (59). Build primitives first so later phases consume them; A11y sweep runs last over everything touched.
 - [Phase 54]: Plan 54-01: Toggle is an independent primitive (not SegmentedControl extension) — 2-tuple segments enforced at type + runtime; icon-or-label required per segment; usePrefersReducedMotion hook with SSR guard.
 - [Phase 54]: Plan 54-04: ThemeToggle migrated to Toggle primitive — icon-only segments, persistence/OS logic byte-for-byte preserved
+- [Phase 54]: Plan 54-03: CHART_TYPES narrowed to 2-tuple via 'as const satisfies readonly [ChartType, ChartType]'; Toggle segments built by tuple-indexing (not .map) to satisfy Toggle's 2-tuple contract while preserving constant-as-SSOT.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -241,6 +243,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T20:02:28.426Z
-**Stopped at:** Completed 54-04-theme-toggle-migration-PLAN.md
+**Last session:** 2026-04-21T20:02:58.907Z
+**Stopped at:** Completed 54-03-chart-type-migrations-PLAN.md
 **Resume file:** None
