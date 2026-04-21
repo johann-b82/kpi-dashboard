@@ -132,7 +132,7 @@ function SortablePlaylistItemRow({
           })
         }
         aria-label={t("signage.admin.editor.transition_label")}
-        className="w-28 text-sm border border-input rounded-md h-9 px-2 bg-background"
+        className="w-28 text-sm border border-input rounded-lg h-8 px-2.5 bg-background"
       >
         <option value="fade">{t("signage.admin.editor.transition_fade")}</option>
         <option value="cut">{t("signage.admin.editor.transition_cut")}</option>
@@ -141,7 +141,7 @@ function SortablePlaylistItemRow({
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={onRemove}
         aria-label={`Remove ${title}`}
       >

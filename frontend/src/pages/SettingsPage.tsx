@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Thermometer } from "lucide-react";
 import { AdminOnly } from "@/auth/AdminOnly";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -290,9 +291,9 @@ export function SettingsPage() {
             </p>
             <Link
               to="/settings/sensors"
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors"
+              className={buttonVariants({ variant: "outline" })}
             >
-              <Thermometer className="h-4 w-4" aria-hidden="true" />
+              <Thermometer className="h-4 w-4 mr-1" aria-hidden="true" />
               {t("settings.sensors_link.cta")}
             </Link>
           </CardContent>

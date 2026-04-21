@@ -264,7 +264,7 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
                     {t("sensors.admin.walk.assign_target")}
                   </Label>
                   <select
-                    className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+                    className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
                     value={picker.localId}
                     onChange={(e) =>
                       setPicker({ ...picker, localId: e.target.value })
@@ -280,7 +280,7 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
                 <div className="flex flex-col gap-2">
                   <Label className="text-sm font-medium">Field</Label>
                   <select
-                    className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+                    className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
                     value={picker.field}
                     onChange={(e) =>
                       setPicker({

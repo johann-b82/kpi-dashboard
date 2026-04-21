@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, CheckCircle2, PlugZap, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -150,7 +151,7 @@ export function PersonioCard({ draft, setField, hasCredentials, embedded = false
                   Number(e.target.value) as 0 | 1 | 6 | 24,
                 )
               }
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring"
             >
               {INTERVAL_OPTIONS.map((opt) => (
                 <option key={opt.value} value={String(opt.value)}>
@@ -164,47 +165,47 @@ export function PersonioCard({ draft, setField, hasCredentials, embedded = false
         {/* Test connection + Refresh (above separator) */}
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               disabled={testing || (!hasCredentials && !draft.personio_client_id)}
               onClick={handleTestConnection}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
             >
               {testing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
-                <PlugZap className="h-4 w-4" />
+                <PlugZap className="h-4 w-4 mr-1" />
               )}
               {testing ? t("settings.personio.test_connection.testing") : t("settings.personio.test_connection.button")}
-            </button>
+            </Button>
             <AdminOnly>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => {
                   setSyncFeedback("idle");
                   setSyncError(null);
                   syncMutation.mutate();
                 }}
                 disabled={syncMutation.isPending || !hasCredentials}
-                className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 h-9 text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
               >
                 {syncMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                     {t("hr.sync.button")}
                   </>
                 ) : syncFeedback === "success" ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
+                    <CheckCircle2 className="h-4 w-4 mr-1 text-[var(--color-success)]" />
                     {t("hr.sync.success")}
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className="h-4 w-4 mr-1" />
                     {t("hr.sync.button")}
                   </>
                 )}
-              </button>
+              </Button>
             </AdminOnly>
           </div>
           {testResult !== null && (

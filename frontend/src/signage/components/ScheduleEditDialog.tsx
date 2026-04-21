@@ -244,7 +244,7 @@ export function ScheduleEditDialog({
               </Label>
               <select
                 id="sched-playlist"
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                className="w-full h-8 rounded-lg border border-input bg-background px-2.5 text-sm"
                 value={playlist_id}
                 onChange={(e) => {
                   setPlaylistId(e.target.value);

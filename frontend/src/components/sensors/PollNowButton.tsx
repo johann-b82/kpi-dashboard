@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { pollSensorsNow, type PollNowResult } from "@/lib/api";
 import { sensorKeys } from "@/lib/queryKeys";
 
@@ -53,14 +54,13 @@ export function PollNowButton() {
     : t("sensors.poll.now");
 
   return (
-    <button
+    <Button
       type="button"
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
-      className="inline-flex items-center justify-center rounded-md h-9 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       aria-busy={mutation.isPending}
     >
       {label}
-    </button>
+    </Button>
   );
 }
