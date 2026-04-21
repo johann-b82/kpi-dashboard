@@ -104,13 +104,14 @@ export function PlaybackShell() {
     return applyDurationDefaults(mapped);
   }, [envelope, token]);
 
-  // Browser-testing heartbeat fallback: 60s interval while the tab is visible.
-  // Pi sidecar still owns production heartbeats; this just closes the gap when
-  // the player is opened directly in a browser (admin QA, internal demos).
+  // Browser-mode heartbeat fallback: 60s interval as long as the shell is
+  // mounted. Pi sidecar still owns production heartbeats; this closes the gap
+  // when the player is opened directly in a browser (admin QA, kiosk tabs that
+  // may be backgrounded). No visibilityState guard — kiosk displays frequently
+  // run with the tab unfocused, and we still want presence reflected.
   useEffect(() => {
     if (!token) return;
     const tick = () => {
-      if (document.visibilityState !== "visible") return;
       void playerFetch<void>("/api/signage/player/heartbeat", {
         token,
         method: "POST",
