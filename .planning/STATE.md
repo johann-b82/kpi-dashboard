@@ -4,8 +4,8 @@ milestone: v1.18
 milestone_name: Pi Polish + Scheduling
 status: "ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`"
 stopped_at: Completed 50-02-PLAN.md (SGN-POL-04 closed via operator hardware sign-off)
-last_updated: "2026-04-21T09:54:37.990Z"
-last_activity: 2026-04-21 — v1.18 opened
+last_updated: "2026-04-21T10:10:19.480Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 4
   completed_phases: 1
@@ -37,9 +37,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 ## Current Position
 
 Milestone: v1.18 Pi Polish + Scheduling — PLANNING
-Phase: 50 (pi-polish) — awaiting plan
+Phase: 51
 Status: ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`
-Last activity: 2026-04-21 — v1.18 opened
+Last activity: 2026-04-21
 
 Progress: [····] 0/4 phases
 
