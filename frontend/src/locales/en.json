@@ -246,6 +246,7 @@
   "signage.admin.playlists.col_created": "Created",
   "signage.admin.playlists.col_actions": "Actions",
   "signage.admin.editor.name_placeholder": "Playlist name",
+  "signage.admin.editor.name_prefix": "Playlist:",
   "signage.admin.editor.save": "Save playlist",
   "signage.admin.editor.cancel": "Discard changes",
   "signage.admin.editor.add_item": "Add item",
