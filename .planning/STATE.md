@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
-status: requirements
-stopped_at: Defining requirements
-last_updated: "2026-04-21T21:15:00.000Z"
+status: roadmap
+stopped_at: Roadmap drafted — awaiting phase 54 planning
+last_updated: "2026-04-21T22:00:00.000Z"
 last_activity: 2026-04-21
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,7 +16,7 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-21
-**Session:** v1.19 UI Consistency Pass 2 — defining requirements
+**Session:** v1.19 UI Consistency Pass 2 — roadmap drafted
 
 ---
 
@@ -26,25 +26,25 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 52 — schedule-admin-ui
+**Current focus:** Phase 54 — toggle primitive + migrations (TOGGLE-01..05)
 
-Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`) with 4 operator carry-forwards folded into Phase 50.
-
-Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
+Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
+Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
+Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 ---
 
 ## Current Position
 
-Milestone: v1.19 UI Consistency Pass 2 — defining requirements
-Phase: Not started
+Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
+Phase: 54 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-21 — Milestone v1.19 started
+Status: Roadmap drafted — awaiting phase 54 planning
+Last activity: 2026-04-21 — v1.19 roadmap created (6 phases, 23/23 requirements mapped)
 
-Progress: —
+Progress: 0/6 phases complete, 0 plans
 
-Next action: Run roadmapper to carve phases from `.planning/REQUIREMENTS.md`
+Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations into plans.
 
 ### Quick Tasks Completed
 
@@ -195,29 +195,33 @@ Next action: Run roadmapper to carve phases from `.planning/REQUIREMENTS.md`
 - [Phase 52]: Plan 52-02: error.start_after_end reserved for backend-error surfacing only — client validator never emits it (D-07 consolidation)
 - [Phase 52]: Plan 52-02: added testing-library + jsdom + vitest.config.ts (jsdom env) to unblock component tests; pre-existing pure-logic tests kept on node env via environmentMatchGlobs
 - [Phase 53]: Plan 53-01: signage_heartbeat_event composite PK (device_id, ts); COUNT(DISTINCT date_trunc('minute', ts)) SQL; 1-decimal uptime precision; zero-heartbeat devices INCLUDED with uptime_24h_pct=null (not omitted); 25h retention for 1h sweeper-vs-analytics buffer
+- **[v1.19 roadmap 2026-04-21]:** 6 phases (54–59), 23 requirements. Phase sequencing: Toggle (54) → Form Controls (55) → Breadcrumb Header (56) ∥ Section Context (57) → Sensors Parity (58) → A11y Sweep (59). Build primitives first so later phases consume them; A11y sweep runs last over everything touched.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
-1. DE/EN i18n parity (CI script)
+1. DE/EN i18n parity (CI script) — EN count == DE count on every new/renamed key
 2. apiClient-only in admin frontend (no direct `fetch()`)
-3. No `dark:` Tailwind variants (tokens only)
+3. No `dark:` Tailwind variants (tokens only) — dark-mode sweep enforces in Phase 59
 4. `--workers 1` invariant preserved
 5. Router-level admin gate via `APIRouter(dependencies=[…])`
 6. No `import sqlite3` / no `import psycopg2`
 7. No sync `subprocess.run` in signage services
+8. **v1.19 new:** `prefers-reduced-motion` fallback on Toggle (instant indicator swap)
+9. **v1.19 new:** Keyboard navigability + visible focus ring on every migrated control
+10. **v1.19 new:** Pure frontend — no backend schema or API changes
 
 ### Open decisions deferred to phase planning
 
-- **Decision 1 (Phase 44):** PPTX worker location — api container + BackgroundTasks vs. isolated pptx-worker container with `cap_drop`/`read_only`/no DB net. Recommendation: isolated worker (CVE blast-radius).
-- **Decision 2 (Phase 41):** Media storage — Directus uploads read-only volume mount vs. backend-owned `/app/media/`. Binds 43+44.
-- **Decision 3 (Phase 47):** Player offline cache — `vite-plugin-pwa` SW + Cache API vs. Pi-side sidecar writing to `/var/lib/signage/`. Binds 48.
-- **Decision 4 (Phase 42):** Device token format — opaque `secrets.token_urlsafe(32)` sha256-hashed vs. scoped JWT HS256 with rotation-on-heartbeat.
+- **Decision 1 (Phase 54):** Toggle component API — should it extend `SegmentedControl` internally with a 2-option specialization, or be an independent primitive? Binds migration surface in 54 + 55.
+- **Decision 2 (Phase 55):** Canonical primitive source — adopt shadcn/ui wrappers wholesale vs. hand-rolled at `h-8`? Binds CTRL-01..04 scope.
+- **Decision 3 (Phase 56):** Breadcrumb label source — derive from route tree config vs. per-page registration hook? Binds HDR-02/03 i18n pattern.
+- **Decision 4 (Phase 57):** `DeleteDialog` shape — keep the existing signage `DeleteDialog` component, or promote a new generic one? Binds SECTION-03/04 migration sweep.
 
 ### Pending Todos
 
-- Kick off Phase 48 via `/gsd:discuss-phase 48` (pi-provisioning, systemd kiosk, E2E, bilingual admin guide)
-- Resolve Phase 47 open defects D-7 (SW scope) and D-8 (player fetch cache: no-store) as polish or in Phase 48 hardening
-- Orchestrator decision: raise player bundle gz cap to 210 000 or dynamic-import PdfPlayer (v1.17 polish)
+- Kick off Phase 54 via `/gsd:discuss-phase 54` (Toggle primitive + migrations)
+- Resolve Phase 47 open defects D-7 (SW scope) and D-8 (player fetch cache: no-store) as polish or in a future phase
+- Orchestrator decision: raise player bundle gz cap to 210 000 or keep lazy-chunk discipline (v1.17 polish)
 
 ### Open Blockers
 
@@ -233,6 +237,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T15:58:15.339Z
-**Stopped at:** Completed 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md
+**Last session:** 2026-04-21T22:00:00.000Z
+**Stopped at:** v1.19 roadmap drafted — 6 phases, 23/23 requirements mapped
 **Resume file:** None

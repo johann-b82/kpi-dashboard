@@ -19,6 +19,7 @@
 - ✅ **v1.16 Digital Signage** — Phases 41–48 (shipped 2026-04-20) — [archive](milestones/v1.16-ROADMAP.md)
 - ✅ **v1.17 Pi Image Release** — Phase 49 (shipped 2026-04-21) — [archive](milestones/v1.17-ROADMAP.md)
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
+- 🚧 **v1.19 UI Consistency Pass 2** — Phases 54–59 (active, started 2026-04-21)
 
 ## Phases
 
@@ -184,26 +185,102 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 
 </details>
 
-<!-- v1.18 active-body phase details removed on archive 2026-04-21; see milestones/v1.18-ROADMAP.md -->
+<details open>
+<summary>🚧 v1.19 UI Consistency Pass 2 (Phases 54–59) — ACTIVE</summary>
+
+- [ ] **Phase 54: Toggle Primitive + Migrations** — New pill `Toggle` component + migrate EN/DE, theme, and 2-option SegmentedControl usages.
+- [ ] **Phase 55: Consolidated Form Controls** — Unify `Input`/`Select`/`Button`/`Textarea`/`Dropdown` at `h-8` with token-driven focus/disabled/invalid states.
+- [ ] **Phase 56: Breadcrumb Header + Content-Nav Relocation** — Strip content tabs from top header, add breadcrumb trail, push page controls to SubHeader.
+- [ ] **Phase 57: Section Context + Standardized Trashcan** — Heading + description on every admin section; one delete button + confirm dialog everywhere.
+- [ ] **Phase 58: Sensors Layout Parity** — Move `/sensors` date-range + "Jetzt messen" into SubHeader.
+- [ ] **Phase 59: A11y & Parity Sweep** — DE/EN parity audit, focus-ring + accessible-name audit, dark-mode sweep across migrated surfaces.
+
+</details>
+
+## Phase Details
+
+### Phase 54: Toggle Primitive + Migrations
+**Goal**: A single animated pill `Toggle` component exists and drives every 2-option boolean switch in the app.
+**Depends on**: Nothing (first phase of v1.19)
+**Requirements**: TOGGLE-01, TOGGLE-02, TOGGLE-03, TOGGLE-04, TOGGLE-05
+**Success Criteria** (what must be TRUE):
+  1. User sees a pill-shaped `Toggle` with an animated indicator sliding under the active label in light and dark mode.
+  2. User toggles language via the new `Toggle` in the top header; preference persists.
+  3. User toggles theme via the new `Toggle` with sun/moon icons as labels.
+  4. User operates `Toggle` via keyboard (Arrow keys change selection, Enter/Space activates) with visible focus ring and `role="radiogroup"` semantics.
+  5. When `prefers-reduced-motion` is set, the indicator swaps instantly with no slide animation.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 55: Consolidated Form Controls
+**Goal**: Every form control in the app comes from one canonical primitive at the `h-8` height token with consistent focus, disabled, and invalid states.
+**Depends on**: Phase 54
+**Requirements**: CTRL-01, CTRL-02, CTRL-03, CTRL-04
+**Success Criteria** (what must be TRUE):
+  1. User interacts with a single canonical `Input`, `Select`, `Button`, `Textarea`, and `Dropdown` primitive across every page under `frontend/src/components/ui/`.
+  2. All standard-size form controls render at the `h-8` height; no `h-9`/`h-10`/`h-11` variants remain in default code paths.
+  3. Focus ring, disabled state, and invalid/error state look identical across all primitives and resolve from tokens in both themes.
+  4. Raw `<input>`/`<select>`/`<button>`/`<textarea>` usages are gone from the app (documented native-element exceptions only, annotated in-source).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 56: Breadcrumb Header + Content-Nav Relocation
+**Goal**: The top header carries only global identity; page navigation happens through a breadcrumb trail and per-page SubHeader controls.
+**Depends on**: Phase 55
+**Requirements**: HDR-01, HDR-02, HDR-03, HDR-04
+**Success Criteria** (what must be TRUE):
+  1. User sees only brand/logo, user menu, language toggle, and theme toggle in the top header — no content tabs or page-specific actions.
+  2. User sees a breadcrumb trail (`Home › Section › [Subsection]`) in the top header reflecting the current route, with `<a>` links that navigate.
+  3. User can Tab through breadcrumb items and activate them with Enter; DE and EN labels have full key parity.
+  4. Former top-header content controls (Sales/HR toggle, upload button, per-page settings gear) now live in the SubHeader or their owning page surface.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 57: Section Context + Standardized Trashcan
+**Goal**: Every admin section explains itself with a heading + description, and every destructive row action uses one shared delete button + confirm dialog.
+**Depends on**: Phase 55
+**Requirements**: SECTION-01, SECTION-02, SECTION-03, SECTION-04
+**Success Criteria** (what must be TRUE):
+  1. User sees a heading + short description (≤ 2 lines) on every admin page section, matching the Playlist-editor pattern.
+  2. All section headings and descriptions render in DE (du-tone) and EN with matching i18n key counts.
+  3. The same `<TrashIcon>` delete button is the only destructive row action in Media, Playlists, Devices, Schedules, Tags, Sensors, and Users.
+  4. Every delete action opens the shared `DeleteDialog`; no `window.confirm` or one-off modals remain.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 58: Sensors Layout Parity
+**Goal**: The `/sensors` page layout matches other dashboard routes — controls in the SubHeader, body reserved for data.
+**Depends on**: Phase 55, Phase 56
+**Requirements**: SENSORS-01, SENSORS-02, SENSORS-03
+**Success Criteria** (what must be TRUE):
+  1. User changes the date-range/time-window for `/sensors` via the SubHeader, not the page body.
+  2. User triggers "Jetzt messen" from the SubHeader right slot using the shared `Button` primitive.
+  3. The `/sensors` page body contains only KPI cards, charts, and tables — no header-level controls remain inline.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 59: A11y & Parity Sweep
+**Goal**: Every surface touched by v1.19 is DE/EN parity-clean, focus-ring complete, dark-mode clean, and free of hardcoded color literals.
+**Depends on**: Phase 54, Phase 55, Phase 56, Phase 57, Phase 58
+**Requirements**: A11Y-01, A11Y-02, A11Y-03
+**Success Criteria** (what must be TRUE):
+  1. DE and EN i18n files have identical key counts for every new or renamed v1.19 key; DE copy reads in du-tone.
+  2. Every new or migrated control exposes an accessible name (visible label or `aria-label`) and shows a visible focus ring in both light and dark mode.
+  3. Every migrated surface renders cleanly in dark mode with zero hardcoded color literals and no contrast regressions.
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress Table
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 37. App Launcher | v1.14 | 2/2 | Complete | 2026-04-17 |
-| 38. Backend + Schema + Scheduler | v1.15 | 3/3 | Complete | 2026-04-17 |
-| 39. Dashboard UI + Launcher Tile | v1.15 | 2/2 | Complete | 2026-04-17 |
-| 40. Admin Settings + Docs + Hardening | v1.15 | 3/3 | Complete | 2026-04-18 |
-| 41. Signage Schema & Models | v1.16 | 5/5 | Complete    | 2026-04-18 |
-| 42. Device Auth + Pairing Flow | v1.16 | 3/3 | Complete    | 2026-04-18 |
-| 43. Media + Playlist + Device Admin API | v1.16 | 5/5 | Complete    | 2026-04-18 |
-| 44. PPTX Conversion Pipeline | v1.16 | 5/5 | Complete    | 2026-04-19 |
-| 45. SSE Broadcast | v1.16 | 3/3 | Complete    | 2026-04-19 |
-| 46. Admin UI | v1.16 | 6/6 | Complete   | 2026-04-19 |
-| 47. Player Bundle | v1.16 | 5/5 | Complete   | 2026-04-20 |
-| 48. Pi Provisioning + E2E + Docs | v1.16 | 5/5 | Complete   | 2026-04-20 |
-| 49. Pi Image Build | v1.17 | 4/4 | Complete   | 2026-04-21 |
 | 50. Pi Polish | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 51. Schedule Schema + Resolver | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
 | 53. Analytics-lite | v1.18 | 2/2 | Complete   | 2026-04-21 |
+| 54. Toggle Primitive + Migrations | v1.19 | 0/? | Not started | — |
+| 55. Consolidated Form Controls | v1.19 | 0/? | Not started | — |
+| 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 0/? | Not started | — |
+| 57. Section Context + Standardized Trashcan | v1.19 | 0/? | Not started | — |
+| 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
+| 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |

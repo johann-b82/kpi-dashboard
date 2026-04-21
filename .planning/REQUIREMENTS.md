@@ -1,8 +1,9 @@
 # Requirements: v1.19 UI Consistency Pass 2
 
 **Milestone:** v1.19
-**Status:** Defining requirements
+**Status:** Roadmapped — 6 phases, 23/23 requirements mapped
 **Created:** 2026-04-21
+**Roadmapped:** 2026-04-21
 
 **Core Value:** Unify admin UI chrome, controls, and navigation patterns so every route in the KPI Dashboard uses the same components, spacing, and interaction primitives. Pure frontend consistency pass — no backend schema or API changes.
 
@@ -78,34 +79,43 @@ None at this time.
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| HDR-01 | | | |
-| HDR-02 | | | |
-| HDR-03 | | | |
-| HDR-04 | | | |
-| SECTION-01 | | | |
-| SECTION-02 | | | |
-| SECTION-03 | | | |
-| SECTION-04 | | | |
-| CTRL-01 | | | |
-| CTRL-02 | | | |
-| CTRL-03 | | | |
-| CTRL-04 | | | |
-| SENSORS-01 | | | |
-| SENSORS-02 | | | |
-| SENSORS-03 | | | |
-| TOGGLE-01 | | | |
-| TOGGLE-02 | | | |
-| TOGGLE-03 | | | |
-| TOGGLE-04 | | | |
-| TOGGLE-05 | | | |
-| A11Y-01 | | | |
-| A11Y-02 | | | |
-| A11Y-03 | | | |
+| HDR-01 | Phase 56 | TBD | Pending |
+| HDR-02 | Phase 56 | TBD | Pending |
+| HDR-03 | Phase 56 | TBD | Pending |
+| HDR-04 | Phase 56 | TBD | Pending |
+| SECTION-01 | Phase 57 | TBD | Pending |
+| SECTION-02 | Phase 57 | TBD | Pending |
+| SECTION-03 | Phase 57 | TBD | Pending |
+| SECTION-04 | Phase 57 | TBD | Pending |
+| CTRL-01 | Phase 55 | TBD | Pending |
+| CTRL-02 | Phase 55 | TBD | Pending |
+| CTRL-03 | Phase 55 | TBD | Pending |
+| CTRL-04 | Phase 55 | TBD | Pending |
+| SENSORS-01 | Phase 58 | TBD | Pending |
+| SENSORS-02 | Phase 58 | TBD | Pending |
+| SENSORS-03 | Phase 58 | TBD | Pending |
+| TOGGLE-01 | Phase 54 | TBD | Pending |
+| TOGGLE-02 | Phase 54 | TBD | Pending |
+| TOGGLE-03 | Phase 54 | TBD | Pending |
+| TOGGLE-04 | Phase 54 | TBD | Pending |
+| TOGGLE-05 | Phase 54 | TBD | Pending |
+| A11Y-01 | Phase 59 | TBD | Pending |
+| A11Y-02 | Phase 59 | TBD | Pending |
+| A11Y-03 | Phase 59 | TBD | Pending |
 
 **Coverage:**
 - Active requirements: 23 total
-- Mapped to phases: 0 (roadmapper fills next)
+- Mapped to phases: 23 / 23 ✓
+- Orphaned: 0
+
+**Phase allocation:**
+- Phase 54 — Toggle Primitive + Migrations: 5 (TOGGLE-01..05)
+- Phase 55 — Consolidated Form Controls: 4 (CTRL-01..04)
+- Phase 56 — Breadcrumb Header + Content-Nav Relocation: 4 (HDR-01..04)
+- Phase 57 — Section Context + Standardized Trashcan: 4 (SECTION-01..04)
+- Phase 58 — Sensors Layout Parity: 3 (SENSORS-01..03)
+- Phase 59 — A11y & Parity Sweep: 3 (A11Y-01..03)
 
 ---
 
-*Requirements defined: 2026-04-21 — phase structure pending roadmapper run. Continue phase numbering from 53 (v1.18 last phase) — next phase is 54.*
+*Roadmap drafted 2026-04-21 — 6 phases (54–59), 23/23 requirements mapped, 0 orphans. Next: `/gsd:plan-phase 54`.*
