@@ -30,6 +30,9 @@ cp -r "${REPO_ROOT}/pi-sidecar/." "${ROOTFS}/opt/signage/pi-sidecar/"
 install -d -m 0755 "${ROOTFS}/opt/signage/scripts/systemd"
 cp "${REPO_ROOT}/scripts/systemd/"*.service "${ROOTFS}/opt/signage/scripts/systemd/"
 
+# Copy firstboot.sh — invoked by signage-firstboot.service
+install -m 0755 "${REPO_ROOT}/scripts/firstboot.sh" "${ROOTFS}/opt/signage/scripts/firstboot.sh"
+
 if [ "${_SKIP_FIRSTBOOT}" = "0" ]; then
   # Bake the firstboot service (system-level, not user-level)
   install -m 0644 "${REPO_ROOT}/pi-image/stage-signage/signage-firstboot.service" \
