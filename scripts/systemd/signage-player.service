@@ -1,8 +1,11 @@
 [Unit]
 Description=Signage kiosk (Chromium)
 Documentation=https://github.com/<org>/<repo>/blob/main/docs/operator-runbook.md
-After=graphical.target signage-sidecar.service
-Requires=signage-sidecar.service
+# labwc alone does not emit graphical-session.target, so we bind to labwc
+# directly: player starts after labwc is up, stops when labwc goes down.
+After=labwc.service signage-sidecar.service
+Requires=signage-sidecar.service labwc.service
+BindsTo=labwc.service
 
 [Service]
 Type=simple
@@ -43,4 +46,7 @@ NoNewPrivileges=yes
 # Do NOT add ProtectSystem=strict — Chromium writes profile data to /home/signage.
 
 [Install]
-WantedBy=graphical-session.target
+# default.target is what the user manager reaches at login/boot. labwc is
+# also WantedBy=default.target; BindsTo= handles the ordering so player
+# waits for labwc's Wayland socket.
+WantedBy=default.target
