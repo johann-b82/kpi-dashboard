@@ -290,7 +290,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 52. Schedule Admin UI | v1.18 | 3/3 | Complete    | 2026-04-21 |
 | 53. Analytics-lite | v1.18 | 2/2 | Complete   | 2026-04-21 |
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
-| 55. Consolidated Form Controls | v1.19 | 6/6 | Complete   | 2026-04-21 |
+| 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 0/? | Not started | — |
 | 57. Section Context + Standardized Trashcan | v1.19 | 0/? | Not started | — |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
