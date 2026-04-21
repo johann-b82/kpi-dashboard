@@ -21,6 +21,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    SmallInteger,
     String,
     Text,
     text,
@@ -313,6 +314,68 @@ class SignagePairingSession(Base):
     )
     claimed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class SignageSchedule(Base):
+    """Time-based playlist schedule — v1.18 Phase 51 SGN-TIME-01.
+
+    A schedule binds a playlist to a (weekday, time-window) gate. The resolver
+    picks the highest (priority DESC, updated_at DESC) enabled schedule whose
+    weekday_mask matches now.weekday() and start_hhmm <= now_hhmm < end_hhmm,
+    and whose playlist's tags overlap the device's tags. No midnight-spanning
+    windows (D-07) — operators split "22:00-02:00" into two rows.
+
+    Bit ordering (D-05): bit 0 = Monday .. bit 6 = Sunday.
+    Time format: packed integer HHMM (e.g., 730 = 07:30, 1430 = 14:30).
+    """
+
+    __tablename__ = "signage_schedules"
+    __table_args__ = (
+        CheckConstraint(
+            "weekday_mask BETWEEN 0 AND 127",
+            name="ck_signage_schedules_weekday_mask",
+        ),
+        CheckConstraint(
+            "start_hhmm >= 0 AND start_hhmm <= 2359",
+            name="ck_signage_schedules_start_hhmm",
+        ),
+        CheckConstraint(
+            "end_hhmm >= 0 AND end_hhmm <= 2359",
+            name="ck_signage_schedules_end_hhmm",
+        ),
+        CheckConstraint(
+            "start_hhmm < end_hhmm",
+            name="ck_signage_schedules_no_midnight_span",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
+    playlist_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("signage_playlists.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    weekday_mask: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    start_hhmm: Mapped[int] = mapped_column(Integer, nullable=False)
+    end_hhmm: Mapped[int] = mapped_column(Integer, nullable=False)
+    priority: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+    enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
     )
 
     created_at: Mapped[datetime] = mapped_column(

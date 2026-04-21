@@ -32,6 +32,7 @@ from app.models.signage import (  # noqa: F401
     SignageDeviceTagMap,
     SignagePlaylistTagMap,
     SignagePairingSession,
+    SignageSchedule,
 )
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     "SignageMedia", "SignagePlaylist", "SignagePlaylistItem",
     "SignageDevice", "SignageDeviceTag", "SignageDeviceTagMap",
     "SignagePlaylistTagMap", "SignagePairingSession",
+    "SignageSchedule",
 ]
