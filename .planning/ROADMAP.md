@@ -223,7 +223,7 @@ Full details: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 **Plans**: 3 plans
 - [ ] 52-01-foundation-PLAN.md — Types, signageApi CRUD, query keys, i18n key set (~45 keys EN/DE du-tone), SegmentedControl 4th segment wire (SGN-SCHED-UI-01/02/04)
 - [ ] 52-02-schedules-ui-PLAN.md — SchedulesPage + ScheduleEditDialog + ScheduleDeleteDialog + WeekdayCheckboxRow + scheduleAdapters + route + PlaylistsPage 409 deep-link (SGN-SCHED-UI-01/02/04)
-- [ ] 52-03-admin-guide-PLAN.md — §Schedules/§Zeitpläne appended to bilingual admin guide (SGN-SCHED-UI-03)
+- [x] 52-03-admin-guide-PLAN.md — §Schedules/§Zeitpläne appended to bilingual admin guide (SGN-SCHED-UI-03)
 
 ### Phase 53: Analytics-lite
 **Goal**: Devices table in the admin UI shows uptime-last-24h + heartbeats-missed badges per device, computed from existing heartbeat data (no new schema).
@@ -269,5 +269,5 @@ All 7 hard gates inherited. Phase 52 specifically re-exercises: DE/EN parity, ap
 | 49. Pi Image Build | v1.17 | 4/4 | Complete   | 2026-04-21 |
 | 50. Pi Polish | v1.18 | 2/2 | Complete    | 2026-04-21 |
 | 51. Schedule Schema + Resolver | v1.18 | 2/2 | Complete    | 2026-04-21 |
-| 52. Schedule Admin UI | v1.18 | 0/3 | Pending    |  |
+| 52. Schedule Admin UI | v1.18 | 1/3 | In Progress|  |
 | 53. Analytics-lite | v1.18 | 0/? | Pending    |  |

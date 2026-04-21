@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: verifying
-stopped_at: Phase 52 context gathered
-last_updated: "2026-04-21T11:58:42.628Z"
+status: executing
+stopped_at: Completed 52-03-admin-guide-PLAN.md
+last_updated: "2026-04-21T12:50:40.183Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 51 — schedule-schema-resolver
+**Current focus:** Phase 52 — schedule-admin-ui
 
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`) with 4 operator carry-forwards folded into Phase 50.
 
@@ -37,9 +37,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 ## Current Position
 
 Milestone: v1.18 Pi Polish + Scheduling — PLANNING
-Phase: 52
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 52 (schedule-admin-ui) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-21
 
 Progress: [····] 0/4 phases
@@ -105,6 +105,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 50-pi-polish P01 | 4m | 3 tasks | 2 files |
 | Phase 51 P01 | 9m 5s | 3 tasks | 12 files |
 | Phase 51 P02 | 7m | 2 tasks | 4 files |
+| Phase 52 P03 | 2m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 51]: Plan 51-02: schedule-changed SSE events emitted per (device, playlist_id) pair — PATCH union case sends one event per playlist so player can correlate re-resolves
 - [Phase 51]: Plan 51-02: Playlist DELETE 409 body {detail, schedule_ids} via JSONResponse mirrors media 409 {detail, playlist_ids} convention (RESEARCH Q2 closed)
 - [Phase 51]: Plan 51-02: asyncpg raises FK RESTRICT at db.execute(delete), not only at db.commit — try/except must wrap both
+- [Phase 52]: Plan 52-03: Appended bilingual Schedules/Zeitpläne admin-guide sections verbatim per plan; DE du-tone enforced (0 Sie/Ihre/Ihr); added 33 lines per file (plan's prose block shorter than >=40 acceptance threshold).
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -216,6 +218,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T11:58:42.612Z
-**Stopped at:** Phase 52 context gathered
-**Resume file:** .planning/phases/52-schedule-admin-ui/52-CONTEXT.md
+**Last session:** 2026-04-21T12:50:40.181Z
+**Stopped at:** Completed 52-03-admin-guide-PLAN.md
+**Resume file:** None

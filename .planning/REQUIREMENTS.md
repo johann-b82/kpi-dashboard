@@ -35,7 +35,7 @@
 
 - [ ] **SGN-SCHED-UI-01**: New "Schedules" tab on `/signage` (4th tab; `SegmentedControl` same pattern as Media / Playlists / Devices). Admin-only (`AdminOnly` wrapper). Lists all schedules with columns: playlist name, days, time window, priority, enabled toggle, actions (edit / delete).
 - [ ] **SGN-SCHED-UI-02**: Schedule editor form: playlist picker (required), weekday checkbox row Mo Di Mi Do Fr Sa So, two `HH:MM` time inputs (required, start < end), priority integer input (default 0), enabled toggle (default true). Submits via `apiClient` (hard gate 2 — no raw `fetch`).
-- [ ] **SGN-SCHED-UI-03**: Admin guide updated. Both `frontend/src/docs/en/admin-guide/digital-signage.md` and `frontend/src/docs/de/admin-guide/digital-signage.md` get a new §"Zeitpläne" / §"Schedules" section. Hard gate 1 DE/EN parity CI green.
+- [x] **SGN-SCHED-UI-03**: Admin guide updated. Both `frontend/src/docs/en/admin-guide/digital-signage.md` and `frontend/src/docs/de/admin-guide/digital-signage.md` get a new §"Zeitpläne" / §"Schedules" section. Hard gate 1 DE/EN parity CI green.
 - [ ] **SGN-SCHED-UI-04**: Signage invariants CI script covers the new tab/components — no `dark:` variants (hazard 3), apiClient-only (hazard 2), no direct DB imports, etc.
 
 ### Analytics-lite (SGN-ANA-*)
