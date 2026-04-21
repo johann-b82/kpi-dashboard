@@ -23,14 +23,14 @@ decisions:
   - "Template copied verbatim from 50-RESEARCH.md § '50-E2E-RESULTS.md template' — preserves Unicode arrows (→, ≤) and mirrors Phase 48 layout for operator familiarity."
   - "Task 3 is a checkpoint:human-action — requires physical Pi walkthrough; cannot be run inside Claude execution environment."
 metrics:
-  duration: ~2m
+  duration: ~2m (Tasks 1–2) + operator hardware walkthrough (Task 3, off-session)
   completed_date: 2026-04-21
-status: checkpoint
+status: done
 ---
 
 # Phase 50 Plan 02: E2E Scenarios 4 + 5 Summary
 
-Produced the operator runbook + results template for the v1.17 carry-forward hardware walkthrough (Scenarios 4 + 5), with every runbook command grep-verified against the current repo. Execution paused at Task 3 checkpoint: operator must run the walkthrough on a `provision-pi.sh`-provisioned Pi and record numerical timings.
+Produced the operator runbook + results template for the v1.17 carry-forward hardware walkthrough (Scenarios 4 + 5), grep-verified every runbook command against the current repo, and — after operator hardware sign-off — closed SGN-POL-04 with both scenarios PASS on v1.18 Pi hardware.
 
 ## What was built
 
@@ -65,18 +65,17 @@ All five verification checks PASS:
 
 No repo files modified by Task 2 (verification only).
 
-### Task 3: Operator runs Scenarios 4 + 5 on real Pi hardware — CHECKPOINT
+### Task 3: Operator runs Scenarios 4 + 5 on real Pi hardware — DONE
 
-**Blocked by:** requires physical Raspberry Pi + SSH + admin UI; cannot be simulated inside Claude's execution environment. This is exactly the SGN-POL-04 v1.17 carry-forward that Phase 50 was created to close.
+Operator ran the full hardware walkthrough on v1.18 test hardware (Raspberry Pi OS Bookworm Lite 64-bit, provisioned via `scripts/provision-pi.sh`) and signed off both scenarios PASS.
 
-Operator must:
-1. Provision a fresh Bookworm Lite 64-bit Pi via `scripts/provision-pi.sh`
-2. Pair the Pi and create a test playlist (≥ 3 items, each `duration_s = 5`)
-3. Run Scenario 4 (nmcli disconnect → reconnect → admin mutation; measure T1 − T0 ≤ 30 s)
-4. Run Scenario 5 (`systemctl --user restart signage-sidecar`; observe visual continuity; cold-start ≤ 15 s)
-5. Fill in numerical timings in `50-E2E-RESULTS.md`, flip Status from PENDING to PASS/FAIL, sign off, commit.
+**Scenario 4 — Reconnect → admin-mutation arrives:** PASS. Budget ≤ 30 s verified by direct stopwatch observation. No black screen, no error banner. Exact `T1 − T0` delta was not captured numerically.
 
-Resume signal: operator types "approved" once `50-E2E-RESULTS.md` is filled in and committed.
+**Scenario 5 — Sidecar restart → playback continuity:** PASS. Zero visible interruption during `systemctl --user restart signage-sidecar` (5.2). Sidecar `/health` returned `ready:true` within the 15 s budget (5.3). Exact cold-start time not captured numerically. Step 5.6 (SSE post-restart mutation) not exercised in this walkthrough.
+
+**Honesty note:** The operator did not log exact wall-clock timings for `T1 − T0` (Scenario 4) or sidecar cold-start (Scenario 5). Both threshold checks were confirmed by direct observation rather than numerical capture; the results doc reflects this with `not recorded` in the timing columns and PASS verdicts, and the sign-off area explicitly calls out the missing numerical captures. If future regression work requires numerical baselines, the walkthrough should be repeated with `date +"%Y-%m-%dT%H:%M:%S.%N"` markers as the original research methodology prescribed.
+
+Results commit: `476021a` — `docs(50): record Scenarios 4+5 hardware E2E results — SGN-POL-04`.
 
 ## Deviations from Plan
 
@@ -92,10 +91,13 @@ None.
 
 ## SGN-POL-04 Status
 
-**OPEN** — pending operator hardware walkthrough. Closes on Task 3 sign-off.
+**CLOSED** — operator confirmed both Scenario 4 (reconnect → admin-mutation ≤ 30 s) and Scenario 5 (sidecar restart: zero visible interruption + `/health` ready ≤ 15 s) thresholds met on v1.18 Pi hardware on 2026-04-21. Exact timings not captured numerically; thresholds verified by direct observation.
 
 ## Self-Check: PASSED
 
 - File exists: `.planning/phases/50-pi-polish/50-E2E-RESULTS.md` — **FOUND**
-- Commit exists: `e616acd` — **FOUND** in `git log --oneline`
+- Template commit `e616acd` — **FOUND** in `git log --oneline`
+- Results commit `476021a` (operator sign-off, Status=PASS) — **FOUND** in `git log --oneline`
 - Task 2 grep checks: all five PASS (output captured above)
+- Results file Status line: `**Status:** PASS` — **CONFIRMED**
+- Operator sign-off block: all three checkboxes checked, Reviewer + Date populated — **CONFIRMED**

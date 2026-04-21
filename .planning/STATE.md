@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
 status: "ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`"
-stopped_at: Completed 50-01-PLAN.md
-last_updated: "2026-04-21T09:21:38.297Z"
+stopped_at: Completed 50-02-PLAN.md (SGN-POL-04 closed via operator hardware sign-off)
+last_updated: "2026-04-21T09:54:37.990Z"
 last_activity: 2026-04-21 — v1.18 opened
 progress:
   total_phases: 4
@@ -168,6 +168,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical (was originally mirrored to 00-packages-nr for the image-build path — that path and its CI drift-check were retired 2026-04-21)
 - [v1.18 scope change 2026-04-21]: Custom Pi image pipeline retired — `pi-image/` directory, `.github/workflows/pi-image.yml`, minisign signing, arm64 self-hosted runner, and the `signage-packages.txt`↔`00-packages-nr` drift-check removed. Pi provisioning is now single-path via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. SGN-POL-01/02/03/06 dropped from v1.18.
 - [Phase 50-pi-polish]: Lazy chunks (PdfPlayer-*/pdf-*) excluded from player entry cap via LAZY_PREFIXES allowlist
+- [Phase 50-pi-polish]: SGN-POL-04 closed via operator hardware walkthrough on 2026-04-21: Scenarios 4+5 both PASS on v1.18 Pi (Bookworm Lite 64-bit, provisioned via scripts/provision-pi.sh). Thresholds (reconnect→admin-mutation ≤30s; sidecar restart visual continuity + /health ≤15s) verified by direct observation; exact numerical timings not captured — documented as 'not recorded' in 50-E2E-RESULTS.md.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -206,6 +207,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T09:21:38.293Z
-**Stopped at:** Completed 50-01-PLAN.md
+**Last session:** 2026-04-21T09:54:36.838Z
+**Stopped at:** Completed 50-02-PLAN.md (SGN-POL-04 closed via operator hardware sign-off)
 **Resume file:** None
