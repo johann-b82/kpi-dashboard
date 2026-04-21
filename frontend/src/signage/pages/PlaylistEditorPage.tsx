@@ -271,14 +271,14 @@ export function PlaylistEditorPage() {
     <div className="max-w-7xl mx-auto px-6 pt-4 pb-16">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-4">
         <div className="flex flex-1 items-end gap-6 min-w-0">
-          <div className="flex items-baseline gap-2 min-w-0 flex-1">
-            <span className="text-muted-foreground shrink-0 text-sm">
+          <div className="flex-1 min-w-0">
+            <Label className="text-xs text-muted-foreground">
               {t("signage.admin.editor.name_prefix")}
-            </span>
+            </Label>
             <input
               {...form.register("name", { required: true, maxLength: 128 })}
               placeholder={t("signage.admin.editor.name_placeholder")}
-              className="flex-1 min-w-0 bg-transparent border-0 border-b border-border focus:border-primary focus:outline-none font-medium text-base pb-0.5"
+              className="w-full bg-transparent border-0 border-b border-border focus:border-primary focus:outline-none font-medium text-base pb-0.5"
               aria-label={t("signage.admin.editor.name_placeholder")}
             />
           </div>
