@@ -55,13 +55,15 @@ EXPECTED_TABLES = {
     "signage_pairing_sessions",
     # v1.18 Phase 51 SGN-TIME-01
     "signage_schedules",
+    # v1.18 Phase 53 SGN-ANA-01
+    "signage_heartbeat_event",
 }
 
-# v1.18 head — v1_18_signage_schedules builds on v1_16_signage_devices_etag.
-SIGNAGE_HEAD_REVISION = "v1_18_signage_schedules"
+# v1.18 head — v1_18_signage_heartbeat_event builds on v1_18_signage_schedules.
+SIGNAGE_HEAD_REVISION = "v1_18_signage_heartbeat_event"
 # Downgrade steps needed to unwind all signage migrations (v1_16_signage,
-# v1_16_signage_devices_etag, v1_18_signage_schedules).
-SIGNAGE_DOWNGRADE_STEPS = 3
+# v1_16_signage_devices_etag, v1_18_signage_schedules, v1_18_signage_heartbeat_event).
+SIGNAGE_DOWNGRADE_STEPS = 4
 
 # Re-export the sync helpers so static checkers + the plan's acceptance-grep
 # (which looks for `create_engine`, `text`, IntegrityError) still sees them as
@@ -165,10 +167,10 @@ def _signage_indexes() -> list[str]:
 
 def _assert_full_upgrade_state() -> None:
     """Assertions 1-4: schema state after `alembic upgrade head`."""
-    # 1. Exactly the 8 expected signage tables.
+    # 1. Exactly the 10 expected signage tables.
     found = _signage_tables()
     assert found == EXPECTED_TABLES, (
-        f"expected 8 signage tables, found: {sorted(found)}"
+        f"expected {len(EXPECTED_TABLES)} signage tables, found: {sorted(found)}"
     )
 
     # 2. Partial unique index on signage_pairing_sessions.code.
