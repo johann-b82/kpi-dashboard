@@ -1,77 +1,20 @@
-import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useTranslation } from "react-i18next";
-import { Upload as UploadIcon, Settings as SettingsIcon, ArrowLeft, LogOut, Library } from "lucide-react";
-import { useAuth } from "@/auth/useAuth";
-import { AdminOnly } from "@/auth/AdminOnly";
-
-type Dashboard = "/sales" | "/hr";
-
-function getLastDashboard(): Dashboard {
-  try {
-    const v = sessionStorage.getItem("lastDashboard");
-    if (v === "/hr") return "/hr";
-  } catch {
-    /* sessionStorage unavailable — fall through to default */
-  }
-  return "/sales";
-}
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { UserMenu } from "@/components/UserMenu";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSettings } from "@/hooks/useSettings";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
-import { Toggle } from "@/components/ui/toggle";
-import { Button } from "@/components/ui/button";
 
 export function NavBar() {
-  const { t } = useTranslation();
-  const [location, navigate] = useLocation();
+  const [location] = useLocation();
   const isLauncher = location === "/";
-  // Signage pages own their own sub-nav (Media / Playlists / Devices) and
-  // are not a dashboard context — hide the SALES/HR role pill and the
-  // Upload icon (upload is dashboard-scoped).
-  const isSignage = location === "/signage" || location.startsWith("/signage/");
   const { data } = useSettings();
-  const { signOut } = useAuth();
-
-  // Fallback chain: cached data > frontend defaults.
-  // ThemeProvider gates render while isLoading, so by the time NavBar renders,
-  // data is present OR ThemeProvider is in error-fallback mode (data undefined).
   const settings = data ?? DEFAULT_SETTINGS;
-
-  // Track the last visited dashboard (Sales or HR) so the back button on
-  // /settings and /upload can always return to where the user came from.
-  useEffect(() => {
-    if (location === "/sales" || location === "/hr") {
-      try {
-        sessionStorage.setItem("lastDashboard", location);
-      } catch {
-        /* sessionStorage unavailable — back button falls back to "/sales" */
-      }
-    }
-  }, [location]);
-
-  const lastDashboard = getLastDashboard();
-  const backLabel = lastDashboard === "/hr" ? t("nav.back_to_hr") : t("nav.back_to_sales");
-
-  // Upload icon link — styled Link directly (no nested Button to avoid invalid anchor-inside-button nesting)
-  const uploadLinkClass =
-    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
-    (location === "/upload" ? "text-primary" : "text-foreground");
-
-  // Gear link — styled <Link> directly (no nested Button to avoid invalid anchor-inside-button nesting)
-  const settingsLinkClass =
-    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
-    (location === "/settings" ? "text-primary" : "text-foreground");
-
-  const docsLinkClass =
-    "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent/10 transition-colors " +
-    (location === "/docs" || location.startsWith("/docs/") ? "text-primary" : "text-foreground");
 
   return (
     <nav className="fixed top-0 inset-x-0 h-16 bg-card border-b border-border z-50">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center gap-6">
-        {/* Brand slot — mutually exclusive logo OR text (D-05, BRAND-03 + BRAND-06) */}
         <Link href="/" className="flex items-center gap-2 cursor-pointer">
           {settings.logo_url != null && (
             <img
@@ -82,74 +25,11 @@ export function NavBar() {
           )}
           <span className="text-sm font-medium">{settings.app_name}</span>
         </Link>
-
-        {!isLauncher && !isSignage && (
-          location === "/settings" || location === "/upload" || location.startsWith("/docs") ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="default"
-              onClick={() => navigate(lastDashboard)}
-              aria-label={backLabel}
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>{backLabel}</span>
-            </Button>
-          ) : (
-            <Toggle
-              segments={[
-                { value: "/sales", label: t("nav.sales") },
-                { value: "/hr", label: t("nav.hr") },
-              ] as const}
-              value={location === "/hr" ? "/hr" : "/sales"}
-              onChange={(path) => navigate(path)}
-              aria-label="Navigation"
-              className="border-transparent"
-            />
-          )
-        )}
-
+        {!isLauncher && <Breadcrumb />}
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
           <LanguageToggle />
-          {!isLauncher && (
-            <>
-              <Link
-                href="/docs"
-                aria-label={t("docs.nav.docsLabel")}
-                className={docsLinkClass}
-              >
-                <Library className="h-5 w-5" />
-              </Link>
-              {!isSignage && (
-                <AdminOnly>
-                  <Link
-                    href="/upload"
-                    aria-label={t("nav.upload")}
-                    className={uploadLinkClass}
-                  >
-                    <UploadIcon className="h-5 w-5" />
-                  </Link>
-                </AdminOnly>
-              )}
-            </>
-          )}
-          <Link
-            href="/settings"
-            aria-label={t("nav.settings")}
-            className={settingsLinkClass}
-          >
-            <SettingsIcon className="h-5 w-5" />
-          </Link>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Sign out"
-            onClick={() => signOut()}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <UserMenu />
         </div>
       </div>
     </nav>
