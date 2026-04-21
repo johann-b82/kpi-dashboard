@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.17
-milestone_name: Pi Image Release
-status: milestone-complete
-stopped_at: Milestone v1.17 Pi Image Release shipped (Phase 49 closed with operator carry-forwards)
-last_updated: "2026-04-21T10:30:00.000Z"
-last_activity: 2026-04-21 -- v1.17 shipped
-milestone_shipped: 2026-04-21
-previous_milestone: v1.16
+milestone: v1.18
+milestone_name: Pi Polish + Scheduling
+status: planning
+stopped_at: v1.18 milestone opened — Phase 50 awaiting /gsd:discuss-phase or /gsd:plan-phase
+last_updated: "2026-04-21T11:00:00.000Z"
+last_activity: 2026-04-21 -- v1.18 milestone opened
+previous_milestone: v1.17
+previous_milestone_shipped: 2026-04-21
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: KPI Dashboard
@@ -29,7 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 49 — pi-image-build
+**Current focus:** v1.18 Pi Polish + Scheduling — Phase 50 (pi-polish) first
+
+Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`) with 4 operator carry-forwards folded into Phase 50.
 
 Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
@@ -37,15 +39,14 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
 ## Current Position
 
-Milestone: v1.17 Pi Image Release — PLANNING
-Phase: 49 (pi-image-build) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
-Last activity: 2026-04-20
+Milestone: v1.18 Pi Polish + Scheduling — PLANNING
+Phase: 50 (pi-polish) — awaiting plan
+Status: ROADMAP + REQUIREMENTS written; ready for `/gsd:plan-phase 50`
+Last activity: 2026-04-21 — v1.18 opened
 
-Progress: [·] Phase 49 pending
+Progress: [····] 0/4 phases
 
-Next action: `/gsd:plan-phase 49` (or `/gsd:discuss-phase 49` if you want a discovery pass first; CONTEXT.md-equivalent decisions are already locked in REQUIREMENTS.md preamble)
+Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locked in REQUIREMENTS.md preamble — can skip `/gsd:discuss-phase`)
 
 ---
 

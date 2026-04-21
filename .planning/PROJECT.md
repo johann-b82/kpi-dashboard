@@ -13,7 +13,33 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Shipped:** v1.17 Pi Image Release — 2026-04-21
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (210KB gz, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi runtime + image-build share a single installer library (`scripts/lib/signage-install.sh`) and systemd unit templates; `pi-gen` fork at `pi-image/` (arm64 branch git submodule) with custom `stage-signage` bakes the full stack into an RPi OS Bookworm Lite 64-bit `.img.xz`. GitHub Actions workflow + minisign signing + Imager-preseed first-boot flow. Proven end-to-end on real Pi 4 (E2E Scenarios 1–3 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 image pipeline (pi-gen stage, installer library, CI workflow, SIGNING). 17 versions shipped (v1.0–v1.17).
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16 requirements satisfied. v1.9 D-12 waiver still carried. v1.17 carries operator carry-forwards for first `.img.xz` publish (minisign key ceremony, self-hosted arm64 runner registration, `v1.17.0-rc1` tag dry-run) + Scenarios 4/5 numerical hardware E2E — all documented in `49-VERIFICATION.md §Outstanding`.
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16 requirements satisfied. v1.9 D-12 waiver still carried. v1.17 carries operator carry-forwards folded into the v1.18 Pi Polish phase.
+
+## Current Milestone: v1.18 Pi Polish + Scheduling
+
+**Goal:** Close out the v1.17 operator carry-forwards (ship the first signed `.img.xz` release, finish the E2E hardware walkthrough, shrink the player bundle back under 200 KB gz) AND add time-based playlist scheduling so operators can say "Menu A 07:00–11:00, Menu B 11:00–14:00, Weekend menu 10:00–16:00 Sat/Sun" through the admin UI. Plus a small analytics-lite read-side surface.
+
+**Target scope (4 phases, ~15 requirements):**
+
+- **Phase 50 — Pi Polish:** minisign key ceremony, self-hosted arm64 runner registration (Lima arm64 VM on the Mac), first `v1.17.0-rc1` tag dry-run that publishes a signed `.img.xz` to GitHub Releases, Scenarios 4 + 5 numerical hardware E2E measurements, dynamic-import `PdfPlayer` so the player bundle drops back under 200 KB gz (resetting the 210 K cap that v1.17 set), byte-identical filesystem diff-test CI between a baked image and a `provision-pi.sh` run.
+
+- **Phase 51 — Schedule schema + resolver:** Alembic migration adds `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + playlist_id + priority + enabled). Tag-to-playlist resolver gets time-window awareness: for a device at query time, pick the highest-priority schedule matching (weekday, time-of-day, tag overlap). Falls back to existing always-on tag-based playlist when no schedule matches. Timezone from app settings. Unit + integration tests.
+
+- **Phase 52 — Schedule admin UI:** New "Schedules" tab on `/signage` (4th tab alongside Media / Playlists / Devices). Schedule form: playlist picker, weekday checkboxes (Mo–So), two `HH:MM` time inputs, priority, enable toggle. Bilingual (DE "du" tone). Admin guide article updated. Schedule changes fire SSE notify so connected players re-resolve.
+
+- **Phase 53 — Analytics-lite:** Admin UI's Devices table gains "Uptime last 24h" + "Heartbeats missed" badges computed from existing `signage_devices.last_seen_at` and heartbeat sweeper data. No new schema; one read-only endpoint. Not real-time — refreshes on tab visibility/30s poll.
+
+**Deferred (noted):**
+- iCal RRULE + date-specific overrides (reopen when schedule model proves too narrow).
+- Per-device calibration (rotation, brightness, resolution) — v1.19 candidate.
+- Fleet Ops (Ansible, fleet dashboard, OTA) — v1.19/v1.20 candidate; not justified at current fleet size.
+- Per-item playtime analytics (new `signage_item_plays` table) — reopen once heartbeat-only view is insufficient.
+
+## Next Milestone Goals (post-v1.18 candidates)
+
+- **v1.19 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
+- **v1.19 Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
+- **v1.20 Rich Analytics** — per-item playtime, heatmaps, export-to-CSV.
 
 ## Next Milestone Goals (post-v1.17 candidates)
 
