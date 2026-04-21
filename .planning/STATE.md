@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: executing
-stopped_at: Completed 51-01-schema-resolver-PLAN.md
-last_updated: "2026-04-21T10:52:10.879Z"
+status: verifying
+stopped_at: Completed 51-02-admin-router-sse-PLAN.md
+last_updated: "2026-04-21T11:00:43.473Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: KPI Dashboard
@@ -39,7 +39,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 Milestone: v1.18 Pi Polish + Scheduling — PLANNING
 Phase: 51 (schedule-schema-resolver) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-21
 
 Progress: [····] 0/4 phases
@@ -104,6 +104,7 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 | Phase 49-pi-image-build P01 | 303s | 3 tasks | 15 files |
 | Phase 50-pi-polish P01 | 4m | 3 tasks | 2 files |
 | Phase 51 P01 | 9m 5s | 3 tasks | 12 files |
+| Phase 51 P02 | 7m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,9 @@ Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locke
 - [Phase 51]: Plan 51-01: Extracted _build_envelope_for_playlist helper so schedule-matched and tag-matched envelopes are byte-identical (ETag invariant preserved, D-08/D-09)
 - [Phase 51]: Plan 51-01: Weekday bit test uses SQLAlchemy bindparam ((weekday_mask >> :wd) & 1 = 1), never f-string interpolation — SQL parameterization hygiene enforced via CI grep guard
 - [Phase 51]: Plan 51-01: app_settings.timezone server_default='Europe/Berlin' backfills singleton row atomically — no op.execute() needed
+- [Phase 51]: Plan 51-02: schedule-changed SSE events emitted per (device, playlist_id) pair — PATCH union case sends one event per playlist so player can correlate re-resolves
+- [Phase 51]: Plan 51-02: Playlist DELETE 409 body {detail, schedule_ids} via JSONResponse mirrors media 409 {detail, playlist_ids} convention (RESEARCH Q2 closed)
+- [Phase 51]: Plan 51-02: asyncpg raises FK RESTRICT at db.execute(delete), not only at db.commit — try/except must wrap both
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -212,6 +216,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T10:52:01.307Z
-**Stopped at:** Completed 51-01-schema-resolver-PLAN.md
+**Last session:** 2026-04-21T11:00:43.471Z
+**Stopped at:** Completed 51-02-admin-router-sse-PLAN.md
 **Resume file:** None

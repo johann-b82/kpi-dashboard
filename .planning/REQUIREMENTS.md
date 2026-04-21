@@ -29,7 +29,7 @@
 - [x] **SGN-TIME-01**: Alembic migration creates `signage_schedules` with columns: `id UUID PK`, `playlist_id UUID FK RESTRICT`, `weekday_mask SMALLINT NOT NULL CHECK (weekday_mask BETWEEN 0 AND 127)` (7-bit mask, bit 0 = Monday), `start_hhmm INTEGER NOT NULL CHECK (0 <= start_hhmm <= 2359)`, `end_hhmm INTEGER NOT NULL CHECK (0 <= end_hhmm <= 2359)`, `priority INTEGER NOT NULL DEFAULT 0`, `enabled BOOLEAN NOT NULL DEFAULT true`, `created_at`, `updated_at`. CHECK constraint `start_hhmm < end_hhmm` (no midnight-spanning ranges in v1.18 — a row that crosses midnight must be split into two). Round-trip upgrade/downgrade clean.
 - [x] **SGN-TIME-02**: Resolver gains time-window awareness. For a device at query time: look up all schedules whose `weekday_mask` matches `now.weekday()`, `start_hhmm <= now.hhmm < end_hhmm`, `enabled = true`, and whose `playlist.tag_ids` overlap the device's tag set. Pick the highest `(priority DESC, updated_at DESC)`. If no schedule matches, fall back to the existing always-on tag-based resolution. Pure-read (D-10). Timezone from app settings (`app_settings.timezone`, defaulting to `Europe/Berlin`).
 - [x] **SGN-TIME-03**: Resolver integration tests: schedule-match (single), priority tiebreak (two overlapping), weekday-miss, time-miss, disabled-schedule-skip, tag-mismatch-skip, empty-schedules-falls-back-to-tag-resolver.
-- [ ] **SGN-TIME-04**: Schedule mutations fire `notify_device` SSE fanout (same contract as playlist mutations). Players re-resolve within ≤ 2 s of a schedule save that affects them.
+- [x] **SGN-TIME-04**: Schedule mutations fire `notify_device` SSE fanout (same contract as playlist mutations). Players re-resolve within ≤ 2 s of a schedule save that affects them.
 
 ### Schedule admin UI (SGN-SCHED-UI-*)
 
