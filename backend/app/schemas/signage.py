@@ -118,6 +118,10 @@ class SignageDeviceRead(SignageDeviceBase):
     last_seen_at: datetime | None = None
     revoked_at: datetime | None = None
     current_item_id: uuid.UUID | None = None
+    # Populated by admin list/get via the tag resolver (envelope.playlist_id/.name).
+    # Null when no schedule/tag-mapped playlist matches the device's tags.
+    current_playlist_id: uuid.UUID | None = None
+    current_playlist_name: str | None = None
     status: Literal["online", "offline", "pending"]
     created_at: datetime
     updated_at: datetime

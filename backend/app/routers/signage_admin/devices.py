@@ -59,25 +59,36 @@ class TagAssignmentRequest(BaseModel):
     tag_ids: list[int]
 
 
+async def _attach_resolved_playlist(
+    db: AsyncSession, device: SignageDevice
+) -> SignageDeviceRead:
+    envelope = await resolve_playlist_for_device(db, device)
+    out = SignageDeviceRead.model_validate(device)
+    out.current_playlist_id = envelope.playlist_id
+    out.current_playlist_name = envelope.name
+    return out
+
+
 @router.get("", response_model=list[SignageDeviceRead])
 async def list_devices(
     db: AsyncSession = Depends(get_async_db_session),
-) -> list[SignageDevice]:
+) -> list[SignageDeviceRead]:
     result = await db.execute(select(SignageDevice).order_by(SignageDevice.created_at))
-    return list(result.scalars().all())
+    devices = list(result.scalars().all())
+    return [await _attach_resolved_playlist(db, d) for d in devices]
 
 
 @router.get("/{device_id}", response_model=SignageDeviceRead)
 async def get_device(
     device_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_db_session),
-) -> SignageDevice:
+) -> SignageDeviceRead:
     row = (
         await db.execute(select(SignageDevice).where(SignageDevice.id == device_id))
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(404, "device not found")
-    return row
+    return await _attach_resolved_playlist(db, row)
 
 
 @router.patch("/{device_id}", response_model=SignageDeviceRead)
