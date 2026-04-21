@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Pi Polish + Scheduling
-status: verifying
-stopped_at: Completed 53-01-backend-heartbeat-log-and-analytics-endpoint-PLAN.md
+status: complete
+stopped_at: Phase 53 approved — deployed in docker, UAT approved 2026-04-21
 last_updated: "2026-04-21T16:07:58.263Z"
 last_activity: 2026-04-21
 progress:
@@ -36,15 +36,15 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag v1.16).
 
 ## Current Position
 
-Milestone: v1.18 Pi Polish + Scheduling — PLANNING
-Phase: 53
-Plan: Not started
-Status: Phase complete — ready for verification
+Milestone: v1.18 Pi Polish + Scheduling — COMPLETE
+Phase: 53 (approved, deployed)
+Plan: 2/2 complete
+Status: All 4 phases complete (50, 51, 52, 53) — milestone ready to ship
 Last activity: 2026-04-21
 
-Progress: [····] 0/4 phases
+Progress: [████] 4/4 phases
 
-Next action: `/gsd:plan-phase 50` (CONTEXT.md-equivalent decisions already locked in REQUIREMENTS.md preamble — can skip `/gsd:discuss-phase`)
+Next action: `/gsd:audit-milestone` then `/gsd:ship` for v1.18 tag
 
 ---
 
