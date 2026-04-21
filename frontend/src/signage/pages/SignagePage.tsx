@@ -5,7 +5,7 @@ import { PlaylistsPage } from "./PlaylistsPage";
 import { DevicesPage } from "./DevicesPage";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
-type SignageTab = "media" | "playlists" | "devices";
+type SignageTab = "media" | "playlists" | "devices" | "schedules";
 
 interface SignagePageProps {
   initialTab: SignageTab;
@@ -26,6 +26,7 @@ export function SignagePage({ initialTab }: SignagePageProps) {
     { id: "media", path: "/signage/media", labelKey: "signage.admin.nav.media" },
     { id: "playlists", path: "/signage/playlists", labelKey: "signage.admin.nav.playlists" },
     { id: "devices", path: "/signage/devices", labelKey: "signage.admin.nav.devices" },
+    { id: "schedules", path: "/signage/schedules", labelKey: "signage.admin.nav.schedules" },
   ];
 
   return (
@@ -47,6 +48,7 @@ export function SignagePage({ initialTab }: SignagePageProps) {
       {active === "media" && <MediaPage />}
       {active === "playlists" && <PlaylistsPage />}
       {active === "devices" && <DevicesPage />}
+      {active === "schedules" && null /* Phase 52 Plan 02 mounts <SchedulesPage /> here */}
     </div>
   );
 }
