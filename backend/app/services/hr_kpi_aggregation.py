@@ -1,10 +1,8 @@
-"""HR KPI aggregation service — computes all 5 HR KPIs for calendar month windows.
+"""HR KPI aggregation service — computes all 5 HR KPIs for arbitrary [first_day, last_day] windows.
 
-Computes Overtime Ratio, Sick Leave Ratio, Fluctuation, Skill Development,
-and Revenue per Production Employee from synced Personio data and SalesRecord
-data. Each KPI is computed for three calendar month windows: current month,
-previous month, and same month last year. Sequential awaits only (no
-asyncio.gather on shared AsyncSession per Pitfall 2).
+Fluctuation denominator is average active headcount across the window (D-03 Phase 60;
+replaces end-of-month snapshot). Sequential awaits only on the shared AsyncSession
+(no asyncio.gather per Pitfall 2).
 """
 
 from calendar import monthrange
@@ -57,8 +55,29 @@ def _weekday_count(first_day: date, last_day: date) -> int:
     return count
 
 
+def prior_window_same_length(first_day: date, last_day: date) -> tuple[date, date]:
+    """Return the window of identical length ending the day before first_day.
+
+    Used by HR KPI endpoints to produce D-02 deltas (prior window of same length).
+    45-day range → prior 45 days. (2026-04-01, 2026-04-15) → (2026-03-17, 2026-03-31).
+    """
+    length_days = (last_day - first_day).days + 1
+    prev_last = first_day - timedelta(days=1)
+    prev_first = prev_last - timedelta(days=length_days - 1)
+    return prev_first, prev_last
+
+
+def same_window_prior_year(first_day: date, last_day: date) -> tuple[date, date]:
+    """Return the same-length window shifted 365 days earlier.
+
+    Leap-day drift is acceptable per CONTEXT discretion — we keep range length
+    identical rather than attempting calendar-aware anniversary math.
+    """
+    return first_day - timedelta(days=365), last_day - timedelta(days=365)
+
+
 # ---------------------------------------------------------------------------
-# Headcount helper (D-02: end-of-month snapshot)
+# Headcount helpers
 # ---------------------------------------------------------------------------
 
 
@@ -71,6 +90,9 @@ async def _headcount_at_eom(
 
     Active = hire_date <= last_day AND (termination_date IS NULL OR termination_date > last_day).
     When *departments* is given, filter by IN match (any selected department).
+
+    Retained for point-in-time denominators (skill development, revenue/production-dept);
+    fluctuation no longer uses this helper — see `_fluctuation` (D-03 Phase 60).
     """
     stmt = select(func.count(PersonioEmployee.id)).where(
         PersonioEmployee.hire_date <= last_day,
@@ -83,6 +105,55 @@ async def _headcount_at_eom(
         stmt = stmt.where(PersonioEmployee.department.in_(departments))
     result = await session.execute(stmt)
     return result.scalar_one() or 0
+
+
+async def _avg_active_headcount_across_range(
+    session: AsyncSession,
+    first_day: date,
+    last_day: date,
+    departments: list[str] | None = None,
+) -> float:
+    """Return mean active-employee count over every calendar day in [first_day, last_day].
+
+    For each day d in range: active = hire_date <= d AND (termination_date IS NULL OR termination_date > d).
+    Computed in Python from a single SELECT of (hire_date, termination_date) rows whose
+    contracts overlap the range.
+    """
+    total_days = (last_day - first_day).days + 1
+    if total_days <= 0:
+        return 0.0
+
+    stmt = select(
+        PersonioEmployee.hire_date,
+        PersonioEmployee.termination_date,
+    ).where(
+        PersonioEmployee.hire_date <= last_day,
+        or_(
+            PersonioEmployee.termination_date.is_(None),
+            PersonioEmployee.termination_date >= first_day,
+        ),
+    )
+    if departments:
+        stmt = stmt.where(PersonioEmployee.department.in_(departments))
+
+    rows = (await session.execute(stmt)).all()
+    if not rows:
+        return 0.0
+
+    total_active_day_count = 0
+    d = first_day
+    while d <= last_day:
+        count = 0
+        for row in rows:
+            if row.hire_date is None or row.hire_date > d:
+                continue
+            if row.termination_date is not None and row.termination_date <= d:
+                continue
+            count += 1
+        total_active_day_count += count
+        d += timedelta(days=1)
+
+    return total_active_day_count / total_days
 
 
 # ---------------------------------------------------------------------------
@@ -231,16 +302,25 @@ async def _fluctuation(
     first_day: date,
     last_day: date,
 ) -> float | None:
-    """HRKPI-03: leavers in period / headcount at end of month (D-02)."""
+    """HRKPI-03: leavers_in_range / avg_active_headcount_across_range (D-03 Phase 60).
+
+    Denominator is the mean active headcount across every calendar day in the window
+    (replaces the prior end-of-month snapshot). Returns None when the average is 0
+    or the window is degenerate.
+    """
+    if (last_day - first_day).days + 1 <= 0:
+        return None
+
     leavers_stmt = select(func.count(PersonioEmployee.id)).where(
         PersonioEmployee.termination_date >= first_day,
         PersonioEmployee.termination_date <= last_day,
     )
     leavers = (await session.execute(leavers_stmt)).scalar_one() or 0
-    headcount = await _headcount_at_eom(session, last_day)
-    if headcount == 0:
+
+    avg_headcount = await _avg_active_headcount_across_range(session, first_day, last_day)
+    if avg_headcount == 0:
         return None
-    return leavers / headcount
+    return leavers / avg_headcount
 
 
 async def _skill_development(
@@ -251,7 +331,7 @@ async def _skill_development(
     """HRKPI-04: employees with non-null configured skill attribute / total headcount.
 
     Proxy metric: employees with current non-null value for ANY of the configured
-    attributes. No historical snapshot table exists.
+    attributes. No historical snapshot table exists — point-in-time snapshot at `last_day`.
     """
     headcount = await _headcount_at_eom(session, last_day)
     if headcount == 0:
@@ -281,10 +361,10 @@ async def _revenue_per_production_employee(
     last_day: date,
     production_depts: list[str],
 ) -> float | None:
-    """HRKPI-05: total monthly revenue / production dept headcount.
+    """HRKPI-05: total range revenue / production dept headcount.
 
     Revenue numerator reuses aggregate_kpi_summary (same SQL as Sales dashboard).
-    Denominator is production-department headcount at end of month.
+    Denominator is production-department headcount at end of range.
     """
     summary = await aggregate_kpi_summary(session, first_day, last_day)
     if summary is None:
@@ -304,16 +384,18 @@ async def _revenue_per_production_employee(
 # ---------------------------------------------------------------------------
 
 
-async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
-    """Compute all 5 HR KPIs for current, previous, and year-ago month windows.
+async def compute_hr_kpis(db: AsyncSession, first: date, last: date) -> HrKpiResponse:
+    """Compute all 5 HR KPIs over [first, last] as a single window (D-01/D-04/D-05).
+
+    Deltas:
+      - previous_period: same-length window immediately before `first` (D-02).
+      - previous_year: same-length window shifted 365 days earlier (back-compat).
 
     Sequential awaits on the shared AsyncSession (no asyncio.gather per Pitfall 2).
     """
-    today = date.today()
-    cur_first, cur_last = _month_bounds(today.year, today.month)
-    prev_y, prev_m = _prev_month(today.year, today.month)
-    prev_first, prev_last = _month_bounds(prev_y, prev_m)
-    ya_first, ya_last = _month_bounds(today.year - 1, today.month)
+    cur_first, cur_last = first, last
+    prev_first, prev_last = prior_window_same_length(first, last)
+    ya_first, ya_last = same_window_prior_year(first, last)
 
     # Load singleton settings
     from sqlalchemy import select as sa_select
@@ -327,13 +409,13 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
     skill_keys: list[str] = (settings_row.personio_skill_attr_key or []) if settings_row else []
 
     # --- Overtime Ratio (always configured) ---
-    ot_cur = await _overtime_ratio(db, cur_first, cur_last)
+    ot_cur = await _overtime_ratio(db, first, last)
     ot_prev = await _overtime_ratio(db, prev_first, prev_last)
     ot_ya = await _overtime_ratio(db, ya_first, ya_last)
 
     # --- Sick Leave Ratio (needs sick_leave_type_id) ---
     if sick_type_ids:
-        sl_cur = await _sick_leave_ratio(db, cur_first, cur_last, sick_type_ids)
+        sl_cur = await _sick_leave_ratio(db, first, last, sick_type_ids)
         sl_prev = await _sick_leave_ratio(db, prev_first, prev_last, sick_type_ids)
         sl_ya = await _sick_leave_ratio(db, ya_first, ya_last, sick_type_ids)
         sick_kpi = HrKpiValue(
@@ -343,11 +425,11 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
         sick_kpi = HrKpiValue(value=None, is_configured=False)
 
     # --- Fluctuation (always configured) ---
-    fl_cur = await _fluctuation(db, cur_first, cur_last)
+    fl_cur = await _fluctuation(db, first, last)
     fl_prev = await _fluctuation(db, prev_first, prev_last)
     fl_ya = await _fluctuation(db, ya_first, ya_last)
 
-    # --- Skill Development (needs skill_attr_keys) ---
+    # --- Skill Development (needs skill_attr_keys; point-in-time at last) ---
     if skill_keys:
         sd_cur = await _skill_development(db, cur_last, skill_keys)
         sd_prev = await _skill_development(db, prev_last, skill_keys)
@@ -360,15 +442,9 @@ async def compute_hr_kpis(db: AsyncSession) -> HrKpiResponse:
 
     # --- Revenue per Production Employee (needs production_depts) ---
     if prod_depts:
-        rpe_cur = await _revenue_per_production_employee(
-            db, cur_first, cur_last, prod_depts
-        )
-        rpe_prev = await _revenue_per_production_employee(
-            db, prev_first, prev_last, prod_depts
-        )
-        rpe_ya = await _revenue_per_production_employee(
-            db, ya_first, ya_last, prod_depts
-        )
+        rpe_cur = await _revenue_per_production_employee(db, first, last, prod_depts)
+        rpe_prev = await _revenue_per_production_employee(db, prev_first, prev_last, prod_depts)
+        rpe_ya = await _revenue_per_production_employee(db, ya_first, ya_last, prod_depts)
         rpe_kpi = HrKpiValue(
             value=rpe_cur, previous_period=rpe_prev, previous_year=rpe_ya
         )
