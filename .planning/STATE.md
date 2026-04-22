@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 60-03-PLAN.md
-last_updated: "2026-04-22T13:38:41.040Z"
+stopped_at: 60-04 Task 1 committed; Task 2 (human-verify) pending
+last_updated: "2026-04-22T13:46:22.192Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 36
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State: KPI Dashboard
@@ -38,13 +38,13 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 60 (hr-date-range-filter) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
+Plan: 4 of 4 — Task 1 complete (pytest 13/13), Task 2 awaiting human-verify checkpoint
+Status: Awaiting human verification on 60-04 Task 2 (manual thisYear parity + Sales↔HR state preservation)
 Last activity: 2026-04-22
 
 Progress: 0/6 phases complete, 0 plans
 
-Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations into plans.
+Next action: User performs 6-point manual verification per 60-04-PLAN.md `<how-to-verify>`, then signals `approved` or describes failing surfaces.
 
 ### Quick Tasks Completed
 
@@ -153,6 +153,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 60 P02 | 124s | 2 tasks | 4 files |
 | Phase 60 P01 | 6m | 2 tasks | 3 files |
 | Phase 60 P03 | ~210s | 3 tasks | 4 files |
+| Phase 60 P04-task-1 | 9m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -267,6 +268,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 60]: Plan 60-02: HR fetchers accept pre-formatted YYYY-MM-DD (not Date) to eliminate timezone-drift at serialisation boundary; hrKpiKeys.{summary,history,employees} embed {from,to}; deriveHrBuckets clips first/last edges to from/to for D-06
 - [Phase 60]: Plan 60-01: fluctuation denominator computed in Python via per-day active count over single SELECT (simpler than SQL generate_series); prior_window_same_length uses inclusive day count; /kpis/history keeps legacy 12-month fallback for thisYear landing parity
 - [Phase 60]: Plan 60-03: DateRangeFilter mount gate on SubHeader reused existing isDashboard variable; MiniChart gains HrBucketGranularity prop and branches label formatter (monthly preserves formatMonthYear byte-for-byte); server remains source of truth for bucket boundaries (no client-side re-aggregation)
+- [Phase 60]: Plan 60-04 Task 1 (pytest suite, 13/13 pass) committed (5a05565); Task 2 (manual thisYear parity + Sales↔HR state check) awaiting human verification — plan not yet complete
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -308,6 +310,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T13:38:37.382Z
-**Stopped at:** Completed 60-03-PLAN.md
+**Last session:** 2026-04-22T13:46:15.037Z
+**Stopped at:** 60-04 Task 1 committed; Task 2 (human-verify) pending
 **Resume file:** None
