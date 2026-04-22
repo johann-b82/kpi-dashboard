@@ -247,7 +247,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 **Plans**: 4 plans
   - [x] 56-01-breadcrumb-component-PLAN.md — breadcrumbs.ts route map + Breadcrumb component (HDR-02, HDR-03)
   - [x] 56-02-user-menu-PLAN.md — UserMenu avatar + Dropdown-backed menu (HDR-01)
-  - [ ] 56-03-navbar-subheader-refactor-PLAN.md — NavBar strip + SubHeader Sales/HR toggle + Upload relocation (HDR-01, HDR-04)
+  - [x] 56-03-navbar-subheader-refactor-PLAN.md — NavBar strip + SubHeader Sales/HR toggle + Upload relocation (HDR-01, HDR-04)
   - [ ] 56-04-i18n-parity-PLAN.md — add 8 keys, remove 3 obsolete keys, DE/EN parity gate (HDR-03)
 **UI hint**: yes
 
@@ -295,7 +295,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 53. Analytics-lite | v1.18 | 2/2 | Complete   | 2026-04-21 |
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
 | 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
-| 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 2/4 | In Progress|  |
+| 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 3/4 | In Progress|  |
 | 57. Section Context + Standardized Trashcan | v1.19 | 0/? | Not started | — |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
 | 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |

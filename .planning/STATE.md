@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 56-02-user-menu-PLAN.md
-last_updated: "2026-04-21T21:33:45.796Z"
-last_activity: 2026-04-21
+stopped_at: Completed 56-03-navbar-subheader-refactor-PLAN.md
+last_updated: "2026-04-22T06:57:21.097Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State: KPI Dashboard
@@ -38,9 +38,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 56 (breadcrumb-header-content-nav-relocation) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
-Last activity: 2026-04-21
+Last activity: 2026-04-22
 
 Progress: 0/6 phases complete, 0 plans
 
@@ -129,6 +129,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 55 P05 | 313s | 3 tasks | 5 files |
 | Phase 56 P01 | 130s | 2 tasks | 4 files |
 | Phase 56 P02 | 115s | 2 tasks | 2 files |
+| Phase 56 P03 | 10m | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -223,6 +224,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 56]: Plan 56-01: Breadcrumb infrastructure — static route map + pure matcher + component. Leaf renders as span aria-current=page (D-06); dynamic segments collapse to parent leaf (D-02); Home prepended at render (D-04). 3 i18n keys (nav.home, breadcrumb.aria_label, breadcrumb.signage.pair) referenced but land in Plan 04 — tests assert DOM shape only.
 - [Phase 56]: Plan 56-02: Pitfall 3 resolved via render-prop — Menu.LinkItem with render={<WouterLink />} preserves base-ui highlight state in jsdom; fallback to navigate() not needed
 - [Phase 56]: Plan 56-02: Identity row is <div data-testid=usermenu-identity>, not DropdownItem (D-12 #1) — sign-out tests target last role=menuitem so they stay stable across Plan 04 i18n copy
+- [Phase 56]: Plan 56-03: Atomic chrome swap — NavBar stripped to identity only (157->~30 lines); SubHeader hosts Sales/HR Toggle + AdminOnly Upload on /sales and /hr; lastDashboard sessionStorage removed repo-wide; chrome contract h-16/top-0/z-50 + h-12/top-16/z-40 preserved
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -264,6 +266,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T21:33:45.793Z
-**Stopped at:** Completed 56-02-user-menu-PLAN.md
+**Last session:** 2026-04-22T06:57:12.082Z
+**Stopped at:** Completed 56-03-navbar-subheader-refactor-PLAN.md
 **Resume file:** None
