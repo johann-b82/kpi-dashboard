@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files (38-column sales data) into PostgreSQL for Sales KPIs, and syncs Personio HR data (employees, attendances, absences) for 5 HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
+A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab-delimited ERP export files (38-column sales data) into PostgreSQL for Sales KPIs, and syncs Personio HR data (employees, attendances, absences) for 5 HR KPIs — all visualized on a bilingual (DE/EN) interactive dashboard. Built for internal team use, secured behind a self-hosted Directus 11 identity provider (email/password, Admin + Viewer roles; shipped v1.11-directus).
 
 ## Core Value
 
@@ -11,15 +11,25 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 ## Current State
 
 **Shipped:** v1.20 HR Date-Range Filter + TS Cleanup — 2026-04-22 (tag `v1.20`). Two-phase brownfield milestone. **Phase 60** wired the shared `DateRangeFilter` from SubHeader into `/hr` (KPI cards, charts, employee table) with backend `date_from`/`date_to` on `/api/hr/kpis`, `/api/hr/kpis/history`, `/api/data/employees`, avg-active-headcount fluctuation (D-03), same-length prior-period + same-window prior-year baselines, 13/13 pytest, user-approved visual-parity checkpoint. Follow-up `4d1c5f0` added full Personio attendance backfill (earliest `hire_date` first run, `max(stored_date)-14d` incremental), 429 exponential backoff, weekly default sync cadence, HR delta-badge + chart-axis parity with Sales, `/sales`-only upload, Balken/Linien toggle ordering. **Phase 61** closed all 31 pre-existing TypeScript errors across 9 files in 10 atomic `fix(61):` commits — `npm run build` now exits 0 with zero `error TS`; anti-cheat audit confirmed no `@ts-expect-error`/`as any` shortcuts; `useTableState.ts` kept untouched (D-02).
-**In progress:** — awaiting `/gsd:new-milestone`.
+**In progress:** v1.21 Signage Calibration + Build Hygiene — 2 phases, 20 requirements. Phase 62 wires per-device rotation/HDMI mode/audio into admin UI + Pi sidecar; Phase 63 closes the `vite@8` / `vite-plugin-pwa` Dockerfile peer-dep conflict. Quick task: strip Authentik references (Directus is committed identity layer).
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (75 KB gz entry + lazy `PdfPlayer`/`pdf` chunks, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–5 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
 **Audit status:** All v1.0–v1.6, v1.11-directus, v1.12–v1.20 requirements satisfied. v1.20 HR Date-Range Filter + TS Cleanup shipped with **2/2 phases passed** (Phase 60 with human visual-parity sign-off + Phase 61 with build-gate + anti-cheat audits) — see [milestones/v1.20-MILESTONE-AUDIT.md](milestones/v1.20-MILESTONE-AUDIT.md). v1.19 UI Consistency Pass 2 shipped with 23/23 requirements verified across 6 phases — see [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md). Tech debt remaining: `frontend/Dockerfile` `npm install` peer-dep conflict (`vite@8` vs `vite-plugin-pwa@1.2.0`) blocks `docker compose build frontend` but not dev-server or host `npm run build` — infrastructure hygiene for a future milestone. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
-## Next Milestone Candidates (post-v1.20)
+## Current Milestone: v1.21 Signage Calibration + Build Hygiene (In Progress)
+
+**Goal:** Per-device runtime calibration of signage Pis (rotation, HDMI mode, audio on/off) editable from admin UI and applied live via SSE → sidecar. Plus: fix the `docker compose build frontend` peer-dep conflict. Plus: strip the stale Authentik references from docs.
+
+**Phases:**
+- **Phase 62 Signage Calibration** (4 plans) — backend schema + API; admin UI; Pi sidecar `wlr-randr` + WirePlumber; player + real-Pi E2E.
+- **Phase 63 Frontend Build Fix** (1 plan) — resolve `vite@8` vs `vite-plugin-pwa@1.2.0` peer-dep conflict.
+- **Quick task:** Authentik removal from CLAUDE.md / PROJECT.md / README.md.
+
+**Out of scope:** Brightness (no reliable HDMI software control); per-display colour calibration; reboot-only rotation via `config.txt`; CSS fallback rotation; per-media audio-volume overrides.
+
+## Next Milestone Candidates (post-v1.21)
 
 - **Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
-- **Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
 - **iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
 - **Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
 
@@ -318,4 +328,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 — v1.20 HR Date-Range Filter + TS Cleanup shipped (tag `v1.20`, 2 phases, 5 plans, 0 gaps). Next: run `/gsd:new-milestone` to scope v1.21.*
+*Last updated: 2026-04-22 — v1.21 Signage Calibration + Build Hygiene scoped (2 phases, 20 reqs). Next: `/gsd:plan-phase 62`.*

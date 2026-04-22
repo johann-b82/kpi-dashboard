@@ -3,7 +3,7 @@
 
 **KPI Light**
 
-A Dockerized web application for uploading sales/revenue data files (CSV, TXT, Excel) into a PostgreSQL database and visualizing KPIs on an interactive dashboard. Built for internal team use, designed to plug into a centralized identity provider (Authentik) in a future milestone.
+A Dockerized web application for uploading sales/revenue data files (CSV, TXT, Excel) into a PostgreSQL database and visualizing KPIs on an interactive dashboard. Built for internal team use, secured behind a self-hosted Directus 11 identity provider (email/password, Admin + Viewer roles, HS256-shared-secret JWT).
 
 **Core Value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
@@ -11,7 +11,7 @@ A Dockerized web application for uploading sales/revenue data files (CSV, TXT, E
 
 - **Containerization**: Must run via Docker Compose — no bare-metal dependencies
 - **Database**: PostgreSQL — chosen for reliability and ecosystem
-- **Identity (future)**: Authentik — self-hosted, Docker-native, supports OIDC/OAuth2/LDAP/AD
+- **Identity**: Directus 11 — self-hosted, single-container, runs alongside Postgres; email/password + two built-in roles (Admin, Viewer); FastAPI validates Directus-issued HS256 JWTs on every `/api/*` request. (Shipped v1.11-directus 2026-04-15.)
 - **File schema**: Fixed/known columns — simplifies parsing, no schema inference needed
 <!-- GSD:project-end -->
 

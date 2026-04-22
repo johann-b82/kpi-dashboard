@@ -1,32 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between-milestones
-stopped_at: v1.20 shipped; awaiting /gsd:new-milestone for v1.21 scope
-last_updated: "2026-04-22T17:30:00.000Z"
+milestone: v1.21
+milestone_name: Signage Calibration + Build Hygiene
+status: roadmapped
+stopped_at: v1.21 scoped; Phase 62 + Phase 63 awaiting /gsd:plan-phase
+last_updated: "2026-04-22T17:40:00.000Z"
 last_activity: 2026-04-22
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
 ---
 
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-22
-**Session:** v1.20 HR Date-Range Filter + TS Cleanup shipped (tag `v1.20`)
+**Session:** v1.21 Signage Calibration + Build Hygiene scoped; REQUIREMENTS + ROADMAP updated
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone)
+See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone + v1.21 scope)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** between milestones — awaiting `/gsd:new-milestone` for v1.21 scope
+**Current focus:** v1.21 Phase 62 Signage Calibration (planning pending)
 
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
@@ -36,12 +36,14 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 
 ## Current Position
 
-Milestone: none active
-Phase: none active
-Status: v1.20 archived; running `main` is `npm run build` green, all shipped milestones audited passed.
+Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
+Phase: 62 Signage Calibration (next) + 63 Frontend Build Fix
+Status: REQUIREMENTS.md written (20 reqs: CAL-BE/UI/PI + BUILD + CLEAN); ROADMAP details block present; Quick task for Authentik removal pending.
 Last activity: 2026-04-22
 
-Next action: `/gsd:new-milestone` to scope v1.21 (or directly start a quick/patch fix via `/gsd:quick`).
+Progress: 0/2 phases complete, 0/5 plans complete in v1.21
+
+Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run in parallel once 62 is planned. Quick task (Authentik removal) can land any time.
 
 ### Quick Tasks Completed
 

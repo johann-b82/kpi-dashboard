@@ -21,6 +21,7 @@
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
 - ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
 - ✅ **v1.20 HR Date-Range Filter + TS Cleanup** — Phases 60–61 (shipped 2026-04-22) — [archive](milestones/v1.20-ROADMAP.md)
+- 🚧 **v1.21 Signage Calibration + Build Hygiene** — Phases 62–63 (active, started 2026-04-22)
 
 ## Phases
 
@@ -210,6 +211,12 @@ Full details: [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md)
 
 </details>
 
+### 🚧 v1.21 Signage Calibration + Build Hygiene (In Progress)
+
+- [ ] **Phase 62: Signage Calibration** — Per-device runtime calibration (rotation 0/90/180/270, HDMI mode, audio on/off) editable from `/signage/devices` admin UI, applied live by the Pi sidecar via `wlr-randr` + WirePlumber. SSE `calibration-changed` fanout. Sidecar persists last-applied state to `/var/lib/signage/calibration.json` for reboot survival. Real-Pi E2E required.
+- [ ] **Phase 63: Frontend Build Fix** — Resolve the `vite@8` / `vite-plugin-pwa@1.2.0` peer-dep conflict so `docker compose build frontend` succeeds. Planner picks between upgrade / `--legacy-peer-deps` / pin; committed rationale in SUMMARY.
+
+Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md / README.md now that Directus is the committed identity layer.
 
 ## Progress Table
 
@@ -227,4 +234,27 @@ Full details: [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md)
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
 | 61. TS Cleanup | v1.20 | 1/1 | Complete   | 2026-04-22 |
+| 62. Signage Calibration | v1.21 | 0/4 | Not started | — |
+| 63. Frontend Build Fix | v1.21 | 0/1 | Not started | — |
+
+## Phase Details
+
+### Phase 62: Signage Calibration
+
+**Goal:** Operators calibrate each signage Pi from the admin UI — rotation, HDMI mode, audio on/off — without SSH or reprovisioning. Changes propagate live via SSE → sidecar and persist across reboots.
+**Depends on:** Phase 52 (`/signage/devices` admin page), Phase 48 (sidecar SSE listener), Phase 53 (heartbeat path for calibration-result reporting).
+**Requirements:** CAL-BE-01..05, CAL-UI-01..04, CAL-PI-01..07
+**Plans (4 planned, subject to planner revision):**
+- **62-01 Backend** — Alembic migration adds `rotation` / `hdmi_mode` / `audio_enabled`; `GET`/`PATCH /api/signage/devices/{id}/calibration`; SSE `calibration-changed`; `GET /api/signage/player/calibration` device-auth endpoint.
+- **62-02 Admin UI** — Calibration section on device edit dialog; rotation + HDMI mode dropdowns + audio toggle; DE/EN parity.
+- **62-03 Pi sidecar** — SSE listener invokes `wlr-randr` for rotation/mode and `wpctl` (fallback `pactl`) for audio; persists `/var/lib/signage/calibration.json`; replays on boot.
+- **62-04 Player + E2E** — Player swaps `<video>` `muted` attr; real-Pi E2E walkthrough (rotate → 5s, mode → 10s, audio → 3s).
+
+### Phase 63: Frontend Build Fix
+
+**Goal:** `docker compose build frontend` succeeds from a clean build without manual workarounds; dev + host-build unaffected.
+**Depends on:** Nothing (small, self-contained).
+**Requirements:** BUILD-01..03
+**Plans (1 planned):**
+- **63-01 Peer-dep resolution** — Compare `vite-plugin-pwa` release notes for vite@8 compatibility. If a compatible version exists, upgrade. Else add `--legacy-peer-deps` to the Dockerfile `npm install`. Rationale captured in SUMMARY. Validate via `docker compose build --no-cache frontend` + `npm run dev` + `npm run build`.
 
