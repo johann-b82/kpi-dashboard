@@ -251,7 +251,7 @@ export function ScheduleEditDialog({
               </Label>
               <Select
                 value={playlist_id}
-                onValueChange={(v) => {
+                onValueChange={(v: string) => {
                   setPlaylistId(v);
                   if (touched.playlist) revalidateField("playlist");
                 }}
