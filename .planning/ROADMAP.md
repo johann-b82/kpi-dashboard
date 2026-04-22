@@ -320,10 +320,13 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 
 ### Phase 60: HR Date-Range Filter
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Wire the shared DateRangeFilter into /hr and extend HR endpoints + aggregation services so HR KPI cards, charts, and the employee table all respond to the same date-range picker that drives /sales. Default thisYear landing remains visually equivalent to pre-Phase-60.
+**Requirements**: CONTEXT decisions D-01..D-13 (authoritative; phase is post-v1.19 on the roadmap)
 **Depends on:** Phase 59
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 60 to break down)
+- [ ] 60-01-backend-hr-range-PLAN.md — HR endpoints + aggregation accept date_from/date_to; fluctuation uses avg-active-headcount; reverse D-03 header (D-01..D-05, D-11, D-13)
+- [ ] 60-02-frontend-fetchers-bucketing-PLAN.md — Extend fetchHrKpis/History/Employees, hrKpiKeys, and chartTimeUtils bucketing (D-06, D-08, D-11)
+- [ ] 60-03-integration-subheader-hr-consumers-PLAN.md — Mount DateRangeFilter on /hr; wire HrKpiCardGrid + HrKpiCharts + EmployeeTable to useDateRange() (D-06..D-12)
+- [ ] 60-04-tests-and-thisyear-parity-PLAN.md — Backend pytest for range behaviours + manual thisYear parity check (D-01..D-03, D-06..D-11)
