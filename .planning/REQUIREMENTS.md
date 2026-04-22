@@ -57,7 +57,7 @@
 
 - [x] **A11Y-01**: Full DE/EN i18n key parity (EN count == DE count) for every new or renamed key introduced by v1.19; DE copy uses du-tone.
 - [x] **A11Y-02**: All new and migrated controls expose an accessible name (visible label or `aria-label`) and a visible focus ring in both light and dark modes.
-- [ ] **A11Y-03**: Dark-mode sweep across every migrated surface — no hardcoded color literals, no contrast regressions, all tokens resolve in both themes.
+- [x] **A11Y-03**: Dark-mode sweep across every migrated surface — no hardcoded color literals, no contrast regressions, all tokens resolve in both themes.
 
 ---
 
