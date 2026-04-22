@@ -22,6 +22,7 @@ import { SubHeader } from "./components/SubHeader";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SettingsDraftProvider } from "./contexts/SettingsDraftContext";
 import { SensorDraftProvider } from "./contexts/SensorDraftContext";
+import { SensorTimeWindowProvider } from "./components/sensors/SensorTimeWindow";
 import { DateRangeProvider } from "./contexts/DateRangeContext";
 import { AuthProvider } from "./auth/AuthContext";
 import { AuthGate } from "./auth/AuthGate";
@@ -105,7 +106,9 @@ function App() {
           <SettingsDraftProvider>
             <SensorDraftProvider>
               <DateRangeProvider>
-                <AppShell />
+                <SensorTimeWindowProvider>
+                  <AppShell />
+                </SensorTimeWindowProvider>
               </DateRangeProvider>
             </SensorDraftProvider>
           </SettingsDraftProvider>
