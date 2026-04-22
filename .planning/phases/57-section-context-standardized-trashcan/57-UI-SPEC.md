@@ -60,17 +60,29 @@ Declared values (all multiples of 4, matching the existing chrome contract from 
 
 ### SectionHeader rhythm (locked)
 
-The Playlist-editor pattern is the source of truth
-(`frontend/src/signage/pages/PlaylistEditorPage.tsx` lines 330–336 and 342–349):
+The Playlist-editor pattern is the structural source of truth
+(`frontend/src/signage/pages/PlaylistEditorPage.tsx` lines 330–336 and 342–349).
+Phase 57 **harmonizes** the weight token from `font-semibold` → `font-medium`
+across all admin sections to conform to the project's 2-weight typography
+contract (see Typography section below). The Playlist editor file itself is
+NOT changed in this phase; it is tracked as a future follow-on if flagged as
+inconsistent.
+
+Standard pattern (Phase 57 onward):
 
 ```
 <section>
-  <h2 className="text-base font-semibold">{title}</h2>
+  <h2 className="text-base font-medium">{title}</h2>
   <p className="text-xs text-muted-foreground" lang={i18n.language}>
     {description}
   </p>
 </section>
 ```
+
+**Focal point:** the `<h2>` title is the primary visual anchor for each admin
+section — it is the first textual element consumers scan when landing on a
+route. Hierarchy is maintained via size (16px vs 12px body) and color
+(`--foreground` vs `--muted-foreground`) rather than weight.
 
 Primitive wrapper rhythm:
 
@@ -111,18 +123,20 @@ Exceptions: none.
 
 ## Typography
 
-All values verbatim Tailwind v4 utility classes resolving through tokens. No new type sizes introduced.
+All values verbatim Tailwind v4 utility classes resolving through tokens. No new type sizes introduced. **Matches Phase 56 typography scale; hierarchy maintained via size + color (foreground vs muted-foreground), not weight.**
 
 | Role | Size | Weight | Line Height | Tailwind |
 |------|------|--------|-------------|----------|
-| Section title (`<h2>`) | 16px | 600 (semibold) | 1.5 | `text-base font-semibold` |
+| Section title (`<h2>`) | 16px | 500 (medium) | 1.5 | `text-base font-medium` |
 | Section description (`<p>`) | 12px | 400 (regular) | 1.5 | `text-xs text-muted-foreground` |
-| Dialog title | 16px | 600 (semibold) | 1.25 | `text-base font-semibold leading-none` (existing `DialogTitle`) |
+| Dialog title | 16px | 500 (medium) | 1.25 | `text-base font-medium leading-none` |
 | Dialog description / body | 14px | 400 (regular) | 1.5 | `text-sm text-muted-foreground` (existing `DialogDescription`) |
 | Item-name highlight inside body | 14px | 500 (medium) | 1.5 | `text-sm font-medium text-foreground` |
 | Button label (Cancel / Delete) | 14px | 500 (medium) | 1.0 | inherited from `Button` primitive |
 
-**Total sizes used: 3** (12px, 14px, 16px). **Total weights used: 3** (400 regular, 500 medium, 600 semibold) — consistent with Phase 56 contract which used 400+500 only; 600 is introduced here exclusively for headings (title role).
+**Total sizes used: 3** (12px, 14px, 16px). **Total weights used: 2** (400 regular, 500 medium) — matches Phase 56 typography scale exactly. The item-name highlight inside dialog body remains differentiable from 400 body copy via weight (500) plus color (`text-foreground` vs `text-muted-foreground`).
+
+> **Note on `DialogTitle` primitive:** the existing base-ui `DialogTitle` primitive currently ships `font-semibold`. Phase 57 overrides this at the call site by passing `className="text-base font-medium leading-none"`. Planner task must confirm override is applied. If a full primitive-level change to `font-medium` is desired, it is tracked as a cross-cutting follow-on (the Phase 56 chrome does not use `DialogTitle`, so no regression risk).
 
 Description length rule (D-07): ≤ 2 visual lines at typical dashboard width. Enforced by **copy**, not by `line-clamp`. CI-adjacent: Planner's i18n task must budget copy accordingly (~120 chars DE / ~100 chars EN max).
 
@@ -247,7 +261,8 @@ Zero matches for `window.confirm` in `frontend/src/` after this phase. Current c
 
 ### `<SectionHeader title description />` (D-03, SECTION-01, SECTION-02)
 
-- Renders a `<section>` landmark with an `<h2 class="text-base font-semibold text-foreground">` title and a `<p class="mt-1 text-xs text-muted-foreground">` description.
+- Renders a `<section>` landmark with an `<h2 class="text-base font-medium text-foreground">` title and a `<p class="mt-1 text-xs text-muted-foreground">` description.
+- The `<h2>` title is the **focal point** of each admin section (primary visual anchor).
 - `lang={i18n.language}` on the `<p>` so browser hyphenation selects the correct dictionary (matches Playlist-editor L334).
 - Props: `{ title: string; description: string; className?: string; children?: never }`. Primitive is non-interactive; `children` are NOT accepted (section body lives next to, not inside, the header).
 - Null handling: if `title` is empty, primitive renders `null` (safety; should not happen in practice).
@@ -291,9 +306,9 @@ Zero matches for `window.confirm` in `frontend/src/` after this phase. Current c
     confirmDisabled?: boolean;   // allows caller to gate during async work
   }
   ```
-- Renders: `<Dialog>` → `<DialogContent>` → `<DialogHeader>` with `<DialogTitle>` + `<DialogDescription>` (body) → `<DialogFooter>` with Cancel (variant="outline", autoFocus) + Confirm (variant="destructive"). Close-X stays in top-right (inherited, `showCloseButton={true}`).
+- Renders: `<Dialog>` → `<DialogContent>` → `<DialogHeader>` with `<DialogTitle className="text-base font-medium leading-none">` + `<DialogDescription>` (body) → `<DialogFooter>` with Cancel (variant="outline", autoFocus) + Confirm (variant="destructive"). Close-X stays in top-right (inherited, `showCloseButton={true}`).
 - `DialogTitle` is required by base-ui for a11y; primitive always renders it. `DialogDescription` wraps the body ReactNode.
-- Item-label highlighting: body text renders `itemLabel` as `<strong className="text-foreground font-medium">{itemLabel}</strong>` within `muted-foreground` body copy for scan-readable emphasis.
+- Item-label highlighting: body text renders `itemLabel` as `<strong className="text-foreground font-medium">{itemLabel}</strong>` within `muted-foreground` body copy for scan-readable emphasis (weight + color, no size change).
 
 ### Dialog focus and escape behavior (base-ui Dialog inherited)
 
