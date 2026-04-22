@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: Signage Calibration + Build Hygiene
 status: executing
-stopped_at: Completed 62-signage-calibration-03-PLAN.md
-last_updated: "2026-04-22T21:01:00.810Z"
+stopped_at: Completed 62-02-admin-ui-calibration-PLAN.md
+last_updated: "2026-04-22T21:33:28.650Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 
 Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
 Phase: 62 (signage-calibration) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-22
 
@@ -157,6 +157,7 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 | Phase 61 P01 | 7m 38s | 3 tasks | 10 files |
 | Phase 62 P01 | 221s | 2 tasks | 6 files |
 | Phase 62-signage-calibration P03 | 529 | 2 tasks | 5 files |
+| Phase 62 P02 | 30m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -280,6 +281,9 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 - [Phase 62]: Plan 62-01: Literal[0,90,180,270] on rotation in SignageCalibrationUpdate gives FastAPI auto-422 — no hand-rolled validation (D-10)
 - [Phase 62]: Plan 62-01: server_default on ALTER TABLE atomically backfills existing rows (rotation=0, audio_enabled=false) — D-07 no flicker on deployed devices
 - [Phase 62-signage-calibration]: 62-03: sidecar calibration applier landed — httpx-sse SSE subscriber + asyncio.create_subprocess_exec wlr-randr/wpctl apply + _wait_for_wayland_socket bounded poll + /var/lib/signage/calibration.json boot replay (D-06) + D-09 no-retry; 17 unit tests, 0 sync subprocess
+- [Phase 62]: Plan 62-02: HDMI Auto placeholder uses empty-string sentinel mapped to null at Select<->form boundary; preserves D-02 null semantic in PATCH body
+- [Phase 62]: Plan 62-02: Toggle segments memoised to stabilize Toggle.useLayoutEffect dep identity — avoids jsdom render loop + extra prod paint
+- [Phase 62]: Plan 62-02: Unit test is shape-based (apiClient spy + source regex + JSON locale load); render test blocked by jsdom/Toggle/Dialog/RHF interaction — 62-04 E2E carries runtime coverage
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -321,6 +325,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T21:01:00.802Z
-**Stopped at:** Completed 62-signage-calibration-03-PLAN.md
+**Last session:** 2026-04-22T21:33:28.647Z
+**Stopped at:** Completed 62-02-admin-ui-calibration-PLAN.md
 **Resume file:** None

@@ -234,7 +234,7 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
 | 61. TS Cleanup | v1.20 | 1/1 | Complete   | 2026-04-22 |
-| 62. Signage Calibration | v1.21 | 2/4 | In Progress|  |
+| 62. Signage Calibration | v1.21 | 3/4 | In Progress|  |
 | 63. Frontend Build Fix | v1.21 | 0/1 | Not started | — |
 
 ## Phase Details
@@ -244,7 +244,7 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 **Goal:** Operators calibrate each signage Pi from the admin UI — rotation, HDMI mode, audio on/off — without SSH or reprovisioning. Changes propagate live via SSE → sidecar and persist across reboots.
 **Depends on:** Phase 52 (`/signage/devices` admin page), Phase 48 (sidecar SSE listener), Phase 53 (heartbeat path for calibration-result reporting).
 **Requirements:** CAL-BE-01..05, CAL-UI-01..04, CAL-PI-01..07
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 - **62-01 Backend** — Alembic migration adds `rotation` / `hdmi_mode` / `audio_enabled`; `GET`/`PATCH /api/signage/devices/{id}/calibration`; SSE `calibration-changed`; `GET /api/signage/player/calibration` device-auth endpoint.
 - **62-02 Admin UI** — Calibration section on device edit dialog; rotation + HDMI mode dropdowns + audio toggle; DE/EN parity.
 - **62-03 Pi sidecar** — SSE listener invokes `wlr-randr` for rotation/mode and `wpctl` (fallback `pactl`) for audio; persists `/var/lib/signage/calibration.json`; replays on boot.

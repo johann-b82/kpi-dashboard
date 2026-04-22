@@ -35,10 +35,10 @@
 
 ### Signage calibration — admin UI (CAL-UI-*)
 
-- [ ] **CAL-UI-01**: Device edit dialog on `/signage/devices` gains a `Calibration` section with rotation dropdown (0/90/180/270), HDMI mode dropdown, audio on/off toggle.
-- [ ] **CAL-UI-02**: HDMI mode dropdown options come from a device-reported mode list (populated once the device first reports available modes — until then, a placeholder "auto" entry).
-- [ ] **CAL-UI-03**: Saving calls `PATCH /api/signage/devices/{id}/calibration`, invalidates the devices TanStack query, and shows a toast.
-- [ ] **CAL-UI-04**: All copy i18n-localised (DE/EN parity; du-tone).
+- [x] **CAL-UI-01**: Device edit dialog on `/signage/devices` gains a `Calibration` section with rotation dropdown (0/90/180/270), HDMI mode dropdown, audio on/off toggle.
+- [x] **CAL-UI-02**: HDMI mode dropdown options come from a device-reported mode list (populated once the device first reports available modes — until then, a placeholder "auto" entry).
+- [x] **CAL-UI-03**: Saving calls `PATCH /api/signage/devices/{id}/calibration`, invalidates the devices TanStack query, and shows a toast.
+- [x] **CAL-UI-04**: All copy i18n-localised (DE/EN parity; du-tone).
 
 ### Signage calibration — Pi sidecar + player (CAL-PI-*)
 
