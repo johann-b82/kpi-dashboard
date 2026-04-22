@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Upload as UploadIcon } from "lucide-react";
 import { AdminOnly } from "@/auth/AdminOnly";
 import { Toggle } from "@/components/ui/toggle";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
 import { SensorTimeWindowPicker } from "@/components/sensors/SensorTimeWindow";
@@ -99,6 +100,25 @@ export function SubHeader() {
 
   const isDashboard = location === "/sales" || location === "/hr";
 
+  // Signage admin routes share a 4-tab pill. /signage/pair is a standalone
+  // pairing screen and keeps the default SubHeader layout (no tabs).
+  const signageTabs = [
+    { id: "media",     path: "/signage/media",     labelKey: "signage.admin.nav.media" },
+    { id: "playlists", path: "/signage/playlists", labelKey: "signage.admin.nav.playlists" },
+    { id: "devices",   path: "/signage/devices",   labelKey: "signage.admin.nav.devices" },
+    { id: "schedules", path: "/signage/schedules", labelKey: "signage.admin.nav.schedules" },
+  ] as const;
+  const signageActive = location.startsWith("/signage/playlists")
+    ? "playlists"
+    : location.startsWith("/signage/devices")
+    ? "devices"
+    : location.startsWith("/signage/schedules")
+    ? "schedules"
+    : location.startsWith("/signage/media")
+    ? "media"
+    : null;
+  const showSignageTabs = signageActive !== null && location !== "/signage/pair";
+
   return (
     <div className="fixed top-16 inset-x-0 h-12 bg-background z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
@@ -123,6 +143,17 @@ export function SubHeader() {
             />
           )}
           {location === "/sensors" && <SensorTimeWindowPicker />}
+          {showSignageTabs && (
+            <SegmentedControl
+              segments={signageTabs.map((tab) => ({ value: tab.id, label: t(tab.labelKey) }))}
+              value={signageActive}
+              onChange={(id) => {
+                const target = signageTabs.find((tab) => tab.id === id);
+                if (target) navigate(target.path);
+              }}
+              aria-label={t("signage.admin.page_title")}
+            />
+          )}
         </div>
         <div className="flex items-center gap-3">
           {isDashboard && (
