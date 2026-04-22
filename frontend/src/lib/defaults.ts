@@ -20,6 +20,14 @@ export const DEFAULT_SETTINGS: Settings = {
   target_sick_leave_ratio: null,
   target_fluctuation: null,
   target_revenue_per_employee: null,
+  // Phase 38 sensor globals (v1.15): 60s poll matches scheduler baseline;
+  // null thresholds = "no threshold set" (matches useSensorDraft
+  // buildGlobalsPayload empty-string early-exit contract).
+  sensor_poll_interval_s: 60,
+  sensor_temperature_min: null,
+  sensor_temperature_max: null,
+  sensor_humidity_min: null,
+  sensor_humidity_max: null,
 };
 
 export const THEME_TOKEN_MAP = {
