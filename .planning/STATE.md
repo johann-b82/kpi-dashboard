@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 56-04-i18n-parity-PLAN.md (Phase 56 complete 4/4)
-last_updated: "2026-04-22T07:32:18.724Z"
-last_activity: 2026-04-22
+stopped_at: Completed 57-04-i18n-keys-PLAN.md
+last_updated: "2026-04-22T08:35:16.167Z"
+last_activity: 2026-04-22 -- Phase 57 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 26
+  completed_plans: 16
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 56 — breadcrumb-header-content-nav-relocation
+**Current focus:** Phase 57 — section-context-standardized-trashcan
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,10 +37,10 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 56 (breadcrumb-header-content-nav-relocation) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-04-22
+Phase: 57 (section-context-standardized-trashcan) — EXECUTING
+Plan: 1 of 11
+Status: Executing Phase 57
+Last activity: 2026-04-22 -- Phase 57 execution started
 
 Progress: 0/6 phases complete, 0 plans
 
@@ -131,6 +131,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 56 P02 | 115s | 2 tasks | 2 files |
 | Phase 56 P03 | 10m | 3 tasks | 2 files |
 | Phase 56 P04 | 25m | 2 tasks | 2 files |
+| Phase 57 P04 | 64s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -227,6 +228,8 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 56]: Plan 56-02: Identity row is <div data-testid=usermenu-identity>, not DropdownItem (D-12 #1) — sign-out tests target last role=menuitem so they stay stable across Plan 04 i18n copy
 - [Phase 56]: Plan 56-03: Atomic chrome swap — NavBar stripped to identity only (157->~30 lines); SubHeader hosts Sales/HR Toggle + AdminOnly Upload on /sales and /hr; lastDashboard sessionStorage removed repo-wide; chrome contract h-16/top-0/z-50 + h-12/top-16/z-40 preserved
 - [Phase 56]: Plan 56-04: nav.home copy is 'Apps' in both EN and DE (landing route = app launcher, not a dashboard); active breadcrumb crumb uses text-primary + font-medium for current-location affordance; DE/EN parity at 479 keys after +8/-3.
+- [Phase 57]: Plan 57-04: bodyFallback uses <1>{{itemLabel}}</1> component-index markers for react-i18next Trans (NOT markdown **) per RESEARCH Pitfall 8 — supersedes UI-SPEC markdown copy
+- [Phase 57]: Plan 57-04: tags + users section keys reserved despite no /signage/tags or /settings/users routes today (RESEARCH Q4 reserve note); insertion point before launcher.title groups primitive ui.* + structural section.*
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -268,6 +271,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T07:32:18.716Z
-**Stopped at:** Completed 56-04-i18n-parity-PLAN.md (Phase 56 complete 4/4)
+**Last session:** 2026-04-22T08:35:16.056Z
+**Stopped at:** Completed 57-04-i18n-keys-PLAN.md
 **Resume file:** None

@@ -27,10 +27,10 @@
 
 ### Section context (SECTION-*)
 
-- [ ] **SECTION-01**: Every admin page section carries a heading + short description (≤ 2 lines) explaining its purpose, matching the pattern already used in the Playlist editor.
-- [ ] **SECTION-02**: All section headings and descriptions are localized in DE (du-tone) and EN with matching i18n key parity (EN count == DE count).
-- [ ] **SECTION-03**: A single `<TrashIcon>` / delete-button component under `frontend/src/components/ui/` is the only destructive row action used across Media, Playlists, Devices, Schedules, Tags, Sensors, and Users tables/lists.
-- [ ] **SECTION-04**: The shared delete button emits a consistent confirm-dialog pattern (the existing `DeleteDialog` shape) — no ad-hoc `window.confirm` or one-off modal variants remain.
+- [x] **SECTION-01**: Every admin page section carries a heading + short description (≤ 2 lines) explaining its purpose, matching the pattern already used in the Playlist editor.
+- [x] **SECTION-02**: All section headings and descriptions are localized in DE (du-tone) and EN with matching i18n key parity (EN count == DE count).
+- [x] **SECTION-03**: A single `<TrashIcon>` / delete-button component under `frontend/src/components/ui/` is the only destructive row action used across Media, Playlists, Devices, Schedules, Tags, Sensors, and Users tables/lists.
+- [x] **SECTION-04**: The shared delete button emits a consistent confirm-dialog pattern (the existing `DeleteDialog` shape) — no ad-hoc `window.confirm` or one-off modal variants remain.
 
 ### Consolidated controls (CTRL-*)
 
