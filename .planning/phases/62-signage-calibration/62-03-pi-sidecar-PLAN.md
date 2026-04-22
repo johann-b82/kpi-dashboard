@@ -124,6 +124,7 @@ From scripts/systemd/signage-sidecar.service — currently sets `SIGNAGE_API_BAS
       - `Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__`
       - `Environment=WAYLAND_DISPLAY=wayland-0`
       The `__SIGNAGE_UID__` placeholder is already substituted by `deploy_systemd_units` in scripts/lib/signage-install.sh (line 99) — no installer change needed. Confirm via the existing sed substitution contract.
+    - `scripts/systemd/signage-sidecar.service` `[Unit]` section gains `After=labwc.service` and `Requires=labwc.service` (Flag 1 fix part 1: systemd ordering). The bounded wayland-socket wait in Task 2 is part 2 — belt-and-braces against `After` only guaranteeing unit-start order, not socket readiness.
     - In sidecar.py add module-level constants `_CALIBRATION_FILE = "calibration.json"` and helpers `_load_calibration() -> dict | None` / `_save_calibration(cal: dict) -> None` that use `_write_secure` + `_cache_dir()` mirroring the existing playlist-cache helpers (lines 94-106).
     - Add a `_calibration_last_error: str | None = None` module-level state variable — surfaced in heartbeat body per D-09.
     - Add `_detect_audio_backend() -> Literal["wpctl", "pactl", None]` helper — called once at startup, pinned for process lifetime (D-03 decision). Uses `shutil.which("wpctl")` then `shutil.which("pactl")`.
@@ -134,11 +135,18 @@ From scripts/systemd/signage-sidecar.service — currently sets `SIGNAGE_API_BAS
 
     2. Append `wlr-randr`, `wireplumber`, `pulseaudio-utils` to scripts/lib/signage-packages.txt (one per line, following existing format — no comment lines).
 
-    3. In scripts/systemd/signage-sidecar.service, in the `[Service]` block after the existing `Environment=` lines, add:
-       ```
-       Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__
-       Environment=WAYLAND_DISPLAY=wayland-0
-       ```
+    3. In scripts/systemd/signage-sidecar.service:
+       - In the `[Service]` block after the existing `Environment=` lines, add:
+         ```
+         Environment=XDG_RUNTIME_DIR=/run/user/__SIGNAGE_UID__
+         Environment=WAYLAND_DISPLAY=wayland-0
+         ```
+       - In the `[Unit]` section, add (after the existing `After=` line if present, else new lines):
+         ```
+         After=labwc.service
+         Requires=labwc.service
+         ```
+         (Flag 1 fix part 1: systemd start ordering.)
 
     4. In pi-sidecar/sidecar.py:
        - Add import: `import shutil`, `from datetime import datetime, timezone`.
@@ -187,7 +195,11 @@ From scripts/systemd/signage-sidecar.service — currently sets `SIGNAGE_API_BAS
       - For each `ServerSentEvent`: parse JSON; if `event == "calibration-changed"`: fetch `GET /api/signage/player/calibration` with the same auth header, then call `_apply_calibration(response.json())`.
       - On any `httpx.*Error` or disconnect: log, sleep 5s, retry (matches the `_playlist_refresh_loop` resilience posture).
     - Lifespan startup (lines 254-280) extended:
-      - BEFORE spawning the three existing tasks, call a NEW synchronous-in-async helper `await _replay_persisted_calibration()` that:
+      - BEFORE spawning the three existing tasks, call a NEW helper `await _wait_for_wayland_socket(timeout=15.0)` that:
+        - Resolves `$XDG_RUNTIME_DIR/wayland-0` (falls back to `/run/user/$UID/wayland-0` if env var missing). Polls every 200 ms for up to `timeout` seconds until the socket path exists.
+        - Returns `True` when the socket appears; returns `False` after timeout. On `False`, logs `"Wayland socket not available after {timeout}s; calibration replay will be skipped this boot"` and sets `_calibration_last_error = "wayland socket unavailable at boot"` so the heartbeat surfaces it.
+        - **Rationale (D-06 + Flag 1 fix):** `signage-sidecar.service` has `After=labwc.service` but systemd `After` only guarantees start-order, not that the compositor has finished creating its socket. The bounded wait closes the race without introducing indefinite blocking.
+      - Then call `await _replay_persisted_calibration()` ONLY if the wait returned `True`. The helper:
         - Reads `_load_calibration()`. If present, `await _apply_calibration(cal)` — this runs before `_connectivity_probe_loop` even starts, satisfying D-06 "replay on boot BEFORE network is up".
         - At this point `_audio_backend` is already pinned (`_detect_audio_backend()` called as module-level side effect or in lifespan before replay).
       - Then spawn the existing three tasks PLUS a new `asyncio.create_task(_calibration_sse_loop())`.
@@ -199,6 +211,9 @@ From scripts/systemd/signage-sidecar.service — currently sets `SIGNAGE_API_BAS
       - `test_apply_calibration_audio_pactl_fallback` — `_audio_backend="pactl"` → `pactl set-sink-mute @DEFAULT_SINK@ 1` (audio_enabled=False).
       - `test_apply_calibration_subprocess_failure_records_error_no_retry` — monkeypatch subprocess to return returncode=2; assert `_calibration_last_error` set and function did NOT re-invoke on its own (D-09).
       - `test_replay_on_boot_runs_before_connectivity_probe` — patch `_load_calibration` to return a dict; use `asyncio.sleep(0)` ordering to assert `_apply_calibration` was called BEFORE any `httpx.AsyncClient.get` to `/api/health` (D-06).
+      - `test_wait_for_wayland_socket_returns_true_when_present` — create a tmp socket path, set `XDG_RUNTIME_DIR` to its parent, assert `_wait_for_wayland_socket(timeout=1.0)` returns `True`.
+      - `test_wait_for_wayland_socket_returns_false_on_timeout` — unset/point `XDG_RUNTIME_DIR` at a non-existent path, assert `_wait_for_wayland_socket(timeout=0.5)` returns `False` and `_calibration_last_error` is set (Flag 1 fix).
+      - `test_replay_skipped_when_wayland_unavailable` — monkeypatch `_wait_for_wayland_socket` to return `False`; assert `_apply_calibration` is NOT called during lifespan startup.
       - `test_sse_loop_calibration_changed_triggers_fetch_and_apply` — monkeypatch `httpx_sse.aconnect_sse` to yield a single `ServerSentEvent(data=json.dumps({"event": "calibration-changed", "device_id": "..."}))`; monkeypatch `httpx.AsyncClient.get("/calibration")` to return a payload; assert `_apply_calibration` called with that payload.
   </behavior>
   <action>
@@ -209,7 +224,8 @@ From scripts/systemd/signage-sidecar.service — currently sets `SIGNAGE_API_BAS
     3. Extend the `lifespan` (lines 254-291):
        - After `_ensure_dirs()`:
          - `_audio_backend = _detect_audio_backend()`
-         - `await _replay_persisted_calibration()` — before any background task spawn (D-06).
+         - `wayland_ready = await _wait_for_wayland_socket(timeout=15.0)` — bounded wait closes the Flag 1 race.
+         - `if wayland_ready: await _replay_persisted_calibration()` — before any background task spawn (D-06).
        - In the background task block, add `calibration_task = asyncio.create_task(_calibration_sse_loop())`.
        - In the shutdown block, cancel + await `calibration_task` alongside the existing three.
 
@@ -233,7 +249,10 @@ grep -q "wireplumber" scripts/lib/signage-packages.txt
 grep -q "pulseaudio-utils" scripts/lib/signage-packages.txt
 grep -q "WAYLAND_DISPLAY" scripts/systemd/signage-sidecar.service
 grep -q "XDG_RUNTIME_DIR" scripts/systemd/signage-sidecar.service
+grep -qE "^After=labwc.service" scripts/systemd/signage-sidecar.service
+grep -qE "^Requires=labwc.service" scripts/systemd/signage-sidecar.service
 grep -q "httpx-sse" pi-sidecar/requirements.txt
+grep -q "_wait_for_wayland_socket" pi-sidecar/sidecar.py
 # Enforce cross-cutting hazard #7 — no sync subprocess in signage modules:
 ! grep -n "subprocess.run\|subprocess\.Popen" pi-sidecar/sidecar.py
 ```

@@ -209,7 +209,7 @@ Backend contract (delivered by 62-01):
     Record all four outcomes (PASS/FAIL + timing) in `62-04-E2E-RESULTS.md`.
   </action>
   <verify>
-    <automated>test -f .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -E "Scenario A.*PASS|Scenario A.*FAIL" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -E "Scenario B" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -E "Scenario C" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -E "Scenario D" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md</automated>
+    <automated>test -f .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -qE "Scenario A.*(PASS|FAIL)" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -qE "Scenario B.*(PASS|FAIL)" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -qE "Scenario C.*(PASS|FAIL)" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md && grep -qE "Scenario D.*(PASS|FAIL)" .planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md</automated>
   </verify>
   <done>
     All four scenarios recorded in 62-04-E2E-RESULTS.md. Scenario A, C, D PASS. Scenario B either PASS (mode changed ≤10s) or PASS-with-caveat (mode unsupported → D-09 error surfaced correctly in heartbeat body). User has typed "approved" or described failures for triage.
