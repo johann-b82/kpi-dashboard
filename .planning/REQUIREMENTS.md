@@ -47,7 +47,7 @@
 - [x] **CAL-PI-03**: Sidecar applies HDMI mode via `wlr-randr --output <name> --mode <WIDTHxHEIGHT@REFRESH>`; errors surface to the backend via the heartbeat (or a new `/api/signage/player/calibration-result` POST).
 - [x] **CAL-PI-04**: Sidecar applies audio via `wpctl set-mute @DEFAULT_AUDIO_SINK@ 0|1`; if WirePlumber unavailable, fallback to `pactl set-sink-mute`.
 - [x] **CAL-PI-05**: Sidecar persists the last-applied calibration to `/var/lib/signage/calibration.json`; on boot, replays that state before hitting the network.
-- [ ] **CAL-PI-06**: Player app responds to `calibration-changed` by toggling `<video>` `muted` attribute to match `audio_enabled`.
+- [x] **CAL-PI-06**: Player app responds to `calibration-changed` by toggling `<video>` `muted` attribute to match `audio_enabled`.
 - [ ] **CAL-PI-07**: End-to-end (on real Pi hardware): admin rotates → wlr-randr reports new transform within 5 s; admin changes mode → monitor reports new mode within 10 s; admin enables audio → current playing video unmutes within 3 s.
 
 ### Frontend build fix (BUILD-*)

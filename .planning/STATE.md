@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: Signage Calibration + Build Hygiene
 status: executing
-stopped_at: Completed 62-02-admin-ui-calibration-PLAN.md
-last_updated: "2026-04-22T21:33:28.650Z"
+stopped_at: Plan 62-04 Task 1 complete (CAL-PI-06 closed); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification — do not advance
+last_updated: "2026-04-22T21:38:30.899Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 2
@@ -37,14 +37,14 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 ## Current Position
 
 Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
-Phase: 62 (signage-calibration) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 62 (signage-calibration) — EXECUTING (Plan 62-04 Task 2 awaits human verification)
+Plan: 4 of 4 (Task 1 complete, Task 2 awaits real-Pi walkthrough)
+Status: awaiting-human-verify — CAL-PI-07
 Last activity: 2026-04-22
 
-Progress: 0/2 phases complete, 0/5 plans complete in v1.21
+Progress: 0/2 phases complete, 3/4 plans fully complete in Phase 62 (62-04 partial — Task 1 CAL-PI-06 closed, Task 2 CAL-PI-07 open)
 
-Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run in parallel once 62 is planned. Quick task (Authentik removal) can land any time.
+Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 62-04 Task 2), fills `.planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md`, and types "approved" to close CAL-PI-07 + Phase 62. Then Phase 63 (frontend build fix) is the final v1.21 item.
 
 ### Quick Tasks Completed
 
@@ -158,6 +158,7 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 | Phase 62 P01 | 221s | 2 tasks | 6 files |
 | Phase 62-signage-calibration P03 | 529 | 2 tasks | 5 files |
 | Phase 62 P02 | 30m | 2 tasks | 6 files |
+| Phase 62-signage-calibration P04-task-1 | ~6m | 1 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -284,6 +285,7 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 - [Phase 62]: Plan 62-02: HDMI Auto placeholder uses empty-string sentinel mapped to null at Select<->form boundary; preserves D-02 null semantic in PATCH body
 - [Phase 62]: Plan 62-02: Toggle segments memoised to stabilize Toggle.useLayoutEffect dep identity — avoids jsdom render loop + extra prod paint
 - [Phase 62]: Plan 62-02: Unit test is shape-based (apiClient spy + source regex + JSON locale load); render test blocked by jsdom/Toggle/Dialog/RHF interaction — 62-04 E2E carries runtime coverage
+- [Phase 62-signage-calibration]: Plan 62-04 Task 1 (CAL-PI-06) complete: player onCalibrationChanged SSE dispatch + fetchCalibration + <video muted> toggle via audioEnabled prop chain (VideoPlayer default muted=true preserves admin-preview behaviour). Task 2 (CAL-PI-07 real-Pi E2E) awaits human verification — plan remains open, CAL-PI-07 still pending.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -325,6 +327,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T21:33:28.647Z
-**Stopped at:** Completed 62-02-admin-ui-calibration-PLAN.md
+**Last session:** 2026-04-22T21:38:30.896Z
+**Stopped at:** Plan 62-04 Task 1 complete (CAL-PI-06 closed); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification — do not advance
 **Resume file:** None
