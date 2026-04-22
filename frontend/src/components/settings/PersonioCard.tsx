@@ -151,7 +151,7 @@ export function PersonioCard({ draft, setField, hasCredentials, embedded = false
             </Label>
             <Select
               value={String(draft.personio_sync_interval_h)}
-              onValueChange={(v) =>
+              onValueChange={(v: string) =>
                 setField(
                   "personio_sync_interval_h",
                   Number(v) as 0 | 1 | 6 | 24,
