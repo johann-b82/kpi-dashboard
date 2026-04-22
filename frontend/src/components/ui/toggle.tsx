@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 export interface ToggleSegment<T extends string> {
   value: T;
@@ -58,9 +58,25 @@ function Toggle<T extends string>({
 
   const reducedMotion = usePrefersReducedMotion();
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([null, null]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ width: number; offset: number } | null>(null);
 
   const foundIndex = segments.findIndex((s) => s.value === value);
   const activeIndex = foundIndex === -1 ? 0 : foundIndex;
+
+  useLayoutEffect(() => {
+    const btn = buttonRefs.current[activeIndex];
+    const container = containerRef.current;
+    if (!btn || !container) return;
+    const update = () => {
+      setIndicatorStyle({ width: btn.offsetWidth, offset: btn.offsetLeft });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(btn);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [activeIndex, segments]);
 
   function handleKey(idx: number, e: KeyboardEvent<HTMLButtonElement>) {
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
@@ -87,6 +103,7 @@ function Toggle<T extends string>({
 
   return (
     <div
+      ref={containerRef}
       role="radiogroup"
       aria-label={ariaLabel}
       aria-disabled={disabled ? "true" : undefined}
@@ -95,10 +112,11 @@ function Toggle<T extends string>({
     >
       <span
         aria-hidden="true"
-        className="absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-primary"
+        className={`absolute top-1 left-0 h-6 rounded-full ${variant === "muted" ? "bg-background shadow-sm" : "bg-primary"}`}
         style={{
-          transform: activeIndex === 0 ? "translateX(0)" : "translateX(100%)",
-          transition: reducedMotion ? "none" : "transform 180ms ease-out",
+          width: indicatorStyle ? `${indicatorStyle.width}px` : `calc(50% - 0.25rem)`,
+          transform: `translateX(${indicatorStyle ? indicatorStyle.offset : activeIndex === 0 ? 4 : 0}px)`,
+          transition: reducedMotion ? "none" : "transform 180ms ease-out, width 180ms ease-out",
         }}
       />
       {segments.map((segment, i) => {
@@ -126,7 +144,7 @@ function Toggle<T extends string>({
             onKeyDown={(e) => handleKey(i, e)}
             className={
               isActive
-                ? "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-medium text-primary-foreground inline-flex items-center justify-center gap-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:z-20"
+                ? `flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-medium ${variant === "muted" ? "text-foreground" : "text-primary-foreground"} inline-flex items-center justify-center gap-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:z-20`
                 : "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-normal text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:z-20"
             }
           >

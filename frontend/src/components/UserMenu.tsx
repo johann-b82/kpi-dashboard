@@ -57,7 +57,7 @@ export function UserMenu() {
       <DropdownTrigger
         aria-label={t("userMenu.triggerLabel")}
         className={cn(
-          "inline-flex items-center justify-center rounded-full size-9 bg-muted text-sm font-medium",
+          "inline-flex items-center justify-center rounded-full size-8 bg-muted text-sm font-normal",
           "hover:bg-accent/20 transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         )}

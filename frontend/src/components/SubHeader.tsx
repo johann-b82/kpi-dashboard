@@ -132,7 +132,7 @@ export function SubHeader() {
               value={location === "/hr" ? "/hr" : "/sales"}
               onChange={(path) => navigate(path)}
               aria-label={t("nav.dashboardToggleLabel")}
-              className="border-transparent"
+              variant="muted"
             />
           )}
           {location === "/sales" && (

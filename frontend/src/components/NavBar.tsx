@@ -37,7 +37,7 @@ export function NavBar() {
             href="/docs"
             aria-label={t("docs.nav.docsLabel")}
             className={cn(
-              "inline-flex items-center justify-center rounded-full size-9 bg-muted text-foreground",
+              "inline-flex items-center justify-center rounded-full size-8 bg-muted text-foreground",
               "hover:bg-accent/20 transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             )}
