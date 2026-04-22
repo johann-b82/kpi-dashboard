@@ -166,6 +166,12 @@ class SignageDevice(Base):
             "status IN ('online','offline','pending')",
             name="ck_signage_devices_status",
         ),
+        # Phase 62-01 CAL-BE-01 / D-01: rotation restricted to the four
+        # labwc-supported wayland transforms.
+        CheckConstraint(
+            "rotation IN (0, 90, 180, 270)",
+            name="ck_signage_devices_rotation",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -189,6 +195,20 @@ class SignageDevice(Base):
     )
     # Phase 43 D-11: last-known playlist ETag written by heartbeat endpoint.
     current_playlist_etag: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Phase 62-01 CAL-BE-01 — calibration columns.
+    # D-01: rotation is one of 0/90/180/270 (labwc transforms). D-07 backfills
+    # existing rows with rotation=0 via server_default.
+    rotation: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+    # D-02: NULL means "use current HDMI mode" — sidecar makes no wlr-randr
+    # --mode call when hdmi_mode IS NULL.
+    hdmi_mode: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # D-03: single device-level audio on/off toggle.
+    audio_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

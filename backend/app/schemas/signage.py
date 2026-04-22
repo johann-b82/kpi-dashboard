@@ -123,9 +123,46 @@ class SignageDeviceRead(SignageDeviceBase):
     current_playlist_id: uuid.UUID | None = None
     current_playlist_name: str | None = None
     status: Literal["online", "offline", "pending"]
+    # Phase 62-01 CAL-BE-02 — calibration fields included in admin list/get.
+    rotation: Literal[0, 90, 180, 270] = 0
+    hdmi_mode: str | None = None
+    audio_enabled: bool = False
     created_at: datetime
     updated_at: datetime
     model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------
+# Phase 62-01 Signage calibration — CAL-BE-03/05
+# --------------------------------------------------------------------------
+
+
+class SignageCalibrationRead(BaseModel):
+    """Caller-scoped calibration — returned by GET /api/signage/player/calibration.
+
+    Per CAL-BE-05 / D-10: the player-side shape is device-auth-scoped to the
+    caller's own device. The sidecar fetches this on every ``calibration-changed``
+    SSE event (D-04 / D-08 — event payload is device_id only, full state fetched
+    here).
+    """
+
+    rotation: Literal[0, 90, 180, 270]
+    hdmi_mode: str | None = None
+    audio_enabled: bool
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SignageCalibrationUpdate(BaseModel):
+    """Admin PATCH body for /api/signage/devices/{id}/calibration — CAL-BE-03.
+
+    All three fields optional (partial update). ``rotation`` typed as
+    ``Literal[0, 90, 180, 270]`` so FastAPI/Pydantic rejects non-canonical
+    values with HTTP 422 automatically (D-10 — no hand-rolled validation).
+    """
+
+    rotation: Literal[0, 90, 180, 270] | None = None
+    hdmi_mode: str | None = Field(default=None, max_length=64)
+    audio_enabled: bool | None = None
 
 
 # --------------------------------------------------------------------------
