@@ -3,7 +3,6 @@ import {
   test,
   expect,
   beforeEach,
-  afterEach,
   vi,
 } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
@@ -197,9 +196,7 @@ describe("SchedulesPage — inline toggle, SSE, highlight (D-02, D-03, D-14)", (
     const scrollIntoViewMock = vi.fn();
     const replaceStateMock = vi.fn();
     const origReplaceState = window.history.replaceState;
-    // @ts-expect-error — jsdom allows assigning
     window.history.replaceState = replaceStateMock;
-    // @ts-expect-error — add prototype override for rows
     Element.prototype.scrollIntoView = scrollIntoViewMock;
 
     // Override location.search via defineProperty
