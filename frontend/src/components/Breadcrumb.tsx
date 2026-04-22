@@ -43,7 +43,7 @@ export function Breadcrumb() {
               {isLast ? (
                 <span
                   aria-current="page"
-                  className="text-muted-foreground"
+                  className="text-primary font-medium"
                 >
                   {t(c.labelKey)}
                 </span>
