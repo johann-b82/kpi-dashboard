@@ -181,7 +181,7 @@ interface DeleteDialogProps {
     Commit: `refactor(57-09): migrate SensorRowForm to DeleteDialog; retire SensorRemoveDialog`.
   </action>
   <verify>
-    <automated>rg "SensorRemoveDialog" frontend/src/ ; rg "window\.confirm" frontend/src/ ; test ! -f frontend/src/components/settings/sensors/SensorRemoveDialog.tsx ; npm --prefix frontend run build 2>&1 | tail -5</automated>
+    <automated>rg "SensorRemoveDialog" frontend/src/ ; rg "window\.confirm" frontend/src/ ; test ! -f frontend/src/components/settings/sensors/SensorRemoveDialog.tsx ; node --experimental-strip-types frontend/scripts/check-locale-parity.mts ; npm --prefix frontend run build 2>&1 | tail -5</automated>
   </verify>
   <done>
     - SensorRemoveDialog.tsx deleted

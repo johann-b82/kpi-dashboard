@@ -74,6 +74,9 @@ Invariants to enforce (each a zero-match grep):
        → must return nothing.
     4. `rg -n 'font-semibold' frontend/src/components/ui/section-header.tsx frontend/src/components/ui/delete-dialog.tsx frontend/src/components/ui/delete-button.tsx`
        → must return nothing.
+    5. Invoke `check-locale-parity.mts` as a child process (or import+call).
+       Must exit 0. Belt-and-suspenders for SECTION-02 since multiple Wave 2
+       plans touch i18n and we want parity enforced as part of the guard suite.
 
     Exit code 0 on all-green; 1 on any failure. Print PHASE-57 GUARDS OK on success.
 
