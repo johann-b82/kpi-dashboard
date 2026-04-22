@@ -267,7 +267,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   - [x] 57-04-i18n-keys-PLAN.md — add 5 ui.delete.* + 14 section.* keys EN+DE, parity gate (SECTION-01..04)
   - [ ] 57-05-media-migration-PLAN.md — MediaPage SectionHeader + DeleteButton; extract MediaInUseDialog; retire MediaDeleteDialog (SECTION-01, -03, -04)
   - [x] 57-06-playlists-migration-PLAN.md — PlaylistsPage SectionHeader + DeleteButton; delete inline Dialog at :215-250 (SECTION-01, -03, -04)
-  - [ ] 57-07-schedules-migration-PLAN.md — SchedulesPage SectionHeader + DeleteButton; retire ScheduleDeleteDialog (SECTION-01, -03, -04)
+  - [x] 57-07-schedules-migration-PLAN.md — SchedulesPage SectionHeader + DeleteButton; retire ScheduleDeleteDialog (SECTION-01, -03, -04)
   - [x] 57-08-devices-section-header-PLAN.md — DevicesPage SectionHeader only; remove stray col_name h2; Revoke preserved (SECTION-01)
   - [x] 57-09-sensors-migration-PLAN.md — SensorsSettingsPage SectionHeader; SensorRowForm DeleteDialog-direct; retire SensorAdminHeader + SensorRemoveDialog (SECTION-01, -04)
   - [ ] 57-10-upload-history-migration-PLAN.md — UploadHistory DeleteButton migration; delete legacy DeleteConfirmDialog (SECTION-03, -04)
@@ -307,6 +307,6 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
 | 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
-| 57. Section Context + Standardized Trashcan | v1.19 | 7/11 | In Progress|  |
+| 57. Section Context + Standardized Trashcan | v1.19 | 8/11 | In Progress|  |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
 | 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |
