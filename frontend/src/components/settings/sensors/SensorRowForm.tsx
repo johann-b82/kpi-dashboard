@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import type { SensorDraftRow } from "@/hooks/useSensorDraft";
 import { SensorProbeButton } from "./SensorProbeButton";
-import { SensorRemoveDialog } from "./SensorRemoveDialog";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
 
 export interface SensorRowFormProps {
   row: SensorDraftRow;
@@ -20,8 +20,7 @@ export interface SensorRowFormProps {
  *
  * Layout: responsive grid. Community is password-type + write-only;
  * shows "stored — leave blank to keep" hint on existing rows until
- * the user types. Remove is a simple confirm() here — upgraded to the
- * shared DeleteConfirmDialog in Plan 40-02.
+ * the user types.
  */
 export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
   const { t } = useTranslation();
@@ -32,8 +31,7 @@ export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
 
   const handleRemove = () => {
     // Unsaved new rows (id === null) drop immediately — no server state
-    // to warn about. Existing rows go through the confirmation dialog
-    // (Plan 40-02 SensorRemoveDialog) replacing the old window.confirm().
+    // to warn about. Existing rows go through the canonical DeleteDialog.
     if (row.id === null) {
       onRemove();
       return;
@@ -222,10 +220,15 @@ export function SensorRowForm({ row, onChange, onRemove }: SensorRowFormProps) {
         </Button>
       </div>
 
-      <SensorRemoveDialog
+      <DeleteDialog
         open={removeDialogOpen}
         onOpenChange={setRemoveDialogOpen}
-        sensorName={row.name || "(unnamed)"}
+        title={t("sensors.admin.remove_confirm.title")}
+        body={t("sensors.admin.remove_confirm.body", {
+          name: row.name || "(unnamed)",
+        })}
+        cancelLabel={t("sensors.admin.remove_confirm.cancel")}
+        confirmLabel={t("sensors.admin.remove_confirm.confirm")}
         onConfirm={handleRemoveConfirm}
       />
     </div>
