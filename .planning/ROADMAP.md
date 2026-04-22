@@ -263,7 +263,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 **Plans**: 11 plans
   - [ ] 57-01-section-header-primitive-PLAN.md — SectionHeader primitive + unit tests (SECTION-01)
   - [x] 57-02-delete-dialog-primitive-PLAN.md — DeleteDialog primitive (promoted from DeleteConfirmDialog) + tests (SECTION-04)
-  - [ ] 57-03-delete-button-primitive-PLAN.md — DeleteButton composed control + TrashIcon re-export + tests (SECTION-03)
+  - [x] 57-03-delete-button-primitive-PLAN.md — DeleteButton composed control + TrashIcon re-export + tests (SECTION-03)
   - [x] 57-04-i18n-keys-PLAN.md — add 5 ui.delete.* + 14 section.* keys EN+DE, parity gate (SECTION-01..04)
   - [ ] 57-05-media-migration-PLAN.md — MediaPage SectionHeader + DeleteButton; extract MediaInUseDialog; retire MediaDeleteDialog (SECTION-01, -03, -04)
   - [ ] 57-06-playlists-migration-PLAN.md — PlaylistsPage SectionHeader + DeleteButton; delete inline Dialog at :215-250 (SECTION-01, -03, -04)
@@ -307,6 +307,6 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
 | 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
-| 57. Section Context + Standardized Trashcan | v1.19 | 2/11 | In Progress|  |
+| 57. Section Context + Standardized Trashcan | v1.19 | 3/11 | In Progress|  |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
 | 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |

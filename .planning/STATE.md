@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 57-02-delete-dialog-primitive-PLAN.md
-last_updated: "2026-04-22T08:35:45.838Z"
+stopped_at: Completed 57-03-delete-button-primitive-PLAN.md
+last_updated: "2026-04-22T08:36:51.994Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 26
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State: KPI Dashboard
@@ -133,6 +133,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 56 P04 | 25m | 2 tasks | 2 files |
 | Phase 57 P04 | 64s | 2 tasks | 2 files |
 | Phase 57 P02 | 3m | 2 tasks | 2 files |
+| Phase 57 P03 | 116s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -232,6 +233,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 57]: Plan 57-04: bodyFallback uses <1>{{itemLabel}}</1> component-index markers for react-i18next Trans (NOT markdown **) per RESEARCH Pitfall 8 — supersedes UI-SPEC markdown copy
 - [Phase 57]: Plan 57-04: tags + users section keys reserved despite no /signage/tags or /settings/users routes today (RESEARCH Q4 reserve note); insertion point before launcher.title groups primitive ui.* + structural section.*
 - [Phase 57]: Plan 57-02: DeleteDialog uses base-ui render={<div />} on DialogDescription (not asChild) to keep body=ReactNode without p>div nesting; Cancel autoFocus asserted via document.activeElement (React strips the autofocus HTML attribute)
+- [Phase 57]: Plan 57-03: DeleteButton swallows onConfirm rejection inside handleConfirm so the React event-handler boundary stays clean — caller is responsible for surfacing error UI before throwing. Tests use heading role (not text) to assert dialog open, since 'Delete' appears in both trigger aria-label and Confirm button.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -273,6 +275,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T08:35:45.835Z
-**Stopped at:** Completed 57-02-delete-dialog-primitive-PLAN.md
+**Last session:** 2026-04-22T08:36:51.991Z
+**Stopped at:** Completed 57-03-delete-button-primitive-PLAN.md
 **Resume file:** None
