@@ -10,31 +10,29 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.18 Pi Polish + Scheduling — 2026-04-21 (tag `v1.18`, commit 72a5693). Closed v1.17 operator carry-forwards (Scenarios 4 + 5 hardware E2E PASS on `provision-pi.sh`-provisioned Pi; player bundle back under 200 KB gz via lazy `PdfPlayer`/`react-pdf`). Added time-based playlist scheduling: `signage_schedules` (weekday_mask + start_hhmm + end_hhmm + priority + enabled), time-window resolver falling back to tag-based resolution, 4th `/signage/schedules` admin tab with bilingual docs, SSE `schedule-changed` fanout. Analytics-lite: `signage_heartbeat_event` append-only log (25 h retention) + Uptime-24h / Missed-windows badges on Devices table. Scope change: custom `.img.xz` image pipeline retired (SGN-POL-01/02/03/06 dropped); Pi provisioning single-path via `scripts/provision-pi.sh`.
-**In progress:** — awaiting `/gsd:new-milestone`.
+**Shipped:** v1.19 UI Consistency Pass 2 — 2026-04-22 (tag `v1.19`). Six-phase frontend consistency milestone delivered: pill-shape `Toggle` primitive (radiogroup a11y + animated indicator + reduced-motion fallback) driving Sales/HR, chart-type, theme, and EN/DE switches; consolidated `Input`/`Select`/`Button`/`Textarea`/`Dropdown` on the `h-8` height token with shared focus/disabled/invalid states; identity-only top header with route-derived breadcrumb and `UserMenu` dropdown (Docs/Settings/Sign-out); `SectionHeader` + `DeleteButton`/`DeleteDialog` across every admin surface (zero `window.confirm` in `frontend/src`); `/sensors` page body slimmed to cards+chart with picker + Jetzt-messen hoisted to SubHeader; CI guards for DE/EN key parity, du-tone, focus-ring convergence, and Path A utility regression across 13 audited surfaces.
+**In progress:** v1.20 HR Date-Range Filter (Phase 60) — backend + frontend landed (commits `47f0ff2 → 963e73e`, follow-up `4d1c5f0`); 60-04 Task 2 (human visual-parity checkpoint) awaiting sign-off.
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (75 KB gz entry + lazy `PdfPlayer`/`pdf` chunks, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–5 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12, v1.13, v1.14, v1.15, v1.16, v1.17, v1.18 requirements satisfied. v1.19 UI Consistency Pass 2 in progress — Phase 54 complete (TOGGLE-01..05: pill Toggle primitive + Sales/HR, chart-type, theme, language migrations); Phase 55 complete (CTRL-01..04: canonical Button/Input/Select/Textarea/Dropdown primitives with shared h-8 + token focus/disabled/invalid chain; raw `<button>`/`<select>`/`<input>` consumers migrated; LauncherPage tiles + file-picker `<input>` annotated CTRL-02 exceptions; SalesTable `<button>` migration deferred with Phase-54 TS debt); Phase 56 complete (breadcrumb header + content-nav relocation, i18n parity); Phase 57 complete (SECTION-01..04: SectionHeader + DeleteDialog + DeleteButton primitives; Media/Playlists/Schedules/Devices/Sensors/UploadHistory migrated; CI guard `check:phase-57` enforces 4 eradication invariants; 19 new EN/DE i18n keys, 498-key parity). v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12–v1.19 requirements satisfied. v1.19 UI Consistency Pass 2 shipped with **23/23 requirements verified** across 6 phases (TOGGLE-01..05, CTRL-01..04, HDR-01..04, SECTION-01..04, SENSORS-01..03, A11Y-01..03) — see [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md). v1.20 HR Date-Range Filter (Phase 60) in progress: backend + frontend landed, 60-04 Task 2 human visual-parity checkpoint pending. Tech debt carried forward: pre-existing TS errors in ~9 files untouched by v1.19 (SalesTable, PersonioCard, SnmpWalkCard, select.tsx legacy, useSensorDraft, defaults, ScheduleEditDialog, SchedulesPage.test, HrKpiCharts) block `npm run build` in isolation — candidate for a dedicated TS-cleanup plan in v1.20. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
-## Current Milestone: v1.19 UI Consistency Pass 2
+## Current Milestone: v1.20 HR Date-Range Filter (In Progress)
 
-**Goal:** Unify admin UI chrome, controls, and navigation patterns so every route uses the same components, spacing, and interaction patterns.
+**Goal:** Wire the shared `DateRangeFilter` from the SubHeader into the HR dashboard (KPI cards, charts, employee table), including backend `date_from`/`date_to` query params and HR aggregation over custom ranges. Default `thisYear` landing remains visually equivalent to pre-Phase-60.
 
-**Target features:**
-- Breadcrumb header (strip content-nav from top header)
-- Section context + standardized trashcan icon across all admin surfaces
-- Consolidated form controls (one Input/Select/Button/Textarea/Dropdown, h-8 token)
-- Sensors layout parity (date-range + Jetzt messen into SubHeader)
-- New pill Toggle with animated indicator (EN/DE, light/dark, all boolean toggles)
+**Status:** Phases 60-01..60-03 complete (backend + frontend wiring + Sales↔HR state sharing); 60-04 Task 1 (13/13 pytest) committed; 60-04 Task 2 (human visual-parity checkpoint + Sales↔HR state preservation walkthrough) pending sign-off. Follow-up commit `4d1c5f0` added full Personio attendance backfill (earliest `hire_date` on first run, incremental `max(stored_date)-14d` after), 429 exponential backoff, weekly default sync cadence (168h), HR delta-badge parity with Sales, Sales-style chart axis naming, `/sales`-only upload icon, and Balken/Linien toggle ordering parity.
 
-**Constraints:** No backend changes. DE/EN i18n parity. Keyboard + reduced-motion a11y on Toggle.
+## Next Milestone Candidates (post-v1.20)
 
-## Next Milestone Candidates (v1.20+)
+- **v1.21 TS Cleanup** — pay down the ~9 pre-existing TypeScript errors blocking `npm run build` so the full CI gate is green.
+- **Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
+- **Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
+- **iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
+- **Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
 
-- **v1.20 Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
-- **v1.20 Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
-- **v1.20 iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
-- **v1.20 Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
+## Shipped: v1.19 UI Consistency Pass 2 (2026-04-22)
+
+Six-phase frontend consistency milestone — zero backend schema changes, all surface-level. New pill `Toggle` primitive (`components/ui/toggle.tsx`) with radiogroup a11y, arrow-key wrap, animated sliding indicator, and `prefers-reduced-motion` fallback; drove migrations of the NavBar Sales/HR switch, chart-type toggles on `RevenueChart` + `HrKpiCharts`, `ThemeToggle` (sun/moon, preserving `localStorage` + `matchMedia`), and `LanguageToggle` (DE/EN, preserving i18next persistence) — all 2-segment `SegmentedControl` usages retired. Consolidated form primitives under `components/ui/` (`Input`, `Select`, `Textarea`, `Dropdown`, `Button` cleanup) on the `h-8` height token with a single Path A focus-ring utility (`focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50`) + shared disabled + aria-invalid chain; 14 consumer migrations + 3 documented CTRL-02 exceptions (LauncherPage tiles, file-picker inputs). Top chrome refactor: `NavBar.tsx` stripped to 37 LOC (brand + `Breadcrumb` + `ThemeToggle` + `LanguageToggle` + `UserMenu`); route-derived breadcrumb trail with wouter `<Link>`s (14 routes, deeper-first matcher); Docs/Settings/Sign-out absorbed into the `UserMenu` dropdown; Sales/HR Toggle + Upload icon relocated to `SubHeader` gated on dashboard routes; `lastDashboard` sessionStorage hack removed. `SectionHeader` primitive on every admin section (Media/Playlists/Schedules/Devices/SensorsSettings); shared `DeleteButton` + `DeleteDialog` replace 5 ad-hoc feature-variant dialogs and zero `window.confirm` remain in `frontend/src`; 19 new i18n keys in DE/EN at 498-key parity. `/sensors` body slimmed to 19 LOC (cards + chart) with `SensorTimeWindowPicker` + `PollNowButton` hoisted to the SubHeader via the already-global `SensorTimeWindowProvider`. A11y sweep across 13 audited surfaces: `check-locale-parity`, `check-i18n-du-tone`, and `check-phase-59-guards` (color-literal + missing aria-label) wired as persistent npm scripts; `toggle.test.tsx` + static guards lock the focus-ring invariant; dark-mode clean across all migrated surfaces. **23/23 requirements verified (TOGGLE-01..05, CTRL-01..04, HDR-01..04, SECTION-01..04, SENSORS-01..03, A11Y-01..03); full audit at [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md).**
 
 ## Shipped: v1.18 Pi Polish + Scheduling (2026-04-21)
 
@@ -222,6 +220,15 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ UI-02: Checkbox state persists correctly through save/reload cycle — v1.6
 - ✓ UI-03: All checkbox list labels display correctly in both DE and EN — v1.6
 
+### Validated in v1.19
+
+- ✓ TOGGLE-01..05: Pill `Toggle` primitive (animated indicator, radiogroup a11y, arrow-key nav, reduced-motion fallback, 2-segment constraint) — v1.19
+- ✓ CTRL-01..04: Single canonical `Input`/`Select`/`Button`/`Textarea`/`Dropdown` under `components/ui/` on the `h-8` height token with shared focus/disabled/invalid states — v1.19
+- ✓ HDR-01..04: Identity-only top header with route-derived breadcrumb and `UserMenu` dropdown (Docs/Settings/Sign-out); page controls relocated to SubHeader — v1.19
+- ✓ SECTION-01..04: `SectionHeader` + shared `DeleteButton` + `DeleteDialog` across every admin surface; zero `window.confirm` remain — v1.19
+- ✓ SENSORS-01..03: `/sensors` picker + Jetzt-messen hoisted to SubHeader; page body slimmed to cards + chart — v1.19
+- ✓ A11Y-01..03: DE/EN key parity + du-tone CI guards; Path A focus-ring utility across shipped primitives; dark-mode sweep across 13 surfaces — v1.19
+
 ### Out of Scope
 
 - Outline wiki — dropped in the v1.11-directus pivot
@@ -300,4 +307,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 — v1.19 Phase 57 complete (section-context-standardized-trashcan: SECTION-01..04). Next: Phase 58 sensors-layout-parity.*
+*Last updated: 2026-04-22 — v1.19 UI Consistency Pass 2 shipped (tag `v1.19`, 6 phases, 23/23 requirements verified). Next: v1.20 HR Date-Range Filter (Phase 60) human visual-parity checkpoint.*

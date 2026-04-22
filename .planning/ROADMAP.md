@@ -19,7 +19,8 @@
 - ✅ **v1.16 Digital Signage** — Phases 41–48 (shipped 2026-04-20) — [archive](milestones/v1.16-ROADMAP.md)
 - ✅ **v1.17 Pi Image Release** — Phase 49 (shipped 2026-04-21) — [archive](milestones/v1.17-ROADMAP.md)
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
-- 🚧 **v1.19 UI Consistency Pass 2** — Phases 54–59 (active, started 2026-04-21)
+- ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
+- 🚧 **v1.20 HR Date-Range Filter** — Phase 60 (active, started 2026-04-22)
 
 ## Phases
 
@@ -185,123 +186,24 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 
 </details>
 
-<details open>
-<summary>🚧 v1.19 UI Consistency Pass 2 (Phases 54–59) — ACTIVE</summary>
+<details>
+<summary>✅ v1.19 UI Consistency Pass 2 (Phases 54–59) — SHIPPED 2026-04-22</summary>
 
-- [ ] **Phase 54: Toggle Primitive + Migrations** — New pill `Toggle` component + migrate EN/DE, theme, and 2-option SegmentedControl usages.
-- [ ] **Phase 55: Consolidated Form Controls** — Unify `Input`/`Select`/`Button`/`Textarea`/`Dropdown` at `h-8` with token-driven focus/disabled/invalid states.
-- [ ] **Phase 56: Breadcrumb Header + Content-Nav Relocation** — Strip content tabs from top header, add breadcrumb trail, push page controls to SubHeader.
-- [ ] **Phase 57: Section Context + Standardized Trashcan** — Heading + description on every admin section; one delete button + confirm dialog everywhere.
-- [ ] **Phase 58: Sensors Layout Parity** — Move `/sensors` date-range + "Jetzt messen" into SubHeader.
-- [ ] **Phase 59: A11y & Parity Sweep** — DE/EN parity audit, focus-ring + accessible-name audit, dark-mode sweep across migrated surfaces.
-- [ ] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges.
+- [x] Phase 54: Toggle Primitive + Migrations (5/5 plans) — completed 2026-04-21
+- [x] Phase 55: Consolidated Form Controls (6/6 plans) — completed 2026-04-21
+- [x] Phase 56: Breadcrumb Header + Content-Nav Relocation (4/4 plans) — completed 2026-04-22
+- [x] Phase 57: Section Context + Standardized Trashcan (11/11 plans) — completed 2026-04-22
+- [x] Phase 58: Sensors Layout Parity (2/2 plans) — completed 2026-04-22
+- [x] Phase 59: A11y & Parity Sweep (4/4 plans) — completed 2026-04-22
+
+Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 
 </details>
 
-## Phase Details
+### 🚧 v1.20 HR Date-Range Filter (In Progress)
 
-### Phase 54: Toggle Primitive + Migrations
-**Goal**: A single animated pill `Toggle` component exists and drives every 2-option boolean switch in the app.
-**Depends on**: Nothing (first phase of v1.19)
-**Requirements**: TOGGLE-01, TOGGLE-02, TOGGLE-03, TOGGLE-04, TOGGLE-05
-**Success Criteria** (what must be TRUE):
-  1. User sees a pill-shaped `Toggle` with an animated indicator sliding under the active label in light and dark mode.
-  2. User toggles language via the new `Toggle` in the top header; preference persists.
-  3. User toggles theme via the new `Toggle` with sun/moon icons as labels.
-  4. User operates `Toggle` via keyboard (Arrow keys change selection, Enter/Space activates) with visible focus ring and `role="radiogroup"` semantics.
-  5. When `prefers-reduced-motion` is set, the indicator swaps instantly with no slide animation.
-**Plans**: 5 plans
-  - [x] 54-01-toggle-primitive-PLAN.md — Toggle primitive + unit tests (pill, animated indicator, radiogroup a11y, keyboard, reduced-motion)
-  - [x] 54-02-navbar-sales-hr-migration-PLAN.md — Migrate NavBar Sales/HR switch to Toggle (TOGGLE-04)
-  - [x] 54-03-chart-type-migrations-PLAN.md — Migrate HrKpiCharts (area/bar) and RevenueChart (bar/area) to Toggle (TOGGLE-04)
-  - [x] 54-04-theme-toggle-migration-PLAN.md — Migrate ThemeToggle to 2-segment Toggle with sun/moon icons (TOGGLE-03; preserve OS + localStorage logic)
-  - [x] 54-05-language-toggle-migration-PLAN.md — Migrate LanguageToggle to 2-segment Toggle with DE/EN labels (TOGGLE-02; preserve i18next switch logic)
-**UI hint**: yes
+- [ ] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges. 3/4 plans complete; 60-04 Task 2 (human visual-parity checkpoint) pending.
 
-### Phase 55: Consolidated Form Controls
-**Goal**: Every form control in the app comes from one canonical primitive at the `h-8` height token with consistent focus, disabled, and invalid states.
-**Depends on**: Phase 54
-**Requirements**: CTRL-01, CTRL-02, CTRL-03, CTRL-04
-**Success Criteria** (what must be TRUE):
-  1. User interacts with a single canonical `Input`, `Select`, `Button`, `Textarea`, and `Dropdown` primitive across every page under `frontend/src/components/ui/`.
-  2. All standard-size form controls render at the `h-8` height; no `h-9`/`h-10`/`h-11` variants remain in default code paths.
-  3. Focus ring, disabled state, and invalid/error state look identical across all primitives and resolve from tokens in both themes.
-  4. Raw `<input>`/`<select>`/`<button>`/`<textarea>` usages are gone from the app (documented native-element exceptions only, annotated in-source).
-**Plans**: 6 plans
-  - [x] 55-01-button-cleanup-textarea-PLAN.md — Button cleanup (remove lg/icon-lg + JSDoc) + Textarea primitive (CTRL-01, CTRL-03, CTRL-04)
-  - [x] 55-02-select-primitive-PLAN.md — Select primitive wrapping @base-ui/react/select (CTRL-01, CTRL-04)
-  - [x] 55-03-dropdown-primitive-PLAN.md — Dropdown action-menu primitive wrapping @base-ui/react/menu (CTRL-01, CTRL-04)
-  - [x] 55-04-migrate-raw-button-PLAN.md — Migrate raw <button> in 8 consumer files to <Button> (CTRL-02)
-  - [x] 55-05-migrate-raw-select-PLAN.md — Migrate raw <select> in 4 consumer files to <Select> (CTRL-02)
-  - [x] 55-06-migrate-raw-input-and-h9-strip-PLAN.md — Migrate raw <input> non-file, annotate file-input exceptions, strip h-9 overrides (CTRL-02, CTRL-03)
-**UI hint**: yes
-
-### Phase 56: Breadcrumb Header + Content-Nav Relocation
-**Goal**: The top header carries only global identity; page navigation happens through a breadcrumb trail and per-page SubHeader controls.
-**Depends on**: Phase 55
-**Requirements**: HDR-01, HDR-02, HDR-03, HDR-04
-**Success Criteria** (what must be TRUE):
-  1. User sees only brand/logo, user menu, language toggle, and theme toggle in the top header — no content tabs or page-specific actions.
-  2. User sees a breadcrumb trail (`Home › Section › [Subsection]`) in the top header reflecting the current route, with `<a>` links that navigate.
-  3. User can Tab through breadcrumb items and activate them with Enter; DE and EN labels have full key parity.
-  4. Former top-header content controls (Sales/HR toggle, upload button, per-page settings gear) now live in the SubHeader or their owning page surface.
-**Plans**: 4 plans
-  - [x] 56-01-breadcrumb-component-PLAN.md — breadcrumbs.ts route map + Breadcrumb component (HDR-02, HDR-03)
-  - [x] 56-02-user-menu-PLAN.md — UserMenu avatar + Dropdown-backed menu (HDR-01)
-  - [x] 56-03-navbar-subheader-refactor-PLAN.md — NavBar strip + SubHeader Sales/HR toggle + Upload relocation (HDR-01, HDR-04)
-  - [x] 56-04-i18n-parity-PLAN.md — add 8 keys, remove 3 obsolete keys, DE/EN parity gate (HDR-03)
-**UI hint**: yes
-
-### Phase 57: Section Context + Standardized Trashcan
-**Goal**: Every admin section explains itself with a heading + description, and every destructive row action uses one shared delete button + confirm dialog.
-**Depends on**: Phase 55
-**Requirements**: SECTION-01, SECTION-02, SECTION-03, SECTION-04
-**Success Criteria** (what must be TRUE):
-  1. User sees a heading + short description (≤ 2 lines) on every admin page section, matching the Playlist-editor pattern.
-  2. All section headings and descriptions render in DE (du-tone) and EN with matching i18n key counts.
-  3. The same `<TrashIcon>` delete button is the only destructive row action in Media, Playlists, Devices, Schedules, Tags, Sensors, and Users.
-  4. Every delete action opens the shared `DeleteDialog`; no `window.confirm` or one-off modals remain.
-**Plans**: 11 plans
-  - [x] 57-01-section-header-primitive-PLAN.md — SectionHeader primitive + unit tests (SECTION-01)
-  - [x] 57-02-delete-dialog-primitive-PLAN.md — DeleteDialog primitive (promoted from DeleteConfirmDialog) + tests (SECTION-04)
-  - [x] 57-03-delete-button-primitive-PLAN.md — DeleteButton composed control + TrashIcon re-export + tests (SECTION-03)
-  - [x] 57-04-i18n-keys-PLAN.md — add 5 ui.delete.* + 14 section.* keys EN+DE, parity gate (SECTION-01..04)
-  - [x] 57-05-media-migration-PLAN.md — MediaPage SectionHeader + DeleteButton; extract MediaInUseDialog; retire MediaDeleteDialog (SECTION-01, -03, -04)
-  - [x] 57-06-playlists-migration-PLAN.md — PlaylistsPage SectionHeader + DeleteButton; delete inline Dialog at :215-250 (SECTION-01, -03, -04)
-  - [x] 57-07-schedules-migration-PLAN.md — SchedulesPage SectionHeader + DeleteButton; retire ScheduleDeleteDialog (SECTION-01, -03, -04)
-  - [x] 57-08-devices-section-header-PLAN.md — DevicesPage SectionHeader only; remove stray col_name h2; Revoke preserved (SECTION-01)
-  - [x] 57-09-sensors-migration-PLAN.md — SensorsSettingsPage SectionHeader; SensorRowForm DeleteDialog-direct; retire SensorAdminHeader + SensorRemoveDialog (SECTION-01, -04)
-  - [x] 57-10-upload-history-migration-PLAN.md — UploadHistory DeleteButton migration; delete legacy DeleteConfirmDialog (SECTION-03, -04)
-  - [x] 57-11-ci-guards-verification-PLAN.md — CI grep guards: window.confirm, retired dialog imports, dark: in new primitives, font-semibold (SECTION-03, -04)
-**UI hint**: yes
-
-### Phase 58: Sensors Layout Parity
-**Goal**: The `/sensors` page layout matches other dashboard routes — controls in the SubHeader, body reserved for data.
-**Depends on**: Phase 55, Phase 56
-**Requirements**: SENSORS-01, SENSORS-02, SENSORS-03
-**Success Criteria** (what must be TRUE):
-  1. User changes the date-range/time-window for `/sensors` via the SubHeader, not the page body.
-  2. User triggers "Jetzt messen" from the SubHeader right slot using the shared `Button` primitive.
-  3. The `/sensors` page body contains only KPI cards, charts, and tables — no header-level controls remain inline.
-**Plans**: 2 plans
-  - [x] 58-01-PLAN.md — PollNowButton size prop + icon swap; hoist SensorTimeWindowProvider to App.tsx (SENSORS-02 foundation)
-  - [x] 58-02-PLAN.md — Wire /sensors slot blocks into SubHeader; strip SensorsPage to cards+chart only (SENSORS-01, SENSORS-02, SENSORS-03)
-**UI hint**: yes
-
-### Phase 59: A11y & Parity Sweep
-**Goal**: Every surface touched by v1.19 is DE/EN parity-clean, focus-ring complete, dark-mode clean, and free of hardcoded color literals.
-**Depends on**: Phase 54, Phase 55, Phase 56, Phase 57, Phase 58
-**Requirements**: A11Y-01, A11Y-02, A11Y-03
-**Success Criteria** (what must be TRUE):
-  1. DE and EN i18n files have identical key counts for every new or renamed v1.19 key; DE copy reads in du-tone.
-  2. Every new or migrated control exposes an accessible name (visible label or `aria-label`) and shows a visible focus ring in both light and dark mode.
-  3. Every migrated surface renders cleanly in dark mode with zero hardcoded color literals and no contrast regressions.
-**Plans**: 4 plans
-  - [x] 59-01-locale-parity-tooling-PLAN.md — Locale parity + du-tone lint scripts + package.json wiring (A11Y-01)
-  - [x] 59-02-focus-ring-convergence-PLAN.md — Toggle focus ring + Checkbox/Badge convergence to Path A (A11Y-02)
-  - [x] 59-03-ci-guards-color-aria-PLAN.md — check-phase-59-guards.mts for color literals + icon-button aria-label (A11Y-02, A11Y-03)
-  - [x] 59-04-dark-mode-manual-audit-PLAN.md — 59-VERIFICATION.md scaffold + human dark-mode sweep across 13 surfaces (A11Y-02, A11Y-03)
-**UI hint**: yes
 
 ## Progress Table
 
@@ -317,6 +219,9 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
+| 60. HR Date-Range Filter | v1.20 | 3/4 | In Progress | — |
+
+## Phase Details
 
 ### Phase 60: HR Date-Range Filter
 

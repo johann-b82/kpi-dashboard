@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.19 UI Consistency Pass 2 (Shipped: 2026-04-22)
+
+**Phases completed:** 6 phases (54–59), 32 plans, 23/23 requirements verified.
+
+**Audit:** [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md) — all phases `passed`, no gaps, no blockers.
+
+**Key accomplishments:**
+
+- **Pill `Toggle` primitive** (Phase 54) with radiogroup a11y, arrow-key wrap, animated sliding indicator, and `prefers-reduced-motion` fallback. Drove migrations of NavBar Sales/HR switch, chart-type toggles on `RevenueChart` + `HrKpiCharts`, `ThemeToggle` (sun/moon, preserving OS + localStorage), and `LanguageToggle` (DE/EN, preserving i18next) — retired all 2-segment `SegmentedControl` usages.
+- **Consolidated form primitives** (Phase 55): `Input`, `Select`, `Button`, `Textarea`, `Dropdown` under `components/ui/` unified on the `h-8` height token with a single Path A focus-ring utility and shared disabled + `aria-invalid` states. 14 consumer migrations + 3 documented CTRL-02 exceptions (LauncherPage tiles, file-picker inputs, deferred SalesTable button).
+- **Identity-only top header + breadcrumb navigation** (Phase 56): `NavBar` pared to 37 LOC; route-derived breadcrumb trail (14 routes, deeper-first matcher); `UserMenu` dropdown absorbs Docs/Settings/Sign-out; Sales/HR toggle + Upload icon relocated to `SubHeader`; legacy `lastDashboard` sessionStorage removed.
+- **Section context + standardized trashcan** (Phase 57): `SectionHeader` primitive on every admin section; shared `DeleteButton` + `DeleteDialog` replace 5 ad-hoc feature-variant dialogs; zero `window.confirm` remain in `frontend/src`. 19 new DE/EN i18n keys at 498-key parity; CI guard `check:phase-57` enforces 4 eradication invariants.
+- **Sensors layout parity** (Phase 58): `/sensors` body slimmed to 19 LOC (cards + chart) with `SensorTimeWindowPicker` + `PollNowButton` hoisted to `SubHeader` via the already-global `SensorTimeWindowProvider`.
+- **A11y + parity sweep** (Phase 59): `check-locale-parity`, `check-i18n-du-tone`, and `check-phase-59-guards` (color-literal + icon-button aria-label) wired as persistent npm scripts; focus-ring invariant locked by `toggle.test.tsx` + static guards. 13 audited surfaces pass dark-mode review.
+
+**Tech debt carried to v1.20:** pre-existing TS errors in ~9 files untouched by v1.19 (SalesTable, PersonioCard, SnmpWalkCard, legacy select, useSensorDraft, defaults, ScheduleEditDialog, SchedulesPage.test, HrKpiCharts) block `npm run build` in isolation — candidate for a dedicated TS-cleanup plan.
+
+---
+
 ## v1.15 Sensor Monitor (Shipped: 2026-04-18)
 
 **Phases completed:** 3 phases, 8 plans, 4 tasks

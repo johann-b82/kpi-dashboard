@@ -1,48 +1,48 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.19
-milestone_name: UI Consistency Pass 2
-status: executing
+milestone: v1.20
+milestone_name: HR Date-Range Filter
+status: verifying
 stopped_at: 60-04 Task 1 committed; Task 2 (human-verify) pending
-last_updated: "2026-04-22T13:46:22.192Z"
+last_updated: "2026-04-22T16:45:00.000Z"
 last_activity: 2026-04-22
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 36
-  completed_plans: 36
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State: KPI Dashboard
 
-**Last updated:** 2026-04-21
-**Session:** v1.19 UI Consistency Pass 2 — roadmap drafted
+**Last updated:** 2026-04-22
+**Session:** v1.19 shipped (tag `v1.19`); v1.20 HR Date-Range Filter Phase 60 awaiting visual-parity checkpoint
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-18)
+See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.19 milestone)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 60 — hr-date-range-filter
+**Current focus:** Phase 60 — hr-date-range-filter (v1.20)
 
+Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
-Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 ---
 
 ## Current Position
 
-Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
+Milestone: v1.20 HR Date-Range Filter — Phase 60 in progress
 Phase: 60 (hr-date-range-filter) — EXECUTING
 Plan: 4 of 4 — Task 1 complete (pytest 13/13), Task 2 awaiting human-verify checkpoint
 Status: Awaiting human verification on 60-04 Task 2 (manual thisYear parity + Sales↔HR state preservation)
 Last activity: 2026-04-22
 
-Progress: 0/6 phases complete, 0 plans
+Progress: 0/1 phases complete, 3/4 plans complete in v1.20
 
 Next action: User performs 6-point manual verification per 60-04-PLAN.md `<how-to-verify>`, then signals `approved` or describes failing surfaces.
 
