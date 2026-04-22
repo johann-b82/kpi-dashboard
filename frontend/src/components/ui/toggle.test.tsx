@@ -86,6 +86,17 @@ describe("Toggle", () => {
     spy.mockRestore();
   });
 
+  it("renders focus-visible ring utility on segment buttons (A11Y-02)", () => {
+    render(<Toggle segments={segs} value="a" onChange={() => {}} aria-label="t" />);
+    const radios = screen.getAllByRole("radio");
+    for (const r of radios) {
+      expect(r.className).toContain("focus-visible:ring-3");
+      expect(r.className).toContain("focus-visible:ring-ring/50");
+      expect(r.className).toContain("outline-none");
+      expect(r.className).toContain("focus-visible:z-20");
+    }
+  });
+
   it("renders segment icon when provided", () => {
     const segsWithIcon = [
       { value: "x" as const, icon: <svg data-testid="icon-x" /> },
