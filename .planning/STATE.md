@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 57-01-section-header-primitive-PLAN.md
-last_updated: "2026-04-22T08:39:45.582Z"
+stopped_at: Completed 57-06-playlists-migration-PLAN.md
+last_updated: "2026-04-22T08:42:58.891Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 26
-  completed_plans: 19
+  completed_plans: 21
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 57 (section-context-standardized-trashcan) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-04-22
 
@@ -135,6 +135,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 57 P02 | 3m | 2 tasks | 2 files |
 | Phase 57 P03 | 116s | 2 tasks | 2 files |
 | Phase 57 P01 | 2m | 2 tasks | 2 files |
+| Phase 57 P06 | 110s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -236,6 +237,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 57]: Plan 57-02: DeleteDialog uses base-ui render={<div />} on DialogDescription (not asChild) to keep body=ReactNode without p>div nesting; Cancel autoFocus asserted via document.activeElement (React strips the autofocus HTML attribute)
 - [Phase 57]: Plan 57-03: DeleteButton swallows onConfirm rejection inside handleConfirm so the React event-handler boundary stays clean — caller is responsible for surfacing error UI before throwing. Tests use heading role (not text) to assert dialog open, since 'Delete' appears in both trigger aria-label and Confirm button.
 - [Phase 57]: Plan 57-01: SectionHeader primitive — font-medium harmonization (not font-semibold), mb-6 wrapper + mt-1 rhythm, children?: never type-block, null-on-empty-title, lang={i18n.language} for browser hyphenation
+- [Phase 57]: Plan 57-06: mutateAsync wrapped in async/await arrow to satisfy DeleteButton onConfirm Promise<void> contract; Phase 52 D-13 409 schedules-active deep-link preserved through migration
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -277,6 +279,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T08:39:45.578Z
-**Stopped at:** Completed 57-01-section-header-primitive-PLAN.md
+**Last session:** 2026-04-22T08:42:58.885Z
+**Stopped at:** Completed 57-06-playlists-migration-PLAN.md
 **Resume file:** None
