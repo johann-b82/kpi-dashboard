@@ -33,6 +33,7 @@ import type {
 import { DeviceStatusChip } from "@/signage/components/DeviceStatusChip";
 import { DeviceEditDialog } from "@/signage/components/DeviceEditDialog";
 import { UptimeBadge } from "@/signage/components/UptimeBadge";
+import { SectionHeader } from "@/components/ui/section-header";
 
 /**
  * /signage/devices — admin device table (SGN-ADM-06).
@@ -116,10 +117,12 @@ export function DevicesPage() {
 
   return (
     <section className="space-y-4">
+      <SectionHeader
+        title={t("section.signage.devices.title")}
+        description={t("section.signage.devices.description")}
+        className="mt-8"
+      />
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">
-          {t("signage.admin.devices.col_name")}
-        </h2>
         <Button onClick={() => setLocation("/signage/pair")}>
           {t("signage.admin.devices.pair_button")}
         </Button>
