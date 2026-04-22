@@ -1,3 +1,4 @@
+import * as React from "react";
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -42,7 +43,9 @@ vi.mock("sonner", () => ({
 // via fireEvent.change) continue to exercise the same behaviour. This mirrors
 // the "test fixture raw <select>" carve-out noted in Phase 55 RESEARCH.
 vi.mock("@/components/ui/select", () => {
-  const React = require("react");
+  // React is imported as a module namespace at the top of this file; the
+  // factory closes over it at mock-resolution time (Phase 61 cleanup: bare
+  // require() is not type-safe under erasableSyntaxOnly + no @types/node).
   type TriggerProps = Record<string, unknown>;
   const CtxRoot = React.createContext<{
     value?: string;
