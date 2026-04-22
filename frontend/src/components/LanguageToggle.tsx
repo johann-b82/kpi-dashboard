@@ -24,6 +24,7 @@ export function LanguageToggle() {
       value={current}
       onChange={(next) => void i18n.changeLanguage(next)}
       aria-label="Language"
+      variant="muted"
     />
   );
 }

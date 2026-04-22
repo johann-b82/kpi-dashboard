@@ -49,6 +49,7 @@ export function ThemeToggle() {
       value={mode}
       onChange={(next) => applyMode(next, true)}
       aria-label={t("theme.toggle.aria_label")}
+      variant="muted"
     />
   );
 }

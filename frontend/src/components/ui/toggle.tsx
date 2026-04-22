@@ -15,6 +15,12 @@ export interface ToggleProps<T extends string> {
   "aria-label"?: string;
   title?: string;
   className?: string;
+  /**
+   * Opt-in surface variant.
+   * - "default": bg-background + border-primary (legacy — chart toggles, SubHeader pill)
+   * - "muted": bg-muted + border-transparent with hover tint (NavBar cluster parity with UserMenu)
+   */
+  variant?: "default" | "muted";
 }
 
 function usePrefersReducedMotion(): boolean {
@@ -41,6 +47,7 @@ function Toggle<T extends string>({
   "aria-label": ariaLabel,
   title,
   className: extraClassName,
+  variant = "default",
 }: ToggleProps<T>) {
   // Runtime assert — complements the type-level 2-tuple constraint (D-03).
   if (segments.length !== 2) {
@@ -72,13 +79,19 @@ function Toggle<T extends string>({
     }
   }
 
+  const containerSurface =
+    variant === "muted"
+      ? "bg-muted border-transparent hover:bg-accent/20 transition-colors"
+      : "bg-background border-primary";
+  const containerClassName = `relative inline-flex items-center ${containerSurface} border rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}${extraClassName ? ` ${extraClassName}` : ""}`;
+
   return (
     <div
       role="radiogroup"
       aria-label={ariaLabel}
       aria-disabled={disabled ? "true" : undefined}
       title={title}
-      className={`relative inline-flex items-center bg-background border border-primary rounded-full p-1 gap-0${disabled ? " opacity-50 pointer-events-none" : ""}${extraClassName ? ` ${extraClassName}` : ""}`}
+      className={containerClassName}
     >
       <span
         aria-hidden="true"
