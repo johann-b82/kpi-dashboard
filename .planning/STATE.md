@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
-status: verifying
-stopped_at: Phase 59 context gathered
-last_updated: "2026-04-22T10:03:25.446Z"
+status: executing
+stopped_at: Completed 59-02-focus-ring-convergence-PLAN.md
+last_updated: "2026-04-22T10:27:24.472Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 32
+  completed_plans: 30
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 58 — sensors-layout-parity
+**Current focus:** Phase 59 — a11y-parity-sweep
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,9 +37,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 58 (sensors-layout-parity) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 59 (a11y-parity-sweep) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-04-22
 
 Progress: 0/6 phases complete, 0 plans
@@ -144,6 +144,8 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 57 P11 | 2m | 2 tasks | 2 files |
 | Phase 58 P01 | 95s | 2 tasks | 2 files |
 | Phase 58 P02 | 154s | 2 tasks | 2 files |
+| Phase 59 P01 | 5m | 2 tasks | 2 files |
+| Phase 59 P02 | 76s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -251,6 +253,9 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 57]: Plan 57-11: CI guard script implemented as Node fs walk (no system rg available); strips // comments before pattern match so primitives can self-document banned patterns; wired as npm run check:phase-57 on frontend/package.json (no root package.json in repo)
 - [Phase 58]: PollNowButton gains size prop + RefreshCw/Loader2 icon swap; SensorTimeWindowProvider hoisted to App.tsx above AppShell inside DateRangeProvider — foundations for Plan 58-02 SubHeader consumer
 - [Phase 58]: Plan 58-02: Per-route SubHeader slot gating via wouter location === /sensors; PollNowButton placed before freshness ternary (D-04); JSDoc rewrite to avoid literal component names conflicting with AC greps (Rule 3 deviation)
+- [Phase 59]: Plan 59-01: allowlist holds both docs.empty.body (verified path) AND empty.body (plan's original guess) — du-tone script tolerant to future docs restructuring
+- [Phase 59]: Plan 59-01: check:phase-59 umbrella unions check:i18n-parity + check:i18n-du-tone as persistent CI entrypoint (D-02/D-03)
+- [Phase 59]: Plan 59-02: Path A focus-ring utility (outline-none focus-visible:ring-3 focus-visible:ring-ring/50) adopted as canonical for components/ui/ — Checkbox migrated off Path B; Toggle segments add focus-visible:z-20 (no border swap, parent owns border); Badge ring-[3px] normalized to ring-3; CONTEXT.md D-04 Path B retired in favor of shipped majority.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -292,6 +297,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T10:03:25.442Z
-**Stopped at:** Phase 59 context gathered
-**Resume file:** .planning/phases/59-a11y-parity-sweep/59-CONTEXT.md
+**Last session:** 2026-04-22T10:27:24.403Z
+**Stopped at:** Completed 59-02-focus-ring-convergence-PLAN.md
+**Resume file:** None
