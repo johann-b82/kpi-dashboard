@@ -10,14 +10,21 @@ export interface VideoPlayerProps {
   loop?: boolean;
   /** Fires on natural video end (only meaningful when `loop={false}`). */
   onEnded?: () => void;
+  /** Phase 62 D-05 / CAL-PI-06: when false (default) the `<video>` element is
+   *  muted at the HTMLMediaElement level — this preserves autoplay-compliance
+   *  and the Phase 47 invariant that kiosk videos auto-play silent. When the
+   *  admin UI flips `audio_enabled=true` the SSE `calibration-changed` event
+   *  refetches calibration and passes `muted={false}` down; `wpctl` handles
+   *  the system sink mute in parallel on the Pi sidecar. */
+  muted?: boolean;
 }
 
-export function VideoPlayer({ uri, loop = true, onEnded }: VideoPlayerProps) {
+export function VideoPlayer({ uri, loop = true, onEnded, muted = true }: VideoPlayerProps) {
   if (!uri) return null;
   return (
     <video
       src={uri}
-      muted
+      muted={muted}
       autoPlay
       playsInline
       loop={loop}

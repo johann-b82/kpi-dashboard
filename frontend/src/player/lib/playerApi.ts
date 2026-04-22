@@ -51,6 +51,25 @@ export async function playerFetch<T>(url: string, opts: PlayerFetchOpts): Promis
   return (await r.json()) as T;
 }
 
+// Phase 62 Plan 04 (CAL-PI-06): calibration shape + helper.
+// Matches backend SignageCalibrationRead (plan 62-01). The player consumes the
+// `audio_enabled` field to flip the HTMLMediaElement `muted` attribute (D-05).
+export interface PlayerCalibration {
+  rotation: 0 | 90 | 180 | 270;
+  hdmi_mode: string | null;
+  audio_enabled: boolean;
+}
+
+export function fetchCalibration(
+  token: string,
+  onUnauthorized?: () => void,
+): Promise<PlayerCalibration> {
+  return playerFetch<PlayerCalibration>("/api/signage/player/calibration", {
+    token,
+    on401: onUnauthorized,
+  });
+}
+
 // Phase 48: push the device JWT to the Pi sidecar so it can make authenticated
 // upstream requests and own the 60s heartbeat. Fire-and-forget: if the sidecar
 // is not running, the 200ms timeout fails fast and the UX is unaffected.

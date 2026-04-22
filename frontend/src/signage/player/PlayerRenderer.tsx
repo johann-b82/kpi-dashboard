@@ -14,14 +14,18 @@ const PdfPlayer = lazy(() => import("./PdfPlayer").then((m) => ({ default: m.Pdf
 export interface PlayerRendererProps {
   items: PlayerItem[];
   className?: string;
+  /** Phase 62 D-05 / CAL-PI-06: forwarded to VideoPlayer as `muted={!audioEnabled}`.
+   *  Default `false` preserves the Phase 47 autoplay-muted behaviour until the
+   *  admin UI enables audio for this device. */
+  audioEnabled?: boolean;
 }
 
-function renderItem(item: PlayerItem) {
+function renderItem(item: PlayerItem, audioEnabled: boolean) {
   switch (item.kind) {
     case "image":
       return <ImagePlayer uri={item.uri} />;
     case "video":
-      return <VideoPlayer uri={item.uri} />;
+      return <VideoPlayer uri={item.uri} muted={!audioEnabled} />;
     case "pdf":
       return (
         <Suspense fallback={<div className="w-full h-full bg-black" />}>
@@ -53,7 +57,7 @@ function renderItem(item: PlayerItem) {
  *  - "fade" (default): 300ms CSS opacity transition between swaps
  *  - "cut": immediate swap (no transition)
  */
-export function PlayerRenderer({ items, className }: PlayerRendererProps) {
+export function PlayerRenderer({ items, className, audioEnabled = false }: PlayerRendererProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fading, setFading] = useState(false);
 
@@ -104,7 +108,7 @@ export function PlayerRenderer({ items, className }: PlayerRendererProps) {
       key={current.id}
       className={`w-full h-full relative overflow-hidden bg-background transition-opacity duration-300 ${fading ? "opacity-0" : "opacity-100"} ${className ?? ""}`}
     >
-      {renderItem(current)}
+      {renderItem(current, audioEnabled)}
     </div>
   );
 }

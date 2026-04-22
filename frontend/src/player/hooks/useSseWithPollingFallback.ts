@@ -26,19 +26,36 @@ export interface UseSseWithPollingFallbackOpts {
   onPlaylistInvalidated: () => void;
   /** Called on 401 — caller wipes token. */
   onUnauthorized: () => void;
+  /** Phase 62 D-05: called on `calibration-changed` SSE event so the shell can
+   *  refetch /api/signage/player/calibration and flip `<video muted>`. */
+  onCalibrationChanged?: () => void;
 }
 
 export function useSseWithPollingFallback(
   opts: UseSseWithPollingFallbackOpts,
 ): void {
-  const { token, streamUrl, pollUrl, onPlaylistInvalidated, onUnauthorized } =
-    opts;
+  const {
+    token,
+    streamUrl,
+    pollUrl,
+    onPlaylistInvalidated,
+    onUnauthorized,
+    onCalibrationChanged,
+  } = opts;
 
   // Keep callbacks in a ref so the effect's identity only depends on
   // token/streamUrl/pollUrl. Otherwise StrictMode + re-renders would churn
   // the EventSource connection.
-  const callbacksRef = useRef({ onPlaylistInvalidated, onUnauthorized });
-  callbacksRef.current = { onPlaylistInvalidated, onUnauthorized };
+  const callbacksRef = useRef({
+    onPlaylistInvalidated,
+    onUnauthorized,
+    onCalibrationChanged,
+  });
+  callbacksRef.current = {
+    onPlaylistInvalidated,
+    onUnauthorized,
+    onCalibrationChanged,
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -107,6 +124,11 @@ export function useSseWithPollingFallback(
           const data = JSON.parse(e.data) as { event?: string };
           if (data.event === "playlist-changed") {
             callbacksRef.current.onPlaylistInvalidated();
+          } else if (data.event === "calibration-changed") {
+            // Phase 62 D-05/D-08: refetch /player/calibration and flip
+            // <video muted> to match audio_enabled. Payload is {event, device_id}
+            // only; full state lives behind the GET per D-08.
+            callbacksRef.current.onCalibrationChanged?.();
           }
         } catch {
           // Malformed payload — still treat as liveness signal.

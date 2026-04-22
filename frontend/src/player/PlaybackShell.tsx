@@ -8,7 +8,7 @@
 // server-side event insert is idempotent (ON CONFLICT on (device_id, ts)), so
 // Pi-with-sidecar + JS double-heartbeat is harmless.
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlayerRenderer } from "@/signage/player/PlayerRenderer";
 import type {
@@ -16,7 +16,7 @@ import type {
   PlayerItemKind,
   PlayerTransition,
 } from "@/signage/player/types";
-import { playerFetch } from "@/player/lib/playerApi";
+import { fetchCalibration, playerFetch } from "@/player/lib/playerApi";
 import { playerKeys } from "@/player/lib/queryKeys";
 import { applyDurationDefaults } from "@/player/lib/durationDefaults";
 import { resolveMediaUrl } from "@/player/lib/mediaUrl";
@@ -52,6 +52,29 @@ export function PlaybackShell() {
   const queryClient = useQueryClient();
   const sidecarStatus = useSidecarStatus();
 
+  // Phase 62 D-05 / CAL-PI-06 — local calibration state. Default `false` keeps
+  // the Phase 47 autoplay-muted invariant until the admin UI enables audio.
+  // The Pi sidecar handles the system-sink mute via `wpctl` in parallel; this
+  // flag drives the element-level `<video muted>` attribute so both layers
+  // agree (D-05 — element-level muted is NOT a no-op on top of `wpctl`).
+  const [audioEnabled, setAudioEnabled] = useState(false);
+
+  const refreshCalibration = useCallback(async () => {
+    if (!token) return;
+    try {
+      const cal = await fetchCalibration(token, clearToken);
+      setAudioEnabled(cal.audio_enabled);
+    } catch {
+      // Non-fatal: keep the last-known value. SSE will retry on next event;
+      // the Pi sidecar still holds the authoritative wpctl + wlr-randr state.
+    }
+  }, [token, clearToken]);
+
+  // Seed calibration on token arrival (initial mount after pairing).
+  useEffect(() => {
+    void refreshCalibration();
+  }, [refreshCalibration]);
+
   // Initial + invalidate-driven playlist fetch. Polling fallback (30s) is driven
   // by the SSE hook, NOT a refetchInterval here — see UI-SPEC §"Data Fetching
   // Contract" (refetchInterval: false normally).
@@ -77,6 +100,9 @@ export function PlaybackShell() {
     pollUrl: PLAYLIST_URL,
     onPlaylistInvalidated: () => {
       void queryClient.invalidateQueries({ queryKey: playerKeys.playlist() });
+    },
+    onCalibrationChanged: () => {
+      void refreshCalibration();
     },
     onUnauthorized: clearToken,
   });
@@ -141,7 +167,7 @@ export function PlaybackShell() {
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden">
-      <PlayerRenderer items={items} />
+      <PlayerRenderer items={items} audioEnabled={audioEnabled} />
       <OfflineChip sidecarStatus={sidecarStatus} />
     </div>
   );
