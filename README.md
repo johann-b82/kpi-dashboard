@@ -34,7 +34,7 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Sensors tile** — Admin-only environmental monitoring dashboard with live temperature/humidity readings from SNMP devices
 - **Coming-soon placeholders** — Greyed tiles (40% opacity, non-clickable) for future apps
 - **Role-aware scaffold** — Admin-only tiles can be added without structural changes; Viewer-role users see only tiles without the `admin` flag
-- **Minimal launcher chrome** — Header on `/` shows brand (clickable → launcher), theme toggle, language toggle, settings gear, and sign-out; dashboard-scoped controls (SALES/HR toggle, docs, upload) appear only on dashboard routes
+- **Minimal launcher chrome (v1.19)** — Top header is identity-only: brand (clickable → launcher), breadcrumb trail (`Apps › Section › …`), theme toggle, language toggle, and user menu. The user menu dropdown holds Docs, Settings, and Sign-out. All page-scoped controls (SALES/HR toggle, date-range filter, upload, Jetzt-messen, etc.) live in the per-route SubHeader below the top chrome
 
 ### Digital Signage (v1.16+)
 - **Kiosk Player** — Separate Vite entry served at `/player/` on the backend; <200 KB gz entry (lazy `PdfPlayer` + `pdf` chunks), PWA with precached app shell; boots to a 256px monospace 6-digit pairing code on first run
@@ -68,10 +68,11 @@ A Dockerized multi-domain KPI platform with Sales and HR dashboards. Uploads tab
 - **Table of Contents** — Auto-generated from article headings with Intersection Observer scroll tracking
 
 ### General
-- **Bilingual** — Full DE/EN i18n parity with informal "du" tone for German
+- **Bilingual** — Full DE/EN i18n parity (CI-enforced key-count equality + "du"-tone guard) with informal "du" tone for German
 - **Theming** — Settings-driven color palette applied via CSS custom properties; chart colors follow primary/muted tokens; class-strategy dark mode via Tailwind v4
-- **Unified Layout** — Sales, HR, Upload, and Settings share the same `max-w-7xl` page container; contextual back button remembers the last visited dashboard (Sales or HR)
-- **Context-Aware Navigation** — Sales/HR segmented toggle on dashboard pages; labeled back button on Settings and Upload
+- **Unified Layout** — Sales, HR, Upload, and Settings share the same `max-w-7xl` page container
+- **Breadcrumb Navigation (v1.19)** — Top chrome renders `Apps › Section › [Subsection]` derived from the current route; replaces the prior last-dashboard back button
+- **Consolidated UI Primitives (v1.19)** — Single canonical `Input`, `Select`, `Button`, `Textarea`, `Dropdown`, `Toggle`, `SectionHeader`, `DeleteButton`, and `DeleteDialog` under `components/ui/`, driving every form control and destructive action in the app
 - **Auto-Refresh** — Dashboard re-fetches all queries after successful upload or Personio sync via TanStack Query prefix invalidation
 
 ---
@@ -316,6 +317,7 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.19 | 2026-04-22 | UI Consistency Pass 2 — new `Toggle` primitive (pill + animated indicator, radiogroup a11y, reduced-motion-aware) drives all 2-option switches; consolidated `Input`/`Select`/`Button`/`Textarea`/`Dropdown` primitives on the `h-8` height token with shared focus/disabled/invalid states; identity-only top header with breadcrumb trail + `UserMenu` dropdown (Docs/Settings/Sign-out); `SectionHeader` + shared `DeleteButton`/`DeleteDialog` across every admin surface; `/sensors` page body slimmed to cards+chart with picker and Jetzt-messen hoisted to SubHeader; DE/EN parity and dark-mode sweep across 13 migrated surfaces with CI guards |
 | v1.18 | 2026-04-21 | Pi Polish + Scheduling — player bundle back under 200 KB gz via dynamic `PdfPlayer` import; hardware E2E Scenarios 4 + 5 validated on `provision-pi.sh`-provisioned Pi; time-based playlist schedules (weekday mask + HH:MM windows + priority) with admin UI and SSE invalidation; Analytics-lite uptime/missed-window badges on the Devices table |
 | v1.17 | 2026-04-21 | Pi Image Release path (later retired in v1.18) — installer library + systemd unit templates consolidated in `scripts/lib/signage-install.sh`; `.img.xz` distribution path removed in favour of `provision-pi.sh`-only |
 | v1.16 | 2026-04-20 | Digital Signage — Pi kiosk + admin UI: tag-targeted playlists, SSE live updates, Python sidecar offline cache on the Pi, bilingual admin guide + operator runbook, one-script Bookworm Lite provisioning |
