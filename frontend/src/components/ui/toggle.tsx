@@ -95,6 +95,10 @@ function Toggle<T extends string>({
           );
         }
         const isActive = i === activeIndex;
+        // Focus ring: Path A (A11Y-02, Phase 59-02). `focus-visible:z-20` keeps the
+        // ring above the animated indicator (which uses `bg-primary` at `z` default).
+        // Border swap (used by Button/Input/Textarea/Select) is omitted because the
+        // Toggle container — not the segment button — owns the border.
         return (
           <button
             key={segment.value}
@@ -109,8 +113,8 @@ function Toggle<T extends string>({
             onKeyDown={(e) => handleKey(i, e)}
             className={
               isActive
-                ? "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-medium text-primary-foreground inline-flex items-center justify-center gap-2 transition-colors"
-                : "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-normal text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 transition-colors"
+                ? "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-medium text-primary-foreground inline-flex items-center justify-center gap-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:z-20"
+                : "flex-1 relative z-10 rounded-full h-6 px-3 text-sm font-normal text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:z-20"
             }
           >
             {segment.icon}
