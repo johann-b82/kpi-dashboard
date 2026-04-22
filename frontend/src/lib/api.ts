@@ -315,11 +315,19 @@ export interface HrKpiResponse {
   revenue_per_production_employee: HrKpiValue;
 }
 
-export async function fetchHrKpis(): Promise<HrKpiResponse> {
-  return apiClient<HrKpiResponse>("/api/hr/kpis");
+export async function fetchHrKpis(params?: {
+  date_from?: string;
+  date_to?: string;
+}): Promise<HrKpiResponse> {
+  const q = new URLSearchParams();
+  if (params?.date_from) q.set("date_from", params.date_from);
+  if (params?.date_to) q.set("date_to", params.date_to);
+  const qs = q.toString();
+  return apiClient<HrKpiResponse>(`/api/hr/kpis${qs ? `?${qs}` : ""}`);
 }
 
 export interface HrKpiHistoryPoint {
+  // bucket label: "YYYY-MM-DD" (daily) | "YYYY-Www" (weekly) | "YYYY-MM" (monthly) | "YYYY-Qn" (quarterly)
   month: string;
   overtime_ratio: number | null;
   sick_leave_ratio: number | null;
@@ -327,8 +335,17 @@ export interface HrKpiHistoryPoint {
   revenue_per_production_employee: number | null;
 }
 
-export async function fetchHrKpiHistory(): Promise<HrKpiHistoryPoint[]> {
-  return apiClient<HrKpiHistoryPoint[]>("/api/hr/kpis/history");
+export async function fetchHrKpiHistory(params?: {
+  date_from?: string;
+  date_to?: string;
+}): Promise<HrKpiHistoryPoint[]> {
+  const q = new URLSearchParams();
+  if (params?.date_from) q.set("date_from", params.date_from);
+  if (params?.date_to) q.set("date_to", params.date_to);
+  const qs = q.toString();
+  return apiClient<HrKpiHistoryPoint[]>(
+    `/api/hr/kpis/history${qs ? `?${qs}` : ""}`,
+  );
 }
 
 // --------------------------------------------------------------------------
@@ -381,11 +398,15 @@ export async function fetchEmployees(params?: {
   department?: string;
   status?: string;
   search?: string;
+  date_from?: string;
+  date_to?: string;
 }): Promise<EmployeeRow[]> {
   const q = new URLSearchParams();
   if (params?.department) q.set("department", params.department);
   if (params?.status) q.set("status", params.status);
   if (params?.search) q.set("search", params.search);
+  if (params?.date_from) q.set("date_from", params.date_from);
+  if (params?.date_to) q.set("date_to", params.date_to);
   return apiClient<EmployeeRow[]>(`/api/data/employees?${q}`);
 }
 

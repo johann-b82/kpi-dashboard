@@ -38,6 +38,12 @@ export const syncKeys = {
 
 export const hrKpiKeys = {
   all: () => ["hr", "kpis"] as const,
+  summary: (from?: string, to?: string) =>
+    ["hr", "kpis", "summary", { from, to }] as const,
+  history: (from?: string, to?: string) =>
+    ["hr", "kpis", "history", { from, to }] as const,
+  employees: (from?: string, to?: string, search?: string) =>
+    ["hr", "employees", { from, to, search }] as const,
 };
 
 /**
