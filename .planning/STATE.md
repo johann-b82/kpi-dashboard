@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed 60-01-PLAN.md
-last_updated: "2026-04-22T13:34:36.084Z"
+stopped_at: Completed 60-03-PLAN.md
+last_updated: "2026-04-22T13:38:41.040Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 36
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 60 (hr-date-range-filter) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-22
 
@@ -152,6 +152,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 59 P03 | 60s | 2 tasks | 4 files |
 | Phase 60 P02 | 124s | 2 tasks | 4 files |
 | Phase 60 P01 | 6m | 2 tasks | 3 files |
+| Phase 60 P03 | ~210s | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -265,6 +266,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 59]: Plan 59-03: icon-Button aria guard uses brace/quote-aware JSX tag extractor (not single-line regex) — surfaces multi-line tags like dialog Close + calendar Day; 2 real findings fixed inline (Rule 2)
 - [Phase 60]: Plan 60-02: HR fetchers accept pre-formatted YYYY-MM-DD (not Date) to eliminate timezone-drift at serialisation boundary; hrKpiKeys.{summary,history,employees} embed {from,to}; deriveHrBuckets clips first/last edges to from/to for D-06
 - [Phase 60]: Plan 60-01: fluctuation denominator computed in Python via per-day active count over single SELECT (simpler than SQL generate_series); prior_window_same_length uses inclusive day count; /kpis/history keeps legacy 12-month fallback for thisYear landing parity
+- [Phase 60]: Plan 60-03: DateRangeFilter mount gate on SubHeader reused existing isDashboard variable; MiniChart gains HrBucketGranularity prop and branches label formatter (monthly preserves formatMonthYear byte-for-byte); server remains source of truth for bucket boundaries (no client-side re-aggregation)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -306,6 +308,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T13:34:36.080Z
-**Stopped at:** Completed 60-01-PLAN.md
+**Last session:** 2026-04-22T13:38:37.382Z
+**Stopped at:** Completed 60-03-PLAN.md
 **Resume file:** None
