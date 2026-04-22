@@ -199,7 +199,7 @@ function buildSensorCreatePayload(row: SensorDraftRow): SensorCreatePayload {
 function buildGlobalsPayload(
   globals: SensorDraftGlobals,
   snapshot: SensorDraftGlobals,
-): SettingsUpdatePayload | null {
+): Partial<SettingsUpdatePayload> | null {
   // Include ONLY changed fields. Empty-string thresholds = "don't change"
   // (carry-forward limitation documented in the plan).
   const payload: Partial<SettingsUpdatePayload> = {};
@@ -224,14 +224,19 @@ function buildGlobalsPayload(
   if (!any) return null;
   // PUT /api/settings requires the full brand block. Caller merges with
   // current Settings cache when building the final payload.
-  return payload as SettingsUpdatePayload;
+  return payload;
 }
 
 // Exported for unit testing validate().
 export class SensorDraftValidationError extends Error {
-  constructor(public readonly key: string) {
+  // Phase 61: parameter-property shorthand is forbidden under
+  // erasableSyntaxOnly (TS1294). Explicit field + assignment preserves the
+  // public readonly `key` surface without emitting non-erasable syntax.
+  readonly key: string;
+  constructor(key: string) {
     // Error.message is the i18n key — toast callers route via t(err.message).
     super(key);
+    this.key = key;
     this.name = "SensorDraftValidationError";
   }
 }
@@ -430,14 +435,28 @@ export function useSensorDraft(): UseSensorDraftReturn {
       const globalsBody = buildGlobalsPayload(globals, snapshot.globals);
       if (globalsBody && settingsData) {
         // PUT /api/settings requires the full brand block — merge with cache.
+        // Phase 61: collapse into a single spread layout so there are no
+        // duplicate literal keys (TS2783). Destructure the brand block from
+        // the cached Settings so the payload stays narrow to
+        // SettingsUpdatePayload (avoids leaking read-only fields like
+        // logo_url, personio_has_credentials).
+        const {
+          color_primary,
+          color_accent,
+          color_background,
+          color_foreground,
+          color_muted,
+          color_destructive,
+          app_name,
+        } = settingsData;
         await updateSettings({
-          color_primary: settingsData.color_primary,
-          color_accent: settingsData.color_accent,
-          color_background: settingsData.color_background,
-          color_foreground: settingsData.color_foreground,
-          color_muted: settingsData.color_muted,
-          color_destructive: settingsData.color_destructive,
-          app_name: settingsData.app_name,
+          color_primary,
+          color_accent,
+          color_background,
+          color_foreground,
+          color_muted,
+          color_destructive,
+          app_name,
           ...globalsBody,
         });
       }
