@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Code, FileText, Link as LinkIcon, Presentation, Trash2 } from "lucide-react";
+import { Code, FileText, Link as LinkIcon, Presentation } from "lucide-react";
 
 import { signageKeys } from "@/lib/queryKeys";
 import {
@@ -12,13 +12,12 @@ import {
 import type { SignageMedia } from "@/signage/lib/signageTypes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { SectionHeader } from "@/components/ui/section-header";
 import { MediaUploadDropZone } from "@/signage/components/MediaUploadDropZone";
 import { MediaRegisterUrlDialog } from "@/signage/components/MediaRegisterUrlDialog";
 import { MediaStatusPill } from "@/signage/components/MediaStatusPill";
-import {
-  MediaDeleteDialog,
-  type MediaDeleteDialogMode,
-} from "@/signage/components/MediaDeleteDialog";
+import { MediaInUseDialog } from "@/signage/components/MediaInUseDialog";
 
 const DIRECTUS_URL =
   (import.meta.env.VITE_DIRECTUS_URL as string | undefined) ??
@@ -50,16 +49,23 @@ function PlaceholderIcon({ kind }: { kind: SignageMedia["kind"] }) {
   }
 }
 
+interface InUseTarget {
+  name: string;
+  playlistIds: string[];
+}
+
 export function MediaPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteMode, setDeleteMode] = useState<MediaDeleteDialogMode | null>(
-    null,
-  );
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [inUseTarget, setInUseTarget] = useState<InUseTarget | null>(null);
+  // Tracks the media currently being deleted so the 409 onError handler can
+  // recover its title for the in-use dialog. Cleared on settle.
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const mediaQuery = useQuery({
     queryKey: signageKeys.media(),
@@ -71,46 +77,34 @@ export function MediaPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: signageKeys.media() });
       toast.success(t("signage.admin.media.delete_title"));
-      setDialogOpen(false);
-      setPendingDeleteId(null);
-      setDeleteMode(null);
+      setPendingDelete(null);
     },
     onError: (err: unknown) => {
       if (err instanceof ApiErrorWithBody && err.status === 409) {
         const body = err.body as { playlist_ids?: string[] } | null;
-        const count = body?.playlist_ids?.length ?? 0;
-        const prevTitle =
-          deleteMode?.kind === "confirm" ? deleteMode.title : "";
-        setDeleteMode({
-          kind: "in_use",
-          title: prevTitle,
-          playlistCount: count,
+        const playlistIds = body?.playlist_ids ?? [];
+        setInUseTarget({
+          name: pendingDelete?.title ?? "",
+          playlistIds,
         });
-        setDialogOpen(true);
+        setPendingDelete(null);
         return;
       }
       const message =
         err instanceof Error ? err.message : "unknown error";
       toast.error(t("signage.admin.error.generic", { detail: message }));
-      setDialogOpen(false);
-      setPendingDeleteId(null);
+      setPendingDelete(null);
     },
   });
 
-  const onClickDelete = (media: SignageMedia) => {
-    setPendingDeleteId(media.id);
-    setDeleteMode({ kind: "confirm", title: media.title });
-    setDialogOpen(true);
-  };
-
-  const onConfirmDelete = () => {
-    if (pendingDeleteId) {
-      deleteMutation.mutate(pendingDeleteId);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6">
+      <SectionHeader
+        title={t("section.signage.media.title")}
+        description={t("section.signage.media.description")}
+        className="mt-8"
+      />
+
       <MediaUploadDropZone />
 
       <div className="flex justify-end">
@@ -204,14 +198,21 @@ export function MediaPage() {
                     </div>
                   )}
                   <div className="flex justify-end pt-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onClickDelete(media)}
-                      aria-label={t("signage.admin.media.delete_title")}
-                    >
-                      <Trash2 className="w-4 h-4 text-muted-foreground" />
-                    </Button>
+                    <DeleteButton
+                      itemLabel={media.title}
+                      aria-label={t("ui.delete.ariaLabel", {
+                        itemLabel: media.title,
+                      })}
+                      onConfirm={async () => {
+                        setPendingDelete({ id: media.id, title: media.title });
+                        try {
+                          await deleteMutation.mutateAsync(media.id);
+                        } catch {
+                          // onError handles toast / 409 dialog; swallow so
+                          // DeleteButton closes its own confirm dialog cleanly.
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </article>
@@ -224,11 +225,11 @@ export function MediaPage() {
         open={registerOpen}
         onOpenChange={setRegisterOpen}
       />
-      <MediaDeleteDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mode={deleteMode}
-        onConfirm={onConfirmDelete}
+      <MediaInUseDialog
+        open={!!inUseTarget}
+        onOpenChange={(o) => !o && setInUseTarget(null)}
+        itemLabel={inUseTarget?.name ?? ""}
+        playlistIds={inUseTarget?.playlistIds ?? []}
       />
     </div>
   );

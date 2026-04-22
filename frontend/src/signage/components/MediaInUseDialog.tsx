@@ -1,9 +1,9 @@
 // Phase 57 Plan 05 — MediaInUseDialog
-// Single-mode dialog extracted from the legacy two-mode `MediaDeleteDialog`
-// (RESEARCH Pitfall 2). Renders the 409 "media is in use by N playlists"
-// follow-up after a delete attempt is rejected. The destructive confirm
-// branch now lives in `<DeleteButton>`; this narrow variant keeps the
-// existing `signage.admin.media.delete_in_use_*` i18n keys verbatim.
+// Single-mode dialog covering the 409 "media is in use by N playlists"
+// follow-up after a delete attempt is rejected (RESEARCH Pitfall 2).
+// The destructive confirm branch now lives in `<DeleteButton>`; this
+// narrow variant keeps the existing `signage.admin.media.delete_in_use_*`
+// i18n keys verbatim.
 import { useTranslation } from "react-i18next";
 
 import {
