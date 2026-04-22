@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.20 HR Date-Range Filter + TS Cleanup (Shipped: 2026-04-22)
+
+**Phases completed:** 2 phases (60–61), 5 plans.
+
+**Audit:** [milestones/v1.20-MILESTONE-AUDIT.md](milestones/v1.20-MILESTONE-AUDIT.md) — both phases `passed`, no gaps, no blockers.
+
+**Key accomplishments:**
+
+- **HR date-range filter end-to-end** (Phase 60) — shared `DateRangeFilter` from SubHeader wired into `/hr`; backend `/api/hr/kpis`, `/api/hr/kpis/history`, `/api/data/employees` all accept `date_from`/`date_to` with pair-or-neither + inverted-range 400 validation; HR aggregation service computes all 5 KPIs over arbitrary windows with same-length prior-period and same-window prior-year baselines; fluctuation denominator switched from EOM-snapshot to avg-active-headcount across the range (D-03). Plans 60-01..60-04 complete including 13/13 pytest + user-approved human visual-parity checkpoint.
+- **Personio attendance full backfill + incremental sync** (Phase 60 follow-up `4d1c5f0`) — `hr_sync` computes attendance window from DB state (earliest `hire_date` on first run, `max(stored_date) - 14d` incremental thereafter); `personio_client` gains exponential 429 backoff (3 attempts, delay = max(Retry-After, 2^attempt · 30s)); sync cadence default raised 1h → 168h (weekly) via Alembic migration.
+- **HR delta-badge + chart parity with Sales** (Phase 60 follow-up) — `HrKpiCardGrid` swapped hardcoded `formatHrDeltaLabels` for shared `formatPrevPeriodDeltaLabels(preset, range)`; thisYear collapses to single "vs. prior year" badge via previous_year remap; HrKpiCharts x-axis labels now mirror Sales naming (`KW 17`, `Apr '26`, `Q1 '26`, `15. Apr`).
+- **Navigation polish** (Phase 60 follow-up) — upload icon restricted to `/sales` (was on `/sales` + `/hr`); Bar/Line toggles unified to Balken-left/Linien-right with `variant="muted"` matching the DE/EN language toggle.
+- **TS cleanup to green build** (Phase 61) — 31 pre-existing TypeScript errors (carry-forward from v1.17–v1.19) closed across 9 frontend files in 10 atomic `fix(61):` commits. `npm run build` now exits 0 with zero `error TS` lines. `useTableState.ts` kept untouched — SalesTable fixed via local `SalesRow & Record<string, unknown>` intersection (D-02). Suppression-directive audit verified zero `@ts-expect-error` / `@ts-ignore` / `as any` authored by Phase 61 (anti-cheat via `git blame`). `|| true` audit on build surfaces (package.json, Dockerfiles, compose, workflows, husky, smoke scripts) returned zero matches.
+
+**Infrastructure hygiene noted (not blocking):** pre-existing `vite@8` vs `vite-plugin-pwa@1.2.0` peer-dep conflict prevents `docker compose build frontend`; bind-mount + HMR + host `npm run build` cover dev + CI; scheduled for a future cleanup.
+
+---
+
 ## v1.19 UI Consistency Pass 2 (Shipped: 2026-04-22)
 
 **Phases completed:** 6 phases (54–59), 32 plans, 23/23 requirements verified.

@@ -10,18 +10,11 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 
 ## Current State
 
-**Shipped:** v1.19 UI Consistency Pass 2 — 2026-04-22 (tag `v1.19`). Six-phase frontend consistency milestone delivered: pill-shape `Toggle` primitive (radiogroup a11y + animated indicator + reduced-motion fallback) driving Sales/HR, chart-type, theme, and EN/DE switches; consolidated `Input`/`Select`/`Button`/`Textarea`/`Dropdown` on the `h-8` height token with shared focus/disabled/invalid states; identity-only top header with route-derived breadcrumb and `UserMenu` dropdown (Docs/Settings/Sign-out); `SectionHeader` + `DeleteButton`/`DeleteDialog` across every admin surface (zero `window.confirm` in `frontend/src`); `/sensors` page body slimmed to cards+chart with picker + Jetzt-messen hoisted to SubHeader; CI guards for DE/EN key parity, du-tone, focus-ring convergence, and Path A utility regression across 13 audited surfaces.
-**In progress:** v1.20 HR Date-Range Filter (Phase 60) — backend + frontend landed (commits `47f0ff2 → 963e73e`, follow-up `4d1c5f0`); 60-04 Task 2 (human visual-parity checkpoint) awaiting sign-off.
+**Shipped:** v1.20 HR Date-Range Filter + TS Cleanup — 2026-04-22 (tag `v1.20`). Two-phase brownfield milestone. **Phase 60** wired the shared `DateRangeFilter` from SubHeader into `/hr` (KPI cards, charts, employee table) with backend `date_from`/`date_to` on `/api/hr/kpis`, `/api/hr/kpis/history`, `/api/data/employees`, avg-active-headcount fluctuation (D-03), same-length prior-period + same-window prior-year baselines, 13/13 pytest, user-approved visual-parity checkpoint. Follow-up `4d1c5f0` added full Personio attendance backfill (earliest `hire_date` first run, `max(stored_date)-14d` incremental), 429 exponential backoff, weekly default sync cadence, HR delta-badge + chart-axis parity with Sales, `/sales`-only upload, Balken/Linien toggle ordering. **Phase 61** closed all 31 pre-existing TypeScript errors across 9 files in 10 atomic `fix(61):` commits — `npm run build` now exits 0 with zero `error TS`; anti-cheat audit confirmed no `@ts-expect-error`/`as any` shortcuts; `useTableState.ts` kept untouched (D-02).
+**In progress:** — awaiting `/gsd:new-milestone`.
 **Stack:** PostgreSQL 17 + FastAPI (async SQLAlchemy 2.0 + asyncpg) + React 19/Vite 8 + Directus 11, all Dockerized via compose. Signage on top: bundle-isolated Vite player at `/player/` (75 KB gz entry + lazy `PdfPlayer`/`pdf` chunks, PWA-precached, EventSource + 45s watchdog + 30s polling fallback, 6 format handlers), in-process SSE broadcast, tag-to-playlist resolver, scoped device JWT (HS256 24h), PPTX async-subprocess pipeline with LibreOffice + Carlito/Caladea/Noto/DejaVu fonts, Pi-side Python FastAPI sidecar (127.0.0.1:8080) proxy-caching envelope + media to `/var/lib/signage/`. Pi ships via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit (single path) using the shared installer library (`scripts/lib/signage-install.sh`) and systemd unit templates. Proven end-to-end on real Pi 4 (E2E Scenarios 1–5 PASS).
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
-**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12–v1.19 requirements satisfied. v1.19 UI Consistency Pass 2 shipped with **23/23 requirements verified** across 6 phases (TOGGLE-01..05, CTRL-01..04, HDR-01..04, SECTION-01..04, SENSORS-01..03, A11Y-01..03) — see [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md). v1.20 HR Date-Range Filter (Phase 60) in progress: backend + frontend landed, 60-04 Task 2 human visual-parity checkpoint pending. Tech debt carried forward: pre-existing TS errors in ~9 files untouched by v1.19 (SalesTable, PersonioCard, SnmpWalkCard, select.tsx legacy, useSensorDraft, defaults, ScheduleEditDialog, SchedulesPage.test, HrKpiCharts) block `npm run build` in isolation — candidate for a dedicated TS-cleanup plan in v1.20. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
-
-## Current Milestone: v1.20 HR Date-Range Filter + TS Cleanup (In Progress)
-
-**Goal:** Ship the HR date-range filter + close pre-existing TypeScript debt. Two phases:
-
-1. **Phase 60: HR Date-Range Filter** (complete 2026-04-22). Wired the shared `DateRangeFilter` from the SubHeader into the HR dashboard (KPI cards, charts, employee table), including backend `date_from`/`date_to` query params and HR aggregation over custom ranges. Default `thisYear` landing visually equivalent to pre-Phase-60. Follow-up commit `4d1c5f0` added full Personio attendance backfill (earliest `hire_date` on first run, `max(stored_date)-14d` incremental thereafter), 429 exponential backoff, weekly default sync cadence (168h), HR delta-badge parity with Sales, Sales-style chart axis naming, `/sales`-only upload icon, and Balken/Linien toggle ordering parity.
-2. **Phase 61: TS Cleanup** (planned). Close ~25 pre-existing TypeScript errors across 9 files so `npm run build` exits 0 without `|| true`. Categories: Recharts Tooltip formatter signatures, `useTableState` generic constraint, implicit-any callbacks, base-ui Select type drift, `useSensorDraft` erasableSyntaxOnly + duplicate spread keys, `defaults.ts` missing sensor fields, test-file hygiene.
+**Audit status:** All v1.0–v1.6, v1.11-directus, v1.12–v1.20 requirements satisfied. v1.20 HR Date-Range Filter + TS Cleanup shipped with **2/2 phases passed** (Phase 60 with human visual-parity sign-off + Phase 61 with build-gate + anti-cheat audits) — see [milestones/v1.20-MILESTONE-AUDIT.md](milestones/v1.20-MILESTONE-AUDIT.md). v1.19 UI Consistency Pass 2 shipped with 23/23 requirements verified across 6 phases — see [milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md). Tech debt remaining: `frontend/Dockerfile` `npm install` peer-dep conflict (`vite@8` vs `vite-plugin-pwa@1.2.0`) blocks `docker compose build frontend` but not dev-server or host `npm run build` — infrastructure hygiene for a future milestone. v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
 ## Next Milestone Candidates (post-v1.20)
 
@@ -29,6 +22,18 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 - **Calibration** — per-device rotation, brightness, output resolution, HDMI audio passthrough.
 - **iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
 - **Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
+
+## Shipped: v1.20 HR Date-Range Filter + TS Cleanup (2026-04-22)
+
+Two-phase brownfield milestone closing the last HR dashboard filter gap + the v1.19 TS-debt carry-forward.
+
+**Phase 60 — HR Date-Range Filter.** Shared `DateRangeFilter` mounted on `/hr`; every HR surface (KPI cards, charts, employee table) consumes `useDateRange()` and refetches on range change. Backend: `/api/hr/kpis`, `/api/hr/kpis/history`, `/api/data/employees` accept `date_from`/`date_to` with pair-or-neither + inverted-range HTTP 400. HR aggregation service (`hr_kpi_aggregation.py`) computes all 5 KPIs over arbitrary windows with `prior_window_same_length` and `same_window_prior_year` baselines driving card deltas; fluctuation denominator switched from EOM-snapshot to avg-active-headcount across the range (D-03). `HrKpiCharts` uses server-bucketed data (`_bucket_windows` — daily ≤31d / weekly ≤91d / monthly ≤731d / quarterly) with client-side label formatter matching Sales naming (`KW 17`, `Apr '26`, `Q1 '26`, `15. Apr`). Sales ↔ HR preset preservation retained via shared `DateRangeContext`. 13/13 pytest coverage (`test_hr_kpi_range.py`) with explicit D-03 arithmetic (`45/104`-style fluctuation assertion) and D-05 sick-leave whole-range mirror. User-approved visual-parity checkpoint on the default `thisYear` landing + 45-day custom range + Sales ↔ HR state preservation (2026-04-22).
+
+**Phase 60 follow-up** (`4d1c5f0`): Personio attendance fetch window now derived from DB state — earliest employee `hire_date` on first run (full backfill), `max(stored_date) - 14d` incremental thereafter. New `_get_with_backoff` helper in `personio_client` provides exponential 429 retry (3 attempts, delay = max(Retry-After, 2^attempt · 30s)). `personio_sync_interval_h` default raised 1h → 168h (weekly) via Alembic migration `v1_19_personio_weekly_default` — existing customized values preserved. HR delta-badge labels now use shared `formatPrevPeriodDeltaLabels(preset, range)` (thisYear collapses to single "vs. prior year" badge); HR chart axis naming mirrors Sales; `/sales`-only upload icon (removed from `/hr`); Bar/Line toggles flipped to Balken-left/Linien-right with `variant="muted"` matching the DE/EN toggle.
+
+**Phase 61 — TS Cleanup.** Closed all 31 pre-existing TypeScript errors across 9 files carried forward from v1.17–v1.19. 10 atomic `fix(61):` commits (one per file): `SchedulesPage.test.tsx` hygiene, `ScheduleEditDialog.test.tsx` ES-import (no `@types/node` needed), `ScheduleEditDialog.tsx` + `PersonioCard.tsx` + `SnmpWalkCard.tsx` implicit-any annotations, `defaults.ts` sensor fields, `useSensorDraft.ts` parameter-property rewrite + duplicate spread-key collapse, `ui/select.tsx` `Root.Props<Value>` generic + unused React import, `HrKpiCharts.tsx` Recharts 3.8.1 Tooltip signature wraps, `SalesTable.tsx` local `SalesRow & Record<string, unknown>` intersection. `npm run build` now exits 0 with zero `error TS`. Anti-cheat gates verified: zero `@ts-expect-error`/`@ts-ignore`/`as any`/`as unknown as` authored by Phase 61 (`git blame` check); zero `|| true` on canonical build surfaces. `useTableState.ts` untouched (D-02 preserved — fix was local).
+
+**Infrastructure hygiene noted** (not blocking): `frontend/Dockerfile` `npm install` peer-dep conflict (`vite@8` vs `vite-plugin-pwa@1.2.0`) prevents `docker compose build frontend`. Bind-mount + HMR + host `npm run build` cover dev + CI paths; scheduled for a future cleanup milestone.
 
 ## Shipped: v1.19 UI Consistency Pass 2 (2026-04-22)
 
@@ -220,6 +225,12 @@ At-a-glance growth signals on the dashboard — dual delta badges on every KPI c
 - ✓ UI-02: Checkbox state persists correctly through save/reload cycle — v1.6
 - ✓ UI-03: All checkbox list labels display correctly in both DE and EN — v1.6
 
+### Validated in v1.20
+
+- ✓ D-01..D-05, D-11, D-13 (Phase 60): Backend `date_from`/`date_to` on all HR endpoints; avg-active-headcount fluctuation denominator; same-length prior-period + same-window prior-year baselines — v1.20
+- ✓ D-06..D-10, D-12 (Phase 60): Client-side adaptive bucketing, Sales↔HR preset preservation, thisYear-landing visual parity — v1.20 (user-approved)
+- ✓ Phase 61 locked decisions D-01..D-08: `npm run build` exits 0 with zero TS errors, atomic per-file commits, no suppression-directive shortcuts authored — v1.20
+
 ### Validated in v1.19
 
 - ✓ TOGGLE-01..05: Pill `Toggle` primitive (animated indicator, radiogroup a11y, arrow-key nav, reduced-motion fallback, 2-segment constraint) — v1.19
@@ -307,4 +318,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 — v1.19 UI Consistency Pass 2 shipped (tag `v1.19`, 6 phases, 23/23 requirements verified). Next: v1.20 HR Date-Range Filter (Phase 60) human visual-parity checkpoint.*
+*Last updated: 2026-04-22 — v1.20 HR Date-Range Filter + TS Cleanup shipped (tag `v1.20`, 2 phases, 5 plans, 0 gaps). Next: run `/gsd:new-milestone` to scope v1.21.*

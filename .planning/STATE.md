@@ -1,50 +1,47 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.20
-milestone_name: HR Date-Range Filter + TS Cleanup
-status: verifying
-stopped_at: Completed 61-01-ts-cleanup-PLAN.md
-last_updated: "2026-04-22T17:20:39.565Z"
+milestone: null
+milestone_name: null
+status: between-milestones
+stopped_at: v1.20 shipped; awaiting /gsd:new-milestone for v1.21 scope
+last_updated: "2026-04-22T17:30:00.000Z"
 last_activity: 2026-04-22
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-22
-**Session:** v1.19 shipped (tag `v1.19`); v1.20 HR Date-Range Filter Phase 60 awaiting visual-parity checkpoint
+**Session:** v1.20 HR Date-Range Filter + TS Cleanup shipped (tag `v1.20`)
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.19 milestone)
+See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 61 — ts-cleanup
+**Current focus:** between milestones — awaiting `/gsd:new-milestone` for v1.21 scope
 
+Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
-Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
 
 ---
 
 ## Current Position
 
-Milestone: v1.20 HR Date-Range Filter — Phase 60 in progress
-Phase: 61 (ts-cleanup) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
+Milestone: none active
+Phase: none active
+Status: v1.20 archived; running `main` is `npm run build` green, all shipped milestones audited passed.
 Last activity: 2026-04-22
 
-Progress: 1/2 phases complete, 4/5 plans complete in v1.20 (Phase 61 plan count TBD)
-
-Next action: `/gsd:discuss-phase 61` (scope the ~25 TS errors across 9 files) → `/gsd:plan-phase 61` → execute → `/gsd:complete-milestone 1.20`.
+Next action: `/gsd:new-milestone` to scope v1.21 (or directly start a quick/patch fix via `/gsd:quick`).
 
 ### Quick Tasks Completed
 
