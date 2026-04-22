@@ -41,9 +41,9 @@
 
 ### Sensors layout (SENSORS-*)
 
-- [ ] **SENSORS-01**: The date-range / time-window selector on `/sensors` moves from the page body into the SubHeader (left or center slot), matching other dashboard routes.
+- [x] **SENSORS-01**: The date-range / time-window selector on `/sensors` moves from the page body into the SubHeader (left or center slot), matching other dashboard routes.
 - [x] **SENSORS-02**: The "Jetzt messen" action moves into the SubHeader right slot and uses the shared `Button` primitive.
-- [ ] **SENSORS-03**: The Sensors page body contains only KPI cards, charts, and tables — no header-level controls remain inline in the body.
+- [x] **SENSORS-03**: The Sensors page body contains only KPI cards, charts, and tables — no header-level controls remain inline in the body.
 
 ### Toggle component (TOGGLE-*)
 

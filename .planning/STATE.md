@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
-status: executing
-stopped_at: Completed 58-01-PLAN.md
-last_updated: "2026-04-22T09:36:28.929Z"
+status: verifying
+stopped_at: Completed 58-02-PLAN.md
+last_updated: "2026-04-22T09:40:46.731Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State: KPI Dashboard
@@ -39,7 +39,7 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 58 (sensors-layout-parity) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-22
 
 Progress: 0/6 phases complete, 0 plans
@@ -143,6 +143,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 57 P10 | 62s | 2 tasks | 2 files |
 | Phase 57 P11 | 2m | 2 tasks | 2 files |
 | Phase 58 P01 | 95s | 2 tasks | 2 files |
+| Phase 58 P02 | 154s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 57]: Plan 57-10: Upload History migrated to DeleteButton with legacy delete_* keys preserved via explicit dialogTitle/cancelLabel/confirmLabel/dialogBody overrides; legacy DeleteConfirmDialog.tsx deleted (sole consumer migrated)
 - [Phase 57]: Plan 57-11: CI guard script implemented as Node fs walk (no system rg available); strips // comments before pattern match so primitives can self-document banned patterns; wired as npm run check:phase-57 on frontend/package.json (no root package.json in repo)
 - [Phase 58]: PollNowButton gains size prop + RefreshCw/Loader2 icon swap; SensorTimeWindowProvider hoisted to App.tsx above AppShell inside DateRangeProvider — foundations for Plan 58-02 SubHeader consumer
+- [Phase 58]: Plan 58-02: Per-route SubHeader slot gating via wouter location === /sensors; PollNowButton placed before freshness ternary (D-04); JSDoc rewrite to avoid literal component names conflicting with AC greps (Rule 3 deviation)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -290,6 +292,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T09:36:28.925Z
-**Stopped at:** Completed 58-01-PLAN.md
+**Last session:** 2026-04-22T09:40:46.728Z
+**Stopped at:** Completed 58-02-PLAN.md
 **Resume file:** None

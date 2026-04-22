@@ -15,3 +15,8 @@ Running `cd frontend && npm run build` surfaces pre-existing TS errors unrelated
 - `src/signage/pages/SchedulesPage.test.tsx(6,3 / 200,5 / 202,5)` — TS6133 + TS2578
 
 Per STATE.md Carry-forward Tech Debt + Phase-54 deferred-items convention, these are not Plan 58-01 regressions. `npx tsc --noEmit` reports ZERO errors in the files modified by this plan (PollNowButton.tsx, App.tsx).
+
+## Plan 58-02
+
+- `npm run build` surfaces the same pre-existing TS errors (HrKpiCharts added on top of the 58-01 list). All in files NOT modified by Plan 58-02. Carried forward as Phase-54 TS debt per scope boundary.
+- Plan 58-02 tsc check limited to plan-modified files: `SubHeader.tsx` + `SensorsPage.tsx` — both compile clean.
