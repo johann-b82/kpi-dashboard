@@ -282,7 +282,9 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   1. User changes the date-range/time-window for `/sensors` via the SubHeader, not the page body.
   2. User triggers "Jetzt messen" from the SubHeader right slot using the shared `Button` primitive.
   3. The `/sensors` page body contains only KPI cards, charts, and tables — no header-level controls remain inline.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 58-01-PLAN.md — PollNowButton size prop + icon swap; hoist SensorTimeWindowProvider to App.tsx (SENSORS-02 foundation)
+  - [ ] 58-02-PLAN.md — Wire /sensors slot blocks into SubHeader; strip SensorsPage to cards+chart only (SENSORS-01, SENSORS-02, SENSORS-03)
 **UI hint**: yes
 
 ### Phase 59: A11y & Parity Sweep
@@ -308,5 +310,5 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
-| 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
+| 58. Sensors Layout Parity | v1.19 | 0/2 | Not started | — |
 | 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |
