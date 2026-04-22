@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { pollSensorsNow, type PollNowResult } from "@/lib/api";
 import { sensorKeys } from "@/lib/queryKeys";
@@ -28,7 +29,11 @@ function pollWithTimeout(): Promise<PollNowResult> {
   ]);
 }
 
-export function PollNowButton() {
+interface PollNowButtonProps {
+  size?: "default" | "sm";
+}
+
+export function PollNowButton({ size = "default" }: PollNowButtonProps = {}) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -49,6 +54,7 @@ export function PollNowButton() {
     },
   });
 
+  const Icon = mutation.isPending ? Loader2 : RefreshCw;
   const label = mutation.isPending
     ? t("sensors.poll.refreshing")
     : t("sensors.poll.now");
@@ -56,10 +62,12 @@ export function PollNowButton() {
   return (
     <Button
       type="button"
+      size={size}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
       aria-busy={mutation.isPending}
     >
+      <Icon className={mutation.isPending ? "animate-spin" : undefined} />
       {label}
     </Button>
   );
