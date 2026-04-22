@@ -20,7 +20,7 @@
 - ✅ **v1.17 Pi Image Release** — Phase 49 (shipped 2026-04-21) — [archive](milestones/v1.17-ROADMAP.md)
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
 - ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
-- 🚧 **v1.20 HR Date-Range Filter** — Phase 60 (Phase 60 complete 2026-04-22; milestone scope TBD)
+- 🚧 **v1.20 HR Date-Range Filter + TS Cleanup** — Phases 60–61 (Phase 60 complete 2026-04-22; Phase 61 planned)
 
 ## Phases
 
@@ -200,9 +200,10 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 
 </details>
 
-### 🚧 v1.20 HR Date-Range Filter (Phase 60 complete — milestone scope TBD)
+### 🚧 v1.20 HR Date-Range Filter + TS Cleanup (In Progress)
 
 - [x] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges. 4/4 plans complete (60-04 Task 2 human visual-parity checkpoint approved 2026-04-22).
+- [ ] **Phase 61: TS Cleanup** — Close ~25 pre-existing TypeScript errors across ~10 files so `npm run build` exits 0. Categories: Recharts Tooltip formatter signatures (HrKpiCharts), useTableState generic constraint (SalesTable), implicit-any callbacks (PersonioCard, SnmpWalkCard, ScheduleEditDialog), base-ui Select type drift, useSensorDraft erasableSyntaxOnly + duplicate spread keys, defaults.ts missing sensor fields, test-file hygiene (require→import, unused directives).
 
 
 ## Progress Table
@@ -220,6 +221,7 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
+| 61. TS Cleanup | v1.20 | 0/1 | Not started | — |
 
 ## Phase Details
 
@@ -234,4 +236,21 @@ Plans:
 - [x] 60-01-backend-hr-range-PLAN.md — HR endpoints + aggregation accept date_from/date_to; fluctuation uses avg-active-headcount; reverse D-03 header (D-01..D-05, D-11, D-13)
 - [x] 60-02-frontend-fetchers-bucketing-PLAN.md — Extend fetchHrKpis/History/Employees, hrKpiKeys, and chartTimeUtils bucketing (D-06, D-08, D-11)
 - [x] 60-03-integration-subheader-hr-consumers-PLAN.md — Mount DateRangeFilter on /hr; wire HrKpiCardGrid + HrKpiCharts + EmployeeTable to useDateRange() (D-06..D-12)
-- [x] 60-04-tests-and-thisyear-parity-PLAN.md — Backend pytest for range behaviours + manual thisYear parity check (D-01..D-03, D-06..D-11) — Task 1 complete (commit `5a05565`); Task 2 (human-verify) pending
+- [x] 60-04-tests-and-thisyear-parity-PLAN.md — Backend pytest for range behaviours + manual thisYear parity check (D-01..D-03, D-06..D-11) — Task 1 (commit `5a05565`) + Task 2 (human-verify approved 2026-04-22)
+
+### Phase 61: TS Cleanup
+
+**Goal:** `npm run build` exits 0 without `|| true`. Close ~25 pre-existing TypeScript errors surfaced across v1.17–v1.19 but never fixed; carry-forward tech debt flagged in the v1.19 audit.
+**Depends on:** Phase 60
+**Scope (9 files, ~25 errors):**
+- **HrKpiCharts.tsx** (2) — Recharts Tooltip `labelFormatter`/`formatter` signatures want `ReactNode`-returning callbacks; tighten types or cast.
+- **SalesTable.tsx** (8) — `useTableState` generic expects `Record<string, unknown>`; `SalesRecordRow` lacks an index signature. Constrain the hook or relax the row type.
+- **PersonioCard.tsx** (1), **SnmpWalkCard.tsx** (2), **ScheduleEditDialog.tsx** (1) — implicit-any callback params; annotate.
+- **ui/select.tsx** (2) — unused `React` import + base-ui `Props` generic-arity drift; align with current `@base-ui/react/select` API.
+- **useSensorDraft.ts** (7) — 1× `erasableSyntaxOnly` violation (likely `const enum` or namespace) + 6× duplicate spread-key warnings in a merged settings object.
+- **defaults.ts** (1) — `Settings` type gained sensor fields post-v1.15 but `DEFAULT_SETTINGS` wasn't updated.
+- **ScheduleEditDialog.test.tsx** (1) — bare `require()` needs `@types/node` or rewrite to import.
+- **SchedulesPage.test.tsx** (3) — unused `afterEach` import + 2 stale `@ts-expect-error` directives.
+
+**Non-goals:** No behaviour changes, no primitive redesign, no test-logic changes. Cleanup is mechanical wherever possible; where a type tightening forces a refactor (e.g. useTableState generic), minimise blast radius and keep the fix local.
+**Plans:** 1 plan expected (single pass; atomic commits per file).
