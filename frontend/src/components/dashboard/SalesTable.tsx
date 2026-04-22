@@ -4,8 +4,15 @@ import { useTranslation } from "react-i18next";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { fetchSalesRecords } from "@/lib/api";
+import { fetchSalesRecords, type SalesRecordRow } from "@/lib/api";
 import { useTableState } from "@/hooks/useTableState";
+
+// Phase 61: useTableState requires T extends Record<string, unknown> but
+// SalesRecordRow has concrete fields only. Intersect at the call site so
+// concrete field types survive (customer_name: string | null, etc.)
+// while the generic constraint is satisfied. No change to
+// SalesRecordRow, no change to useTableState (D-02).
+type SalesRow = SalesRecordRow & Record<string, unknown>;
 
 interface SalesTableProps {
   startDate?: string;
@@ -27,8 +34,10 @@ export function SalesTable({ startDate, endDate }: SalesTableProps) {
       }),
   });
 
-  const { processed, sortKey, sortDir, toggleSort } =
-    useTableState(data, { key: "order_date", dir: "desc" });
+  const { processed, sortKey, sortDir, toggleSort } = useTableState<SalesRow>(
+    data as SalesRow[] | undefined,
+    { key: "order_date", dir: "desc" },
+  );
 
   const formatCurrency = (v: number | null) =>
     v == null
