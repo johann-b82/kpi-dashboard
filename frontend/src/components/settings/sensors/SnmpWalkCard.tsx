@@ -274,7 +274,7 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
                   </Label>
                   <Select
                     value={picker.localId}
-                    onValueChange={(v) =>
+                    onValueChange={(v: string) =>
                       setPicker({ ...picker, localId: v })
                     }
                   >
@@ -294,7 +294,7 @@ export function SnmpWalkCard({ rows, onUpdateRow }: SnmpWalkCardProps) {
                   <Label className="text-sm font-medium">Field</Label>
                   <Select
                     value={picker.field}
-                    onValueChange={(v) =>
+                    onValueChange={(v: string) =>
                       setPicker({
                         ...picker,
                         field: v as WalkField,
