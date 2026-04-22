@@ -194,6 +194,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 - [ ] **Phase 57: Section Context + Standardized Trashcan** — Heading + description on every admin section; one delete button + confirm dialog everywhere.
 - [ ] **Phase 58: Sensors Layout Parity** — Move `/sensors` date-range + "Jetzt messen" into SubHeader.
 - [ ] **Phase 59: A11y & Parity Sweep** — DE/EN parity audit, focus-ring + accessible-name audit, dark-mode sweep across migrated surfaces.
+- [ ] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges.
 
 </details>
 
@@ -299,7 +300,7 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   - [x] 59-01-locale-parity-tooling-PLAN.md — Locale parity + du-tone lint scripts + package.json wiring (A11Y-01)
   - [x] 59-02-focus-ring-convergence-PLAN.md — Toggle focus ring + Checkbox/Badge convergence to Path A (A11Y-02)
   - [x] 59-03-ci-guards-color-aria-PLAN.md — check-phase-59-guards.mts for color literals + icon-button aria-label (A11Y-02, A11Y-03)
-  - [ ] 59-04-dark-mode-manual-audit-PLAN.md — 59-VERIFICATION.md scaffold + human dark-mode sweep across 13 surfaces (A11Y-02, A11Y-03)
+  - [x] 59-04-dark-mode-manual-audit-PLAN.md — 59-VERIFICATION.md scaffold + human dark-mode sweep across 13 surfaces (A11Y-02, A11Y-03)
 **UI hint**: yes
 
 ## Progress Table
@@ -315,4 +316,14 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
-| 59. A11y & Parity Sweep | v1.19 | 3/4 | In Progress|  |
+| 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
+
+### Phase 60: HR Date-Range Filter
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 59
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 60 to break down)
