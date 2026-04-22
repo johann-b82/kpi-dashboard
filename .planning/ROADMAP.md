@@ -20,7 +20,7 @@
 - ✅ **v1.17 Pi Image Release** — Phase 49 (shipped 2026-04-21) — [archive](milestones/v1.17-ROADMAP.md)
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
 - ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
-- 🚧 **v1.20 HR Date-Range Filter** — Phase 60 (active, started 2026-04-22)
+- 🚧 **v1.20 HR Date-Range Filter** — Phase 60 (Phase 60 complete 2026-04-22; milestone scope TBD)
 
 ## Phases
 
@@ -200,9 +200,9 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 
 </details>
 
-### 🚧 v1.20 HR Date-Range Filter (In Progress)
+### 🚧 v1.20 HR Date-Range Filter (Phase 60 complete — milestone scope TBD)
 
-- [ ] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges. 3/4 plans complete; 60-04 Task 2 (human visual-parity checkpoint) pending.
+- [x] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges. 4/4 plans complete (60-04 Task 2 human visual-parity checkpoint approved 2026-04-22).
 
 
 ## Progress Table
@@ -219,7 +219,7 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 | 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
-| 60. HR Date-Range Filter | v1.20 | 3/4 | In Progress | — |
+| 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
 
 ## Phase Details
 
@@ -228,10 +228,10 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 **Goal:** Wire the shared DateRangeFilter into /hr and extend HR endpoints + aggregation services so HR KPI cards, charts, and the employee table all respond to the same date-range picker that drives /sales. Default thisYear landing remains visually equivalent to pre-Phase-60.
 **Requirements**: CONTEXT decisions D-01..D-13 (authoritative; phase is post-v1.19 on the roadmap)
 **Depends on:** Phase 59
-**Plans:** 3/4 plans complete; 60-04 Task 1 (pytest 13/13) committed, Task 2 awaiting human-verify checkpoint
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 60-01-backend-hr-range-PLAN.md — HR endpoints + aggregation accept date_from/date_to; fluctuation uses avg-active-headcount; reverse D-03 header (D-01..D-05, D-11, D-13)
 - [x] 60-02-frontend-fetchers-bucketing-PLAN.md — Extend fetchHrKpis/History/Employees, hrKpiKeys, and chartTimeUtils bucketing (D-06, D-08, D-11)
 - [x] 60-03-integration-subheader-hr-consumers-PLAN.md — Mount DateRangeFilter on /hr; wire HrKpiCardGrid + HrKpiCharts + EmployeeTable to useDateRange() (D-06..D-12)
-- [ ] 60-04-tests-and-thisyear-parity-PLAN.md — Backend pytest for range behaviours + manual thisYear parity check (D-01..D-03, D-06..D-11) — Task 1 complete (commit `5a05565`); Task 2 (human-verify) pending
+- [x] 60-04-tests-and-thisyear-parity-PLAN.md — Backend pytest for range behaviours + manual thisYear parity check (D-01..D-03, D-06..D-11) — Task 1 complete (commit `5a05565`); Task 2 (human-verify) pending

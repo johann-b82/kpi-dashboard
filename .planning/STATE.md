@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: HR Date-Range Filter
-status: verifying
-stopped_at: 60-04 Task 1 committed; Task 2 (human-verify) pending
+status: phase-complete
+stopped_at: Phase 60 complete (Task 2 human-verify approved 2026-04-22); awaiting v1.20 milestone scope decision
 last_updated: "2026-04-22T16:45:00.000Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: KPI Dashboard
@@ -38,13 +38,13 @@ Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
 
 Milestone: v1.20 HR Date-Range Filter — Phase 60 in progress
 Phase: 60 (hr-date-range-filter) — EXECUTING
-Plan: 4 of 4 — Task 1 complete (pytest 13/13), Task 2 awaiting human-verify checkpoint
-Status: Awaiting human verification on 60-04 Task 2 (manual thisYear parity + Sales↔HR state preservation)
+Plan: 4 of 4 — Task 1 complete (pytest 13/13), Task 2 human-verify approved 2026-04-22
+Status: Phase 60 complete; awaiting decision on v1.20 milestone scope (ship Phase 60 as v1.20, or bundle with TS-cleanup phase)
 Last activity: 2026-04-22
 
-Progress: 0/1 phases complete, 3/4 plans complete in v1.20
+Progress: 1/1 phases complete, 4/4 plans complete in v1.20
 
-Next action: User performs 6-point manual verification per 60-04-PLAN.md `<how-to-verify>`, then signals `approved` or describes failing surfaces.
+Next action: Decide v1.20 scope — (a) ship v1.20 now with Phase 60 alone, or (b) add a TS-cleanup phase (carry-forward from v1.19 tech debt) before shipping.
 
 ### Quick Tasks Completed
 

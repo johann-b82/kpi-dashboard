@@ -3,7 +3,8 @@ phase: 60-hr-date-range-filter
 plan: 04
 subsystem: hr-backend/tests
 tags: [tests, pytest, hr-kpi, date-range, regression]
-status: task-1-complete-task-2-awaiting-human-verify
+status: complete
+task_2_signoff: 2026-04-22 — user approved visual-parity checkpoint + Sales↔HR state preservation
 requires:
   - Phase 60-01 backend endpoints (compute_hr_kpis(db, first, last), _bucket_windows, data.py date_from/date_to)
   - Phase 60-02 frontend fetchers + bucketing
@@ -34,9 +35,9 @@ decisions:
   - "Time-freeze for test_hr_kpis_omitted_params_fallback_is_current_month via monkeypatched date class on app.routers.hr_kpis (not freezegun); zero new dependencies"
   - "Test 13 total (parametrize explodes 1 -> 3) while plan demands 11 named behaviours — AC grep of ≥11 `test_` definitions is satisfied via the 11 named `test_` functions"
 metrics:
-  duration: ~9m
+  duration: ~9m (Task 1 pytest) + Task 2 human walkthrough
   completed: 2026-04-22
-  tasks: 1 of 2
+  tasks: 2 of 2
   files_modified: 1
 requirements:
   - D-01
