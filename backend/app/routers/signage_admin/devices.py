@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
 from app.models import SignageDevice, SignageDeviceTagMap
-from app.schemas.signage import SignageDeviceRead
+from app.schemas.signage import SignageCalibrationUpdate, SignageDeviceRead
 from app.services import signage_broadcast
 from app.services.signage_resolver import (
     compute_playlist_etag,
@@ -117,6 +117,40 @@ async def update_device(
     await db.commit()
     await db.refresh(row)
     return row
+
+
+@router.patch("/{device_id}/calibration", response_model=SignageDeviceRead)
+async def update_device_calibration(
+    device_id: uuid.UUID,
+    payload: SignageCalibrationUpdate,
+    db: AsyncSession = Depends(get_async_db_session),
+) -> SignageDeviceRead:
+    """Phase 62-01 CAL-BE-03 — admin partial-update of calibration fields.
+
+    Admin gate is inherited from the package router (one source of truth per
+    admin-package invariant — do NOT add a second gate). Pydantic's
+    ``Literal[0, 90, 180, 270]`` on rotation rejects invalid values with
+    HTTP 422 automatically (D-10 — no hand-rolled validation).
+
+    On commit, emits a ``calibration-changed`` SSE event targeted at the
+    affected device (CAL-BE-04 / D-04 / D-08). Payload is device_id only;
+    full state is fetched via GET /api/signage/player/calibration.
+    """
+    row = (
+        await db.execute(select(SignageDevice).where(SignageDevice.id == device_id))
+    ).scalar_one_or_none()
+    if row is None:
+        raise HTTPException(404, "device not found")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(row, k, v)
+    await db.commit()
+    await db.refresh(row)
+    # CAL-BE-04 / D-08: payload is device_id only (sidecar refetches).
+    signage_broadcast.notify_device(
+        device_id,
+        {"event": "calibration-changed", "device_id": str(device_id)},
+    )
+    return await _attach_resolved_playlist(db, row)
 
 
 @router.delete("/{device_id}", status_code=204)

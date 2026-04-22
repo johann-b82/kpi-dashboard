@@ -35,7 +35,11 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.database import get_async_db_session
 from app.models.signage import SignageDevice, SignageHeartbeatEvent, SignageMedia
-from app.schemas.signage import HeartbeatRequest, PlaylistEnvelope
+from app.schemas.signage import (
+    HeartbeatRequest,
+    PlaylistEnvelope,
+    SignageCalibrationRead,
+)
 from app.security.device_auth import get_current_device
 from app.services import signage_broadcast
 from app.services.signage_resolver import (
@@ -182,4 +186,22 @@ async def get_media_asset(
         matches[0],
         media_type=media.mime_type or None,
         headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@router.get("/calibration", response_model=SignageCalibrationRead)
+async def get_device_calibration(
+    device: SignageDevice = Depends(get_current_device),
+) -> SignageCalibrationRead:
+    """Phase 62-01 CAL-BE-05 — device-auth calibration read.
+
+    Scoped to the calling device via the router-level ``get_current_device``
+    dep (D-02 / D-10). Sidecar calls this on every ``calibration-changed``
+    SSE event (D-04 / D-08) to fetch the full state after the device_id-only
+    event payload.
+    """
+    return SignageCalibrationRead(
+        rotation=device.rotation,
+        hdmi_mode=device.hdmi_mode,
+        audio_enabled=device.audio_enabled,
     )
