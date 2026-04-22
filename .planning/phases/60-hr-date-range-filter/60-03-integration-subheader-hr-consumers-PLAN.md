@@ -95,7 +95,8 @@ hrKpiKeys.employees(from?: string, to?: string, search?: string)
 ```
 From Plan 02 (frontend/src/lib/chartTimeUtils.ts):
 ```typescript
-deriveHrBuckets(from: Date, to: Date): { granularity: "daily"|"weekly"|"monthly"|"quarterly"; buckets: { label: string; start: Date; end: Date }[] }
+export type HrBucketGranularity = "daily" | "weekly" | "monthly" | "quarterly";
+deriveHrBuckets(from: Date, to: Date): { granularity: HrBucketGranularity; buckets: { label: string; start: Date; end: Date }[] }
 formatBucketLabel(granularity, date)
 ```
 From frontend/src/lib/dateUtils.ts (existing): `toApiDate(d: Date): string` — `YYYY-MM-DD`.
@@ -111,6 +112,7 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
   <read_first>
     - frontend/src/components/SubHeader.tsx (whole file; lines 122-185 especially)
     - frontend/src/contexts/DateRangeContext.tsx
+    - frontend/src/components/dashboard/DateRangeFilter.tsx (confirm preset list is unchanged)
   </read_first>
   <action>
     In `frontend/src/components/SubHeader.tsx`, change the `DateRangeFilter` mount gate from `location === "/sales"` (line 138) to `isDashboard` (already computed on line 101 as `/sales || /hr`). Result:
@@ -124,6 +126,8 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
     )}
     ```
     Leave the Sales/HR `<Toggle>` above it unchanged. Leave `HrFreshnessIndicator` on the right slot unchanged — it shows Personio sync freshness, independent of the range picker. Do NOT change anything else in this file (no signage block touches, no `/sensors` block touches).
+
+    **D-09 preset-set + i18n guard:** Do NOT modify `DateRangeFilter.tsx` (preset list `thisMonth | thisQuarter | thisYear | allTime` stays). Do NOT add or rename any `kpi.preset.*` i18n keys — the existing Sales presets already cover HR.
   </action>
   <verify>
     <automated>cd frontend &amp;&amp; grep -nE "isDashboard &amp;&amp;\\s*\\(\\s*&lt;DateRangeFilter" src/components/SubHeader.tsx &amp;&amp; npx tsc --noEmit 2>&amp;1 | tail -15</automated>
@@ -135,6 +139,8 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
   <acceptance_criteria>
     - `grep -nE "location === \"/sales\" \\&\\& \\(\\s*\\n?\\s*&lt;DateRangeFilter" frontend/src/components/SubHeader.tsx` returns empty (old Sales-only gate removed).
     - `grep -nE "isDashboard \\&\\& \\(" frontend/src/components/SubHeader.tsx` returns ≥2 matches (existing Toggle + new DateRangeFilter mount).
+    - **D-09 preset list unchanged:** `git diff frontend/src/components/dashboard/DateRangeFilter.tsx` shows no change to this phase (or the file is not in `files_modified`). `grep -c -E '"thisMonth"|"thisQuarter"|"thisYear"|"allTime"' frontend/src/components/dashboard/DateRangeFilter.tsx` returns the SAME count as on `main` prior to the phase branch (the four preset literals still each appear, no additions, no removals). Run `git show main:frontend/src/components/dashboard/DateRangeFilter.tsx | grep -c -E '"thisMonth"|"thisQuarter"|"thisYear"|"allTime"'` and compare — the counts must be equal.
+    - **D-09 no new preset i18n keys:** `git diff --stat main -- frontend/src/locales/ frontend/src/i18n/ 2>/dev/null` shows no added lines under any `kpi.preset.*` key, OR `git diff main -- frontend/src/locales/ frontend/src/i18n/ 2>/dev/null | grep -E "^\\+.*kpi\\.preset\\."` returns empty. (Adjust the locales path if the project uses a different directory.)
     - `cd frontend &amp;&amp; npx tsc --noEmit` exits 0.
   </acceptance_criteria>
 </task>
@@ -208,7 +214,7 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
   <files>frontend/src/components/dashboard/HrKpiCharts.tsx</files>
   <read_first>
     - frontend/src/components/dashboard/HrKpiCharts.tsx (whole file)
-    - frontend/src/lib/chartTimeUtils.ts (as modified by Plan 02 — deriveHrBuckets / formatBucketLabel)
+    - frontend/src/lib/chartTimeUtils.ts (as modified by Plan 02 — deriveHrBuckets / formatBucketLabel / HrBucketGranularity)
     - frontend/src/components/dashboard/RevenueChart.tsx (as convention reference for range-aware chart queries)
   </read_first>
   <action>
@@ -216,10 +222,18 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
        ```tsx
        import { useDateRange } from "@/contexts/DateRangeContext";
        import { toApiDate } from "@/lib/dateUtils";
-       import { deriveHrBuckets, formatBucketLabel, formatMonthYear, yearBoundaryDates } from "@/lib/chartTimeUtils";
+       import {
+         deriveHrBuckets,
+         formatBucketLabel,
+         formatMonthYear,
+         yearBoundaryDates,
+         type HrBucketGranularity,
+       } from "@/lib/chartTimeUtils";
        import { hrKpiKeys } from "@/lib/queryKeys";
        ```
-       (The existing `formatMonthYear` / `yearBoundaryDates` imports stay — monthly bucketing keeps them.)
+       (The existing `formatMonthYear` / `yearBoundaryDates` imports stay — monthly bucketing keeps them. `HrBucketGranularity` is the prop type consumed by `MiniChart` below, so it MUST be imported from `chartTimeUtils` alongside `deriveHrBuckets` / `formatBucketLabel`.)
+
+       **Bucketing source of truth:** Server response (`fetchHrKpiHistory`) is the source of truth for bucket boundaries — the backend `_bucket_windows` helper (Plan 01) already returns one point per bucket with its label attached. `deriveHrBuckets` is used client-side ONLY to pick the tick/label formatter and granularity for the X-axis — do NOT re-bucket server data, do NOT aggregate response points into new buckets client-side.
     2. Inside `HrKpiCharts()`, before the `useQuery`:
        ```tsx
        const { range } = useDateRange();
@@ -236,7 +250,7 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
          queryFn: () => fetchHrKpiHistory({ date_from, date_to }),
        });
        ```
-    4. Replace the `formatMonth` and `boundaries` logic inside `MiniChart` so it branches on `granularity`. Easiest path: pass `granularity` as a prop to `MiniChart` and wire the X-axis tickFormatter to `formatBucketLabel(granularity, new Date(label))` when NOT monthly, and preserve the existing `formatMonthYear(m + "-01", locale)` path when monthly so the thisYear-landing visual is byte-identical.
+    4. Replace the `formatMonth` and `boundaries` logic inside `MiniChart` so it branches on `granularity`. Easiest path: pass `granularity` as a prop to `MiniChart` (typed `HrBucketGranularity`) and wire the X-axis tickFormatter to `formatBucketLabel(granularity, new Date(label))` when NOT monthly, and preserve the existing `formatMonthYear(m + "-01", locale)` path when monthly so the thisYear-landing visual is byte-identical.
        ```tsx
        interface MiniChartProps { ...; granularity: HrBucketGranularity; }
        ...
@@ -252,6 +266,8 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
        };
        ```
        For year-boundary reference lines, only render them when `granularity === "monthly"` (current behaviour). Skip boundary lines for other granularities in this plan — can be re-added in a polish pass.
+
+       **Important:** `data` from the fetcher is passed straight to the chart (possibly with the existing gap-fill/merge utilities for monthly only). Do NOT add a client-side `.reduce(...)` or groupBy over `data` to aggregate points into new buckets — bucket boundaries come from the server.
     5. Do NOT change the `<Toggle>` area/bar control — that's orthogonal.
     6. Per D-07 + D-10, when the default `thisYear` preset is active the `range.from` is Jan 1 of the current year and `range.to` is today → `deriveHrBuckets` returns `monthly`, yielding ~12 buckets and preserving the current look.
   </action>
@@ -267,7 +283,9 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
     - `grep -n "deriveHrBuckets" frontend/src/components/dashboard/HrKpiCharts.tsx` returns a match.
     - `grep -n "hrKpiKeys.history" frontend/src/components/dashboard/HrKpiCharts.tsx` returns a match.
     - `grep -n "useDateRange" frontend/src/components/dashboard/HrKpiCharts.tsx` returns a match.
+    - `grep -nE "HrBucketGranularity" frontend/src/components/dashboard/HrKpiCharts.tsx` returns a match (prop type imported, not redeclared).
     - `grep -nE "queryKey: \\[\"hr-kpi-history\"\\]" frontend/src/components/dashboard/HrKpiCharts.tsx` returns empty (old static key gone).
+    - **No client-side re-bucketing:** `grep -nE "data(\\.points)?\\.reduce\\(|\\.groupBy\\(|bucketize\\(" frontend/src/components/dashboard/HrKpiCharts.tsx` returns empty — the component does NOT re-aggregate server response points into new buckets. (If a legitimate `.reduce` exists for a different purpose, e.g. computing axis extents, document it in the task SUMMARY so reviewers can distinguish from re-bucketing.)
     - `cd frontend &amp;&amp; npx tsc --noEmit` exits 0.
   </acceptance_criteria>
 </task>
@@ -287,4 +305,5 @@ Sales mirror (frontend/src/components/SubHeader.tsx:138-144): the `/sales` branc
 
 <output>
 After completion, create `.planning/phases/60-hr-date-range-filter/60-03-SUMMARY.md` recording: cache-key shape, bucket-plan inputs, any adjustments to `MiniChart`, and notes on thisYear-parity verification.
+</output>
 </output>

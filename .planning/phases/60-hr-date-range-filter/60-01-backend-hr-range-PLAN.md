@@ -118,6 +118,7 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
     - Given any `(first, last)` date tuple, `prior_window_same_length(first, last) -> (prev_first, prev_last)` returns a window of the SAME day-count ending the day before `first` (e.g. (2026-04-01, 2026-04-15) → (2026-03-17, 2026-03-31); 45-day range → prior 45 days).
     - Given any `(first, last)`, `_fluctuation(db, first, last)` returns `leavers_with_termination_date_in_range / avg_active_headcount_across_range` — NOT leavers / EOM headcount. `avg_active_headcount_across_range` = mean over every calendar day d in [first, last] of `count(employees where hire_date <= d AND (termination_date IS NULL OR termination_date > d))`. Returns `None` when avg is 0.
     - Existing `_overtime_ratio`, `_sick_leave_ratio`, `_revenue_per_production_employee`, `_headcount_at_eom`, `_skill_development`, `_month_bounds`, `_prev_month` must keep their current public signatures and current behaviour when called with a month tuple (backward compat so callers outside this file keep working).
+    - `compute_hr_kpis(db, first, last)` must call `_overtime_ratio`, `_sick_leave_ratio`, `_revenue_per_production_employee`, and `_fluctuation` EACH exactly once with `(db, first, last)` — no inner per-month loop (D-01, D-04, D-05). Skill development still uses the existing point-in-time snapshot at `last`.
   </behavior>
   <action>
     1. In `backend/app/services/hr_kpi_aggregation.py` add a pure helper after `_weekday_count`:
@@ -153,6 +154,7 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
        - `prev_first, prev_last = prior_window_same_length(first, last)`
        - `ya_first, ya_last = same_window_prior_year(first, last)`
        - Existing sequential-await block stays byte-for-byte identical (no asyncio.gather, Pitfall 2).
+       - Call `_overtime_ratio(db, first, last)`, `_sick_leave_ratio(db, first, last, ...)`, `_revenue_per_production_employee(db, first, last, ...)`, `_fluctuation(db, first, last)` EACH ONCE for the current-window values (D-01/D-04/D-05 — whole-range aggregation, no inner month loop). The same applies to the prev_window and ya_window calls (one per helper per window).
        - Skill development unchanged — still uses `last` (point-in-time snapshot per CONTEXT out-of-scope note).
     5. Keep `_month_bounds`, `_prev_month` exports intact — `hr_kpis.py` router still needs `_month_bounds` as a fallback for the omitted-params case.
   </action>
@@ -172,6 +174,10 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
     - `grep -nE "async def compute_hr_kpis\\(db: AsyncSession, first: date, last: date\\)" backend/app/services/hr_kpi_aggregation.py` returns a match.
     - `grep -c "_headcount_at_eom" backend/app/services/hr_kpi_aggregation.py` equals exactly 1 (definition site) — i.e. `_fluctuation` no longer calls it.
     - `grep -n "three calendar month windows" backend/app/services/hr_kpi_aggregation.py` returns empty.
+    - **D-05 whole-range aggregation (overtime + sick-leave):** In the body of `compute_hr_kpis`, `_overtime_ratio` is called exactly once with `(db, first, last)` for the current window (no per-month loop) — verify with `awk '/async def compute_hr_kpis/,/^async def |^def /' backend/app/services/hr_kpi_aggregation.py | grep -c "_overtime_ratio(db, first, last"` returns exactly 1 (plus the prev + ya calls which use their own window bounds). Same expectation for `_sick_leave_ratio(db, first, last`.
+    - **D-04 revenue-per-production-employee whole-range:** `_revenue_per_production_employee` is called exactly once with `(db, first, last)` inside `compute_hr_kpis` for the current window — no inner month loop. Verify with `awk '/async def compute_hr_kpis/,/^async def |^def /' backend/app/services/hr_kpi_aggregation.py | grep -c "_revenue_per_production_employee(db, first, last"` returns exactly 1.
+    - **D-03 fluctuation whole-range:** `_fluctuation` is called exactly once with `(db, first, last)` inside `compute_hr_kpis` for the current window. Verify with the same awk+grep pattern returns exactly 1.
+    - No `for month in` / per-month loop appears inside `compute_hr_kpis` (grep: `awk '/async def compute_hr_kpis/,/^async def |^def /' backend/app/services/hr_kpi_aggregation.py | grep -E "for .* in .*month"` returns empty).
     - `python -m pytest backend/tests/test_kpi_aggregation.py -x` passes (existing tests must still work — any that called `compute_hr_kpis(db)` are updated in Plan 04 but for this plan the file currently tests Sales aggregation only; confirm no HR aggregation tests break).
   </acceptance_criteria>
 </task>
@@ -245,14 +251,14 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
        - Keep same error handling as `/kpis` (400 on mismatched/inverted bounds).
     2. `backend/app/routers/data.py` — modify `list_employees` (lines 47-112):
        - Add params `date_from: date | None = Query(None)`, `date_to: date | None = Query(None)` alongside the existing filters. Add the same pair-or-neither + inverted-range 400 validation.
+       - **Calendar-import choice (info-level tighten):** reuse the existing `_month_bounds(today.year, today.month)` pattern by importing it from `app.services.hr_kpi_aggregation` rather than importing `monthrange` from `calendar`. This keeps the fallback computation consistent with `hr_kpis.py`. If `_month_bounds` cannot be imported due to layering concerns, fall back to `from calendar import monthrange` — pick ONE and apply it in the imports block.
        - Replace the hard-coded `today = date.today(); first_day = ...; last_day = ...` block (lines 71-73) with:
          ```python
          if (date_from is None) != (date_to is None):
              raise HTTPException(status_code=400, detail="date_from and date_to must be provided together")
          if date_from is None:
              today = date.today()
-             first_day = date(today.year, today.month, 1)
-             last_day = date(today.year, today.month, monthrange(today.year, today.month)[1])
+             first_day, last_day = _month_bounds(today.year, today.month)  # OR: use monthrange — match the import choice above
          else:
              if date_from > date_to:
                  raise HTTPException(status_code=400, detail="date_from must be <= date_to")
@@ -263,7 +269,7 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
        - D-12: roster query (lines 54-65) is NOT filtered by attendance presence — no change needed.
   </action>
   <verify>
-    <automated>cd backend &amp;&amp; python -c "from app.routers.hr_kpis import router as r1; from app.routers.data import router as r2; paths = [(route.path, sorted([p.name for p in route.dependant.query_params])) for route in r1.routes if hasattr(route, 'dependant')]; print(paths)"</automated>
+    <automated>cd backend &amp;&amp; grep -nE "date_from: date \\| None = Query\\(None\\)" app/routers/hr_kpis.py | wc -l | tr -d ' ' | grep -E '^[2-9]$|^[1-9][0-9]+$' &amp;&amp; grep -nE "date_from: date \\| None = Query\\(None\\)" app/routers/data.py &amp;&amp; python -m pytest tests/ -x -k "not signage and not sensor" 2>&amp;1 | tail -15</automated>
   </verify>
   <done>
     - `/api/hr/kpis` and `/api/hr/kpis/history` both expose `date_from` and `date_to` query params.
@@ -278,6 +284,7 @@ Sales mirror convention (backend/app/routers/data.py:20-44 `/api/data/sales`): p
     - `grep -n "No date parameters\\|D-03\\|fixed calendar month windows" backend/app/routers/hr_kpis.py` returns empty (old D-03 claim removed).
     - `grep -nE "Phase 60 reverses" backend/app/routers/hr_kpis.py` returns a match.
     - `grep -nE "_bucket_windows|bucket_windows" backend/app/routers/hr_kpis.py` returns a match.
+    - Calendar-fallback import is explicit and consistent: EITHER `grep -nE "from calendar import monthrange" backend/app/routers/data.py` returns a match, OR `grep -nE "from app\\.services\\.hr_kpi_aggregation import .*_month_bounds" backend/app/routers/data.py` returns a match. (Exactly one of these must hold.)
     - `python -c "from app.routers import hr_kpis; print('ok')"` imports cleanly.
     - `python -m pytest backend/tests/ -x -k "not signage and not sensor"` passes (no HR tests regress; new ones land in Plan 04).
   </acceptance_criteria>
@@ -299,4 +306,5 @@ Run backend import smoke test plus existing non-signage non-sensor test subset. 
 
 <output>
 After completion, create `.planning/phases/60-hr-date-range-filter/60-01-SUMMARY.md` documenting: new query-param contracts, bucket-label shapes, prior-window helper semantics, and any deviations from CONTEXT discretion (e.g. leap-year shift choice).
+</output>
 </output>

@@ -14,6 +14,7 @@ requirements:
   - D-01
   - D-02
   - D-03
+  - D-05
   - D-06
   - D-07
   - D-08
@@ -80,7 +81,16 @@ Output: One new backend test file, one human-approved visual check.
     Tests MUST cover:
     1. `test_hr_kpis_custom_range_single_window`: seed attendances + employees + a leaver in a known 45-day window. `GET /api/hr/kpis?date_from=2026-03-01&date_to=2026-04-14` returns `overtime_ratio.value` equal to the value produced by `_overtime_ratio(db, 2026-03-01, 2026-04-14)` directly (whole-range aggregation, not averaged monthly ratios). D-01.
     2. `test_hr_kpis_prior_window_same_length`: for the same 45-day request, `overtime_ratio.previous_period` equals `_overtime_ratio(db, 2026-01-15, 2026-02-28)` — prior 45 days ending day before `date_from`. D-02.
-    3. `test_hr_kpis_fluctuation_avg_headcount_denominator`: seed 3 employees whose active status varies across the range; assert `fluctuation.value == leavers_in_range / avg_active_headcount_across_range` matches the Python-computed reference. D-03.
+    3. `test_hr_kpis_fluctuation_avg_headcount_denominator` (D-03 — explicit numeric expectation):
+       - Seed exactly 3 PersonioEmployee rows over the range `2026-03-01 .. 2026-04-14` (45 days):
+         - Employee A: `hire_date=2025-01-01`, `termination_date=None` — active every day of the range.
+         - Employee B: `hire_date=2025-06-01`, `termination_date=None` — active every day of the range.
+         - Employee C: `hire_date=2025-03-01`, `termination_date=2026-03-15` — leaver whose end_date lies inside the range; counts as active on days where `termination_date > d`, i.e. days 2026-03-01..2026-03-14 (14 days), not active 2026-03-15..2026-04-14 (31 days).
+       - Expected:
+         - `leavers_in_range = 1` (Employee C).
+         - `avg_active_headcount_across_range` = (3·14 + 2·31) / 45 = (42 + 62) / 45 = 104 / 45 ≈ 2.3111… (rounded to 2.3 for assertion tolerance, or compared with `pytest.approx(104/45, rel=1e-6)`).
+         - `fluctuation.value` ≈ 1 / (104/45) = 45/104 ≈ 0.4327 (assert with `pytest.approx(45/104, rel=1e-6)`).
+       - (Keep the seed explicit in the test body with inline comments. If the project's PersonioEmployee model uses different column names, adjust while keeping the math identical.)
     4. `test_hr_kpis_omitted_params_fallback_is_current_month`: no params → behaves exactly like legacy `compute_hr_kpis` for the current month window. Use freezegun or monkeypatch `date.today`.
     5. `test_hr_kpis_history_daily_buckets`: 15-day range → response length == 15, each `month` field is `YYYY-MM-DD`.
     6. `test_hr_kpis_history_weekly_buckets`: 60-day range → response length in 9..10 and each `month` matches pattern `^\d{4}-W\d{2}$`.
@@ -88,6 +98,7 @@ Output: One new backend test file, one human-approved visual check.
     8. `test_hr_kpis_history_quarterly_buckets`: 1000-day range → `month` matches `^\d{4}-Q[1-4]$`.
     9. `test_employees_range_scopes_attendance`: seed an employee with 8h attendance on 2026-04-10 and 8h on 2026-05-10. `GET /api/data/employees?date_from=2026-04-01&date_to=2026-04-30` returns `total_hours == 8`, `overtime_hours == 0 (or derived)`, and `overtime_ratio` is null when `ot==0` (D-13).
     10. `test_invalid_range_returns_400`: half-provided (`date_from=...` only) and inverted (`date_from > date_to`) both return 400 on all three endpoints.
+    11. `test_hr_kpis_sick_leave_whole_range` (D-05 mirror of overtime): seed sick-leave absences and working days spanning a 45-day window; `GET /api/hr/kpis?date_from=2026-03-01&date_to=2026-04-14` returns `sick_leave_ratio.value` equal to `_sick_leave_ratio(db, 2026-03-01, 2026-04-14, sick_leave_type_ids)` directly — confirming whole-range aggregation (sum of sick-leave days / sum of working days across entire range), NOT an average of per-month ratios. Include a seed where the unweighted monthly average would differ from the day-weighted whole-range ratio, so the test would fail if the backend averaged monthly.
   </behavior>
   <action>
     1. Write RED tests in `backend/tests/test_hr_kpi_range.py` using the same style as `test_kpi_aggregation.py` — `async def` + `pytest.mark.asyncio` if the project uses it, or the existing httpx AsyncClient fixture. Follow existing `conftest.py` fixtures (`async_session`, `async_client`). Seed PersonioEmployee + PersonioAttendance + PersonioAbsence rows with freeze-time-safe dates (2026 fixtures).
@@ -99,11 +110,13 @@ Output: One new backend test file, one human-approved visual check.
     <automated>cd backend &amp;&amp; python -m pytest tests/test_hr_kpi_range.py -x 2>&amp;1 | tail -40</automated>
   </verify>
   <done>
-    - All 10 tests pass.
+    - All 11 tests pass.
     - No existing backend tests regress: `python -m pytest backend/tests/ -x -k "not signage"` exits 0.
   </done>
   <acceptance_criteria>
-    - `grep -cE "^async def test_|^def test_" backend/tests/test_hr_kpi_range.py` returns ≥10.
+    - `grep -cE "^async def test_|^def test_" backend/tests/test_hr_kpi_range.py` returns ≥11.
+    - `grep -n "test_hr_kpis_sick_leave_whole_range" backend/tests/test_hr_kpi_range.py` returns a match (D-05 sick-leave mirror test present).
+    - `grep -nE "45 ?/ ?104|104 ?/ ?45|approx\\(45/104" backend/tests/test_hr_kpi_range.py` returns a match (explicit fluctuation numeric expectation wired in).
     - `cd backend &amp;&amp; python -m pytest tests/test_hr_kpi_range.py -x` exits 0.
     - `cd backend &amp;&amp; python -m pytest tests/ -x -k "not signage and not sensor and not signage_broadcast"` exits 0.
     - `grep -n "compute_hr_kpis(db)" backend/tests/` returns empty (no stale 1-arg callers).
@@ -134,7 +147,7 @@ Output: One new backend test file, one human-approved visual check.
        - Confirm the EmployeeTable renders with `Überstunden` / `Alle` / `Aktiv` filter and total_hours/overtime_hours columns populated.
     2. **Range change (D-06, D-11):**
        - Switch preset to `Dieser Monat` / `This month`. Confirm KPI values, charts (≤31 days → daily buckets), and employee totals update.
-       - Switch to `Dieses Quartal` / `This quarter`. Confirm weekly-ish bucketing (~13 weekly buckets) on charts.
+       - Switch to `Dieser Quartal` / `This quarter`. Confirm weekly-ish bucketing (~13 weekly buckets) on charts.
        - Pick a custom 45-day range via the custom picker. Confirm everything refetches; confirm KPI card delta labels still appear (exact copy deferred).
     3. **Sales↔HR state preservation (D-08):**
        - With a non-default preset active (e.g. `Dieser Monat`), click the Sales/HR toggle to go to `/sales`. Confirm the preset persists and Sales dashboard respects it.
@@ -144,6 +157,10 @@ Output: One new backend test file, one human-approved visual check.
     5. **Backend contract smoke (optional):**
        - `curl -s 'http://localhost:8000/api/hr/kpis?date_from=2026-04-01&date_to=2026-04-15' -H "Cookie: directus_session_token=..." | jq '.overtime_ratio'`
        - `curl -s 'http://localhost:8000/api/hr/kpis' | jq '.overtime_ratio'` — should match current-month response.
+    6. **Delta badge copy sanity (deferred-flag check):**
+       - With a custom non-calendar window active (e.g. the 45-day range from step 2), inspect the delta badges on each of the 5 KPI cards.
+       - Confirm the delta badge copy does NOT actively claim "vs previous year" / "vs. Vorjahr" when the active window is a custom (non-calendar-year) window — because `previous_year` in that case is a same-length-one-year-ago window, not a calendar-year comparison.
+       - If the copy DOES claim "vs previous year" in this context, do NOT block the phase on it — flag it as a deferred follow-up (note it in the resume-signal and in the Plan 04 SUMMARY so it lands on the deferred-items list for a future copy pass).
 
     Expected outcomes:
     - thisYear landing is visually equivalent to pre-Phase-60 `/hr`.
@@ -151,22 +168,23 @@ Output: One new backend test file, one human-approved visual check.
     - Sales↔HR navigation preserves preset + range.
     - No console errors.
   </how-to-verify>
-  <resume-signal>Type "approved" when all 5 checks pass, or describe each issue with surface + preset + observed-vs-expected so it can be patched in a follow-up plan.</resume-signal>
+  <resume-signal>Type "approved" when all 6 checks pass, or describe each issue with surface + preset + observed-vs-expected so it can be patched in a follow-up plan. If step 6 (delta badge "vs previous year" copy on custom windows) is the only issue, include "deferred follow-up" in the signal so it is triaged for a later copy pass.</resume-signal>
 </task>
 
 </tasks>
 
 <verification>
 Backend: `pytest backend/tests/test_hr_kpi_range.py -x` green + no regressions in non-signage suite.
-Frontend: user confirms 5-point manual checklist.
+Frontend: user confirms 6-point manual checklist.
 </verification>
 
 <success_criteria>
-- Pytest suite covers all 10 behaviours and passes.
+- Pytest suite covers all 11 behaviours and passes.
 - User signs off on thisYear parity and Sales↔HR state sharing.
 - Phase 60 must-haves (truths + key_links across all four plans) are all observable in the running app.
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/60-hr-date-range-filter/60-04-SUMMARY.md` capturing: pytest counts, any edge cases uncovered by manual QA, any deferred follow-ups (e.g. `formatHrDeltaLabels` copy updates, year-boundary markers for non-monthly granularities).
+After completion, create `.planning/phases/60-hr-date-range-filter/60-04-SUMMARY.md` capturing: pytest counts, any edge cases uncovered by manual QA, any deferred follow-ups (e.g. `formatHrDeltaLabels` copy updates, year-boundary markers for non-monthly granularities, "vs previous year" delta badge copy on custom windows).
+</output>
 </output>
