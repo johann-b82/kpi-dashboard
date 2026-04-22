@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Completed quick task 260422-hxt
+stopped_at: Completed quick task 260422-i41
 last_updated: "2026-04-22T11:01:29.846Z"
 last_activity: 2026-04-22
 progress:
@@ -52,6 +52,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 |---|-------------|------|--------|-----------|
 | 260421-r4b | Fix admin Devices tab: list_devices returns tags and investigate stale heartbeat/uptime | 2026-04-21 | eff6e52 | [260421-r4b-fix-admin-devices-tab-list-devices-retur](./quick/260421-r4b-fix-admin-devices-tab-list-devices-retur/) |
 | 260422-hxt | Remove Digital Signage h1 heading and hoist 4-tab pill into SubHeader | 2026-04-22 | b0525e0 | [260422-hxt-remove-digital-signage-h1-heading-from-s](./quick/260422-hxt-remove-digital-signage-h1-heading-from-s/) |
+| 260422-i41 | Relocate signage primary-action CTAs below lists (media, playlists, devices, schedules) | 2026-04-22 | bdc84fa | [260422-i41-move-primary-action-buttons-below-tables](./quick/260422-i41-move-primary-action-buttons-below-tables/) |
 
 ---
 
@@ -301,5 +302,5 @@ None.
 ## Session Continuity
 
 **Last session:** 2026-04-22T11:01:29.843Z
-**Stopped at:** Completed quick task 260422-hxt
+**Stopped at:** Completed quick task 260422-i41
 **Resume file:** None
