@@ -65,11 +65,13 @@ describe("DeleteButton", () => {
     const user = userEvent.setup();
     renderButton();
     // Title not rendered before open
-    expect(screen.queryByText("Delete")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Delete" })).toBeNull();
     await user.click(
       screen.getByRole("button", { name: "Delete playlist-A" }),
     );
-    expect(await screen.findByText("Delete")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Delete" }),
+    ).toBeInTheDocument();
   });
 
   it("itemLabel appears inside the dialog body in a strong element", async () => {
