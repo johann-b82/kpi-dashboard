@@ -20,16 +20,20 @@ Environment:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import shutil
 import stat
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
+from httpx_sse import aconnect_sse
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -52,6 +56,13 @@ _cached_media_ids: set = set()
 # Consecutive upstream health probe failures
 _probe_fail_count: int = 0
 _PROBE_FAIL_THRESHOLD = 3
+
+# Calibration state (Phase 62-03)
+_CALIBRATION_FILE = "calibration.json"
+_calibration_last_error: Optional[str] = None
+_calibration_last_applied_at: Optional[str] = None
+_audio_backend: Optional[str] = None  # "wpctl" | "pactl" | None — pinned at startup (D-03)
+_wlr_output_name: Optional[str] = None  # cached on first successful discovery
 
 logger = logging.getLogger("sidecar")
 logging.basicConfig(level=logging.INFO)
@@ -111,6 +122,218 @@ def _load_cached_media_ids() -> set:
     if not media_dir.exists():
         return set()
     return {f.name for f in media_dir.iterdir() if f.is_file()}
+
+
+# ---------------------------------------------------------------------------
+# Calibration persistence (Phase 62-03, D-06)
+# ---------------------------------------------------------------------------
+
+def _load_calibration() -> Optional[dict]:
+    """Read persisted calibration JSON or return None if absent/corrupt."""
+    path = _cache_dir() / _CALIBRATION_FILE
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Failed to load persisted calibration: %s", exc)
+        return None
+
+
+def _save_calibration(cal: dict) -> None:
+    """Persist calibration JSON to disk at mode 0o600."""
+    _write_secure(_cache_dir() / _CALIBRATION_FILE, json.dumps(cal))
+
+
+def _detect_audio_backend() -> Optional[str]:
+    """Probe for wpctl (preferred) then pactl; pin choice for process lifetime (D-03)."""
+    if shutil.which("wpctl"):
+        return "wpctl"
+    if shutil.which("pactl"):
+        return "pactl"
+    return None
+
+
+async def _wait_for_wayland_socket(timeout: float = 15.0) -> bool:
+    """Bounded poll for the Wayland socket at $XDG_RUNTIME_DIR/wayland-0.
+
+    systemd `After=labwc.service` only guarantees start-order, not that the
+    compositor has finished creating its socket. This helper closes that race
+    without introducing indefinite blocking.
+
+    Returns True once the socket appears. Returns False after `timeout`
+    seconds; also sets `_calibration_last_error` so the next heartbeat
+    surfaces the problem (Flag 1 fix).
+    """
+    global _calibration_last_error
+
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if not runtime_dir:
+        try:
+            runtime_dir = f"/run/user/{os.getuid()}"
+        except AttributeError:
+            runtime_dir = "/run/user/0"
+
+    wl_display = os.environ.get("WAYLAND_DISPLAY", "wayland-0")
+    socket_path = Path(runtime_dir) / wl_display
+
+    deadline = asyncio.get_event_loop().time() + timeout
+    while asyncio.get_event_loop().time() < deadline:
+        if socket_path.exists():
+            return True
+        await asyncio.sleep(0.2)
+
+    logger.warning(
+        "Wayland socket not available after %.1fs; calibration replay will be skipped this boot",
+        timeout,
+    )
+    _calibration_last_error = "wayland socket unavailable at boot"
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Calibration apply (Phase 62-03, D-01/D-02/D-03/D-09)
+# ---------------------------------------------------------------------------
+
+async def _run_async(*argv: str, timeout: float = 5.0) -> tuple[int, bytes, bytes]:
+    """Run argv via asyncio.create_subprocess_exec with a hard timeout.
+
+    NEVER uses subprocess.run — cross-cutting hazard #7 (sync subprocess in
+    async sidecar causes event-loop stalls).
+    """
+    proc = await asyncio.create_subprocess_exec(
+        *argv,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except asyncio.TimeoutError:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        return -1, b"", f"timeout after {timeout}s".encode()
+    return proc.returncode or 0, stdout, stderr
+
+
+async def _discover_wlr_output() -> Optional[str]:
+    """Parse `wlr-randr --json` and return the first enabled output's name.
+
+    Result cached in module state `_wlr_output_name` on first success.
+    """
+    global _wlr_output_name, _calibration_last_error
+
+    if _wlr_output_name:
+        return _wlr_output_name
+
+    rc, stdout, stderr = await _run_async("wlr-randr", "--json", timeout=5.0)
+    if rc != 0:
+        _calibration_last_error = f"wlr-randr --json: {stderr.decode(errors='replace').strip() or rc}"
+        return None
+    try:
+        outputs = json.loads(stdout.decode(errors="replace"))
+    except json.JSONDecodeError as exc:
+        _calibration_last_error = f"wlr-randr --json parse: {exc}"
+        return None
+
+    for o in outputs:
+        if o.get("enabled"):
+            _wlr_output_name = o.get("name")
+            return _wlr_output_name
+    # Fallback: first output regardless
+    if outputs:
+        _wlr_output_name = outputs[0].get("name")
+        return _wlr_output_name
+    return None
+
+
+async def _apply_calibration(cal: dict) -> None:
+    """Apply calibration to the display via wlr-randr + wpctl/pactl.
+
+    D-01 rotation: wlr-randr --output <name> --transform <N>
+    D-02 HDMI mode: wlr-randr --output <name> --mode <mode>
+    D-03 audio:   wpctl set-mute @DEFAULT_AUDIO_SINK@ <0|1>
+                  (or pactl set-sink-mute @DEFAULT_SINK@ <0|1>)
+    D-09 errors: recorded on _calibration_last_error; NOT retried (next SSE
+        event is the retry trigger).
+    """
+    global _calibration_last_error, _calibration_last_applied_at
+
+    errors: list[str] = []
+    touched = False
+
+    rotation = cal.get("rotation")
+    hdmi_mode = cal.get("hdmi_mode")
+    audio_enabled = cal.get("audio_enabled")
+
+    # Discover output only if we'll actually use it
+    output_name: Optional[str] = None
+    if rotation in (0, 90, 180, 270) or hdmi_mode:
+        output_name = await _discover_wlr_output()
+        if not output_name:
+            # _discover_wlr_output already set _calibration_last_error
+            return
+
+    if rotation in (0, 90, 180, 270):
+        rc, _, stderr = await _run_async(
+            "wlr-randr", "--output", output_name, "--transform", str(rotation),
+            timeout=5.0,
+        )
+        touched = True
+        if rc != 0:
+            errors.append(f"wlr-randr --transform: {stderr.decode(errors='replace').strip() or rc}")
+
+    if hdmi_mode:
+        rc, _, stderr = await _run_async(
+            "wlr-randr", "--output", output_name, "--mode", hdmi_mode,
+            timeout=5.0,
+        )
+        touched = True
+        if rc != 0:
+            errors.append(f"wlr-randr --mode: {stderr.decode(errors='replace').strip() or rc}")
+
+    if audio_enabled is not None:
+        mute_flag = "0" if audio_enabled else "1"
+        if _audio_backend == "wpctl":
+            rc, _, stderr = await _run_async(
+                "wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", mute_flag, timeout=5.0,
+            )
+            touched = True
+            if rc != 0:
+                errors.append(f"wpctl set-mute: {stderr.decode(errors='replace').strip() or rc}")
+        elif _audio_backend == "pactl":
+            rc, _, stderr = await _run_async(
+                "pactl", "set-sink-mute", "@DEFAULT_SINK@", mute_flag, timeout=5.0,
+            )
+            touched = True
+            if rc != 0:
+                errors.append(f"pactl set-sink-mute: {stderr.decode(errors='replace').strip() or rc}")
+        else:
+            errors.append("audio backend unavailable (neither wpctl nor pactl)")
+            touched = True
+
+    if errors:
+        # D-09: do NOT retry; wait for next calibration-changed event.
+        _calibration_last_error = "; ".join(errors)
+        return
+
+    if touched:
+        try:
+            _save_calibration(cal)
+        except OSError as exc:
+            logger.warning("Failed to persist calibration: %s", exc)
+        _calibration_last_applied_at = datetime.now(timezone.utc).isoformat()
+        _calibration_last_error = None
+
+
+async def _replay_persisted_calibration() -> None:
+    """On boot: replay last-persisted calibration BEFORE network probes run (D-06)."""
+    cal = _load_calibration()
+    if cal is None:
+        return
+    logger.info("Replaying persisted calibration on boot: %s", cal)
+    await _apply_calibration(cal)
 
 
 # ---------------------------------------------------------------------------
@@ -186,9 +409,8 @@ async def _playlist_refresh_loop() -> None:
                 _playlist_body = body
                 _playlist_etag = etag_raw
                 # Extract media IDs and prune stale ones
-                import json as _json
                 try:
-                    envelope = _json.loads(body)
+                    envelope = json.loads(body)
                     new_ids = {
                         str(it["media_id"])
                         for it in envelope.get("items", [])
@@ -216,16 +438,71 @@ async def _heartbeat_loop() -> None:
         base = _api_base()
         if not base:
             continue
+        body: dict = {}
+        if _calibration_last_error is not None:
+            body["calibration_last_error"] = _calibration_last_error
+        if _calibration_last_applied_at is not None:
+            body["calibration_last_applied_at"] = _calibration_last_applied_at
         try:
             async with httpx.AsyncClient() as client:
                 await client.post(
                     f"{base}/api/signage/player/heartbeat",
                     headers={"Authorization": f"Bearer {token}"},
-                    json={},
+                    json=body,
                     timeout=5.0,
                 )
         except Exception as exc:
             logger.debug("Heartbeat fire-and-forget error (suppressed): %s", exc)
+
+
+async def _calibration_sse_loop() -> None:
+    """Subscribe to /api/signage/player/stream; on `calibration-changed` event,
+    fetch full calibration state and apply it (D-04, D-08).
+
+    Reuses the existing device JWT (same token the player uses).
+    On any disconnect or error, sleep 5s and retry — matches the
+    _playlist_refresh_loop resilience posture.
+    """
+    while True:
+        token = _device_token
+        base = _api_base()
+        if not token or not base or not _online:
+            await asyncio.sleep(5)
+            continue
+        headers = {"Authorization": f"Bearer {token}", "Accept": "text/event-stream"}
+        try:
+            async with httpx.AsyncClient(timeout=None) as client:
+                async with aconnect_sse(
+                    client, "GET", f"{base}/api/signage/player/stream", headers=headers,
+                ) as event_source:
+                    async for sse in event_source.aiter_sse():
+                        try:
+                            payload = sse.json()
+                        except (ValueError, json.JSONDecodeError):
+                            continue
+                        if payload.get("event") != "calibration-changed":
+                            continue
+                        # Fetch full calibration state per D-08
+                        try:
+                            async with httpx.AsyncClient() as fetch_client:
+                                r = await fetch_client.get(
+                                    f"{base}/api/signage/player/calibration",
+                                    headers={"Authorization": f"Bearer {token}"},
+                                    timeout=10.0,
+                                )
+                            if r.status_code == 200:
+                                await _apply_calibration(r.json())
+                            else:
+                                logger.warning(
+                                    "Calibration fetch returned %s", r.status_code,
+                                )
+                        except httpx.HTTPError as exc:
+                            logger.warning("Calibration fetch failed: %s", exc)
+        except asyncio.CancelledError:
+            raise
+        except (httpx.HTTPError, Exception) as exc:
+            logger.warning("Calibration SSE stream error: %s", exc)
+        await asyncio.sleep(5)
 
 
 async def _prefetch_media(media_id: str, token: str, base: str) -> None:
@@ -273,10 +550,20 @@ async def lifespan(application: FastAPI):
     # Load cached media IDs
     _cached_media_ids = _load_cached_media_ids()
 
+    # Calibration boot sequence (Phase 62-03, D-06 + Flag 1 fix)
+    global _audio_backend
+    _audio_backend = _detect_audio_backend()
+    logger.info("Audio backend pinned: %s", _audio_backend)
+    wayland_ready = await _wait_for_wayland_socket(timeout=15.0)
+    if wayland_ready:
+        # Replay persisted calibration BEFORE any network-dependent task spawns.
+        await _replay_persisted_calibration()
+
     # Start background tasks
     probe_task = asyncio.create_task(_connectivity_probe_loop())
     refresh_task = asyncio.create_task(_playlist_refresh_loop())
     heartbeat_task = asyncio.create_task(_heartbeat_loop())
+    calibration_task = asyncio.create_task(_calibration_sse_loop())
 
     yield
 
@@ -284,7 +571,8 @@ async def lifespan(application: FastAPI):
     probe_task.cancel()
     refresh_task.cancel()
     heartbeat_task.cancel()
-    for t in (probe_task, refresh_task, heartbeat_task):
+    calibration_task.cancel()
+    for t in (probe_task, refresh_task, heartbeat_task, calibration_task):
         try:
             await t
         except asyncio.CancelledError:
@@ -378,9 +666,8 @@ async def get_playlist(request: Request) -> Response:
                 _playlist_body = body
                 _playlist_etag = etag_raw
                 # Prune + prefetch
-                import json as _json
                 try:
-                    envelope = _json.loads(body)
+                    envelope = json.loads(body)
                     new_ids = {
                         str(it["media_id"])
                         for it in envelope.get("items", [])
