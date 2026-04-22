@@ -253,4 +253,7 @@ Plans:
 - **SchedulesPage.test.tsx** (3) — unused `afterEach` import + 2 stale `@ts-expect-error` directives.
 
 **Non-goals:** No behaviour changes, no primitive redesign, no test-logic changes. Cleanup is mechanical wherever possible; where a type tightening forces a refactor (e.g. useTableState generic), minimise blast radius and keep the fix local.
-**Plans:** 1 plan expected (single pass; atomic commits per file).
+**Plans:** 1 plan
+
+Plans:
+- [ ] 61-01-ts-cleanup-PLAN.md — Close 31 TS errors across 9 files; 3 tasks: trivial fixes (6 files), structural fixes (4 files), full-build gate + || true/suppression audit
