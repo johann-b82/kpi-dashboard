@@ -27,11 +27,11 @@
 
 ### Signage calibration — backend (CAL-BE-*)
 
-- [ ] **CAL-BE-01**: `signage_devices` table gains `rotation` (`INTEGER`, CHECK IN (0, 90, 180, 270), NOT NULL DEFAULT 0), `hdmi_mode` (`VARCHAR(64)`, nullable), `audio_enabled` (`BOOLEAN`, NOT NULL DEFAULT false) via Alembic migration. Backfill default values on existing rows.
-- [ ] **CAL-BE-02**: `GET /api/signage/devices` + `GET /api/signage/devices/{id}` admin responses include the three calibration fields.
-- [ ] **CAL-BE-03**: `PATCH /api/signage/devices/{id}/calibration` admin-only endpoint accepts partial updates; rejects invalid rotation values with HTTP 422.
-- [ ] **CAL-BE-04**: Calibration mutations emit a `calibration-changed` SSE event targeted at the affected device's EventSource queue.
-- [ ] **CAL-BE-05**: `GET /api/signage/player/calibration` (device-auth) returns the caller's current calibration JSON.
+- [x] **CAL-BE-01**: `signage_devices` table gains `rotation` (`INTEGER`, CHECK IN (0, 90, 180, 270), NOT NULL DEFAULT 0), `hdmi_mode` (`VARCHAR(64)`, nullable), `audio_enabled` (`BOOLEAN`, NOT NULL DEFAULT false) via Alembic migration. Backfill default values on existing rows.
+- [x] **CAL-BE-02**: `GET /api/signage/devices` + `GET /api/signage/devices/{id}` admin responses include the three calibration fields.
+- [x] **CAL-BE-03**: `PATCH /api/signage/devices/{id}/calibration` admin-only endpoint accepts partial updates; rejects invalid rotation values with HTTP 422.
+- [x] **CAL-BE-04**: Calibration mutations emit a `calibration-changed` SSE event targeted at the affected device's EventSource queue.
+- [x] **CAL-BE-05**: `GET /api/signage/player/calibration` (device-auth) returns the caller's current calibration JSON.
 
 ### Signage calibration — admin UI (CAL-UI-*)
 

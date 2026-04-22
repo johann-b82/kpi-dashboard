@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: Signage Calibration + Build Hygiene
-status: roadmapped
-stopped_at: v1.21 scoped; Phase 62 + Phase 63 awaiting /gsd:plan-phase
-last_updated: "2026-04-22T17:40:00.000Z"
+status: executing
+stopped_at: Completed 62-01-backend-calibration-PLAN.md
+last_updated: "2026-04-22T20:48:47.990Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 1
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone + v1.21 sc
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.21 Phase 62 Signage Calibration (planning pending)
+**Current focus:** Phase 62 — signage-calibration
 
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
@@ -37,8 +37,9 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 ## Current Position
 
 Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
-Phase: 62 Signage Calibration (next) + 63 Frontend Build Fix
-Status: REQUIREMENTS.md written (20 reqs: CAL-BE/UI/PI + BUILD + CLEAN); ROADMAP details block present; Quick task for Authentik removal pending.
+Phase: 62 (signage-calibration) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-04-22
 
 Progress: 0/2 phases complete, 0/5 plans complete in v1.21
@@ -154,6 +155,7 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 | Phase 60 P03 | ~210s | 3 tasks | 4 files |
 | Phase 60 P04-task-1 | 9m | 1 tasks | 1 files |
 | Phase 61 P01 | 7m 38s | 3 tasks | 10 files |
+| Phase 62 P01 | 221s | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -273,6 +275,9 @@ Next action: `/gsd:plan-phase 62` to plan Signage Calibration; Phase 63 can run 
 - [Phase 61]: SalesTable Option A taken (call-site intersection SalesRow = SalesRecordRow & Record<string, unknown>); useTableState.ts and api.ts unchanged (D-02)
 - [Phase 61]: useSensorDraft buildGlobalsPayload return tightened to Partial<SettingsUpdatePayload> — accurate type closes TS2783 duplicate-key errors on caller spread without touching spread layout
 - [Phase 61]: No || true fallback in any build surface (package.json, docker-compose.yml, Dockerfile, .github/workflows, .husky) — D-05 satisfied by verification, no edit required
+- [Phase 62]: Plan 62-01: SSE calibration-changed payload is {event, device_id} only per D-08; full state fetched via GET /api/signage/player/calibration (no state in event body)
+- [Phase 62]: Plan 62-01: Literal[0,90,180,270] on rotation in SignageCalibrationUpdate gives FastAPI auto-422 — no hand-rolled validation (D-10)
+- [Phase 62]: Plan 62-01: server_default on ALTER TABLE atomically backfills existing rows (rotation=0, audio_enabled=false) — D-07 no flicker on deployed devices
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -314,6 +319,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T17:20:29.677Z
-**Stopped at:** Completed 61-01-ts-cleanup-PLAN.md
+**Last session:** 2026-04-22T20:48:47.986Z
+**Stopped at:** Completed 62-01-backend-calibration-PLAN.md
 **Resume file:** None
