@@ -25,7 +25,16 @@ import {
   tooltipStyle,
 } from "@/lib/chartDefaults";
 import { fetchHrKpiHistory } from "@/lib/api";
-import { formatMonthYear, yearBoundaryDates } from "@/lib/chartTimeUtils";
+import {
+  deriveHrBuckets,
+  formatBucketLabel,
+  formatMonthYear,
+  yearBoundaryDates,
+  type HrBucketGranularity,
+} from "@/lib/chartTimeUtils";
+import { useDateRange } from "@/contexts/DateRangeContext";
+import { toApiDate } from "@/lib/dateUtils";
+import { hrKpiKeys } from "@/lib/queryKeys";
 
 const CHART_HEIGHT = 220;
 
@@ -46,14 +55,29 @@ interface MiniChartProps {
   chartType: ChartType;
   target: number | null;
   targetLabel: string;
+  granularity: HrBucketGranularity;
 }
 
-function MiniChart({ title, data, formatValue, locale, chartType, target, targetLabel }: MiniChartProps) {
+function MiniChart({ title, data, formatValue, locale, chartType, target, targetLabel, granularity }: MiniChartProps) {
   const hasTarget = target != null;
 
-  const formatMonth = (m: string) => formatMonthYear(m + "-01", locale);
+  // Phase 60 D-06: adaptive label formatter per granularity. Monthly preserves
+  // the pre-Phase-60 "Apr 2026" formatting so the thisYear landing is visually
+  // equivalent; other granularities use formatBucketLabel on a parsed Date
+  // (daily) or the compact server label (weekly "YYYY-Www", quarterly "YYYY-Qn").
+  const formatMonth = (m: string) => {
+    if (granularity === "monthly") return formatMonthYear(m + "-01", locale);
+    if (granularity === "daily") return formatBucketLabel("daily", new Date(m));
+    // weekly + quarterly: server label is already compact — render verbatim.
+    return m;
+  };
 
-  const boundaries = yearBoundaryDates(data.map(d => d.month + "-01"));
+  // Year-boundary reference lines only meaningful for monthly buckets (which
+  // span multiple calendar years). For daily/weekly/quarterly this plan skips
+  // boundary rendering — can be revisited in a polish pass.
+  const boundaries = granularity === "monthly"
+    ? yearBoundaryDates(data.map(d => d.month + "-01"))
+    : [];
 
   const commonXAxis = (
     <XAxis
@@ -180,9 +204,19 @@ export function HrKpiCharts() {
   const [chartType, setChartType] = useState<ChartType>("area");
   const { data: settings } = useSettings();
 
+  // Phase 60: consume active range from context. Server owns the bucket
+  // boundaries (via _bucket_windows in Plan 01); deriveHrBuckets is used
+  // client-side ONLY to pick the X-axis label formatter/granularity.
+  const { range } = useDateRange();
+  const date_from = toApiDate(range.from);
+  const date_to = toApiDate(range.to);
+  const bucketPlan = range.from && range.to
+    ? deriveHrBuckets(range.from, range.to)
+    : { granularity: "monthly" as const, buckets: [] };
+
   const { data, isLoading } = useQuery({
-    queryKey: ["hr-kpi-history"],
-    queryFn: fetchHrKpiHistory,
+    queryKey: hrKpiKeys.history(date_from, date_to),
+    queryFn: () => fetchHrKpiHistory({ date_from, date_to }),
   });
 
   if (isLoading) {
@@ -281,6 +315,7 @@ export function HrKpiCharts() {
               chartType={chartType}
               target={chart.target}
               targetLabel={targetLabel}
+              granularity={bucketPlan.granularity}
             />
           );
         })}
