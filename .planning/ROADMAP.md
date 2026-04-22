@@ -295,7 +295,11 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
   1. DE and EN i18n files have identical key counts for every new or renamed v1.19 key; DE copy reads in du-tone.
   2. Every new or migrated control exposes an accessible name (visible label or `aria-label`) and shows a visible focus ring in both light and dark mode.
   3. Every migrated surface renders cleanly in dark mode with zero hardcoded color literals and no contrast regressions.
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 59-01-locale-parity-tooling-PLAN.md — Locale parity + du-tone lint scripts + package.json wiring (A11Y-01)
+  - [ ] 59-02-focus-ring-convergence-PLAN.md — Toggle focus ring + Checkbox/Badge convergence to Path A (A11Y-02)
+  - [ ] 59-03-ci-guards-color-aria-PLAN.md — check-phase-59-guards.mts for color literals + icon-button aria-label (A11Y-02, A11Y-03)
+  - [ ] 59-04-dark-mode-manual-audit-PLAN.md — 59-VERIFICATION.md scaffold + human dark-mode sweep across 13 surfaces (A11Y-02, A11Y-03)
 **UI hint**: yes
 
 ## Progress Table
@@ -311,4 +315,4 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
-| 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |
+| 59. A11y & Parity Sweep | v1.19 | 0/4 | Not started | — |
