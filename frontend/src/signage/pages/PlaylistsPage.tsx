@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { Pencil, Copy, Trash2 } from "lucide-react";
+import { Pencil, Copy } from "lucide-react";
 
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi, ApiErrorWithBody } from "@/signage/lib/signageApi";
@@ -16,19 +16,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { SectionHeader } from "@/components/ui/section-header";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { PlaylistNewDialog } from "@/signage/components/PlaylistNewDialog";
 import type { SignagePlaylist } from "@/signage/lib/signageTypes";
 
 /**
  * Phase 46 Plan 46-05 — Playlists list page (SGN-ADM-05).
+ *
+ * Phase 57 Plan 57-06 migration — adds SectionHeader at the top, replaces
+ * the row Trash trigger with the standardized <DeleteButton>, and DELETES
+ * the inline `<Dialog>` block (the fourth ad-hoc delete variant identified
+ * by RESEARCH Pitfall 1).
  *
  * Renders a table of all playlists with Edit / Duplicate / Delete actions
  * and a "New playlist" CTA in the page-level button area.
@@ -47,9 +46,6 @@ export function PlaylistsPage() {
   const queryClient = useQueryClient();
 
   const [newOpen, setNewOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<SignagePlaylist | null>(
-    null,
-  );
 
   const { data: playlists = [], isLoading, isError } = useQuery({
     queryKey: signageKeys.playlists(),
@@ -80,7 +76,6 @@ export function PlaylistsPage() {
     mutationFn: (id: string) => signageApi.deletePlaylist(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: signageKeys.playlists() });
-      setDeleteTarget(null);
       toast.success(t("signage.admin.editor.saved"));
     },
     onError: (err) => {
@@ -112,7 +107,6 @@ export function PlaylistsPage() {
             },
           },
         );
-        setDeleteTarget(null);
         return;
       }
       const detail = err instanceof Error ? err.message : "Unknown error";
@@ -128,6 +122,12 @@ export function PlaylistsPage() {
 
   return (
     <section className="space-y-4">
+      <SectionHeader
+        title={t("section.signage.playlists.title")}
+        description={t("section.signage.playlists.description")}
+        className="mt-8"
+      />
+
       <div className="flex justify-end">
         <Button type="button" onClick={() => setNewOpen(true)}>
           {t("signage.admin.playlists.new_button")}
@@ -193,15 +193,13 @@ export function PlaylistsPage() {
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteTarget(p)}
-                      aria-label={`Delete ${p.name}`}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <DeleteButton
+                      itemLabel={p.name}
+                      onConfirm={async () => {
+                        await deleteMutation.mutateAsync(p.id);
+                      }}
+                      aria-label={t("ui.delete.ariaLabel", { itemLabel: p.name })}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -211,43 +209,6 @@ export function PlaylistsPage() {
       )}
 
       <PlaylistNewDialog open={newOpen} onOpenChange={setNewOpen} />
-
-      <Dialog
-        open={deleteTarget !== null}
-        onOpenChange={(o) => !o && setDeleteTarget(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {t("signage.admin.playlists.delete_title")}
-            </DialogTitle>
-            <DialogDescription>
-              {t("signage.admin.playlists.delete_body", {
-                name: deleteTarget?.name ?? "",
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteTarget(null)}
-            >
-              {t("signage.admin.playlists.delete_cancel")}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() =>
-                deleteTarget && deleteMutation.mutate(deleteTarget.id)
-              }
-              disabled={deleteMutation.isPending}
-            >
-              {t("signage.admin.playlists.delete_confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }
