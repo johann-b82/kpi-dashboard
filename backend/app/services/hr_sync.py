@@ -5,9 +5,9 @@ Decisions:
   D-03: Upsert by Personio ID via INSERT ... ON CONFLICT DO UPDATE.
   D-04: Sync results persisted to personio_sync_meta singleton.
 """
-from datetime import date as date_type, datetime, time as time_type, timezone
+from datetime import date as date_type, datetime, time as time_type, timedelta, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +21,12 @@ from app.models import (
 from app.schemas import SyncResult
 from app.security.fernet import decrypt_credential
 from app.services.personio_client import PersonioAPIError, PersonioClient
+
+
+# Incremental syncs re-fetch the trailing window so late-entered / edited
+# attendance records are captured. 14 days matches typical payroll
+# correction windows.
+_INCREMENTAL_OVERLAP_DAYS = 14
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +59,17 @@ async def run_sync(session: AsyncSession) -> SyncResult:
     try:
         # Sequential fetches — employees first for FK ordering
         raw_employees = await client.fetch_employees()
-        raw_attendances = await client.fetch_attendances()
+
+        # Attendance window (D-??, Phase 60 follow-up): first run fetches from
+        # earliest employee hire_date (full backfill); subsequent runs fetch
+        # max(stored_date) - 14d → today for an incremental update that
+        # re-captures late-entered corrections.
+        today = date_type.today()
+        att_start = await _compute_attendance_window_start(session, raw_employees)
+        raw_attendances = await client.fetch_attendances(
+            start_date=att_start.isoformat(),
+            end_date=today.isoformat(),
+        )
         raw_absences = await client.fetch_absences()
 
         # Normalize
@@ -289,6 +305,39 @@ async def _update_sync_meta(
     )
     await session.execute(stmt)
     await session.commit()
+
+
+async def _compute_attendance_window_start(
+    session: AsyncSession,
+    raw_employees: list[dict],
+) -> date_type:
+    """Determine attendance fetch start date.
+
+    If PersonioAttendance has any rows → incremental mode: start at
+    max(date) - _INCREMENTAL_OVERLAP_DAYS (capture late edits).
+
+    Otherwise → full-backfill mode: start at the earliest employee hire_date
+    (no attendance can exist before anyone was hired). Falls back to
+    today-395d if no hire dates are parseable (preserves prior behaviour for
+    misconfigured tenants).
+    """
+    max_stored = await session.scalar(
+        select(func.max(PersonioAttendance.date))
+    )
+    if max_stored is not None:
+        return max_stored - timedelta(days=_INCREMENTAL_OVERLAP_DAYS)
+
+    hire_dates: list[date_type] = []
+    for raw in raw_employees:
+        attrs = raw.get("attributes", {})
+        hd = _parse_date(_attr_val(attrs, "hire_date"))
+        if hd is not None:
+            hire_dates.append(hd)
+    if hire_dates:
+        return min(hire_dates)
+
+    today = date_type.today()
+    return today.replace(day=1) - timedelta(days=395)
 
 
 async def _get_settings(session: AsyncSession) -> AppSettings:

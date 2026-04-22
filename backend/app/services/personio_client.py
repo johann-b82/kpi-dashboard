@@ -184,32 +184,60 @@ class PersonioClient:
     ) -> list[dict]:
         """Paginated GET /company/attendances. Returns list of raw attendance dicts.
 
-        Personio requires start_date and end_date (YYYY-MM-DD). Defaults to a
-        13-month rolling window to cover current + previous month + previous year
-        for KPI delta comparisons.
+        Personio requires start_date and end_date (YYYY-MM-DD). Callers (hr_sync)
+        are expected to compute the window from DB state (earliest hire_date for
+        full backfill, max(stored_date)-14d for incremental). As a safety net,
+        falls back to a far-past epoch → today if either param is missing, so
+        that a bare `fetch_attendances()` still returns all available data.
+
+        429 responses are retried with exponential backoff (up to 3 attempts,
+        starting at Retry-After seconds or 30s).
         """
         if not start_date or not end_date:
-            from datetime import date, timedelta
-            today = date.today()
-            end_date = today.isoformat()
-            start_date = (today.replace(day=1) - timedelta(days=395)).isoformat()
+            from datetime import date
+            end_date = date.today().isoformat()
+            start_date = start_date or "2000-01-01"
         token = await self._get_valid_token()
         headers = {"Authorization": f"Bearer {token}"}
         results: list[dict] = []
         offset = 0
         limit = 50
         while True:
+            resp = await self._get_with_backoff(
+                "/company/attendances",
+                headers=headers,
+                params={
+                    "limit": limit,
+                    "offset": offset,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                },
+            )
+            data = resp.json()["data"]
+            results.extend(data)
+            if len(data) < limit:
+                break
+            offset += limit
+        return results
+
+    async def _get_with_backoff(
+        self,
+        path: str,
+        *,
+        headers: dict,
+        params: dict,
+        max_retries: int = 3,
+    ):
+        """GET with exponential backoff on 429. Other errors raise immediately.
+
+        Delay = max(Retry-After, 2 ** attempt * 30s). Raises PersonioRateLimitError
+        after exhausting retries so the caller can mark the sync as error.
+        """
+        import asyncio
+
+        for attempt in range(max_retries + 1):
             try:
-                resp = await self._http.get(
-                    "/company/attendances",
-                    headers=headers,
-                    params={
-                        "limit": limit,
-                        "offset": offset,
-                        "start_date": start_date,
-                        "end_date": end_date,
-                    },
-                )
+                resp = await self._http.get(path, headers=headers, params=params)
             except httpx.TimeoutException as exc:
                 raise PersonioNetworkError(f"Personio unreachable (timeout): {exc}") from exc
             except httpx.RequestError as exc:
@@ -217,16 +245,24 @@ class PersonioClient:
             if resp.status_code == 401:
                 raise PersonioAuthError("Invalid credentials", status_code=401)
             if resp.status_code == 429:
-                retry_after = int(resp.headers.get("Retry-After", "60"))
-                raise PersonioRateLimitError(f"Rate limited, retry in {retry_after}s", retry_after=retry_after)
+                if attempt == max_retries:
+                    retry_after = int(resp.headers.get("Retry-After", "60"))
+                    raise PersonioRateLimitError(
+                        f"Rate limited after {max_retries} retries, retry in {retry_after}s",
+                        retry_after=retry_after,
+                    )
+                retry_after = int(resp.headers.get("Retry-After", "30"))
+                delay = max(retry_after, (2 ** attempt) * 30)
+                await asyncio.sleep(delay)
+                continue
             if resp.is_error:
-                raise PersonioAPIError(f"Personio API error {resp.status_code}", status_code=resp.status_code)
-            data = resp.json()["data"]
-            results.extend(data)
-            if len(data) < limit:
-                break
-            offset += limit
-        return results
+                raise PersonioAPIError(
+                    f"Personio API error {resp.status_code}",
+                    status_code=resp.status_code,
+                )
+            return resp
+        # unreachable — loop either returns or raises
+        raise PersonioAPIError("unreachable: backoff loop exited without response")
 
     async def fetch_absences(self) -> list[dict]:
         """Paginated GET /company/absence-periods. Returns list of raw absence dicts."""

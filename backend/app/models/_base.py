@@ -148,8 +148,10 @@ class AppSettings(Base):
     personio_client_id_enc: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
     personio_client_secret_enc: Mapped[bytes | None] = mapped_column(BYTEA, nullable=True)
 
-    # Sync interval for APScheduler (Phase 13) — default 1 hour
-    personio_sync_interval_h: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    # Sync interval for APScheduler (Phase 13) — default 168h (weekly). A
+    # weekly cadence is appropriate now that the Personio attendance fetch
+    # does a full first-run backfill + incremental updates (Phase 60 follow-up).
+    personio_sync_interval_h: Mapped[int] = mapped_column(Integer, nullable=False, default=168)
 
     # Personio KPI configuration columns — JSONB arrays (Phase 19)
     personio_sick_leave_type_id: Mapped[list | None] = mapped_column(JSONB, nullable=True)

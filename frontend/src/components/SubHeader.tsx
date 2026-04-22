@@ -156,7 +156,7 @@ export function SubHeader() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {isDashboard && (
+          {location === "/sales" && (
             <AdminOnly>
               <Link
                 href="/upload"

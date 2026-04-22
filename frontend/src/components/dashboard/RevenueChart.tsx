@@ -127,6 +127,7 @@ export function RevenueChart({
         value={chartType}
         onChange={(type) => setChartType(type)}
         aria-label="Chart type"
+        variant="muted"
       />
     </div>
   );

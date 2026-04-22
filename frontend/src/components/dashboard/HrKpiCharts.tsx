@@ -27,7 +27,6 @@ import {
 import { fetchHrKpiHistory } from "@/lib/api";
 import {
   deriveHrBuckets,
-  formatBucketLabel,
   formatMonthYear,
   yearBoundaryDates,
   type HrBucketGranularity,
@@ -52,24 +51,36 @@ interface MiniChartProps {
   data: ChartRow[];
   formatValue: (v: number) => string;
   locale: string;
+  shortLocale: "de" | "en";
   chartType: ChartType;
   target: number | null;
   targetLabel: string;
   granularity: HrBucketGranularity;
 }
 
-function MiniChart({ title, data, formatValue, locale, chartType, target, targetLabel, granularity }: MiniChartProps) {
+function MiniChart({ title, data, formatValue, locale, shortLocale, chartType, target, targetLabel, granularity }: MiniChartProps) {
   const hasTarget = target != null;
 
-  // Phase 60 D-06: adaptive label formatter per granularity. Monthly preserves
-  // the pre-Phase-60 "Apr 2026" formatting so the thisYear landing is visually
-  // equivalent; other granularities use formatBucketLabel on a parsed Date
-  // (daily) or the compact server label (weekly "YYYY-Www", quarterly "YYYY-Qn").
+  // Phase 60 follow-up: x-axis labels mirror Sales RevenueChart naming.
+  //   monthly   → "Apr '26"          (formatMonthYear, matches Sales)
+  //   weekly    → "KW 17" / "CW 17"  (matches Sales thisMonth formatter)
+  //   quarterly → "Q1 '26"           (extends Sales "Apr '26" year suffix)
+  //   daily     → "15. Apr" / "Apr 15" (compact day label; not in Sales)
   const formatMonth = (m: string) => {
     if (granularity === "monthly") return formatMonthYear(m + "-01", locale);
-    if (granularity === "daily") return formatBucketLabel("daily", new Date(m));
-    // weekly + quarterly: server label is already compact — render verbatim.
-    return m;
+    if (granularity === "weekly") {
+      const week = m.split("-W")[1] ?? m;
+      return shortLocale === "de" ? `KW ${week}` : `CW ${week}`;
+    }
+    if (granularity === "quarterly") {
+      const [year, q] = m.split("-");
+      return `${q} '${year.slice(-2)}`;
+    }
+    // daily: "YYYY-MM-DD" → "15. Apr" (de) / "Apr 15" (en)
+    const d = new Date(m);
+    const day = d.getDate();
+    const month = new Intl.DateTimeFormat(locale, { month: "short" }).format(d);
+    return shortLocale === "de" ? `${day}. ${month}` : `${month} ${day}`;
   };
 
   // Year-boundary reference lines only meaningful for monthly buckets (which
@@ -201,6 +212,7 @@ function MiniChart({ title, data, formatValue, locale, chartType, target, target
 export function HrKpiCharts() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
+  const shortLocale: "de" | "en" = i18n.language === "de" ? "de" : "en";
   const [chartType, setChartType] = useState<ChartType>("area");
   const { data: settings } = useSettings();
 
@@ -282,12 +294,13 @@ export function HrKpiCharts() {
       <div className="flex justify-end">
         <Toggle<ChartType>
           segments={[
-            { value: "area", label: t("hr.chart.type.area") },
             { value: "bar", label: t("dashboard.chart.type.bar") },
+            { value: "area", label: t("hr.chart.type.area") },
           ] as const}
           value={chartType}
           onChange={setChartType}
           aria-label="Chart type"
+          variant="muted"
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -312,6 +325,7 @@ export function HrKpiCharts() {
               data={chartData}
               formatValue={chart.format}
               locale={locale}
+              shortLocale={shortLocale}
               chartType={chartType}
               target={chart.target}
               targetLabel={targetLabel}

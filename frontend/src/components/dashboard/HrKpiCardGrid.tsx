@@ -13,7 +13,7 @@ import { DeltaBadgeStack } from "./DeltaBadgeStack";
 import { computeDelta } from "@/lib/delta";
 import { fetchHrKpis, type HrKpiValue } from "@/lib/api";
 import { hrKpiKeys } from "@/lib/queryKeys";
-import { formatHrDeltaLabels } from "@/lib/periodLabels";
+import { formatPrevPeriodDeltaLabels } from "@/lib/periodLabels";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { toApiDate } from "@/lib/dateUtils";
 
@@ -22,15 +22,18 @@ export function HrKpiCardGrid() {
   const shortLocale: "de" | "en" = i18n.language === "de" ? "de" : "en";
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
 
-  // Phase 24 follow-up: concrete prior-period labels — anchored at today
-  // since HR has no preset/date-range filter. E.g. "vs. März 2026" + "vs. 2025".
-  const hrDeltaLabels = formatHrDeltaLabels(shortLocale, t);
-
-  // Phase 60: HR shares DateRangeContext with Sales. Fetcher takes optional
-  // YYYY-MM-DD bounds; when undefined the backend falls back to current month.
-  const { range } = useDateRange();
+  // Phase 60: HR shares DateRangeContext with Sales. Delta badge labels now
+  // mirror Sales — preset-driven (thisMonth → "vs. <prior month>", thisQuarter
+  // → "vs. Q<prior>", thisYear → collapsed single "vs. <prior year>", allTime
+  // → badges hidden).
+  const { preset, range } = useDateRange();
   const date_from = toApiDate(range.from);
   const date_to = toApiDate(range.to);
+
+  const deltaLabels = formatPrevPeriodDeltaLabels(preset, range, shortLocale, t);
+  const prevPeriodLabel = deltaLabels?.prevPeriod ?? null;
+  const prevYearLabel = deltaLabels?.prevYear ?? null;
+  const showBadges = prevPeriodLabel !== null;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: hrKpiKeys.summary(date_from, date_to),
@@ -94,6 +97,17 @@ export function HrKpiCardGrid() {
       );
     }
 
+    const rawPrevPeriod =
+      kpi.value !== null ? computeDelta(kpi.value, kpi.previous_period) : null;
+    const rawPrevYear =
+      kpi.value !== null ? computeDelta(kpi.value, kpi.previous_year) : null;
+
+    // thisYear collapses to a single top-row badge showing YTD-vs-YTD, mapping
+    // previous_year into the top slot (matches Sales remap in KpiCardGrid).
+    const prevPeriodDelta =
+      preset === "thisYear" ? rawPrevYear : rawPrevPeriod;
+    const prevYearDelta = preset === "thisYear" ? null : rawPrevYear;
+
     return (
       <KpiCard
         label={label}
@@ -101,22 +115,16 @@ export function HrKpiCardGrid() {
         value={kpi.value !== null ? formatter(kpi.value) : "\u2014"}
         isLoading={false}
         delta={
-          <DeltaBadgeStack
-            prevPeriodDelta={
-              kpi.value !== null
-                ? computeDelta(kpi.value, kpi.previous_period)
-                : null
-            }
-            prevYearDelta={
-              kpi.value !== null
-                ? computeDelta(kpi.value, kpi.previous_year)
-                : null
-            }
-            prevPeriodLabel={hrDeltaLabels.prevPeriod}
-            prevYearLabel={hrDeltaLabels.prevYear}
-            locale={shortLocale}
-            noBaselineTooltip={t("hr.kpi.noBaselineTooltip")}
-          />
+          showBadges ? (
+            <DeltaBadgeStack
+              prevPeriodDelta={prevPeriodDelta}
+              prevYearDelta={prevYearDelta}
+              prevPeriodLabel={prevPeriodLabel!}
+              prevYearLabel={prevYearLabel}
+              locale={shortLocale}
+              noBaselineTooltip={t("hr.kpi.noBaselineTooltip")}
+            />
+          ) : undefined
         }
       />
     );
