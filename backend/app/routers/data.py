@@ -1,7 +1,6 @@
-from calendar import monthrange
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +8,7 @@ from app.database import get_async_db_session
 from app.security.directus_auth import get_current_user
 from app.models import PersonioAttendance, PersonioEmployee, SalesRecord
 from app.schemas import EmployeeRead, SalesRecordRead
+from app.services.hr_kpi_aggregation import _month_bounds
 
 router = APIRouter(
     prefix="/api/data",
@@ -49,6 +49,8 @@ async def list_employees(
     department: str | None = Query(None),
     status: str | None = Query(None),
     search: str | None = Query(None),
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
     db: AsyncSession = Depends(get_async_db_session),
 ) -> list[EmployeeRead]:
     stmt = select(PersonioEmployee).order_by(PersonioEmployee.last_name.asc().nullslast())
@@ -67,10 +69,22 @@ async def list_employees(
     result = await db.execute(stmt.limit(500))
     employees = [EmployeeRead.model_validate(r) for r in result.scalars().all()]
 
-    # Compute overtime hours for current month per employee
-    today = date.today()
-    first_day = date(today.year, today.month, 1)
-    last_day = date(today.year, today.month, monthrange(today.year, today.month)[1])
+    # Compute overtime hours over the request range (D-11). Fallback = current month.
+    if (date_from is None) != (date_to is None):
+        raise HTTPException(
+            status_code=400,
+            detail="date_from and date_to must be provided together",
+        )
+    if date_from is None:
+        today = date.today()
+        first_day, last_day = _month_bounds(today.year, today.month)
+    else:
+        if date_from > date_to:
+            raise HTTPException(
+                status_code=400,
+                detail="date_from must be <= date_to",
+            )
+        first_day, last_day = date_from, date_to
 
     att_stmt = (
         select(
