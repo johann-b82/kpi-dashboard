@@ -143,8 +143,17 @@ function MiniChart({ title, data, formatValue, locale, shortLocale, chartType, t
               labelStyle={tooltipLabelStyle}
               itemStyle={tooltipItemStyle}
               cursor={tooltipCursorProps}
-              labelFormatter={formatMonth}
-              formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
+              labelFormatter={(label) => formatMonth(String(label))}
+              formatter={
+                hasTarget
+                  ? (v, name) =>
+                      tooltipFormatter(Number(v), String(name)) as [
+                        string | null,
+                        string | null,
+                      ]
+                  : (v) =>
+                      [formatValue(Number(v)), title] as [string, string]
+              }
             />
             {targetLine}
             {boundaries.map(d => (
@@ -182,8 +191,17 @@ function MiniChart({ title, data, formatValue, locale, shortLocale, chartType, t
               labelStyle={tooltipLabelStyle}
               itemStyle={tooltipItemStyle}
               cursor={tooltipCursorProps}
-              labelFormatter={formatMonth}
-              formatter={hasTarget ? tooltipFormatter : (v: number) => [formatValue(v), title]}
+              labelFormatter={(label) => formatMonth(String(label))}
+              formatter={
+                hasTarget
+                  ? (v, name) =>
+                      tooltipFormatter(Number(v), String(name)) as [
+                        string | null,
+                        string | null,
+                      ]
+                  : (v) =>
+                      [formatValue(Number(v)), title] as [string, string]
+              }
             />
             {targetLine}
             {boundaries.map(d => (
