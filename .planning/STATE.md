@@ -4,13 +4,13 @@ milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
 stopped_at: Phase 60 context gathered
-last_updated: "2026-04-22T12:32:10.142Z"
-last_activity: "2026-04-22 - Completed quick task 260422-j9o: nav cluster polish"
+last_updated: "2026-04-22T13:32:15.922Z"
+last_activity: 2026-04-22 -- Phase 60 execution started
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 32
-  completed_plans: 32
+  total_plans: 36
+  completed_plans: 33
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-18)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 59 — a11y-parity-sweep
+**Current focus:** Phase 60 — hr-date-range-filter
 
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
@@ -37,10 +37,10 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 ## Current Position
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
-Phase: 59 (a11y-parity-sweep) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
-Last activity: 2026-04-22 - Completed quick task 260422-j9o: nav cluster polish
+Phase: 60 (hr-date-range-filter) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 60
+Last activity: 2026-04-22 -- Phase 60 execution started
 
 Progress: 0/6 phases complete, 0 plans
 
@@ -150,6 +150,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 59 P01 | 5m | 2 tasks | 2 files |
 | Phase 59 P02 | 76s | 2 tasks | 4 files |
 | Phase 59 P03 | 60s | 2 tasks | 4 files |
+| Phase 60 P02 | 124s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -261,6 +262,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 59]: Plan 59-01: check:phase-59 umbrella unions check:i18n-parity + check:i18n-du-tone as persistent CI entrypoint (D-02/D-03)
 - [Phase 59]: Plan 59-02: Path A focus-ring utility (outline-none focus-visible:ring-3 focus-visible:ring-ring/50) adopted as canonical for components/ui/ — Checkbox migrated off Path B; Toggle segments add focus-visible:z-20 (no border swap, parent owns border); Badge ring-[3px] normalized to ring-3; CONTEXT.md D-04 Path B retired in favor of shipped majority.
 - [Phase 59]: Plan 59-03: icon-Button aria guard uses brace/quote-aware JSX tag extractor (not single-line regex) — surfaces multi-line tags like dialog Close + calendar Day; 2 real findings fixed inline (Rule 2)
+- [Phase 60]: Plan 60-02: HR fetchers accept pre-formatted YYYY-MM-DD (not Date) to eliminate timezone-drift at serialisation boundary; hrKpiKeys.{summary,history,employees} embed {from,to}; deriveHrBuckets clips first/last edges to from/to for D-06
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
