@@ -307,6 +307,6 @@ Full details: [milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
 | 54. Toggle Primitive + Migrations | v1.19 | 5/5 | Complete    | 2026-04-21 |
 | 55. Consolidated Form Controls | v1.19 | 6/6 | Complete    | 2026-04-21 |
 | 56. Breadcrumb Header + Content-Nav Relocation | v1.19 | 4/4 | Complete   | 2026-04-22 |
-| 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete   | 2026-04-22 |
+| 57. Section Context + Standardized Trashcan | v1.19 | 11/11 | Complete    | 2026-04-22 |
 | 58. Sensors Layout Parity | v1.19 | 0/? | Not started | — |
 | 59. A11y & Parity Sweep | v1.19 | 0/? | Not started | — |
