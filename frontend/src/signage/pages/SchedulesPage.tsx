@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { signageKeys } from "@/lib/queryKeys";
 import { signageApi } from "@/signage/lib/signageApi";
@@ -21,8 +21,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { SectionHeader } from "@/components/ui/section-header";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { ScheduleEditDialog } from "@/signage/components/ScheduleEditDialog";
-import { ScheduleDeleteDialog } from "@/signage/components/ScheduleDeleteDialog";
 import {
   hhmmToString,
   weekdayMaskToArray,
@@ -84,9 +85,6 @@ export function SchedulesPage() {
   const [editing, setEditing] = useState<
     SignageSchedule | null | undefined
   >(undefined);
-  const [deleteTarget, setDeleteTarget] = useState<SignageSchedule | null>(
-    null,
-  );
 
   // Highlight handling (D-14)
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
@@ -168,7 +166,6 @@ export function SchedulesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: signageKeys.schedules() });
       toast.success(t("signage.admin.schedules.toast.deleted"));
-      setDeleteTarget(null);
     },
     onError: (err) => {
       const detail = err instanceof Error ? err.message : String(err);
@@ -181,6 +178,11 @@ export function SchedulesPage() {
   if (isLoading) {
     return (
       <section className="space-y-4">
+        <SectionHeader
+          title={t("section.signage.schedules.title")}
+          description={t("section.signage.schedules.description")}
+          className="mt-8"
+        />
         <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
           {t("signage.admin.schedules.page_title")}…
         </div>
@@ -190,6 +192,11 @@ export function SchedulesPage() {
   if (isError) {
     return (
       <section className="space-y-4">
+        <SectionHeader
+          title={t("section.signage.schedules.title")}
+          description={t("section.signage.schedules.description")}
+          className="mt-8"
+        />
         <div className="rounded-md border border-border bg-card p-6 text-sm text-destructive">
           {t("signage.admin.schedules.error.load_failed")}
         </div>
@@ -201,6 +208,11 @@ export function SchedulesPage() {
 
   return (
     <section className="space-y-4">
+      <SectionHeader
+        title={t("section.signage.schedules.title")}
+        description={t("section.signage.schedules.description")}
+        className="mt-8"
+      />
       {!isEmpty && (
         <div className="flex justify-end">
           <Button type="button" onClick={() => setEditing(null)}>
@@ -312,15 +324,13 @@ export function SchedulesPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteTarget(s)}
-                        aria-label={`Delete ${name}`}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <DeleteButton
+                        itemLabel={name}
+                        onConfirm={async () => {
+                          await deleteMutation.mutateAsync(s.id);
+                        }}
+                        aria-label={t("ui.delete.ariaLabel", { itemLabel: name })}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -336,23 +346,6 @@ export function SchedulesPage() {
           if (!o) setEditing(undefined);
         }}
         schedule={editing ?? null}
-      />
-
-      <ScheduleDeleteDialog
-        open={deleteTarget !== null}
-        onOpenChange={(o) => {
-          if (!o) setDeleteTarget(null);
-        }}
-        onConfirm={() => {
-          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
-        }}
-        busy={deleteMutation.isPending}
-        scheduleName={
-          deleteTarget
-            ? (playlistNameById.get(deleteTarget.playlist_id) ??
-              deleteTarget.id)
-            : ""
-        }
       />
     </section>
   );
