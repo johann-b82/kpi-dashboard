@@ -135,7 +135,7 @@ export function SubHeader() {
               variant="muted"
             />
           )}
-          {location === "/sales" && (
+          {isDashboard && (
             <DateRangeFilter
               value={range}
               preset={preset}
