@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: UI Consistency Pass 2
 status: executing
-stopped_at: Phase 60 context gathered
-last_updated: "2026-04-22T13:32:15.922Z"
-last_activity: 2026-04-22 -- Phase 60 execution started
+stopped_at: Completed 60-01-PLAN.md
+last_updated: "2026-04-22T13:34:36.084Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 36
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State: KPI Dashboard
@@ -38,9 +38,9 @@ Previous milestone v1.16 Digital Signage shipped 2026-04-20 (tag `v1.16`).
 
 Milestone: v1.19 UI Consistency Pass 2 — roadmap drafted
 Phase: 60 (hr-date-range-filter) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 60
-Last activity: 2026-04-22 -- Phase 60 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-22
 
 Progress: 0/6 phases complete, 0 plans
 
@@ -151,6 +151,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 | Phase 59 P02 | 76s | 2 tasks | 4 files |
 | Phase 59 P03 | 60s | 2 tasks | 4 files |
 | Phase 60 P02 | 124s | 2 tasks | 4 files |
+| Phase 60 P01 | 6m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -263,6 +264,7 @@ Next action: Run `/gsd:plan-phase 54` to break Toggle primitive + migrations int
 - [Phase 59]: Plan 59-02: Path A focus-ring utility (outline-none focus-visible:ring-3 focus-visible:ring-ring/50) adopted as canonical for components/ui/ — Checkbox migrated off Path B; Toggle segments add focus-visible:z-20 (no border swap, parent owns border); Badge ring-[3px] normalized to ring-3; CONTEXT.md D-04 Path B retired in favor of shipped majority.
 - [Phase 59]: Plan 59-03: icon-Button aria guard uses brace/quote-aware JSX tag extractor (not single-line regex) — surfaces multi-line tags like dialog Close + calendar Day; 2 real findings fixed inline (Rule 2)
 - [Phase 60]: Plan 60-02: HR fetchers accept pre-formatted YYYY-MM-DD (not Date) to eliminate timezone-drift at serialisation boundary; hrKpiKeys.{summary,history,employees} embed {from,to}; deriveHrBuckets clips first/last edges to from/to for D-06
+- [Phase 60]: Plan 60-01: fluctuation denominator computed in Python via per-day active count over single SELECT (simpler than SQL generate_series); prior_window_same_length uses inclusive day count; /kpis/history keeps legacy 12-month fallback for thisYear landing parity
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -304,6 +306,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T12:32:10.132Z
-**Stopped at:** Phase 60 context gathered
-**Resume file:** .planning/phases/60-hr-date-range-filter/60-CONTEXT.md
+**Last session:** 2026-04-22T13:34:36.080Z
+**Stopped at:** Completed 60-01-PLAN.md
+**Resume file:** None
