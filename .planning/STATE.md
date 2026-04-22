@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.20
-milestone_name: HR Date-Range Filter
-status: planning-next-phase
-stopped_at: Phase 60 complete 2026-04-22; Phase 61 TS Cleanup added to v1.20 scope, needs /gsd:discuss-phase 61 next
-last_updated: "2026-04-22T16:45:00.000Z"
+milestone_name: HR Date-Range Filter + TS Cleanup
+status: verifying
+stopped_at: Completed 61-01-ts-cleanup-PLAN.md
+last_updated: "2026-04-22T17:20:39.565Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 5  # 4 (Phase 60) + 1 expected (Phase 61)
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.19 milestone)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 60 — hr-date-range-filter (v1.20)
+**Current focus:** Phase 61 — ts-cleanup
 
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
@@ -37,9 +37,9 @@ Previous milestone v1.17 Pi Image Release shipped 2026-04-21 (tag `v1.17`).
 ## Current Position
 
 Milestone: v1.20 HR Date-Range Filter — Phase 60 in progress
-Phase: 60 (hr-date-range-filter) — EXECUTING
-Plan: 4 of 4 — Task 1 complete (pytest 13/13), Task 2 human-verify approved 2026-04-22
-Status: Phase 60 complete; Phase 61 (TS Cleanup) scoped on roadmap, not yet planned
+Phase: 61 (ts-cleanup) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
 Last activity: 2026-04-22
 
 Progress: 1/2 phases complete, 4/5 plans complete in v1.20 (Phase 61 plan count TBD)
@@ -154,6 +154,7 @@ Next action: `/gsd:discuss-phase 61` (scope the ~25 TS errors across 9 files) �
 | Phase 60 P01 | 6m | 2 tasks | 3 files |
 | Phase 60 P03 | ~210s | 3 tasks | 4 files |
 | Phase 60 P04-task-1 | 9m | 1 tasks | 1 files |
+| Phase 61 P01 | 7m 38s | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -269,6 +270,10 @@ Next action: `/gsd:discuss-phase 61` (scope the ~25 TS errors across 9 files) �
 - [Phase 60]: Plan 60-01: fluctuation denominator computed in Python via per-day active count over single SELECT (simpler than SQL generate_series); prior_window_same_length uses inclusive day count; /kpis/history keeps legacy 12-month fallback for thisYear landing parity
 - [Phase 60]: Plan 60-03: DateRangeFilter mount gate on SubHeader reused existing isDashboard variable; MiniChart gains HrBucketGranularity prop and branches label formatter (monthly preserves formatMonthYear byte-for-byte); server remains source of truth for bucket boundaries (no client-side re-aggregation)
 - [Phase 60]: Plan 60-04 Task 1 (pytest suite, 13/13 pass) committed (5a05565); Task 2 (manual thisYear parity + Sales↔HR state check) awaiting human verification — plan not yet complete
+- [Phase 61]: select.tsx wrapper narrows base-ui onValueChange via Omit + null-guard at the wrapper boundary — keeps 5 consumer files passing (v: string) callbacks unchanged (D-02 minimise blast radius)
+- [Phase 61]: SalesTable Option A taken (call-site intersection SalesRow = SalesRecordRow & Record<string, unknown>); useTableState.ts and api.ts unchanged (D-02)
+- [Phase 61]: useSensorDraft buildGlobalsPayload return tightened to Partial<SettingsUpdatePayload> — accurate type closes TS2783 duplicate-key errors on caller spread without touching spread layout
+- [Phase 61]: No || true fallback in any build surface (package.json, docker-compose.yml, Dockerfile, .github/workflows, .husky) — D-05 satisfied by verification, no edit required
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -310,6 +315,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T13:46:15.037Z
-**Stopped at:** 60-04 Task 1 committed; Task 2 (human-verify) pending
+**Last session:** 2026-04-22T17:20:29.677Z
+**Stopped at:** Completed 61-01-ts-cleanup-PLAN.md
 **Resume file:** None

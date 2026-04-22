@@ -203,7 +203,7 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 ### 🚧 v1.20 HR Date-Range Filter + TS Cleanup (In Progress)
 
 - [x] **Phase 60: HR Date-Range Filter** — Wire the subheader date-range picker into the HR dashboard (KPIs, charts, employee table), including backend date_from/date_to params and HR aggregation over custom ranges. 4/4 plans complete (60-04 Task 2 human visual-parity checkpoint approved 2026-04-22).
-- [ ] **Phase 61: TS Cleanup** — Close ~25 pre-existing TypeScript errors across ~10 files so `npm run build` exits 0. Categories: Recharts Tooltip formatter signatures (HrKpiCharts), useTableState generic constraint (SalesTable), implicit-any callbacks (PersonioCard, SnmpWalkCard, ScheduleEditDialog), base-ui Select type drift, useSensorDraft erasableSyntaxOnly + duplicate spread keys, defaults.ts missing sensor fields, test-file hygiene (require→import, unused directives).
+- [x] **Phase 61: TS Cleanup** — Close ~25 pre-existing TypeScript errors across ~10 files so `npm run build` exits 0. Categories: Recharts Tooltip formatter signatures (HrKpiCharts), useTableState generic constraint (SalesTable), implicit-any callbacks (PersonioCard, SnmpWalkCard, ScheduleEditDialog), base-ui Select type drift, useSensorDraft erasableSyntaxOnly + duplicate spread keys, defaults.ts missing sensor fields, test-file hygiene (require→import, unused directives). (completed 2026-04-22)
 
 
 ## Progress Table
@@ -221,7 +221,7 @@ Full details: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
 | 58. Sensors Layout Parity | v1.19 | 2/2 | Complete   | 2026-04-22 |
 | 59. A11y & Parity Sweep | v1.19 | 4/4 | Complete   | 2026-04-22 |
 | 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
-| 61. TS Cleanup | v1.20 | 0/1 | Not started | — |
+| 61. TS Cleanup | v1.20 | 1/1 | Complete   | 2026-04-22 |
 
 ## Phase Details
 
@@ -253,7 +253,7 @@ Plans:
 - **SchedulesPage.test.tsx** (3) — unused `afterEach` import + 2 stale `@ts-expect-error` directives.
 
 **Non-goals:** No behaviour changes, no primitive redesign, no test-logic changes. Cleanup is mechanical wherever possible; where a type tightening forces a refactor (e.g. useTableState generic), minimise blast radius and keep the fix local.
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 61-01-ts-cleanup-PLAN.md — Close 31 TS errors across 9 files; 3 tasks: trivial fixes (6 files), structural fixes (4 files), full-build gate + || true/suppression audit
+- [x] 61-01-ts-cleanup-PLAN.md — Close 31 TS errors across 9 files; 3 tasks: trivial fixes (6 files), structural fixes (4 files), full-build gate + || true/suppression audit
