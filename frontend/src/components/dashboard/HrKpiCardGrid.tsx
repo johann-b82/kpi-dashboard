@@ -14,6 +14,8 @@ import { computeDelta } from "@/lib/delta";
 import { fetchHrKpis, type HrKpiValue } from "@/lib/api";
 import { hrKpiKeys } from "@/lib/queryKeys";
 import { formatHrDeltaLabels } from "@/lib/periodLabels";
+import { useDateRange } from "@/contexts/DateRangeContext";
+import { toApiDate } from "@/lib/dateUtils";
 
 export function HrKpiCardGrid() {
   const { t, i18n } = useTranslation();
@@ -24,9 +26,15 @@ export function HrKpiCardGrid() {
   // since HR has no preset/date-range filter. E.g. "vs. März 2026" + "vs. 2025".
   const hrDeltaLabels = formatHrDeltaLabels(shortLocale, t);
 
+  // Phase 60: HR shares DateRangeContext with Sales. Fetcher takes optional
+  // YYYY-MM-DD bounds; when undefined the backend falls back to current month.
+  const { range } = useDateRange();
+  const date_from = toApiDate(range.from);
+  const date_to = toApiDate(range.to);
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: hrKpiKeys.all(),
-    queryFn: fetchHrKpis,
+    queryKey: hrKpiKeys.summary(date_from, date_to),
+    queryFn: () => fetchHrKpis({ date_from, date_to }),
   });
 
   const formatPercent = (n: number) =>

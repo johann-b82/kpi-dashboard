@@ -9,6 +9,9 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { fetchEmployees } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
 import { useTableState } from "@/hooks/useTableState";
+import { useDateRange } from "@/contexts/DateRangeContext";
+import { toApiDate } from "@/lib/dateUtils";
+import { hrKpiKeys } from "@/lib/queryKeys";
 
 export function EmployeeTable() {
   const { t, i18n } = useTranslation();
@@ -17,9 +20,16 @@ export function EmployeeTable() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"overtime" | "active" | "all">("overtime");
 
+  // Phase 60: attendance aggregates (total_hours / overtime_hours / overtime_ratio)
+  // reflect the active DateRangeContext window. Roster presence is NOT filtered
+  // by attendance (D-12) — only the aggregate columns change with the range.
+  const { range } = useDateRange();
+  const date_from = toApiDate(range.from);
+  const date_to = toApiDate(range.to);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["employees", search],
-    queryFn: () => fetchEmployees({ search: search || undefined }),
+    queryKey: hrKpiKeys.employees(date_from, date_to, search || undefined),
+    queryFn: () => fetchEmployees({ search: search || undefined, date_from, date_to }),
   });
 
   const rows = useMemo(
