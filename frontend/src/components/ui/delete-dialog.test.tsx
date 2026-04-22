@@ -34,7 +34,8 @@ function renderDialog(props: Partial<React.ComponentProps<typeof DeleteDialog>> 
 describe("DeleteDialog", () => {
   it("renders default DialogTitle from t('ui.delete.title') when no title prop", async () => {
     renderDialog();
-    expect(await screen.findByText("Delete")).toBeInTheDocument();
+    const title = await screen.findByRole("heading");
+    expect(title).toHaveTextContent("Delete");
   });
 
   it("renders provided body ReactNode", async () => {
@@ -45,9 +46,11 @@ describe("DeleteDialog", () => {
   it("autoFocuses the Cancel button on open (D-05)", async () => {
     renderDialog();
     const cancel = await screen.findByRole("button", { name: "Cancel" });
-    // jsdom + base-ui: assert autoFocus prop is set; activeElement may not
-    // settle in jsdom for portalled dialogs.
-    expect(cancel).toHaveAttribute("autofocus");
+    // React strips the `autofocus` HTML attribute and instead calls .focus()
+    // on mount. base-ui Dialog manages focus, but Cancel having autoFocus
+    // ensures it claims the initial focus over Confirm.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(document.activeElement).toBe(cancel);
   });
 
   it("Cancel button uses outline variant", async () => {
