@@ -6,6 +6,8 @@ import { AdminOnly } from "@/auth/AdminOnly";
 import { Toggle } from "@/components/ui/toggle";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { FreshnessIndicator } from "@/components/dashboard/FreshnessIndicator";
+import { SensorTimeWindowPicker } from "@/components/sensors/SensorTimeWindow";
+import { PollNowButton } from "@/components/sensors/PollNowButton";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { fetchSyncMeta, fetchSensorStatus } from "@/lib/api";
 import { syncKeys, sensorKeys } from "@/lib/queryKeys";
@@ -120,6 +122,7 @@ export function SubHeader() {
               onChange={handleFilterChange}
             />
           )}
+          {location === "/sensors" && <SensorTimeWindowPicker />}
         </div>
         <div className="flex items-center gap-3">
           {isDashboard && (
@@ -136,6 +139,7 @@ export function SubHeader() {
               </Link>
             </AdminOnly>
           )}
+          {location === "/sensors" && <PollNowButton size="sm" />}
           {location === "/sensors" ? (
             <SensorFreshnessIndicator />
           ) : location === "/hr" ? (
