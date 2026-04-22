@@ -55,6 +55,16 @@ export interface SignageDevice {
   tag_ids?: number[] | null;
   current_playlist_id: string | null;
   current_playlist_name?: string | null; // optional; filled by admin list endpoint if present
+  // Phase 62 — calibration (CAL-BE-02 backend shape; admin GET includes these).
+  // `rotation` is the labwc wlr-randr transform. `hdmi_mode` NULL means
+  // "use current" (D-02/D-07 — sidecar makes no wlr-randr --mode call).
+  // `available_modes` is reported via heartbeat by sidecar (D-02) — until
+  // that lands it is undefined/null and the admin dropdown shows only the
+  // Auto placeholder (CAL-UI-02).
+  rotation: 0 | 90 | 180 | 270;
+  hdmi_mode: string | null;
+  audio_enabled: boolean;
+  available_modes?: string[] | null;
   created_at: string;
   updated_at: string;
 }

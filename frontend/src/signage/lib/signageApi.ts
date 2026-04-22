@@ -166,6 +166,23 @@ export const signageApi = {
       method: "PUT",
       body: JSON.stringify({ tag_ids }),
     }),
+  // Phase 62 — CAL-UI-03. PATCH /api/signage/devices/{id}/calibration. Body is
+  // partial; backend applies only provided fields (exclude_unset=True) and
+  // emits a `calibration-changed` SSE event. Returns the updated device so the
+  // admin UI can reconcile without a second GET (backend returns
+  // SignageDeviceRead with resolved playlist + tags). 422 on invalid rotation.
+  updateDeviceCalibration: (
+    id: string,
+    body: Partial<{
+      rotation: 0 | 90 | 180 | 270;
+      hdmi_mode: string | null;
+      audio_enabled: boolean;
+    }>,
+  ) =>
+    apiClient<SignageDevice>(`/api/signage/devices/${id}/calibration`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   // Revoke lives on the pair router per backend/app/routers/signage_pair.py
   // (`POST /api/signage/pair/devices/{device_id}/revoke`).
   revokeDevice: (id: string) =>
