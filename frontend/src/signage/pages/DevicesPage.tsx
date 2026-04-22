@@ -122,12 +122,6 @@ export function DevicesPage() {
         description={t("section.signage.devices.description")}
         className="mt-8"
       />
-      <div className="flex items-center justify-between">
-        <Button onClick={() => setLocation("/signage/pair")}>
-          {t("signage.admin.devices.pair_button")}
-        </Button>
-      </div>
-
       <div className="rounded-md border border-border bg-card">
         <Table>
           <TableHeader>
@@ -224,6 +218,12 @@ export function DevicesPage() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={() => setLocation("/signage/pair")}>
+          {t("signage.admin.devices.pair_button")}
+        </Button>
       </div>
 
       {/* Edit-device dialog (controlled by editTarget). */}

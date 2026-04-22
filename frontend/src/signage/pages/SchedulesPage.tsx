@@ -213,14 +213,6 @@ export function SchedulesPage() {
         description={t("section.signage.schedules.description")}
         className="mt-8"
       />
-      {!isEmpty && (
-        <div className="flex justify-end">
-          <Button type="button" onClick={() => setEditing(null)}>
-            {t("signage.admin.schedules.new_cta")}
-          </Button>
-        </div>
-      )}
-
       {isEmpty ? (
         <section className="rounded-md border border-border bg-card p-12 text-center space-y-3">
           <h2 className="text-lg font-semibold">
@@ -337,6 +329,14 @@ export function SchedulesPage() {
               })}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {!isEmpty && (
+        <div className="flex justify-end">
+          <Button type="button" onClick={() => setEditing(null)}>
+            {t("signage.admin.schedules.new_cta")}
+          </Button>
         </div>
       )}
 

@@ -128,12 +128,6 @@ export function PlaylistsPage() {
         className="mt-8"
       />
 
-      <div className="flex justify-end">
-        <Button type="button" onClick={() => setNewOpen(true)}>
-          {t("signage.admin.playlists.new_button")}
-        </Button>
-      </div>
-
       {isLoading ? (
         <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
           {t("signage.admin.error.loading")}
@@ -205,6 +199,14 @@ export function PlaylistsPage() {
               ))}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {playlists.length > 0 && (
+        <div className="flex justify-end">
+          <Button type="button" onClick={() => setNewOpen(true)}>
+            {t("signage.admin.playlists.new_button")}
+          </Button>
         </div>
       )}
 
