@@ -1,11 +1,40 @@
-import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Select(props: SelectPrimitive.Root.Props) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+// Phase 61: The base-ui Select generic tightened in @base-ui/react@1.3.0 —
+// Root.Props now requires 1–2 type arguments and its onValueChange is
+// (value: Value | null, eventDetails) => void. Our wrapper narrows that
+// surface so existing call sites keep passing (v: string) => ... callbacks
+// (value can only be null under multiple=false when the selection is
+// cleared, which no consumer in this app exercises today — documented
+// behaviour is "controlled value always a string"). The non-null boundary
+// lives in the wrapper so we don't touch the 5+ consumer files.
+type SelectProps<Value = string> = Omit<
+  SelectPrimitive.Root.Props<Value>,
+  "onValueChange"
+> & {
+  onValueChange?: (value: Value) => void
+}
+
+function Select<Value = string>({
+  onValueChange,
+  ...props
+}: SelectProps<Value>) {
+  return (
+    <SelectPrimitive.Root
+      data-slot="select"
+      onValueChange={
+        onValueChange
+          ? (value) => {
+              if (value !== null) onValueChange(value as Value)
+            }
+          : undefined
+      }
+      {...props}
+    />
+  )
 }
 
 function SelectValue(props: SelectPrimitive.Value.Props) {
