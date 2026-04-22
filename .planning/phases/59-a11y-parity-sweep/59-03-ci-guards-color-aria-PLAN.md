@@ -2,8 +2,9 @@
 phase: 59-a11y-parity-sweep
 plan: 3
 type: execute
-wave: 1
-depends_on: []
+wave: 2
+depends_on:
+  - 59-01-locale-parity-tooling
 files_modified:
   - frontend/scripts/check-phase-59-guards.mts
   - frontend/package.json

@@ -2,7 +2,7 @@
 phase: 59-a11y-parity-sweep
 plan: 4
 type: execute
-wave: 2
+wave: 3
 depends_on:
   - 59-01-locale-parity-tooling
   - 59-02-focus-ring-convergence
@@ -33,7 +33,7 @@ must_haves:
 <objective>
 Execute the D-06 manual dark-mode audit across every v1.19-touched UI surface. Attach a dark-mode screenshot per surface to `59-VERIFICATION.md`. Flag any focus-ring-invisible or contrast-regression findings as defects so they feed a gap-closure sweep.
 
-Wave 2 — runs AFTER Plans 01/02/03 land so Toggle focus ring is visible and CI guards have already confirmed no hardcoded literals.
+Wave 3 — runs AFTER Plans 01/02/03 land so Toggle focus ring is visible and CI guards have already confirmed no hardcoded literals.
 
 Purpose: Evidence gate for A11Y-02 + A11Y-03 per D-06.
 Output: `59-VERIFICATION.md` with completed checklist, screenshots, defect log.

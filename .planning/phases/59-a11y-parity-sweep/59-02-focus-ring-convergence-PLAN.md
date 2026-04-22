@@ -15,6 +15,7 @@ requirements:
 
 must_haves:
   truths:
+    - "Path A utility (outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50) supersedes CONTEXT.md D-04 placeholder tokens per D-04 exact tokens TBD during research clause and Claude Discretion block."
     - "Every v1.19 primitive that renders a focusable control shows a visible focus ring in both light and dark mode when keyboard-focused."
     - "The Toggle primitive (flagship v1.19 component driving 5 consumers) now renders a focus-visible ring — fixes the gap flagged in RESEARCH.md §Focus-Ring Inventory."
     - "All shipped primitives share the same canonical focus-ring utility fragment to avoid two-spec drift."
