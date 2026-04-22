@@ -244,7 +244,7 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 **Goal:** Operators calibrate each signage Pi from the admin UI — rotation, HDMI mode, audio on/off — without SSH or reprovisioning. Changes propagate live via SSE → sidecar and persist across reboots.
 **Depends on:** Phase 52 (`/signage/devices` admin page), Phase 48 (sidecar SSE listener), Phase 53 (heartbeat path for calibration-result reporting).
 **Requirements:** CAL-BE-01..05, CAL-UI-01..04, CAL-PI-01..07
-**Plans (4 planned, subject to planner revision):**
+**Plans:** 4 plans in 3 waves
 - **62-01 Backend** — Alembic migration adds `rotation` / `hdmi_mode` / `audio_enabled`; `GET`/`PATCH /api/signage/devices/{id}/calibration`; SSE `calibration-changed`; `GET /api/signage/player/calibration` device-auth endpoint.
 - **62-02 Admin UI** — Calibration section on device edit dialog; rotation + HDMI mode dropdowns + audio toggle; DE/EN parity.
 - **62-03 Pi sidecar** — SSE listener invokes `wlr-randr` for rotation/mode and `wpctl` (fallback `pactl`) for audio; persists `/var/lib/signage/calibration.json`; replays on boot.
