@@ -7,10 +7,10 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { readMe } from "@directus/sdk";
 
 import { directus } from "@/lib/directusClient";
 import {
-  apiClient,
   setAccessToken,
   setAuthFailureHandler,
   trySilentRefresh,
@@ -34,10 +34,20 @@ export interface AuthState {
 
 export const AuthContext = createContext<AuthState | null>(null);
 
-interface MeResponse {
-  id: string;
-  email: string;
-  role: Role;
+/**
+ * D-01: map Directus role.name to the frontend Role union.
+ * Unknown names return null — caller clears auth (D-09) instead of
+ * silently defaulting to viewer.
+ */
+function mapRoleName(name: string | null | undefined): Role | null {
+  switch (name) {
+    case "Administrator":
+      return "admin";
+    case "Viewer":
+      return "viewer";
+    default:
+      return null;
+  }
 }
 
 /**
@@ -47,13 +57,14 @@ interface MeResponse {
  *
  * On mount: attempt a silent refresh (uses the httpOnly Directus refresh
  * cookie set on a prior login). If it succeeds, hydrate the user via
- * GET /api/me. If it fails, we land unauthenticated and <AuthGate> redirects
- * to /login.
+ * directus.request(readMe(...)) — Phase 66 MIG-AUTH-01 replaces the old
+ * GET that used to live on a deleted FastAPI route. If readMe fails or
+ * the role name is unmapped, we land unauthenticated and <AuthGate>
+ * redirects to /login.
  *
  * signIn / signOut delegate to the Directus SDK, then sync the module-singleton
  * token and React state. signOut also clears the React Query cache so a new
- * user doesn't see the previous user's data. Per D-07 the local state is
- * cleared even if directus.logout() throws (network down / expired session).
+ * user doesn't see the previous user's data.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -96,8 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           return;
         }
-        const me = await apiClient<MeResponse>("/api/me");
-        setUser(me);
+        const profile = await directus.request(
+          readMe({ fields: ["id", "email", "role.name"] }),
+        ) as { id: string; email: string; role: { name: string } | null };
+        const mappedRole = mapRoleName(profile.role?.name);
+        if (!mappedRole) {
+          // D-09: unknown/unmapped role clears auth like a readMe failure.
+          setUser(null);
+          return;
+        }
+        setUser({ id: String(profile.id), email: profile.email, role: mappedRole });
       } catch {
         setUser(null);
       } finally {
@@ -112,8 +131,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await directus.login({ email, password });
       const token = await directus.getToken();
       setAccessToken(token ?? null);
-      const me = await apiClient<MeResponse>("/api/me");
-      setUser(me);
+      const profile = await directus.request(
+        readMe({ fields: ["id", "email", "role.name"] }),
+      ) as { id: string; email: string; role: { name: string } | null };
+      const mappedRole = mapRoleName(profile.role?.name);
+      if (!mappedRole) {
+        // D-09: unknown role after a fresh login — clear and reject.
+        clearLocalAuth();
+        throw new Error("unknown_role");
+      }
+      setUser({ id: String(profile.id), email: profile.email, role: mappedRole });
     },
     [],
   );
