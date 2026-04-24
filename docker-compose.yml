@@ -101,11 +101,11 @@ services:
       # --- Public URL for email/oauth redirects (operator-only for v1.11) ---
       PUBLIC_URL: http://127.0.0.1:8055
 
-      # --- CORS: required for SPA at localhost:5173 to send credentialed requests ---
-      # CORS_CREDENTIALS is load-bearing for the httpOnly refresh cookie (Phase 29 D-02).
-      CORS_ENABLED: "true"
-      CORS_ORIGIN: "http://localhost:5173"
-      CORS_CREDENTIALS: "true"
+      # Phase 64 D-04: CORS env removed entirely. The admin SPA reaches Directus
+      # same-origin via Caddy's /directus/* route (prefix stripped), so no
+      # cross-origin preflight happens on normal flows. If a direct-to-Directus
+      # call ever reappears, CORS will fail loudly rather than silently allowing
+      # an arbitrary origin.
       TELEMETRY: "false"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8055/server/health || exit 1"]
@@ -132,6 +132,32 @@ services:
     entrypoint: ["/bin/sh", "/bootstrap-roles.sh"]
     restart: "no"
 
+  caddy:
+    # Phase 64 D-01: Caddy 2 alpine — reverse proxy fronting the full stack on :80.
+    # HTTP only (D-02). TLS + external domain handling is out of scope.
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+      directus:
+        condition: service_healthy
+    healthcheck:
+      # Caddy returns 200 on / (proxied to frontend). If frontend is up, Caddy is serving.
+      test: ["CMD", "wget", "-qO-", "--tries=1", "--timeout=3", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
   backup:
     image: postgres:17-alpine
     container_name: kpi-backup
@@ -155,3 +181,5 @@ services:
 volumes:
   postgres_data:
   directus_uploads:
+  caddy_data:
+  caddy_config:
