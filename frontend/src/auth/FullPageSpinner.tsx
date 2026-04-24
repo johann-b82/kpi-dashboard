@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 
 /**
  * Full-screen loading indicator shown by <AuthGate> while the initial
- * silent-refresh + /api/me hydration is in flight. Styled per
+ * silent-refresh + readMe hydration is in flight. Styled per
  * 29-UI-SPEC.md §"Full-Page Spinner" — Loader2, h-8 w-8, muted, centered
  * on a min-h-screen background.
  */
