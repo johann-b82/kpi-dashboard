@@ -47,6 +47,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      directus-bootstrap-roles:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 10s
@@ -91,8 +93,17 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
 
       # --- Hide Alembic-managed app tables from Directus Data Model UI ---
-      # Comma-separated, no spaces (per Directus docs). Verified against backend/app/models.py.
-      DB_EXCLUDE_TABLES: upload_batches,sales_records,app_settings,personio_employees,personio_attendance,personio_absences,personio_sync_meta,alembic_version,sensors,sensor_readings,sensor_poll_log,signage_devices,signage_pairing_sessions
+      # v1.22 D-04 / SCHEMA-04: Minimal "never expose" superset.
+      # Removed: sales_records, personio_employees, signage_devices and other
+      # signage tables — these are now registered as v1.22 Directus collections
+      # and must be visible to Directus metadata. Added: signage_heartbeat_event
+      # (append-only analytics log, not an admin-editable collection).
+      # upload_batches stays excluded — FastAPI-owned ingestion table.
+      # Comma-separated, no spaces (per Directus docs).
+      # IMPORTANT: changing this env requires `docker compose up -d directus`
+      # (not `docker compose restart directus`) to take effect.
+      # See docs/operator-runbook.md section "DB_EXCLUDE_TABLES requires up -d".
+      DB_EXCLUDE_TABLES: alembic_version,app_settings,personio_attendance,personio_absences,personio_sync_meta,sensors,sensor_readings,sensor_poll_log,signage_pairing_sessions,signage_heartbeat_event,upload_batches
 
       # --- First-Admin bootstrap (D-01); ignored on subsequent boots ---
       ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
@@ -114,6 +125,32 @@ services:
       retries: 5
       start_period: 30s
 
+  directus-schema-apply:
+    # v1.22 D-04: One-shot service that registers the 9 v1.22 collections as
+    # Directus metadata via `npx directus schema apply`. Runs AFTER directus is
+    # healthy and BEFORE directus-bootstrap-roles so permission rows can
+    # reference the registered collections (Pitfall 5). Uses schema: null per
+    # collection to avoid Directus bug #25760 ("relation already exists").
+    # Fallback for #25760 is documented in docs/operator-runbook.md.
+    image: directus/directus:11.17.2
+    env_file: .env
+    environment:
+      DB_CLIENT: pg
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+    volumes:
+      - ./directus/snapshots:/snapshots:ro
+    depends_on:
+      directus:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "npx directus schema apply --yes /snapshots/v1.22.yaml"]
+    restart: "no"
+
   directus-bootstrap-roles:
     # Roles-as-code sidecar. Replaces the v10-style snapshot.yml approach
     # (rejected by Directus 11 — policies/access model). Runs a REST-API
@@ -129,6 +166,8 @@ services:
     depends_on:
       directus:
         condition: service_healthy
+      directus-schema-apply:
+        condition: service_completed_successfully
     entrypoint: ["/bin/sh", "/bootstrap-roles.sh"]
     restart: "no"
 
