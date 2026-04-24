@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: executing
-stopped_at: Completed 66-01-authcontext-readme-swap-PLAN.md
-last_updated: "2026-04-24T18:41:24.424Z"
+status: verifying
+stopped_at: Completed 66-03-ci-guard-PLAN.md
+last_updated: "2026-04-24T18:43:35.045Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 8
 ---
 
 # Project State: KPI Dashboard
@@ -38,8 +38,8 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 66 (kill-me-py) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
+Plan: 3 of 3
+Status: Phase complete — ready for verification
 Last activity: 2026-04-24
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
@@ -191,6 +191,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 65 P04 | 151 | 2 tasks | 2 files |
 | Phase 65 P05 | 541s | 5 tasks | 11 files |
 | Phase 66 P01 | 102s | 3 tasks | 3 files |
+| Phase 66-kill-me-py P03 | 36s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -209,6 +210,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 65]: Guard A uses MD5 (not SHA256+pgcrypto) for DDL hash — md5() is built-in Postgres, no extension required
 - [Phase 65]: Allowlist parity test runs pre-stack in CI (before docker compose up) for <1s fast fail on AUTHZ drift
 - [Phase 66]: mapRoleName() switch maps Administrator->admin, Viewer->viewer, unknown->null (D-01/D-09); two-tier readMe (minimal for AuthContext, full for useCurrentUserProfile) is deliberate (D-03/D-05)
+- [Phase 66-kill-me-py]: Inline run: block chosen over dedicated scripts/ci/no-api-me.sh — reusable script pattern deferred until third endpoint-guard lands (Phase 67+)
 
 ### Cross-cutting hazards (hard gates)
 
@@ -254,6 +256,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T18:41:24.421Z
-**Stopped at:** Completed 66-01-authcontext-readme-swap-PLAN.md
+**Last session:** 2026-04-24T18:43:27.633Z
+**Stopped at:** Completed 66-03-ci-guard-PLAN.md
 **Resume file:** None

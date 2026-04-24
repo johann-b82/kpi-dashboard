@@ -72,7 +72,7 @@
 
 - [x] **MIG-AUTH-01**: Frontend `AuthContext` reads current user via Directus SDK `readMe({fields:[...]})` — no `/api/me` call.
 - [ ] **MIG-AUTH-02**: `backend/app/routers/me.py` and its registration in `main.py` + schemas + tests are deleted.
-- [ ] **MIG-AUTH-03**: All frontend call sites of the old `fetchMe` are migrated or deleted; a CI guard greps for `"/api/me"` and fails.
+- [x] **MIG-AUTH-03**: All frontend call sites of the old `fetchMe` are migrated or deleted; a CI guard greps for `"/api/me"` and fails.
 
 ### MIG-DATA — `data.py` sales + employees split
 
@@ -128,7 +128,7 @@
 | SSE-06 | Phase 65 | Complete |
 | MIG-AUTH-01 | Phase 66 | Complete |
 | MIG-AUTH-02 | Phase 66 | Pending |
-| MIG-AUTH-03 | Phase 66 | Pending |
+| MIG-AUTH-03 | Phase 66 | Complete |
 | MIG-DATA-01 | Phase 67 | Pending |
 | MIG-DATA-02 | Phase 67 | Pending |
 | MIG-DATA-03 | Phase 67 | Pending |

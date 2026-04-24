@@ -232,7 +232,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 **Locked architectural decisions (do not revisit):** SSE bridge = Postgres LISTEN/NOTIFY (Option A); calibration PATCH, `PUT /playlists/{id}/items` bulk-replace, `DELETE /playlists/{id}` (409 shape), `GET /signage/analytics/devices` all stay in FastAPI; `GET /signage/devices` list is hybrid (Directus rows + new FastAPI `/resolved/{device_id}`).
 
 - [x] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change. (completed 2026-04-24)
-- [ ] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist.
+- [x] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist. (completed 2026-04-24)
 - [ ] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute.
 - [ ] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed.
 - [ ] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression.
@@ -267,11 +267,11 @@ Plans:
   1. Post-login, `AuthContext` populates current user (`id`, `email`, `first_name`, `last_name`, `role`, `avatar`) via `directus.request(readMe(...))` — no `/api/me` network call in DevTools.
   2. `backend/app/routers/me.py`, its `main.py` registration, schemas, and tests are deleted; `/api/me` returns 404.
   3. A CI guard greps for `"/api/me"` in `frontend/src/` and fails if any reference remains.
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 66-01-authcontext-readme-swap-PLAN.md — AuthContext readMe swap + useCurrentUserProfile hook + Viewer directus_roles permission (Wave 1)
-- [ ] 66-02-delete-me-backend-PLAN.md — Delete backend/app/routers/me.py + main.py registration + tests + comment scrub (Wave 2)
-- [ ] 66-03-ci-guard-PLAN.md — CI workflow step: grep-fail on "/api/me" in frontend/src/ (Wave 2)
+- [x] 66-02-delete-me-backend-PLAN.md — Delete backend/app/routers/me.py + main.py registration + tests + comment scrub (Wave 2)
+- [x] 66-03-ci-guard-PLAN.md — CI workflow step: grep-fail on "/api/me" in frontend/src/ (Wave 2)
 
 ### Phase 67: Migrate `data.py` — Sales + Employees split
 **Goal**: Sales and HR row-data lookups come from Directus; overtime roll-up per employee stays in FastAPI; frontend tables render the same rows and compute values as v1.21 with no user-visible regression.
@@ -353,7 +353,7 @@ Plans:
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
-| 66. Kill `me.py` | v1.22 | 1/3 | In Progress|  |
+| 66. Kill `me.py` | v1.22 | 3/3 | Complete   | 2026-04-24 |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
