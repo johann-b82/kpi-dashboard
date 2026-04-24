@@ -61,6 +61,20 @@ jobs:
           EOF
 
       # -----------------------------------------------------------------------
+      # Phase 66 MIG-AUTH-03: CI guard — fail on any `"/api/me"` reference in
+      # frontend/src/. `me.py` was deleted; AuthContext reads identity via
+      # directus.request(readMe(...)). D-12 defines the exact literal-string
+      # grep. Runs pre-stack so regressions fail in <1s.
+      # -----------------------------------------------------------------------
+      - name: "Guard — no /api/me in frontend (MIG-AUTH-03)"
+        run: |
+          if grep -rn '"/api/me"' frontend/src/; then
+            echo "ERROR: /api/me reference found in frontend/src/ (Phase 66 MIG-AUTH-03 — use directus.request(readMe(...)) instead)"
+            exit 1
+          fi
+          echo "OK: no /api/me references in frontend/src/"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
