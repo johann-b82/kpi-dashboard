@@ -190,8 +190,15 @@ ensure_permission "b2222222-0002-4000-a000-000000000002" "personio_employees" "r
 ensure_permission "b2222222-0003-4000-a000-000000000003" "directus_users" "read" \
   '["id","email","first_name","last_name","role","avatar"]'
 
+# Phase 66 MIG-AUTH-01: directus_roles — Viewer needs to read role.name so
+# frontend readMe({ fields: ['id','email','role.name'] }) resolves for Viewer.
+# Fields restricted to id + name; permissions excludes admin_access, app_access,
+# icon, description, parent, children, users, policies.
+ensure_permission "b2222222-0004-4000-a000-000000000004" "directus_roles" "read" \
+  '["id","name"]'
+
 # AUTHZ-02: intentionally NO permission rows on signage_* collections for Viewer.
 # Admin is handled by admin_access:true on the Admin policy (existing).
-log "section 5 complete: sales_records + personio_employees + directus_users Viewer-readable; no signage_* permissions for Viewer"
+log "section 5 complete: sales_records + personio_employees + directus_users + directus_roles Viewer-readable; no signage_* permissions for Viewer"
 
 log "Bootstrap complete."
