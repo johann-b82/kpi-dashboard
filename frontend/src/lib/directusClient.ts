@@ -1,16 +1,20 @@
 import { createDirectus, authentication, rest } from "@directus/sdk";
 
+// Phase 64 D-05: same-origin default. Caddy proxies /directus/* to directus:8055
+// (handle_path prefix-strip). Set VITE_DIRECTUS_URL to override for dev
+// workflows that need to bypass the proxy (e.g. direct :8055 access).
 const DIRECTUS_URL =
-  (import.meta.env.VITE_DIRECTUS_URL as string | undefined) ??
-  "http://localhost:8055";
+  (import.meta.env.VITE_DIRECTUS_URL as string | undefined) ?? "/directus";
 
 /**
  * Singleton Directus SDK client.
  *
  * Cookie-mode auth: the SDK stores the refresh token in an httpOnly cookie
- * set by Directus. `credentials: 'include'` is required for the cookie to
- * travel with refresh requests — matches the Directus CORS_CREDENTIALS=true
- * setting configured in docker-compose.yml (Plan 01).
+ * set by Directus on the same origin (Phase 64). `credentials: 'include'`
+ * remains required so the cookie travels on refresh requests. CORS config
+ * on the Directus container was removed in Phase 64 because all SPA calls
+ * now go through Caddy's /directus/* reverse-proxy route (same origin);
+ * no cross-origin preflight happens on normal flows.
  *
  * The short-lived access token returned by `login()` / `refresh()` is pulled
  * via `directus.getToken()` and handed to the module-singleton in
