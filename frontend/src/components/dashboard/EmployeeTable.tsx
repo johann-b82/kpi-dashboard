@@ -1,17 +1,15 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { fetchEmployees } from "@/lib/api";
+import { useEmployeesWithOvertime } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
 import { useTableState } from "@/hooks/useTableState";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { toApiDate } from "@/lib/dateUtils";
-import { hrKpiKeys } from "@/lib/queryKeys";
 
 export function EmployeeTable() {
   const { t, i18n } = useTranslation();
@@ -27,9 +25,10 @@ export function EmployeeTable() {
   const date_from = toApiDate(range.from);
   const date_to = toApiDate(range.to);
 
-  const { data, isLoading } = useQuery({
-    queryKey: hrKpiKeys.employees(date_from, date_to, search || undefined),
-    queryFn: () => fetchEmployees({ search: search || undefined, date_from, date_to }),
+  const { data, isLoading } = useEmployeesWithOvertime({
+    search: search || undefined,
+    date_from,
+    date_to,
   });
 
   const rows = useMemo(
