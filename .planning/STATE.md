@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 67-01-PLAN.md (hr_overtime router)
-last_updated: "2026-04-24T19:23:04.678Z"
+stopped_at: Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
+last_updated: "2026-04-24T19:25:57.828Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 67 (migrate-data-py-sales-employees-split) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -195,6 +195,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 66-kill-me-py P02 | 58s | 2 tasks | 4 files |
 | Phase 67 P02 | 6m | 1 tasks | 1 files |
 | Phase 67 P01 | 3m | 2 tasks | 3 files |
+| Phase 67 P03 | 4m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -217,6 +218,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 66-kill-me-py]: me_router removal is clean — no other routers imported from me.py; test file had no shared fixtures
 - [Phase 67]: Phase 67-02: fetchSalesRecords migrated to directus.request(readItems('sales_records', ...)) with filter/sort/limit/fields; multi-field search uses _or with _icontains (top-level search param avoided); SalesTable.tsx untouched (D-01); query-key unification deferred to Phase 71.
 - [Phase 67]: [Phase 67-01]: Inverted-range guard returns 422 (FastAPI semantic) instead of data.py legacy 400 — D-07. Compute endpoint returns flat dict array (not Pydantic model); frontend zero-fills missing employees.
+- [Phase 67]: Plan 67-03: fetchEmployees migrated to Directus readItems('personio_employees') with 9-field allowlist; date_from/date_to dropped from signature (D-15). useEmployeesWithOvertime composite hook merges Directus rows + FastAPI overtime via useMemo + Map; rows cache key namespaced ['directus', 'personio_employees', { search }] (Pitfall 4); overtime key ['employeesOvertime', date_from, date_to] — search edits don't refetch overtime.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -262,6 +264,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T19:23:04.675Z
-**Stopped at:** Completed 67-01-PLAN.md (hr_overtime router)
+**Last session:** 2026-04-24T19:25:51.051Z
+**Stopped at:** Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
 **Resume file:** None

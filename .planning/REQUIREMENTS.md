@@ -77,7 +77,7 @@
 ### MIG-DATA — `data.py` sales + employees split
 
 - [x] **MIG-DATA-01**: Frontend `/sales` table consumes `sales_records` via Directus SDK (`readItems` + `?filter[order_date]`) — old `GET /api/data/sales` removed.
-- [ ] **MIG-DATA-02**: Frontend `/hr` employees table row-data comes from Directus `personio_employees` — old row-data portion of `GET /api/data/employees` removed.
+- [x] **MIG-DATA-02**: Frontend `/hr` employees table row-data comes from Directus `personio_employees` — old row-data portion of `GET /api/data/employees` removed.
 - [x] **MIG-DATA-03**: A new FastAPI endpoint `GET /api/data/employees/overtime` computes total-hours / overtime roll-up per employee over `?date_from/?date_to` — frontend merges Directus rows with this compute response.
 - [ ] **MIG-DATA-04**: `data.py` is deleted (or reduced to the overtime endpoint); router registration updated; tests migrated or removed.
 
@@ -130,7 +130,7 @@
 | MIG-AUTH-02 | Phase 66 | Complete |
 | MIG-AUTH-03 | Phase 66 | Complete |
 | MIG-DATA-01 | Phase 67 | Complete |
-| MIG-DATA-02 | Phase 67 | Pending |
+| MIG-DATA-02 | Phase 67 | Complete |
 | MIG-DATA-03 | Phase 67 | Complete |
 | MIG-DATA-04 | Phase 67 | Pending |
 | MIG-SIGN-01 | Phase 68 | Pending |
