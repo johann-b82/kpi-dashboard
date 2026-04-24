@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: defining-requirements
-stopped_at: v1.22 scoped; awaiting REQUIREMENTS.md + ROADMAP.md
-last_updated: "2026-04-24T14:30:00.000Z"
+status: roadmap-defined
+stopped_at: v1.22 ROADMAP.md written; 7 phases (65–71); awaiting /gsd:plan-phase 65
+last_updated: "2026-04-24T15:00:00.000Z"
 last_activity: 2026-04-24
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,7 +16,7 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-24
-**Session:** v1.22 Backend Consolidation (Directus-first CRUD) started — defining requirements
+**Session:** v1.22 Backend Consolidation — roadmap drafted (Phases 65–71)
 
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** v1.22 — move pure-CRUD FastAPI endpoints (signage_admin, data.py, me.py) to Directus collections; FastAPI retains compute (upload POST, KPIs, sync, SSE, SNMP poll, PPTX, device-JWT pairing).
+**Current focus:** v1.22 — move pure-CRUD FastAPI endpoints (signage_admin, data.py, me.py) to Directus collections; FastAPI retains compute (upload POST, KPIs, sync, SSE, SNMP poll, PPTX, device-JWT pairing, calibration, bulk playlist-items, analytics).
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,12 +37,12 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: Not started (defining requirements)
+Phase: 65 (not started — roadmap just defined)
 Plan: —
-Status: Milestone scoped. Next step — define REQUIREMENTS.md then spawn roadmapper. Carry-forward: CAL-PI-07 real-Pi hardware walkthrough (v1.21) remains a `/gsd:quick` candidate, independent of v1.22.
-Last activity: 2026-04-24 — v1.22 started
+Status: ROADMAP.md + REQUIREMENTS.md traceability written. 7 phases (65–71), 37 requirements, 100% coverage. Next step: `/gsd:plan-phase 65` to decompose Foundation into plans. Carry-forward: CAL-PI-07 real-Pi hardware walkthrough (v1.21) remains an independent `/gsd:quick` candidate.
+Last activity: 2026-04-24 — v1.22 roadmap drafted
 
-Next action: Complete requirements definition → roadmap → `/gsd:discuss-phase [N]`.
+Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 
 ### Quick Tasks Completed
 
@@ -52,6 +52,32 @@ Next action: Complete requirements definition → roadmap → `/gsd:discuss-phas
 | 260422-hxt | Remove Digital Signage h1 heading and hoist 4-tab pill into SubHeader | 2026-04-22 | b0525e0 | [260422-hxt-remove-digital-signage-h1-heading-from-s](./quick/260422-hxt-remove-digital-signage-h1-heading-from-s/) |
 | 260422-i41 | Relocate signage primary-action CTAs below lists (media, playlists, devices, schedules) | 2026-04-22 | bdc84fa | [260422-i41-move-primary-action-buttons-below-tables](./quick/260422-i41-move-primary-action-buttons-below-tables/) |
 | 260422-j9o | Nav cluster polish: drop toggle blue, size-8 circles, normal-weight initials, title-case dashboard toggle, dynamic pill indicator | 2026-04-22 | 25082ff | [260422-j9o-nav-cluster-polish-drop-toggle-blue-size](./quick/260422-j9o-nav-cluster-polish-drop-toggle-blue-size/) |
+
+---
+
+## v1.22 Roadmap Snapshot
+
+| Phase | Name | Reqs |
+|-------|------|------|
+| 65 | Foundation — Schema + AuthZ + SSE Bridge | SCHEMA-01..05, AUTHZ-01..05, SSE-01..06 (16) |
+| 66 | Kill `me.py` | MIG-AUTH-01..03 (3) |
+| 67 | Migrate `data.py` — Sales + Employees split | MIG-DATA-01..04 (4) |
+| 68 | MIG-SIGN — Tags + Schedules | MIG-SIGN-01, MIG-SIGN-02 (2) |
+| 69 | MIG-SIGN — Playlists | MIG-SIGN-03 (1) |
+| 70 | MIG-SIGN — Devices | MIG-SIGN-04 (1) |
+| 71 | FE polish + CLEAN | FE-01..05, CLEAN-01..05 (10) |
+
+**Coverage:** 37/37 v1.22 requirements mapped. No orphans, no duplicates.
+
+### v1.22 Locked Architectural Decisions (do not revisit)
+
+- **SSE bridge = Postgres LISTEN/NOTIFY (Option A)** — Alembic triggers + asyncpg `add_listener` in FastAPI `lifespan`. Not Directus Flow webhook.
+- **Calibration PATCH stays in FastAPI** — `Literal[0,90,180,270]` + existing per-device SSE.
+- **`PUT /playlists/{id}/items` bulk-replace stays in FastAPI** — atomic DELETE+INSERT.
+- **`DELETE /playlists/{id}` stays in FastAPI** — preserves structured `409 {detail, schedule_ids}`.
+- **`GET /signage/analytics/devices` stays in FastAPI** — bucketed uptime aggregate.
+- **`GET /signage/devices` list is hybrid** — Directus rows + new FastAPI `/api/signage/resolved/{device_id}`.
+- **`signage_devices` LISTEN trigger gated on `name`/tags predicate** — calibration columns excluded to avoid double-fire with FastAPI calibration SSE.
 
 ---
 
@@ -164,156 +190,39 @@ Next action: Complete requirements definition → roadmap → `/gsd:discuss-phas
 
 ### Decisions
 
-- **v1.16 scope:** 8 phases (41–48), 47 requirements across DB/BE/SCH/ADM/PLY/DIFF/OPS/INF
-- **Phase structure:** Schema → Auth/Pair → Admin/Player API (polling) → PPTX → SSE → Admin UI → Player Bundle → Pi/E2E/Docs. Polling ships first, SSE grafts on top (belt-and-braces).
-- **Phase 41:** 8-table Alembic migration, partial-unique index on pairing codes, `ON DELETE RESTRICT` on playlist_items.media_id, Directus `DB_EXCLUDE_TABLES` for devices + pairing_sessions, migrate→directus startup ordering via `service_completed_successfully`.
-- **Phase 42:** Device auth dep, pair/request/status/claim flow, pairing cleanup in 03:00 UTC cron slot. Token format decision (opaque vs. JWT scoped) deferred to phase planning.
-- **Phase 43:** Admin router with `APIRouter(dependencies=[Depends(get_current_user), Depends(require_admin)])`, tag-to-playlist resolver (priority DESC, updated_at DESC, LIMIT 1), polling /playlist + /heartbeat, heartbeat sweeper, CI grep guards + dep-audit test.
-- **Phase 44:** PPTX conversion — `asyncio.subprocess_exec` + `asyncio.wait_for(60)` + `Semaphore(1)`, per-conv tempdir, 50MB cap, state machine, startup reset. Worker location (api container vs. dedicated pptx-worker) deferred to phase planning.
-- **Phase 45:** SSE via `sse-starlette==3.2.0`, per-device `asyncio.Queue(maxsize=32)`, 15s server pings, admin-mutation notify fanout, explicit `--workers 1` invariant comment block.
-- **Phase 46:** `/signage` tabs (Media/Playlists/Devices), `/signage/pair`, launcher tile (MonitorPlay icon), WYSIWYG preview via `react-pdf` admin-side, apiClient-only, no `dark:` variants, DE/EN parity CI.
-- **Phase 47:** Separate Vite entry (<200KB gz target), EventSource + 45s watchdog + 30s polling fallback, pdf.js worker via `?url` import pinned to `pdfjs-dist@5.6.205`, format handlers (img/video muted-autoplay-playsinline/pdf-crossfade/iframe sandbox+HEAD preflight/nh3-sanitized HTML srcdoc/PPTX as image sequence). Offline cache architecture (SW vs. Pi sidecar) deferred to phase planning.
-- **Phase 48:** Pi provisioning as dedicated `signage` user (NOT root), systemd user service with `After=graphical.target`, Chromium kiosk flag set, bilingual admin guide article + docs-index entries, full E2E walkthrough (fresh Pi → pair → play → net drop → loop → restore).
-- [Phase 41]: Plan 41-02: converted schemas.py into package and added 19 Pydantic v2 signage schemas (Base/Create/Read trios + pairing DTOs)
-- [Phase 41]: Plan 41-03: handwritten v1_16_signage Alembic revision creating 8 signage tables, partial-unique pairing-code index, RESTRICT FK on playlist_items.media_id; no pgcrypto (PG17 gen_random_uuid builtin); no ENUM types (CHECK constraints for clean round-trip)
-- [Phase 41]: Plan 41-05: SGN-DB-02 amended — partial-index predicate on signage_pairing_sessions.code is claimed_at IS NULL only. now() rejected by Postgres (errcode 42P17, non-IMMUTABLE). Expiration invariant now carried by the Phase 42 03:00 UTC pairing-cleanup cron. Round-trip test authored (test_signage_schema_roundtrip.py) catches the regression.
-- [Phase 42]: SIGNAGE_DEVICE_JWT_SECRET required, no default (D-04); revoked device → 401 not 403 (D-14); in-process rate limit viable under --workers 1 invariant
-- [Phase 42]: Plan 42-02: /api/signage/pair router delivers SGN-BE-03; Q1 resolved (unknown id → 200 expired, not 404); delete-on-deliver inside transaction; intentional exception to router-level admin-gate documented inline for Phase 43 dep-audit
-- [Phase 42]: Plan 42-03: signage_pairing_cleanup 03:00 UTC cron carries SGN-DB-02 expiration invariant (D-13); device revoke endpoint lives on pair router (not new /devices router) to avoid preempting Phase 43 CRUD; idempotent revoke preserves original revoked_at for audit
-- [Phase 43]: Plan 43-02: resolver duration_s->duration_ms conversion centralized at envelope boundary; compute_playlist_etag uses sha256('empty') sentinel for unmatched polls; resolver is pure-read (D-10)
-- [Phase 43]: Plan 43-04: player router uses router-level Depends(get_current_device); /playlist is pure-read (D-10); heartbeat sweeper runs 1-min interval and excludes already-offline + revoked devices (D-15 idempotency)
-- [Phase 43]: Plan 43-03: signage_admin router package with single router-level admin gate (D-01); 409-with-playlist_ids via JSONResponse on media FK RESTRICT (Pitfall 6); bulk-replace items + device/playlist tags in single-tx; D-21 (b) via directus_file_id -> uri mapping (no schema change)
-- [Phase 43]: Plan 43-05: dep-audit PUBLIC_SIGNAGE_ROUTES locks pair/request + pair/status as the only public signage endpoints; CI grep guards enforce no sqlite3/psycopg2 anywhere in backend/app and no sync subprocess in signage modules
-- [Phase 44]: Plan 44-01: Single apt layer adds libreoffice-impress+core, poppler-utils, Carlito/Caladea/Noto/DejaVu fonts; mkdir /app/media/slides at build time; CMD untouched (--reload preserved per plan)
-- [Phase 44]: Plan 44-02: signage_pptx uses own httpx stream for Directus download (separate from directus_uploads.py upload helper) — upload and download have distinct HTTP shapes
-- [Phase 44]: Plan 44-02: DIRECTUS_ADMIN_TOKEN defaults to empty string so module imports don't require a live token; real calls will 401 loudly
-- [Phase 44]: Plan 44-03: PPTX upload endpoint streams via async iter over UploadFile.read(64KB) — HTTPException(413) fires inside uploader's inner generator BEFORE the full body enters memory (D-13); delete_slides_dir is called inline in /reconvert (not deferred into convert_pptx) so cleanup is deterministic
-- [Phase 44]: Plan 44-05: fixtures committed as static blobs (python-pptx used one-off locally, NOT added to requirements); integration tests monkeypatch _download_pptx_from_directus and await convert_pptx directly; skip-without-binaries contract via shutil.which; stuck-reset integration has no binary dep
-- [Phase 45]: Plan 45-01: signage_broadcast uses _warned_full attr stashed on asyncio.Queue instance (not a module-level set) — new queue from subscribe() has no attr so warn-once naturally resets per connection (Pitfall 7)
-- [Phase 45]: Plan 45-01: devices_affected_by_playlist lives in signage_resolver.py (not a new module) per RESEARCH Q1 recommendation; devices_affected_by_device_update wrapper returning [device_id] gives admin notify hooks a uniform call shape for Plan 45-02
-- [Phase 45]: Plan 45-02: SSE /stream uses sse-starlette EventSourceResponse(ping=15); generator re-raises CancelledError and pops _device_queues with None default (Pitfall 1). Admin mutations fire notify_device AFTER db.commit; playlist DELETE captures affected devices pre-commit (FK cascade); playlist tag-PUT unions prev+new affected sets; devices tag-PUT notifies self unconditionally; PPTX _set_done notify wrapped in try/except (broadcast failure must not roll back state).
-- [Phase 45]: Plan 45-02: playlist_id serialized as str(uuid) in SSE payloads (actual schema uses UUIDs despite ROADMAP/CONTEXT <int> wording); disconnect cleanup test exercises the generator body directly rather than httpx.stream() over ASGITransport (infinite SSE generators cannot be cancelled deterministically through the test client).
-- [Phase 45]: Plan 45-03: CI grep guards lock signage_broadcast hygiene (8 new guards including SGN-INF-03 triple-substring invariant assertion); /health (not /api/health) used as latency probe — it's the cheapest real route touching the async DB pool. 5-client benchmark drives generator shape directly (per Plan 02 pattern) rather than httpx.stream to avoid ASGI infinite-generator pitfall; observed p95=0.52ms vs 100ms threshold.
-- [Phase 46]: 46-03: PlayerRenderer is pure presentational (D-10) — items[] in, auto-advance via per-item duration_s, fade-or-cut on next.transition, key={current.id} forces iframe/pdf state reset between items
-- [Phase 46]: 46-03: PdfPlayer uses react-pdf default worker config (NO GlobalWorkerOptions override) per D-11 — Phase 47 owns the pdfjs-dist worker pin
-- [Phase 46]: Plan 46-02: ApiErrorWithBody is signage-local variant of apiClient (single CI grep guard exemption); status colors light/dark invariant by design (semantic > theming); refetchInterval as terminal-aware function returning false on done/failed
-- [Phase 46]: Plan 46-01: signage locale keys added as flat-dotted top-level entries to match parity script's Object.keys contract; launcher.tiles.signage (plural) is new sibling per D-16 — existing launcher.tile.* (singular) untouched
-- [Phase 46]: Plan 46-01: AdminOnly wraps every /signage/* route at App.tsx level (not inside SignagePage) so viewer roles never instantiate the page; custom button-group sub-nav (NOT shadcn <Tabs>) keeps URL as source of truth
-- [Phase 46]: 46-04: SignageMediaCreate Pydantic v2 default extra='ignore' silently drops unknown fields (tags, metadata, url from plan bodies) — upload + register + delete flows succeed end-to-end while URL/HTML content storage stays a backend follow-up. Frontend signageTypes.ts (from 46-02) also diverges from backend Read shape (directus_file_id/tags vs uri); deferred as cross-cutting reconciliation.
-- [Phase 46]: 46-06: Device PATCH body is name-only; tag updates flow through PUT /devices/{id}/tags. updateDevice signageApi accepts {name, tag_ids} for ergonomics, internally only forwards {name}; DeviceEditDialog sequences PATCH then PUT
-- [Phase 46]: 46-06: Revoke endpoint lives at /api/signage/pair/devices/{id}/revoke (not /api/signage/devices/{id}/revoke) per Phase 42 P03 placement; backend collapses pairing-claim 404 errors into one detail string — substring-match for inline UX
-- [Phase 46]: Plan 46-05: backend update_playlist is PATCH (not PUT) and excludes tag_ids; tag mutations route through PUT /playlists/{id}/tags. createPlaylist server-side ignores tag_ids; PlaylistNewDialog collects name only and editor handles tags after.
-- [Phase 46]: Plan 46-05: PlayerRenderer preview is fed by useWatch over react-hook-form items state (Pitfall 9); items not present in mediaLookup are silently skipped.
-- [Phase 46]: Plan 46-05: useUnsavedGuard scopePath = '/signage/playlists/${id}'; '__back__' sentinel triggers history.go(-2) on confirm-discard. Parallel coalesce with 46-06 attributed App.tsx/signageApi.ts/UnsavedChangesDialog edits to commit 5780c41.
-- [Phase 47-player-bundle]: OQ1 i18n Path B locked — hard-coded EN+DE strings.ts for bundle-size budget (Pitfall P9)
-- [Phase 47-player-bundle]: OQ4 /stream ?token= query auth FAIL — backend dep only reads Authorization header; Plan 47-03 owns the 6-line backend tweak
-- [Phase 47-player-bundle]: Plan 47-01: multi-entry vite + mode branching + manualChunks vendor-react + post-build player.html→index.html rename; react-is added as direct dep to unblock admin build after overrides reshuffle
-- [Phase 47-player-bundle]: Plan 47-02: PairingScreen.tsx uses raw fetch() for /pair/request and /pair/status (unauthenticated per Phase 42 D-15); Plan 47-05 check-player-isolation must exempt as second file alongside playerApi.ts
-- [Phase 47-player-bundle]: Plan 47-02: App.tsx (47-04) must register BOTH /player/:token and /player/ routes — useDeviceToken + clearToken rely on the no-token route for fall-through to PairingScreen
-- [Phase 47-player-bundle]: OQ4 resolved: get_current_device accepts Authorization header OR ?token= query param
-- [Phase 47-player-bundle]: VideoPlayer loop default stays true (backward compat); player wrapper passes loop={false}
-- [Phase 47-player-bundle]: Plan 47-04: wouter Router base="/player" aligns with Vite base; FastAPI SPA fallback guards with PLAYER_DIST.exists() so pytest stays no-op; direct-serve with parent-equality path-traversal check keeps sw.js/manifest MIME types correct (Pitfall P6)
-- [Phase 47-player-bundle]: Plan 47-05: SGN-PLY-01 bundle cap at 204,456 gz / 200,000 cap (2.2% over) — orchestrator decision pending at UAT checkpoint
-- [Phase 47-player-bundle]: Plan 47-05: autonomous UAT (chrome-devtools MCP) surfaced 12 defects; 11 auto-fixed in 3334869 + 45f287c (tailwind missing, wouter double-base in 2 paths, localStorage-resume, media passthrough route, PLAYER_DIST container path, schema gap html/slide_paths, absolute-URL routing, devices tags shape). Open: D-7 SW scope cannot intercept /api/signage/player/* (D2-D4 fail), D-8 player fetch cache: no-store missing. Scenarios A/B1/C/E/F1/F3/F4/F5/G1/G3/G4 PASS; B2/B3/F2/F6 not exercised.
-- [Phase 48]: Module-level state (not class) for single-device sidecar — simplest correct design for a process serving exactly one kiosk
-- [Phase 48]: lifespan context manager (not deprecated @app.on_event) for background task lifecycle in Pi sidecar
-- [Phase 48]: Token overwritten on each POST /token; os.chmod(0o600) called after every write to preserve permissions
-- [Phase 48]: Static systemd units with __SIGNAGE_API_URL__/__SIGNAGE_UID__ token substitution over template units (%i) — simpler provision script, cleaner journalctl names
-- [Phase 48]: Plan 48-03: postSidecarToken is fire-and-forget (void) in both PairingScreen + useSidecarStatus — sidecar absence must not delay pairing UX; prevStatusRef (useRef) tracks previous sidecar status for restart recovery without extra re-render
-- [Phase 48]: Plan 48-04: toc.ts is heading-extraction utility only; digital-signage registered in registry.ts which owns both sections[] and registry content maps
-- [Phase 48]: Plan 48-04: Operator runbook at docs/operator-runbook.md (repo root) per D-5 and RESEARCH §12 OQ5 resolution
-- [Phase 49-pi-image-build]: Package SSOT: scripts/lib/signage-packages.txt is canonical (was originally mirrored to 00-packages-nr for the image-build path — that path and its CI drift-check were retired 2026-04-21)
-- [v1.18 scope change 2026-04-21]: Custom Pi image pipeline retired — `pi-image/` directory, `.github/workflows/pi-image.yml`, minisign signing, arm64 self-hosted runner, and the `signage-packages.txt`↔`00-packages-nr` drift-check removed. Pi provisioning is now single-path via `scripts/provision-pi.sh` on fresh Raspberry Pi OS Bookworm Lite 64-bit. SGN-POL-01/02/03/06 dropped from v1.18.
-- [Phase 50-pi-polish]: Lazy chunks (PdfPlayer-*/pdf-*) excluded from player entry cap via LAZY_PREFIXES allowlist
-- [Phase 50-pi-polish]: SGN-POL-04 closed via operator hardware walkthrough on 2026-04-21: Scenarios 4+5 both PASS on v1.18 Pi (Bookworm Lite 64-bit, provisioned via scripts/provision-pi.sh). Thresholds (reconnect→admin-mutation ≤30s; sidecar restart visual continuity + /health ≤15s) verified by direct observation; exact numerical timings not captured — documented as 'not recorded' in 50-E2E-RESULTS.md.
-- [Phase 51]: Plan 51-01: Extracted _build_envelope_for_playlist helper so schedule-matched and tag-matched envelopes are byte-identical (ETag invariant preserved, D-08/D-09)
-- [Phase 51]: Plan 51-01: Weekday bit test uses SQLAlchemy bindparam ((weekday_mask >> :wd) & 1 = 1), never f-string interpolation — SQL parameterization hygiene enforced via CI grep guard
-- [Phase 51]: Plan 51-01: app_settings.timezone server_default='Europe/Berlin' backfills singleton row atomically — no op.execute() needed
-- [Phase 51]: Plan 51-02: schedule-changed SSE events emitted per (device, playlist_id) pair — PATCH union case sends one event per playlist so player can correlate re-resolves
-- [Phase 51]: Plan 51-02: Playlist DELETE 409 body {detail, schedule_ids} via JSONResponse mirrors media 409 {detail, playlist_ids} convention (RESEARCH Q2 closed)
-- [Phase 51]: Plan 51-02: asyncpg raises FK RESTRICT at db.execute(delete), not only at db.commit — try/except must wrap both
-- [Phase 52]: Plan 52-03: Appended bilingual Schedules/Zeitpläne admin-guide sections verbatim per plan; DE du-tone enforced (0 Sie/Ihre/Ihr); added 33 lines per file (plan's prose block shorter than >=40 acceptance threshold).
-- [Phase 52]: Flat-dotted i18n key style (matches Phase 46 parity contract)
-- [Phase 52]: Plan 52-02: useAdminSignageEvents hook is best-effort (no backend admin SSE channel exists yet); admin correctness preserved via own-mutation invalidation
-- [Phase 52]: Plan 52-02: error.start_after_end reserved for backend-error surfacing only — client validator never emits it (D-07 consolidation)
-- [Phase 52]: Plan 52-02: added testing-library + jsdom + vitest.config.ts (jsdom env) to unblock component tests; pre-existing pure-logic tests kept on node env via environmentMatchGlobs
-- [Phase 53]: Plan 53-01: signage_heartbeat_event composite PK (device_id, ts); COUNT(DISTINCT date_trunc('minute', ts)) SQL; 1-decimal uptime precision; zero-heartbeat devices INCLUDED with uptime_24h_pct=null (not omitted); 25h retention for 1h sweeper-vs-analytics buffer
-- **[v1.19 roadmap 2026-04-21]:** 6 phases (54–59), 23 requirements. Phase sequencing: Toggle (54) → Form Controls (55) → Breadcrumb Header (56) ∥ Section Context (57) → Sensors Parity (58) → A11y Sweep (59). Build primitives first so later phases consume them; A11y sweep runs last over everything touched.
-- [Phase 54]: Plan 54-01: Toggle is an independent primitive (not SegmentedControl extension) — 2-tuple segments enforced at type + runtime; icon-or-label required per segment; usePrefersReducedMotion hook with SSR guard.
-- [Phase 54]: Plan 54-04: ThemeToggle migrated to Toggle primitive — icon-only segments, persistence/OS logic byte-for-byte preserved
-- [Phase 54]: Plan 54-03: CHART_TYPES narrowed to 2-tuple via 'as const satisfies readonly [ChartType, ChartType]'; Toggle segments built by tuple-indexing (not .map) to satisfy Toggle's 2-tuple contract while preserving constant-as-SSOT.
-- [Phase 54]: Plan 54-02: Toggle primitive drop-in parity with SegmentedControl confirmed in production (NavBar Sales/HR); 'as const' required at call sites for readonly 2-tuple inference
-- [Phase 54]: Plan 54-05: LanguageToggle migrated to Toggle primitive preserving i18n.changeLanguage; no new i18n keys; NavBar call site unchanged
-- [Phase 55]: Plan 55-01: Button lg/icon-lg variants removed (0 call sites); Textarea primitive ships with class-chain parity to Input (D-08) — focus/disabled/invalid fragments byte-identical; 6 unit tests pass
-- [Phase 55]: Plan 55-03: Dropdown primitive is action-menu-only (D-02); trigger unstyled, caller passes render={<Button />}; popup surface class byte-fragment-identical to Popover; DropdownSeparator included (+3 lines) to unblock future row-action adoption without follow-up PR
-- [Phase 55]: Plan 55-02: Select primitive exports 8 pieces; trigger class chain copied verbatim from Input (not imported) per D-08; Popup class inlined (not shared with Popover); onValueChange test skipped in jsdom (backdrop blocks pointer) with D-12 minimum coverage met via render+interaction+disabled+invalid
-- [Phase 55]: Plan 55-06: radio/checkbox <input> migrated to <Input> primitive with className overrides (h-auto border-0 bg-transparent px-0 py-0) that reset text-input styling via tailwind-merge — native browser radio/checkbox visuals pass through. File-picker <input {...getInputProps()} /> sites carry CTRL-02 annotation even though type="file" is injected at runtime (not source literal).
-- [Phase 55]: Plan 55-04: Raw <button> CTRL-02 closure — 8 files migrated; 3 LauncherPage tiles annotated as exceptions (gradient card-surface visual); ColorPicker swatch 9->8 honours CTRL-03 over pixel parity; fixed parallel-55-05 implicit-any Select onValueChange parameter
-- [Phase 55]: Plan 55-05: ScheduleEditDialog test file uses vi.mock shim (native <select>) to exercise validator/blur logic because base-ui Select popup cannot be driven in jsdom; empty-option placeholder collapsed into <SelectValue placeholder>
-- [Phase 56]: Plan 56-01: Breadcrumb infrastructure — static route map + pure matcher + component. Leaf renders as span aria-current=page (D-06); dynamic segments collapse to parent leaf (D-02); Home prepended at render (D-04). 3 i18n keys (nav.home, breadcrumb.aria_label, breadcrumb.signage.pair) referenced but land in Plan 04 — tests assert DOM shape only.
-- [Phase 56]: Plan 56-02: Pitfall 3 resolved via render-prop — Menu.LinkItem with render={<WouterLink />} preserves base-ui highlight state in jsdom; fallback to navigate() not needed
-- [Phase 56]: Plan 56-02: Identity row is <div data-testid=usermenu-identity>, not DropdownItem (D-12 #1) — sign-out tests target last role=menuitem so they stay stable across Plan 04 i18n copy
-- [Phase 56]: Plan 56-03: Atomic chrome swap — NavBar stripped to identity only (157->~30 lines); SubHeader hosts Sales/HR Toggle + AdminOnly Upload on /sales and /hr; lastDashboard sessionStorage removed repo-wide; chrome contract h-16/top-0/z-50 + h-12/top-16/z-40 preserved
-- [Phase 56]: Plan 56-04: nav.home copy is 'Apps' in both EN and DE (landing route = app launcher, not a dashboard); active breadcrumb crumb uses text-primary + font-medium for current-location affordance; DE/EN parity at 479 keys after +8/-3.
-- [Phase 57]: Plan 57-04: bodyFallback uses <1>{{itemLabel}}</1> component-index markers for react-i18next Trans (NOT markdown **) per RESEARCH Pitfall 8 — supersedes UI-SPEC markdown copy
-- [Phase 57]: Plan 57-04: tags + users section keys reserved despite no /signage/tags or /settings/users routes today (RESEARCH Q4 reserve note); insertion point before launcher.title groups primitive ui.* + structural section.*
-- [Phase 57]: Plan 57-02: DeleteDialog uses base-ui render={<div />} on DialogDescription (not asChild) to keep body=ReactNode without p>div nesting; Cancel autoFocus asserted via document.activeElement (React strips the autofocus HTML attribute)
-- [Phase 57]: Plan 57-03: DeleteButton swallows onConfirm rejection inside handleConfirm so the React event-handler boundary stays clean — caller is responsible for surfacing error UI before throwing. Tests use heading role (not text) to assert dialog open, since 'Delete' appears in both trigger aria-label and Confirm button.
-- [Phase 57]: Plan 57-01: SectionHeader primitive — font-medium harmonization (not font-semibold), mb-6 wrapper + mt-1 rhythm, children?: never type-block, null-on-empty-title, lang={i18n.language} for browser hyphenation
-- [Phase 57]: Plan 57-06: mutateAsync wrapped in async/await arrow to satisfy DeleteButton onConfirm Promise<void> contract; Phase 52 D-13 409 schedules-active deep-link preserved through migration
-- [Phase 57]: Plan 57-08: DevicesPage migrates to SectionHeader; Revoke (ShieldOff) preserved as semantically distinct from row delete (RESEARCH Pitfall 4)
-- [Phase 57]: Plan 57-10: Upload History migrated to DeleteButton with legacy delete_* keys preserved via explicit dialogTitle/cancelLabel/confirmLabel/dialogBody overrides; legacy DeleteConfirmDialog.tsx deleted (sole consumer migrated)
-- [Phase 57]: Plan 57-11: CI guard script implemented as Node fs walk (no system rg available); strips // comments before pattern match so primitives can self-document banned patterns; wired as npm run check:phase-57 on frontend/package.json (no root package.json in repo)
-- [Phase 58]: PollNowButton gains size prop + RefreshCw/Loader2 icon swap; SensorTimeWindowProvider hoisted to App.tsx above AppShell inside DateRangeProvider — foundations for Plan 58-02 SubHeader consumer
-- [Phase 58]: Plan 58-02: Per-route SubHeader slot gating via wouter location === /sensors; PollNowButton placed before freshness ternary (D-04); JSDoc rewrite to avoid literal component names conflicting with AC greps (Rule 3 deviation)
-- [Phase 59]: Plan 59-01: allowlist holds both docs.empty.body (verified path) AND empty.body (plan's original guess) — du-tone script tolerant to future docs restructuring
-- [Phase 59]: Plan 59-01: check:phase-59 umbrella unions check:i18n-parity + check:i18n-du-tone as persistent CI entrypoint (D-02/D-03)
-- [Phase 59]: Plan 59-02: Path A focus-ring utility (outline-none focus-visible:ring-3 focus-visible:ring-ring/50) adopted as canonical for components/ui/ — Checkbox migrated off Path B; Toggle segments add focus-visible:z-20 (no border swap, parent owns border); Badge ring-[3px] normalized to ring-3; CONTEXT.md D-04 Path B retired in favor of shipped majority.
-- [Phase 59]: Plan 59-03: icon-Button aria guard uses brace/quote-aware JSX tag extractor (not single-line regex) — surfaces multi-line tags like dialog Close + calendar Day; 2 real findings fixed inline (Rule 2)
-- [Phase 60]: Plan 60-02: HR fetchers accept pre-formatted YYYY-MM-DD (not Date) to eliminate timezone-drift at serialisation boundary; hrKpiKeys.{summary,history,employees} embed {from,to}; deriveHrBuckets clips first/last edges to from/to for D-06
-- [Phase 60]: Plan 60-01: fluctuation denominator computed in Python via per-day active count over single SELECT (simpler than SQL generate_series); prior_window_same_length uses inclusive day count; /kpis/history keeps legacy 12-month fallback for thisYear landing parity
-- [Phase 60]: Plan 60-03: DateRangeFilter mount gate on SubHeader reused existing isDashboard variable; MiniChart gains HrBucketGranularity prop and branches label formatter (monthly preserves formatMonthYear byte-for-byte); server remains source of truth for bucket boundaries (no client-side re-aggregation)
-- [Phase 60]: Plan 60-04 Task 1 (pytest suite, 13/13 pass) committed (5a05565); Task 2 (manual thisYear parity + Sales↔HR state check) awaiting human verification — plan not yet complete
-- [Phase 61]: select.tsx wrapper narrows base-ui onValueChange via Omit + null-guard at the wrapper boundary — keeps 5 consumer files passing (v: string) callbacks unchanged (D-02 minimise blast radius)
-- [Phase 61]: SalesTable Option A taken (call-site intersection SalesRow = SalesRecordRow & Record<string, unknown>); useTableState.ts and api.ts unchanged (D-02)
-- [Phase 61]: useSensorDraft buildGlobalsPayload return tightened to Partial<SettingsUpdatePayload> — accurate type closes TS2783 duplicate-key errors on caller spread without touching spread layout
-- [Phase 61]: No || true fallback in any build surface (package.json, docker-compose.yml, Dockerfile, .github/workflows, .husky) — D-05 satisfied by verification, no edit required
-- [Phase 62]: Plan 62-01: SSE calibration-changed payload is {event, device_id} only per D-08; full state fetched via GET /api/signage/player/calibration (no state in event body)
-- [Phase 62]: Plan 62-01: Literal[0,90,180,270] on rotation in SignageCalibrationUpdate gives FastAPI auto-422 — no hand-rolled validation (D-10)
-- [Phase 62]: Plan 62-01: server_default on ALTER TABLE atomically backfills existing rows (rotation=0, audio_enabled=false) — D-07 no flicker on deployed devices
-- [Phase 62-signage-calibration]: 62-03: sidecar calibration applier landed — httpx-sse SSE subscriber + asyncio.create_subprocess_exec wlr-randr/wpctl apply + _wait_for_wayland_socket bounded poll + /var/lib/signage/calibration.json boot replay (D-06) + D-09 no-retry; 17 unit tests, 0 sync subprocess
-- [Phase 62]: Plan 62-02: HDMI Auto placeholder uses empty-string sentinel mapped to null at Select<->form boundary; preserves D-02 null semantic in PATCH body
-- [Phase 62]: Plan 62-02: Toggle segments memoised to stabilize Toggle.useLayoutEffect dep identity — avoids jsdom render loop + extra prod paint
-- [Phase 62]: Plan 62-02: Unit test is shape-based (apiClient spy + source regex + JSON locale load); render test blocked by jsdom/Toggle/Dialog/RHF interaction — 62-04 E2E carries runtime coverage
-- [Phase 62-signage-calibration]: Plan 62-04 Task 1 (CAL-PI-06) complete: player onCalibrationChanged SSE dispatch + fetchCalibration + <video muted> toggle via audioEnabled prop chain (VideoPlayer default muted=true preserves admin-preview behaviour). Task 2 (CAL-PI-07 real-Pi E2E) awaits human verification — plan remains open, CAL-PI-07 still pending.
-- [Phase 63]: Plan 63-01: --legacy-peer-deps applied at Dockerfile + frontend/.npmrc; no lockfile regen; rationale: vite-plugin-pwa@1.2.0 peerDeps cap at vite ^7 (registry 2026-04-24), vite downgrade + plugin swap rejected (D-02/D-03)
-- [Phase 64]: Phase 64 Plan 01: Caddy /api/* uses handle (preserve prefix); /directus/* uses handle_path (strip); flush_interval -1 + 24h read_timeout on /api/* transport for SSE; CORS env removed entirely from directus service; verify-phase-64-proxy.sh probes /api/me (401) instead of /api/health (absent). Unblocks Phase 62 CAL-PI-07.
+- **[v1.22 roadmap 2026-04-24]:** 7 phases (65–71), 37 requirements. Sequencing: Foundation (65) → `me.py` (66) → `data.py` split (67) → Tags+Schedules (68) → Playlists (69) → Devices (70) → FE polish + CLEAN (71). Phase 65 ships backend-only with zero user-visible change — proves the Postgres LISTEN/NOTIFY SSE bridge (Option A) before any endpoint migration. MIG-SIGN sub-phased so each has its own SSE regression test.
+- **[v1.22 SSE bridge decision 2026-04-24]:** Option A (Postgres LISTEN/NOTIFY) picked. Alembic owns triggers on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `signage_devices` (last gated on `OLD.name IS DISTINCT FROM NEW.name OR OLD.tags IS DISTINCT FROM NEW.tags`). FastAPI `lifespan` hosts asyncpg `add_listener` long-lived connection → resolver → existing `notify_device()`. Writer-agnostic (fires on Directus, psql, future writers). Not Directus Flow webhook.
+- **[v1.22 keep-in-FastAPI list 2026-04-24]:** Calibration PATCH, bulk `PUT /playlists/{id}/items`, `DELETE /playlists/{id}` (preserves 409 `{detail, schedule_ids}` shape), `GET /signage/analytics/devices`, media upload POST, pair/*, player/* stream, PPTX convert. `GET /signage/devices` list is hybrid: Directus rows + new FastAPI `/api/signage/resolved/{device_id}`.
+- [v1.21 prior decisions preserved — see MILESTONES.md for full history]
 
-### Cross-cutting hazards (hard gates, see ROADMAP.md)
+### Cross-cutting hazards (hard gates)
 
 1. DE/EN i18n parity (CI script) — EN count == DE count on every new/renamed key
-2. apiClient-only in admin frontend (no direct `fetch()`)
-3. No `dark:` Tailwind variants (tokens only) — dark-mode sweep enforces in Phase 59
-4. `--workers 1` invariant preserved
-5. Router-level admin gate via `APIRouter(dependencies=[…])`
+2. apiClient-only in admin frontend (plus new `directus.request()` via `signageApi.ts` adapter seam — Phase 71)
+3. No `dark:` Tailwind variants (tokens only)
+4. `--workers 1` invariant preserved — **CI guard references this for v1.22 asyncpg listener correctness**
+5. Router-level admin gate via `APIRouter(dependencies=[…])` on remaining FastAPI signage routes
 6. No `import sqlite3` / no `import psycopg2`
 7. No sync `subprocess.run` in signage services
-8. **v1.19 new:** `prefers-reduced-motion` fallback on Toggle (instant indicator swap)
-9. **v1.19 new:** Keyboard navigability + visible focus ring on every migrated control
-10. **v1.19 new:** Pure frontend — no backend schema or API changes
+8. **v1.22 new:** Alembic is sole DDL owner — `information_schema.columns` hash CI guard vs Directus snapshot YAML drift-check (Phase 65 SCHEMA-03)
+9. **v1.22 new:** Viewer field allowlists mirror Pydantic `*Read` exactly — no `fields:["*"]` on `directus_users` (Phase 65 AUTHZ-03)
+10. **v1.22 new:** `DB_EXCLUDE_TABLES` superset check — hard-coded "never expose" allowlist (`alembic_version`, `app_settings`, `personio_attendance`, `personio_absences`, `personio_sync_meta`, `sensors`, `sensor_readings`, `sensor_poll_log`, `signage_pairing_sessions`, `signage_heartbeat_event`, `upload_batches`)
+11. **v1.22 new:** `signage_devices` LISTEN trigger column-level predicate (name/tags only) — calibration SSE stays FastAPI-owned
 
 ### Open decisions deferred to phase planning
 
-- **Decision 1 (Phase 54):** Toggle component API — should it extend `SegmentedControl` internally with a 2-option specialization, or be an independent primitive? Binds migration surface in 54 + 55.
-- **Decision 2 (Phase 55):** Canonical primitive source — adopt shadcn/ui wrappers wholesale vs. hand-rolled at `h-8`? Binds CTRL-01..04 scope.
-- **Decision 3 (Phase 56):** Breadcrumb label source — derive from route tree config vs. per-page registration hook? Binds HDR-02/03 i18n pattern.
-- **Decision 4 (Phase 57):** `DeleteDialog` shape — keep the existing signage `DeleteDialog` component, or promote a new generic one? Binds SECTION-03/04 migration sweep.
+- **Decision (Phase 65):** Directus `schema apply` against existing Alembic-owned tables — known issue #25760 "existing-table" edge. REST `POST /collections {schema:null}` fallback documented; confirm in Phase 65 spike.
+- **Decision (Phase 68):** `DELETE /api/signage/tags/{id}` 409 reshape behavior — Directus-served delete vs keep FK 409 logic in adapter via follow-up query.
+- **Decision (Phase 69):** Directus 11 nested-O2M atomic single-PATCH shape for playlist metadata+tags — verify during plan.
+- **Decision (Phase 67):** `GET /api/data/sales` search-param scope — accept broader `?search=` via Directus `filter[_or]` encoding vs keep narrow.
+- **Decision (Phase 71):** `signage_pairing_sessions` exposure to Directus — default exclude (FastAPI-only); reconsider if ops-debugging convenience becomes a request.
 
 ### Pending Todos
 
-- Kick off Phase 54 via `/gsd:discuss-phase 54` (Toggle primitive + migrations)
-- Resolve Phase 47 open defects D-7 (SW scope) and D-8 (player fetch cache: no-store) as polish or in a future phase
-- Orchestrator decision: raise player bundle gz cap to 210 000 or keep lazy-chunk discipline (v1.17 polish)
+- Discuss / plan Phase 65 via `/gsd:discuss-phase 65` (Foundation: Schema + AuthZ + SSE bridge, backend-only, zero user-visible change)
+- Carry-forward: CAL-PI-07 real-Pi hardware walkthrough (v1.21) — candidate for `/gsd:quick` independent of v1.22
+- Carry-forward: v1.17 Phase 47 player SW scope (D-7) + player fetch cache: no-store (D-8) — deferred polish
+- Carry-forward: player bundle gz cap raise vs lazy-chunk discipline — orchestrator decision
 
 ### Open Blockers
 
@@ -324,11 +233,12 @@ None.
 - Phase 2 human-UAT: 5 visual items (drag-drop spinner, toast, inline error list) — non-blocking
 - DASH-02 monthly-only: granularity toggle removed by user request
 - v1.9 D-12 waiver: axe + WebAIM skipped at operator request
+- v1.21 CAL-PI-07 waiver: real-Pi hardware walkthrough pending per-device diagnostic
 
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T08:07:56.418Z
-**Stopped at:** Completed 64-01-reverse-proxy-PLAN.md; milestone v1.21 reverse-proxy item cleared; CAL-PI-07 unblocked
+**Last session:** 2026-04-24T15:00:00.000Z
+**Stopped at:** v1.22 ROADMAP.md + REQUIREMENTS.md Traceability written; 7 phases (65–71) with 37/37 requirement coverage; awaiting Phase 65 plan decomposition
 **Resume file:** None

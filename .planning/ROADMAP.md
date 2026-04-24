@@ -22,6 +22,7 @@
 - ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
 - ✅ **v1.20 HR Date-Range Filter + TS Cleanup** — Phases 60–61 (shipped 2026-04-22) — [archive](milestones/v1.20-ROADMAP.md)
 - ✅ **v1.21 Signage Calibration + Build Hygiene + Reverse Proxy** — Phases 62–64 (shipped 2026-04-24, CAL-PI-07 waived) — [archive](milestones/v1.21-ROADMAP.md)
+- 🚧 **v1.22 Backend Consolidation — Directus-First CRUD** — Phases 65–71 (in progress)
 
 ## Phases
 
@@ -222,6 +223,106 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 
 </details>
 
+### 🚧 v1.22 Backend Consolidation — Directus-First CRUD (In Progress)
+
+**Milestone Goal:** Move ~25 pure-CRUD FastAPI endpoints (`signage_admin/*`, `data.py`, `me.py`) to Directus collections on the shared Postgres, keeping Alembic as sole DDL owner and FastAPI focused on compute (upload, KPIs, Personio sync, SSE, SNMP, PPTX, device-JWT minting, calibration, bulk playlist-item replace, analytics).
+
+**Ordering principle:** Phase 65 ships backend-only with zero user-visible change. It proves the Postgres LISTEN/NOTIFY SSE bridge (Option A) works before any endpoint moves. MIG-SIGN sub-phased (tags+schedules → playlists → devices) so each migration is independently shippable with its own SSE regression test.
+
+**Locked architectural decisions (do not revisit):** SSE bridge = Postgres LISTEN/NOTIFY (Option A); calibration PATCH, `PUT /playlists/{id}/items` bulk-replace, `DELETE /playlists/{id}` (409 shape), `GET /signage/analytics/devices` all stay in FastAPI; `GET /signage/devices` list is hybrid (Directus rows + new FastAPI `/resolved/{device_id}`).
+
+- [ ] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change.
+- [ ] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist.
+- [ ] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute.
+- [ ] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed.
+- [ ] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression.
+- [ ] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression.
+- [ ] **Phase 71: FE polish + CLEAN** — Adapter seam refinement, contract-snapshot tests per migrated endpoint, dead FastAPI router/schema/test deletion, CI guards, rollback E2E, README/architecture docs.
+
+## Phase Details
+
+### Phase 65: Foundation — Schema + AuthZ + SSE Bridge
+**Goal**: A fresh `docker compose up -d` reproduces v1.21 behavior exactly, plus Directus Data Model UI edits to the surfaced collections fan out to Pi players as SSE within 500 ms — all with zero frontend change.
+**Depends on**: v1.21 (shipped)
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, AUTHZ-01, AUTHZ-02, AUTHZ-03, AUTHZ-04, AUTHZ-05, SSE-01, SSE-02, SSE-03, SSE-04, SSE-05, SSE-06
+**Success Criteria** (what must be TRUE):
+  1. A fresh-volume `docker compose down -v && up -d` brings up the stack idempotently with all v1.22 Directus collections registered via the git-checked snapshot YAML — no UI click-through, no Alembic DDL drift.
+  2. Viewer JWT can read `sales_records` + `personio_employees` but cannot read excluded fields on `directus_users` (`tfa_secret`, `auth_data`, `external_identifier`) and cannot mutate any `signage_*` collection (integration test per collection).
+  3. Mutating a surfaced signage collection directly via the Directus Data Model UI fires the correct SSE event (`playlist-changed` / `device-changed` / `schedule-changed`) to connected Pi players within 500 ms.
+  4. Calibration PATCH via FastAPI continues to fire `calibration-changed` SSE without double-firing from the LISTEN bridge (signage_devices trigger gated on name/tags-only predicate).
+  5. The single-listener invariant holds: `--workers 1` preserved, asyncpg listener auto-reconnects on Postgres restart with a warn-log line (manually verified), and CI guard references the invariant.
+**Plans**: TBD
+
+### Phase 66: Kill `me.py`
+**Goal**: Frontend reads the current user identity entirely via Directus SDK; the FastAPI `/api/me` surface is gone and guarded by CI.
+**Depends on**: Phase 65
+**Requirements**: MIG-AUTH-01, MIG-AUTH-02, MIG-AUTH-03
+**Success Criteria** (what must be TRUE):
+  1. Post-login, `AuthContext` populates current user (`id`, `email`, `first_name`, `last_name`, `role`, `avatar`) via `directus.request(readMe(...))` — no `/api/me` network call in DevTools.
+  2. `backend/app/routers/me.py`, its `main.py` registration, schemas, and tests are deleted; `/api/me` returns 404.
+  3. A CI guard greps for `"/api/me"` in `frontend/src/` and fails if any reference remains.
+**Plans**: TBD
+
+### Phase 67: Migrate `data.py` — Sales + Employees split
+**Goal**: Sales and HR row-data lookups come from Directus; overtime roll-up per employee stays in FastAPI; frontend tables render the same rows and compute values as v1.21 with no user-visible regression.
+**Depends on**: Phase 65
+**Requirements**: MIG-DATA-01, MIG-DATA-02, MIG-DATA-03, MIG-DATA-04
+**Success Criteria** (what must be TRUE):
+  1. `/sales` table renders rows fetched via Directus SDK from `sales_records` with `?filter[order_date]` date-range filtering; `GET /api/data/sales` is removed and returns 404.
+  2. `/hr` employees table renders rows fetched from Directus `personio_employees`; the row-data portion of `GET /api/data/employees` is removed.
+  3. New FastAPI `GET /api/data/employees/overtime?date_from&date_to` returns per-employee total-hours / overtime roll-up over the requested window; frontend merges Directus rows with this compute response and the overtime badge values match v1.21 output.
+  4. `data.py` is either deleted or reduced to the overtime endpoint; tests migrated or removed; no orphaned imports.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 68: MIG-SIGN — Tags + Schedules
+**Goal**: Signage tags and schedules CRUD happen through Directus; admin UI continues to create/rename/delete tags and schedules with the same UX; Pi players receive `tag_map` and `schedule-changed` SSE fan-out within 500 ms of the Directus write.
+**Depends on**: Phase 65
+**Requirements**: MIG-SIGN-01, MIG-SIGN-02
+**Success Criteria** (what must be TRUE):
+  1. Admin can create, rename, and delete signage tags from the `/signage/tags` admin surface; writes go to Directus via the SDK; `DELETE /api/signage/tags/{id}` and related FastAPI tag routes are removed.
+  2. Admin can create, edit, and delete schedules from `/signage/schedules`; `start_hhmm < end_hhmm` is enforced (Alembic CHECK + Directus validation hook for friendly error message); FastAPI schedules router is removed.
+  3. Directus-originated mutations on `signage_tags` / `signage_playlist_tag_map` / `signage_device_tag_map` / `signage_schedules` fan out the correct SSE events (`playlist-changed` on tag-map changes, `schedule-changed` on schedule changes) to affected Pi players within 500 ms (SSE regression test per table).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 69: MIG-SIGN — Playlists
+**Goal**: Playlist metadata CRUD and items GET happen through Directus; structured 409 on playlist delete and atomic bulk-replace of items remain in FastAPI unchanged; SSE `playlist-changed` still fires for both writers.
+**Depends on**: Phase 68
+**Requirements**: MIG-SIGN-03
+**Success Criteria** (what must be TRUE):
+  1. Admin can list/create/rename/re-tag playlists via `/signage/playlists` with writes going through Directus SDK (`readItems` / `createItem` / `updateItem` on `signage_playlists`, PUT tags via `signage_playlist_tag_map`).
+  2. `DELETE /api/signage/playlists/{id}` still returns the structured `409 {detail, schedule_ids}` shape that `PlaylistDeleteDialog` deep-links off when a playlist is referenced by schedules; bulk `PUT /api/signage/playlists/{id}/items` still performs an atomic DELETE+INSERT.
+  3. A Pi player receives `playlist-changed` SSE within 500 ms whether the write originated from Directus (items reordered, metadata renamed, tags updated) or FastAPI (bulk-replace, delete).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 70: MIG-SIGN — Devices
+**Goal**: Device CRUD (name, tags, delete) happens through Directus; calibration PATCH and analytics uptime stay in FastAPI; the Devices admin list renders Directus rows merged with a FastAPI-computed resolved-playlist per device; SSE `device-changed` fires for both writers without double-firing on calibration.
+**Depends on**: Phase 69
+**Requirements**: MIG-SIGN-04
+**Success Criteria** (what must be TRUE):
+  1. Admin can rename a device, edit its tag set, and delete a device via `/signage/devices` with writes going through Directus SDK on `signage_devices` + `signage_device_tag_map`.
+  2. Calibration PATCH (rotation/HDMI/audio) continues to hit FastAPI `PATCH /api/signage/devices/{id}/calibration` with `Literal[0,90,180,270]` validation and fires `calibration-changed` SSE to the single target device — unchanged from v1.21.
+  3. The devices list in the admin UI shows each device's currently-resolved playlist, fetched from a new FastAPI `GET /api/signage/resolved/{device_id}` endpoint and merged client-side with the Directus row data.
+  4. Directus mutations on `signage_devices` name/tags fire `device-changed` (and/or `playlist-changed` on tag-map changes) SSE within 500 ms; the `signage_devices` LISTEN trigger does NOT fire on calibration-only updates (no double SSE).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 71: FE polish + CLEAN
+**Goal**: The Directus/FastAPI boundary is locked in place with contract-snapshot tests, migrated dead code is deleted, rollback is proven from a clean checkout, CI guards prevent regression, and the architecture doc reflects the new split.
+**Depends on**: Phase 70
+**Requirements**: FE-01, FE-02, FE-03, FE-04, FE-05, CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04, CLEAN-05
+**Success Criteria** (what must be TRUE):
+  1. `signageApi.ts` adapter wraps Directus SDK calls and returns the same response shape existing TanStack Query consumers expect; `DirectusError` is normalized to the existing `Error(detail)` / `ApiErrorWithBody` contract inside the adapter.
+  2. Frontend uses a new `["directus", <collection>, ...]` cache-key namespace distinct from legacy `signageKeys.*`; a one-shot `queryClient.removeQueries({queryKey:["signage"]})` gated by a localStorage flag runs on first post-deploy boot to purge stale caches.
+  3. A contract-snapshot test per migrated endpoint asserts the adapter-wrapped Directus response is byte-equivalent to the pre-migration FastAPI response shape.
+  4. All migrated FastAPI routers, schemas, and tests are deleted; `main.py` registrations removed; `/api/*` smoke test confirms the expected surface shrinks; no orphaned imports.
+  5. Rollback verification: checking out the commit before Phase 68 from a clean tree and running `docker compose down -v && up -d` reproduces v1.21 signage admin behavior end-to-end (manual test checklist in `docs/operator-runbook.md`).
+  6. CI guards green: `/api/me` grep in `frontend/src/`, `GET /api/data/sales` + `/api/data/employees` greps in backend code, `DB_EXCLUDE_TABLES` superset check, SSE `--workers 1` invariant comment preserved; README + `docs/architecture.md` updated to reflect the new Directus/FastAPI boundary decision.
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress Table
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -241,4 +342,10 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 | 62. Signage Calibration | v1.21 | 4/4 | Complete (CAL-PI-07 waived) | 2026-04-24 |
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
-
+| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 0/TBD | Not started | - |
+| 66. Kill `me.py` | v1.22 | 0/TBD | Not started | - |
+| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
+| 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
+| 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
+| 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
+| 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |

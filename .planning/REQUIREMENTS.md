@@ -110,7 +110,43 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| *(populated by roadmapper)* | | |
+| SCHEMA-01 | Phase 65 | Pending |
+| SCHEMA-02 | Phase 65 | Pending |
+| SCHEMA-03 | Phase 65 | Pending |
+| SCHEMA-04 | Phase 65 | Pending |
+| SCHEMA-05 | Phase 65 | Pending |
+| AUTHZ-01 | Phase 65 | Pending |
+| AUTHZ-02 | Phase 65 | Pending |
+| AUTHZ-03 | Phase 65 | Pending |
+| AUTHZ-04 | Phase 65 | Pending |
+| AUTHZ-05 | Phase 65 | Pending |
+| SSE-01 | Phase 65 | Pending |
+| SSE-02 | Phase 65 | Pending |
+| SSE-03 | Phase 65 | Pending |
+| SSE-04 | Phase 65 | Pending |
+| SSE-05 | Phase 65 | Pending |
+| SSE-06 | Phase 65 | Pending |
+| MIG-AUTH-01 | Phase 66 | Pending |
+| MIG-AUTH-02 | Phase 66 | Pending |
+| MIG-AUTH-03 | Phase 66 | Pending |
+| MIG-DATA-01 | Phase 67 | Pending |
+| MIG-DATA-02 | Phase 67 | Pending |
+| MIG-DATA-03 | Phase 67 | Pending |
+| MIG-DATA-04 | Phase 67 | Pending |
+| MIG-SIGN-01 | Phase 68 | Pending |
+| MIG-SIGN-02 | Phase 68 | Pending |
+| MIG-SIGN-03 | Phase 69 | Pending |
+| MIG-SIGN-04 | Phase 70 | Pending |
+| FE-01 | Phase 71 | Pending |
+| FE-02 | Phase 71 | Pending |
+| FE-03 | Phase 71 | Pending |
+| FE-04 | Phase 71 | Pending |
+| FE-05 | Phase 71 | Pending |
+| CLEAN-01 | Phase 71 | Pending |
+| CLEAN-02 | Phase 71 | Pending |
+| CLEAN-03 | Phase 71 | Pending |
+| CLEAN-04 | Phase 71 | Pending |
+| CLEAN-05 | Phase 71 | Pending |
 
 ---
 
