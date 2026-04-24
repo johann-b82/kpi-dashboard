@@ -16,19 +16,28 @@ Upload a data file and immediately see sales/revenue KPIs visualized on a dashbo
 **Codebase:** ~14 100 LOC baseline + v1.15 sensor + v1.16 signage (backend + player + admin UI + docs + runbook) + v1.17 installer-library consolidation. 17 versions shipped (v1.0–v1.17). The v1.17 custom-image pipeline (`pi-image/`, `.github/workflows/pi-image.yml`) was removed in v1.18 — installer library + shared unit templates remain.
 **Audit status:** All v1.0–v1.6, v1.11-directus, v1.12–v1.21 requirements satisfied. v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped with **3/3 phases passed** and 24/25 requirements satisfied — see [milestones/v1.21-MILESTONE-AUDIT.md](milestones/v1.21-MILESTONE-AUDIT.md). One waiver carried: **CAL-PI-07** real-Pi hardware walkthrough deferred — sidecar has complete unit coverage and the blocker is a per-device environment diagnostic (SSE reachability / wayland env / device-token path) rather than a shipped-code defect; candidate for a post-ship `/gsd:quick`. v1.20 HR Date-Range Filter + TS Cleanup shipped with 2/2 phases passed ([audit](milestones/v1.20-MILESTONE-AUDIT.md)). v1.19 UI Consistency Pass 2 shipped with 23/23 requirements verified across 6 phases ([audit](milestones/v1.19-MILESTONE-AUDIT.md)). v1.9 D-12 waiver still carried. SGN-POL-04 closed via operator walkthrough with thresholds verified but exact numerical timings not recorded.
 
-## Current Milestone: v1.21 Signage Calibration + Build Hygiene (In Progress)
+## Current Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 
-**Goal:** Per-device runtime calibration of signage Pis (rotation, HDMI mode, audio on/off) editable from admin UI and applied live via SSE → sidecar. Plus: fix the `docker compose build frontend` peer-dep conflict. Plus: strip the stale Authentik references from docs.
+**Goal:** Eliminate ~25 pure-CRUD FastAPI endpoints by moving the signage admin surface, sales/employee lookups, and auth-identity to Directus — leaving FastAPI focused on compute (parsing, aggregation, SSE, SNMP, PPTX).
 
-**Phases:**
-- **Phase 62 Signage Calibration** (4 plans) — backend schema + API; admin UI; Pi sidecar `wlr-randr` + WirePlumber; player + real-Pi E2E.
-- **Phase 63 Frontend Build Fix** (1 plan) — resolve `vite@8` vs `vite-plugin-pwa@1.2.0` peer-dep conflict.
-- **Quick task:** Authentik removal from CLAUDE.md / PROJECT.md / README.md.
+**Target features:**
+- Move `signage_admin/{devices,playlists,playlist_items,schedules,tags,analytics}` to Directus collections with policies mapped to existing Admin/Viewer roles
+- Move `data.py` (sales, employees lookups) to Directus collections
+- Kill `me.py` — frontend uses Directus `/users/me`
+- Frontend admin pages refactored to Directus SDK (replaces TanStack Query hooks for moved endpoints)
+- Remove migrated tables from `DB_EXCLUDE_TABLES`, delete dead FastAPI router code + schemas + tests
 
-**Out of scope:** Brightness (no reliable HDMI software control); per-display colour calibration; reboot-only rotation via `config.txt`; CSS fallback rotation; per-media audio-volume overrides.
+**Guiding principle:** Directus = shape (CRUD over rows). FastAPI = compute (parse, aggregate, stream, poll, mint tokens, convert files).
 
-## Next Milestone Candidates (post-v1.21)
+**Out of scope (deliberate):**
+- Settings rewrite — custom oklch/hex validators + SVG sanitization + ETag + logo BYTEA would require non-trivial Directus hook logic. Not worth churn for 6 endpoints.
+- Uploads metadata (GET/DELETE), sensors CRUD, media/PPTX, signage_player (SSE), signage_pair (device JWT minting) — stay in FastAPI.
+- APScheduler jobs (Personio sync, sensor poll) — stay in FastAPI.
+- CAL-PI-07 Pi hardware-timing diagnostic (carry-forward from v1.21) — remains a `/gsd:quick` candidate.
 
+## Next Milestone Candidates (post-v1.22)
+
+- **Settings → Directus** — defer until oklch/hex validators + SVG sanitization can be ported as Directus hooks without losing guarantees.
 - **Fleet Ops** — Ansible reimage, fleet-wide config push, remote restart, OTA update channel. Justified at 5+ devices.
 - **iCal RRULE / date-specific overrides** — reopen if the weekday_mask + HH:MM window model proves too narrow.
 - **Rich Analytics** — per-item playtime (`signage_item_plays`), heatmaps, export-to-CSV.
@@ -351,4 +360,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-24 — v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped (tag `v1.21`, 3 phases, 6 plans, 24/25 reqs + 1 waiver). Next: `/gsd:new-milestone` to scope v1.22, or a `/gsd:quick` to close CAL-PI-07 when the Pi diagnostic lands.*
+*Last updated: 2026-04-24 — v1.22 Backend Consolidation (Directus-first CRUD) scoped and started. Goal: move signage_admin + data + me endpoints to Directus; FastAPI retains compute-shaped work (upload POST, KPIs, sync, sensors poll, signage_player SSE, signage_pair JWT, media/PPTX). CAL-PI-07 remains a `/gsd:quick` candidate.*

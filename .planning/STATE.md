@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between-milestones
-stopped_at: v1.21 shipped (tag v1.21); CAL-PI-07 waived — pending per-Pi diagnostic as post-ship quick task
-last_updated: "2026-04-24T13:00:00.000Z"
+milestone: v1.22
+milestone_name: Backend Consolidation — Directus-First CRUD
+status: defining-requirements
+stopped_at: v1.22 scoped; awaiting REQUIREMENTS.md + ROADMAP.md
+last_updated: "2026-04-24T14:30:00.000Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 0
@@ -16,17 +16,17 @@ progress:
 # Project State: KPI Dashboard
 
 **Last updated:** 2026-04-24
-**Session:** v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped (tag `v1.21`, 3 phases, 6 plans, CAL-PI-07 waived)
+**Session:** v1.22 Backend Consolidation (Directus-first CRUD) started — defining requirements
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-24 after v1.21 milestone)
+See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.22)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** between milestones — awaiting `/gsd:new-milestone` for v1.22 scope
+**Current focus:** v1.22 — move pure-CRUD FastAPI endpoints (signage_admin, data.py, me.py) to Directus collections; FastAPI retains compute (upload POST, KPIs, sync, SSE, SNMP poll, PPTX, device-JWT pairing).
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -36,12 +36,13 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 ## Current Position
 
-Milestone: none active
-Phase: none active
-Status: v1.21 archived. Carry-forward: CAL-PI-07 real-Pi hardware walkthrough — candidate for a post-ship `/gsd:quick` when the Pi sidecar SSE-reachability diagnostic is isolated (`SIGNAGE_API_BASE`, device token path, wayland env).
-Last activity: 2026-04-24
+Milestone: v1.22 Backend Consolidation — Directus-First CRUD
+Phase: Not started (defining requirements)
+Plan: —
+Status: Milestone scoped. Next step — define REQUIREMENTS.md then spawn roadmapper. Carry-forward: CAL-PI-07 real-Pi hardware walkthrough (v1.21) remains a `/gsd:quick` candidate, independent of v1.22.
+Last activity: 2026-04-24 — v1.22 started
 
-Next action: `/gsd:new-milestone` to scope v1.22, or `/gsd:quick` targeting the CAL-PI-07 Pi diagnostic.
+Next action: Complete requirements definition → roadmap → `/gsd:discuss-phase [N]`.
 
 ### Quick Tasks Completed
 
