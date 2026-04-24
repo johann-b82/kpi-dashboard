@@ -13,6 +13,15 @@
 #   (Requires: docker compose up -d with db healthy + alembic upgrade head run)
 set -euo pipefail
 
+# Source .env so POSTGRES_USER / POSTGRES_DB are available on the host shell
+# (docker compose exec runs on host; the container's env isn't auto-inherited).
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 TABLES="'signage_devices','signage_playlists','signage_playlist_items','signage_device_tags','signage_playlist_tag_map','signage_device_tag_map','signage_schedules','sales_records','personio_employees'"
 
 FIXTURE="directus/fixtures/schema-hash.txt"

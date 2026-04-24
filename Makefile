@@ -32,7 +32,8 @@ schema-fixture-update:
 	@echo "Regenerating schema hash fixture..."
 	@docker compose up -d db
 	@docker compose run --rm migrate alembic upgrade head
-	@docker compose exec -T db psql \
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	docker compose exec -T db psql \
 	  -U "$${POSTGRES_USER:-kpi}" \
 	  -d "$${POSTGRES_DB:-kpi}" \
 	  -tA -c "\

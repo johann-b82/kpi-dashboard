@@ -89,55 +89,52 @@ END;
 $$;
 """
 
-TRIGGERS_SQL = r"""
--- 5 tables: INSERT/UPDATE/DELETE, no WHEN guard.
-CREATE TRIGGER signage_playlists_notify
+# Individual trigger DDL — one CREATE TRIGGER per op.execute() call.
+# asyncpg rejects multi-statement prepared statements, so TRIGGERS_SQL cannot
+# be a single multi-stmt block.
+#
+# 5 tables: INSERT/UPDATE/DELETE, no WHEN guard.
+# signage_devices: 3 triggers. INSERT+DELETE unguarded. UPDATE WHEN-gated on
+# name-only (no denormalized tags column on this table, enforced by
+# PREFLIGHT_SQL above; tag changes flow via signage_device_tag_map_notify).
+# Calibration columns (rotation, hdmi_mode, audio_enabled, paired_at,
+# last_heartbeat_at) are EXCLUDED — FastAPI calibration SSE stays the sole
+# emitter for those.
+TRIGGER_STATEMENTS = [
+    """CREATE TRIGGER signage_playlists_notify
   AFTER INSERT OR UPDATE OR DELETE ON signage_playlists
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_playlist_items_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_playlist_items_notify
   AFTER INSERT OR UPDATE OR DELETE ON signage_playlist_items
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_playlist_tag_map_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_playlist_tag_map_notify
   AFTER INSERT OR UPDATE OR DELETE ON signage_playlist_tag_map
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_device_tag_map_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_device_tag_map_notify
   AFTER INSERT OR UPDATE OR DELETE ON signage_device_tag_map
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_schedules_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_schedules_notify
   AFTER INSERT OR UPDATE OR DELETE ON signage_schedules
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
--- signage_devices: 3 triggers. INSERT+DELETE unguarded. UPDATE
--- WHEN-gated on name-only (no denormalized tags column on this table,
--- enforced by PREFLIGHT_SQL above; tag changes flow via
--- signage_device_tag_map_notify).
--- Calibration columns (rotation, hdmi_mode, audio_enabled, paired_at,
--- last_heartbeat_at) are EXCLUDED -- FastAPI calibration SSE stays
--- the sole emitter for those.
-CREATE TRIGGER signage_devices_insert_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_devices_insert_notify
   AFTER INSERT ON signage_devices
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_devices_delete_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_devices_delete_notify
   AFTER DELETE ON signage_devices
-  FOR EACH ROW EXECUTE FUNCTION signage_notify();
-
-CREATE TRIGGER signage_devices_update_notify
+  FOR EACH ROW EXECUTE FUNCTION signage_notify();""",
+    """CREATE TRIGGER signage_devices_update_notify
   AFTER UPDATE ON signage_devices
   FOR EACH ROW
   WHEN (OLD.name IS DISTINCT FROM NEW.name)
-  EXECUTE FUNCTION signage_notify();
-"""
+  EXECUTE FUNCTION signage_notify();""",
+]
 
 
 def upgrade() -> None:
     op.execute(PREFLIGHT_SQL)
     op.execute(FUNCTION_SQL)
-    op.execute(TRIGGERS_SQL)
+    for stmt in TRIGGER_STATEMENTS:
+        op.execute(stmt)
 
 
 def downgrade() -> None:
