@@ -21,7 +21,7 @@
 - ✅ **v1.18 Pi Polish + Scheduling** — Phases 50–53 (shipped 2026-04-21) — [archive](milestones/v1.18-ROADMAP.md)
 - ✅ **v1.19 UI Consistency Pass 2** — Phases 54–59 (shipped 2026-04-22) — [archive](milestones/v1.19-ROADMAP.md)
 - ✅ **v1.20 HR Date-Range Filter + TS Cleanup** — Phases 60–61 (shipped 2026-04-22) — [archive](milestones/v1.20-ROADMAP.md)
-- 🚧 **v1.21 Signage Calibration + Build Hygiene** — Phases 62–63 (active, started 2026-04-22)
+- 🚧 **v1.21 Signage Calibration + Build Hygiene + Reverse Proxy** — Phases 62–64 (active, started 2026-04-22)
 
 ## Phases
 
@@ -211,10 +211,11 @@ Full details: [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md)
 
 </details>
 
-### 🚧 v1.21 Signage Calibration + Build Hygiene (In Progress)
+### 🚧 v1.21 Signage Calibration + Build Hygiene + Reverse Proxy (In Progress)
 
 - [ ] **Phase 62: Signage Calibration** — Per-device runtime calibration (rotation 0/90/180/270, HDMI mode, audio on/off) editable from `/signage/devices` admin UI, applied live by the Pi sidecar via `wlr-randr` + WirePlumber. SSE `calibration-changed` fanout. Sidecar persists last-applied state to `/var/lib/signage/calibration.json` for reboot survival. Real-Pi E2E required. **Plan 62-04 Task 1 shipped 2026-04-22 (CAL-PI-06); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification on hardware.**
 - [x] **Phase 63: Frontend Build Fix** — Resolve the `vite@8` / `vite-plugin-pwa@1.2.0` peer-dep conflict so `docker compose build frontend` succeeds. Planner picks between upgrade / `--legacy-peer-deps` / pin; committed rationale in SUMMARY. (completed 2026-04-24)
+- [ ] **Phase 64: Reverse Proxy** — Add Caddy service on `:80` fronting `/` → frontend, `/api/*` → FastAPI, `/directus/*` → Directus, `/player/*` → frontend/player. SPA calls Directus same-origin (no CORS). Pi `SIGNAGE_API_URL=...:80` examples in `provision-pi.sh` finally work. Precondition for Phase 62 CAL-PI-07 hardware walkthrough on LAN.
 
 Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md / README.md now that Directus is the committed identity layer.
 
@@ -236,6 +237,7 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 | 61. TS Cleanup | v1.20 | 1/1 | Complete   | 2026-04-22 |
 | 62. Signage Calibration | v1.21 | 3.5/4 | Task-1 shipped, CAL-PI-07 awaits human verify | — |
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
+| 64. Reverse Proxy | v1.21 | 0/1 | Not started | — |
 
 ## Phase Details
 
@@ -260,3 +262,13 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 Plans:
 - [x] 63-01-build-fix-PLAN.md — Apply `--legacy-peer-deps` to container (Dockerfile line 4) + host (new `frontend/.npmrc`) install paths; verify via `docker compose build --no-cache frontend` and clean-slate `npm install && npm run build && npm run dev` on the host. Upstream tracking reason: `vite-plugin-pwa@1.2.0` peer-deps cap at vite ^7.
 
+
+### Phase 64: Reverse Proxy
+
+**Goal:** Add a Caddy 2 service on port 80 that fronts the stack — `/` → frontend, `/api/*` → FastAPI (with SSE-friendly timeouts), `/directus/*` → Directus (with prefix strip), `/player/*` → kiosk bundle. Migrate the frontend Directus SDK to same-origin `/directus` and remove Directus CORS config. Unblocks LAN access (precondition for Phase 62 CAL-PI-07 real-Pi walkthrough).
+**Depends on:** Nothing (self-contained; additive to existing host ports per D-08).
+**Requirements:** PROXY-01..05
+**Plans:** 1 plan
+
+Plans:
+- [ ] 64-01-reverse-proxy-PLAN.md — Caddyfile + caddy service in docker-compose.yml (4 routes, SSE flush_interval -1, /directus/* strip_prefix); Directus CORS env removed; `directusClient.ts` default → `/directus` (VITE_DIRECTUS_URL override preserved); `scripts/verify-phase-64-proxy.sh` asserts all 4 route HEAD checks + 60s+ long-connection hold; README + docs/setup.md + docs/architecture.md + admin-guide EN/DE updated.
