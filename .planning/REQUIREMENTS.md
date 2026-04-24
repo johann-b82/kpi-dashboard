@@ -53,10 +53,10 @@
 
 ### AUTHZ — Policies + per-collection permission rows
 
-- [ ] **AUTHZ-01**: `directus/bootstrap-roles.sh` creates per-collection Viewer permission rows with explicit `fields` allowlists for `sales_records` and `personio_employees` — no field star-imports.
-- [ ] **AUTHZ-02**: Viewer has no permission rows on any `signage_*` collection — matching pre-v1.22 Admin-only signage access.
-- [ ] **AUTHZ-03**: `directus_users` has a Viewer permission row with an explicit fields allowlist (id, email, first_name, last_name, role, avatar) — `tfa_secret`, `auth_data`, `external_identifier` never exposed.
-- [ ] **AUTHZ-04**: Bootstrap script is idempotent (GET-before-POST) on every re-run and commits fixed UUIDs for each permission row.
+- [x] **AUTHZ-01**: `directus/bootstrap-roles.sh` creates per-collection Viewer permission rows with explicit `fields` allowlists for `sales_records` and `personio_employees` — no field star-imports.
+- [x] **AUTHZ-02**: Viewer has no permission rows on any `signage_*` collection — matching pre-v1.22 Admin-only signage access.
+- [x] **AUTHZ-03**: `directus_users` has a Viewer permission row with an explicit fields allowlist (id, email, first_name, last_name, role, avatar) — `tfa_secret`, `auth_data`, `external_identifier` never exposed.
+- [x] **AUTHZ-04**: Bootstrap script is idempotent (GET-before-POST) on every re-run and commits fixed UUIDs for each permission row.
 - [ ] **AUTHZ-05**: An integration test per collection asserts a Viewer JWT cannot read excluded fields and cannot mutate any `signage_*` collection.
 
 ### SSE — Postgres LISTEN/NOTIFY bridge (Option A)
@@ -115,10 +115,10 @@
 | SCHEMA-03 | Phase 65 | Pending |
 | SCHEMA-04 | Phase 65 | Pending |
 | SCHEMA-05 | Phase 65 | Pending |
-| AUTHZ-01 | Phase 65 | Pending |
-| AUTHZ-02 | Phase 65 | Pending |
-| AUTHZ-03 | Phase 65 | Pending |
-| AUTHZ-04 | Phase 65 | Pending |
+| AUTHZ-01 | Phase 65 | Complete |
+| AUTHZ-02 | Phase 65 | Complete |
+| AUTHZ-03 | Phase 65 | Complete |
+| AUTHZ-04 | Phase 65 | Complete |
 | AUTHZ-05 | Phase 65 | Pending |
 | SSE-01 | Phase 65 | Pending |
 | SSE-02 | Phase 65 | Pending |
