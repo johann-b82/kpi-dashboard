@@ -1,160 +1,176 @@
-# Research Summary — v1.16 Digital Signage
+# Research Summary — v1.22 Backend Consolidation
 
-**Domain:** Digital signage CMS (admin) + Chromium-kiosk player (Raspberry Pi, ≤5 devices) added to existing FastAPI + Directus + React monorepo
-**Researched:** 2026-04-18
-**Confidence:** HIGH for version pins + integration patterns; MEDIUM for Pi/Chromium boot ordering and PPTX worker location (both with defensible recommendations + surfaced trade-offs)
+## Milestone Goal
 
-> Scope: extends validated v1.15 stack (FastAPI 0.135, SQLAlchemy 2.0 async, asyncpg, Alembic, Directus 11, React 19, Vite 8, Tailwind v4, shadcn/ui, TanStack Query 5, APScheduler single-worker, Fernet, @directus/sdk). Reuses router-level admin gate via `APIRouter(dependencies=)`, flat models.py/schemas.py, shared `apiClient<T>()`, full DE/EN i18n parity, `--workers 1` + `max_instances=1` invariant.
+Move the ~25 pure-CRUD FastAPI endpoints (`signage_admin/{devices,playlists,playlist_items,schedules,tags}`, `data.py` sales + employee row lookups, `me.py`) to Directus 11 collections on the shared Postgres database, preserving Alembic as the sole DDL owner and leaving FastAPI focused on compute (SSE, uploads, KPIs, PPTX, pairing JWT, Personio sync, analytics aggregates, calibration, bulk playlist-item replace).
 
 ## Executive Summary
 
-Digital signage is a well-established category. Four reference platforms (Xibo, Screenly OSE, Yodeck, Rise Vision) converge on a universal floor: **Media + Playlist + Device + Tag routing + 6-digit Pairing + Offline cache + format handlers** (image/video/URL/PDF/PPTX/HTML). For ≤5 devices on a single site, the target is "Screenly-OSE floor + three Yodeck-tier niceties" (SSE push, WYSIWYG admin preview, PDF crossfade) — skipping Xibo layout engines, dayparting, and proof-of-play.
+- **Directus = shape, FastAPI = compute — research confirms this principle holds at endpoint granularity.** ~17 of 25 endpoints are a clean mechanical move; ~6 must stay in FastAPI (compute-shaped); 2 split (devices list, /employees).
+- **Alembic is sole DDL source of truth.** Directus owns only metadata rows (`directus_collections/fields/relations/permissions`) — never `public.*`. Snapshot YAML + `bootstrap-roles.sh` REST pattern keep this boundary reviewable in git.
+- **THE keystone open question is how SSE fanout survives the move** — the 4 researchers split. ARCHITECTURE.md picks Postgres LISTEN/NOTIFY; FEATURES.md + PITFALLS.md pick Directus Flow → FastAPI webhook. Must be decided before roadmapping (see below).
+- **Phase A ships backend-only with zero user-visible change** (schema + policies + SSE bridge), proving the bridge works before any endpoint moves. Tags are the smallest-blast-radius first C-sub-phase. `me.py` kill is independent and tiny.
+- **Field-level permission discipline non-negotiable:** every Viewer policy permission row needs explicit `fields` allowlist mirroring Pydantic `*Read`. `*` on `directus_users` would leak `tfa_secret`/`auth_data`.
 
-Recommended stack additions: `sse-starlette` for server-push, `pdf2image` + LibreOffice headless for PPTX→PDF→PNG, raw `pdfjs-dist` for player-side page-flip, `vite-plugin-pwa` for offline caching, Raspberry Pi OS Bookworm Lite + Chromium kiosk + systemd user service. No new runtime services (no Redis, no Celery) — in-process `asyncio.Queue` fanout + FastAPI `BackgroundTasks` + `--workers 1` are correct-sized.
+## KEY DECISION TO MAKE — SSE Bridge Mechanism
 
-Three highest-impact risks: (1) PPTX pipeline wedging event loop on corrupt decks (async subprocess + timeout + semaphore); (2) Chromium EventSource zombie-reconnect after Pi Wi-Fi drops (server pings + client watchdog + polling fallback); (3) device-token over-scoping letting a stolen Pi hit admin routes (scope claim + rotation + admin-revoke).
+Every `signage_admin/*` mutation today calls `signage_broadcast.notify_device()` post-commit, driving player `/api/signage/player/stream` SSE. After v1.22 the mutation happens inside Directus (separate process) — FastAPI never sees it. Without a bridge, SSE silently degrades to 30s polling fallback and `calibration-changed` for Directus-owned fields would miss entirely.
 
-## Key Findings
+### Option A — Postgres `LISTEN/NOTIFY` (ARCHITECTURE.md's pick)
 
-### New Stack Additions
+**Mechanism:** Alembic migration adds `AFTER INSERT/UPDATE/DELETE` triggers on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `signage_devices` (name+tag columns only — NOT calibration columns). Trigger calls `pg_notify('signage_change', '{table,op,row_id}')`. FastAPI `lifespan` starts long-lived `asyncpg` `connection.add_listener`. Handler re-reads DB, runs existing `devices_affected_by_playlist` resolver, calls existing `notify_device()`. Etag still computed by existing `compute_playlist_etag` helper (single-source).
 
-**Backend (requirements.txt):**
-- `sse-starlette==3.2.0` — EventSourceResponse with heartbeat/disconnect
-- `pdf2image==1.17.0` — `pdftoppm` wrapper; PDF → per-slide PNGs
-- (transitive) Pillow — downscale to 1920×1080
+**Pros:**
+- **Writer-agnostic** — fires on Directus, Alembic seed, direct psql, any future writer. Single DB choke point.
+- Triggers-as-code in Alembic — reviewable SQL in git, versioned with migrations.
+- Zero new HTTP surface, zero new shared secret.
+- `--workers 1` invariant already guarantees single-listener correctness.
+- No Directus Flow config (which is harder to check into git cleanly).
 
-**Backend Dockerfile apt layer:**
-- `libreoffice-impress` + `libreoffice-core` (24.x) — only mature FOSS PPTX→PDF
-- `poppler-utils` — for pdf2image
-- `fonts-crosextra-carlito`, `fonts-crosextra-caladea`, `fonts-noto-core`, `fonts-dejavu` — **critical**: without Carlito/Caladea (metric-compatible Calibri/Cambria), output drifts visibly from PowerPoint source
+**Cons:**
+- One Alembic migration (5–6 triggers) + ~80 LOC `signage_pg_listen.py` service + `lifespan` wiring.
+- `pg_notify` 8000-byte cap → keep payloads small, resolution re-reads DB.
+- Needs `WHEN (OLD IS DISTINCT FROM NEW)` discipline + column-level predicate on `signage_devices` so calibration updates (FastAPI-owned SSE) don't double-fire.
 
-**Frontend (npm):**
-- `pdfjs-dist@5.6.205` — raw PDF.js for player page-flip (lower-level than react-pdf; exact control)
-- `react-pdf@10.4.1` — admin-UI preview only (keeps player bundle small)
-- `vite-plugin-pwa@1.x` — scoped SW for `/signage/player`
-- `@directus/sdk@21.2.2` — verify pin; bump before feature work if behind
+**Confidence:** HIGH (asyncpg native + 20-year-stable Postgres feature).
 
-**Pi host:**
-- Raspberry Pi OS Bookworm Lite 64-bit; Chromium 136+ via apt; systemd user service (NOT `/etc/xdg/autostart` — Bookworm dropped LXDE autostart path); `unclutter` for cursor-hide
-- Mandatory Chromium flags: `--kiosk --noerrdialogs --disable-infobars --autoplay-policy=no-user-gesture-required --disable-session-crashed-bubble --ozone-platform=wayland --check-for-update-interval=31536000 --app=<url>`
+### Option B — Directus Flow → FastAPI Webhook (FEATURES.md + PITFALLS.md's pick)
 
-**Do NOT add:** Celery/RQ/ARQ, Redis, react-player/video.js, framer-motion/embla-carousel, unoconv.
+**Mechanism:** Author 5–7 Directus Flows (one per mutating collection × event). Action trigger on `items.create/update/delete` POSTs to new FastAPI endpoint `POST /api/internal/signage/broadcast` (shared-secret header, localhost-bound). Handler resolves affected devices + computes etag + calls `notify_device()`. For updates/deletes needing pre-mutation values (schedule `old_playlist_id`, playlist-delete fanout), add Filter(Blocking) Flow with `Read Data` op before commit.
 
-### Expected Features
+**Pros:**
+- Directus-native tooling; Flow UI visible to ops.
+- No new DB triggers; no Alembic migration for SSE plumbing.
+- Same Flow mechanism can reshape FK errors if we take that route.
 
-**Must-have table stakes (20 items, all P1):**
-- **HIGH complexity:** SGN-14 PPTX handler (longest pole)
-- **MEDIUM:** SGN-01 Media library, SGN-03 Playlist CRUD, SGN-04 Device CRUD, SGN-05 Tag routing, SGN-06 6-digit pairing, SGN-07 Offline cache, SGN-13 PDF handler, SGN-17 Kiosk player route, SGN-19 Alembic schema
-- **LOW:** SGN-02 tagging, SGN-08 polling+heartbeat, SGN-09 status chips, SGN-10/11/12 image/video/URL, SGN-15 HTML snippet, SGN-16 launcher tile, SGN-18 DE/EN UI+docs, SGN-20 APScheduler sweeper
+**Cons:**
+- **Not writer-agnostic** — misses Alembic seed, direct psql, future non-Directus writers.
+- 5–7 Flows to author/maintain. Flow-as-code story weaker than SQL-as-code (config in `directus_flows`/`directus_operations`, re-introduces snapshot fragility we rejected in v1.11).
+- New internal HTTP surface + `SIGNAGE_INTERNAL_SECRET` to lock down.
+- Pre-mutation read requires extra Flow step per collection.
+- Failure mode: Flow POST fails (api OOM) → Directus commits, SSE never fires. Eventual-consistency vs Option A's DB-ordered delivery.
 
-**Should-have differentiators (ship 3 cheap wins):**
-- DIFF-01 SSE real-time push
-- DIFF-02 WYSIWYG admin preview
-- DIFF-03 PDF crossfade
+**Confidence:** MEDIUM-HIGH (documented pattern; exact pre-update payload shape needs Phase 1 spike).
 
-**Deferred:** per-item transition picker, health alerts (needs SMTP), expiration dates, thumbnails, "healthy since X"
+### Recommendation for user
 
-**Anti-features (explicit NOT in v1.16):** dayparting schedules, proof-of-play analytics, native browser PPTX rendering, multi-site federation, mobile control app, external API, Xibo-style regions, on-the-fly video transcoding, per-device resolution adaptation, 20+-device fleet tooling.
+Both are viable, not equally good. **Option A is the stronger architectural pick:** (a) writer-agnostic future-proofs the "two-writers-today-N-tomorrow" shared-Postgres posture; (b) SQL triggers in Alembic are the same SSOT discipline used everywhere else; (c) one small migration + ~80 LOC is less surface than 5–7 Flows + internal webhook + shared secret + per-Flow pre-read; (d) calibration SSE stays end-to-end in FastAPI in both options, so Option A doesn't fight that boundary.
 
-### Architecture Approach
+**Option B is the right choice only if** you want Flow tooling as the primary operator-facing story (Flows visible in Directus UI to non-developers), or specifically want to avoid Alembic-level DB triggers. PITFALLS.md + FEATURES.md lean B because it keeps Directus-side mechanics in Directus config — defensible preference, not architectural necessity.
 
-v1.16 adds a second first-class launcher app (admin-only `/signage`) plus a separate player surface served outside the main SPA. Admin CRUD flows through a new `/api/signage/*` FastAPI router (Alembic-owned schema per v1.11 convention), Directus SDK retained for auth only. Player is a separate Vite bundle targeting <200KB gzipped vs. ~600KB main SPA.
+**Explicit user call needed before roadmapping.** Choice changes Phase A deliverables, Phase C per-endpoint template, and rollback recipe per phase.
 
-**Major new components:**
-1. Backend routers (3): admin (admin-gated), player (device-token-gated), pair (unauthenticated pre-auth)
-2. Device auth module — opaque token OR scoped JWT (decision flagged)
-3. Pairing state machine — 6-digit base32 code (confusing-char-free alphabet), `signage_pairing_sessions` table, Pi polls by UUID session_id, partial-unique index on active rows
-4. SSE broadcast service — in-process `asyncio.Queue` per device, fanout on admin mutations
-5. PPTX conversion — `asyncio.subprocess_exec(soffice)` + `asyncio.wait_for(60s)` + `asyncio.Semaphore(1)` + per-invocation tempdir with `-env:UserInstallation=file:///tmp/lo_<uuid>`
-6. Alembic migration — 8 tables + partial-unique index on active pairing codes + `ON DELETE RESTRICT` on `playlist_items.media_id`
-7. Player bundle — second Vite entry, SSE EventSource + 45s watchdog + 30s polling fallback + offline cache
-8. Admin UI — `SignagePage.tsx` with Media|Playlists|Devices tabs (mirrors SensorsPage.tsx), `SignagePairPage.tsx`, launcher tile, WYSIWYG preview
-9. APScheduler heartbeat sweeper — 1-min cadence, respects `max_instances=1`
+## Other Convergences (all 4 researchers agree)
 
-**Integration points:** `models.py` (+8), `schemas.py` (+Pydantic), `main.py` (+3 routers, +player static mount), `scheduler.py` (+sweeper + pairing cleanup), `docker-compose.yml` (+volume mount, +optional pptx-worker), `LauncherPage.tsx`, `App.tsx` routes, `vite.config.ts` (+second input), `en.json`/`de.json` (+`signage.*`), `lib/api.ts` (+apiClient fetchers).
+1. Alembic is sole DDL owner for `public.*`; Directus writes metadata only.
+2. `bootstrap-roles.sh` extended with per-collection Viewer permission rows + explicit `fields` allowlists mirroring Pydantic `*Read`.
+3. Calibration PATCH stays in FastAPI (`Literal[0,90,180,270]` + per-device SSE; compute-shaped).
+4. `PUT /playlists/{id}/items` bulk-replace stays in FastAPI (atomic DELETE+INSERT; Directus has no equivalent single-transaction bulk replace).
+5. `DELETE /playlists/{id}` structured 409 `{detail, schedule_ids}` — keep in FastAPI (recommended) or Flow-reshape. **Scope decision.** Same question for `DELETE /tags/{id}`.
+6. `GET /signage/analytics/devices` stays in FastAPI (composite aggregate Directus `aggregate` can't express).
+7. `/data/employees` splits: row fetch → Directus `personio_employees`; overtime/total-hours roll-up → new FastAPI `/api/data/employees/overtime`. Frontend merges.
+8. `me.py` deletes cleanly; frontend uses Directus SDK `readMe({fields:['id','email','first_name','last_name','role']})`. `directus_users` Viewer fields MUST be an explicit allowlist.
+9. Frontend cache-key namespace split: new Directus hooks `["directus", <collection>, ...]`; legacy `signageKeys.*` stays independent. One-shot `queryClient.removeQueries` gated by localStorage flag on first post-deploy boot.
+10. Phase A ships backend-only with zero user-visible change. Integration test: mutate a collection via Directus Data Model UI → Pi receives `playlist-changed` within 500ms. Frontend untouched.
 
-### Top 7 Pitfalls (drive roadmap decisions)
+## Stack Additions (Minimal)
 
-1. **LibreOffice hangs on corrupt PPTX → wedges `--workers 1` event loop.** `asyncio.subprocess_exec` only (never sync `subprocess.run`), `asyncio.wait_for(60s)` → `proc.kill()`, `asyncio.Semaphore(1)`, 50MB upload cap, per-conversion tempdir + `-env:UserInstallation`, startup reset of stuck `converting` rows. **Phase 44.**
+Core stack unchanged.
 
-2. **Chromium EventSource zombie after Wi-Fi drops.** sse-starlette 15s ping, player 45s watchdog `.close()` + recreate, 30s polling coexists. Reverse proxy needs `proxy_buffering off` + `proxy_read_timeout` ≥ heartbeat. **Phases 45+47+48.**
+| Addition | Why | Confidence |
+|---|---|---|
+| `@directus/sdk ^21.2.2` — **already present, no bump** | Composable `rest()`+`authentication()` drops into TanStack Query `queryFn`; cookie-mode works behind Caddy. | HIGH |
+| `@directus/extensions-sdk 17.1.3` — build-time only, new `directus-extensions/` workspace | Compiles one hook `kpi-validation-hooks` for friendly rotation/enum errors + optional FK-RESTRICT 409 reshape. | HIGH |
+| `@directus/errors` — runtime-provided by Directus 11 | `throw new InvalidPayloadError()` → 422/400. No install into image. | HIGH |
+| `directus-schema-apply` compose service + `directus/snapshots/v1.22.yaml` (stripped of policies/roles/permissions) | Collection/field/relation metadata only; never DDL. | HIGH (MEDIUM on known issue #25760 "existing-table" edge; REST `POST /collections {schema:null}` is documented fallback) |
+| **Do NOT add:** `directus-sync`, `@tanstack/query-directus` bridge, GraphQL codegen, second auth library, second ORM | Fragment SSOTs or duplicate built-in functionality. | HIGH |
 
-3. **Device token over-scoped → stolen Pi hits admin API.** JWT with `scope: "device"` enforced per-route, rotate on heartbeat within 2h of expiry (1h grace), admin "Revoke" flips `revoked_at`. **Phases 42+46+47.**
+**Option-A-only adds:** Alembic migration `v1_22_signage_notify_triggers.py` + `backend/app/services/signage_pg_listen.py` (~80 LOC) + `lifespan` wiring.
+**Option-B-only adds:** `POST /api/internal/signage/broadcast` + `SIGNAGE_INTERNAL_SECRET` env + 5–7 Directus Flows.
 
-4. **PPTX CVE via LibreOffice → RCE with DB reach.** Isolated conversion container: minimal base, `read_only: true`, tmpfs, `cap_drop: [ALL]`, `security_opt: no-new-privileges`, no DB network. **Phase 44.**
+## Permissions / Schema Ownership Model
 
-5. **Font rendering drift dev laptop vs. container.** Carlito/Caladea/Noto/DejaVu in Dockerfile; document "Embed fonts in PPTX" workflow; CI visual-regression on reference deck. **Phase 44 + Docs.**
+**DDL ownership (non-negotiable):**
 
-6. **pdf.js worker missing under Vite → main-thread render.** `import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` → `GlobalWorkerOptions.workerSrc`; exact version-match. **Phase 47.**
+| Concern | Owner | Tool |
+|---|---|---|
+| Tables, columns, CHECK, FK, indexes, defaults | **Alembic** | migrations |
+| Directus collection metadata (icon, interface, display) | **Directus snapshot** | `npx directus schema apply` — never UI schema edits |
+| Roles, policies, access rows | **`bootstrap-roles.sh`** (existing) | GET-before-POST idempotent REST |
+| Permission rows + `fields` allowlists | **`bootstrap-roles.sh`** (new section 4) | Same REST pattern, fixed UUIDs |
 
-7. **Browser cache is not reliable offline store on Pi.** HTTP cache evicts; nightly reboot → empty → black screen. STACK recommends vite-plugin-pwa SW + Cache API scoped to `/signage/player`; PITFALLS warns SW requires HTTPS on non-localhost and proposes Pi-side sidecar writing manifest + media to `/var/lib/signage/`. **Open Decision 3.** **Phases 47+48.**
+**Surfaced to Directus (v1.22):** `signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `signage_media` (already Directus-native), `sales_records`, `personio_employees`.
 
-**Honorable mentions:** Chromium boot ordering (systemd `After=graphical.target`), exact Chromium flag set, 4K → server-side downscale, pairing collision/race, Alembic/Directus startup race (`service_completed_successfully` on `migrate`), DE i18n parity CI gate (v1.15 lesson), HTML snippet XSS (nh3 + sandboxed iframe).
+**Stays excluded:** `alembic_version`, `upload_batches`, `app_settings`, `personio_attendance`, `personio_absences`, `personio_sync_meta`, `sensors`, `sensor_readings`, `sensor_poll_log`, `signage_pairing_sessions`, `signage_heartbeat_event`. CI guard asserts this set is superset of a hard-coded "never expose" allowlist.
 
-## Implications for Roadmap
+**Viewer fields allowlists** mirror Pydantic `*Read` exactly. Example `signage_devices`: `["id","name","rotation","hdmi_mode","audio_enabled","created_at","paired_at","last_heartbeat_at"]` (omits `device_secret`). `directus_users`: `["id","email","first_name","last_name","role","avatar"]` (omits `tfa_secret`, `auth_data`, `external_identifier`).
 
-Research supports an 8-phase structure matching ARCHITECTURE.md §5. Phase 44 (PPTX) and Phase 47 (Player) are the two longest poles.
+**Admin/Viewer:** Administrator (built-in) bypasses permissions via `admin_access:true`. Viewer has read-only on `sales_records` + `personio_employees`; **no signage permissions at all** (preserves pre-v1.22 Admin-only signage behavior).
 
-- **Phase 41 — Signage Schema & Models.** Foundational; blocks all downstream. 8 tables + partial-unique index + RESTRICT FK + SQLAlchemy models + Pydantic schemas + `DB_EXCLUDE_TABLES` updates. Research: LIGHT.
-- **Phase 42 — Device Auth + Pairing Flow.** Required before any player endpoint. `device_auth.py`, `signage_pair` router (request/status/claim with UUID session_id), cleanup job, admin-gate regression test. Research: MEDIUM (opaque vs. JWT).
-- **Phase 43 — Media + Playlist + Device Admin API (polling-only).** Trunk functionality. `signage_admin` full CRUD, tag-to-playlist resolver, `signage_player` `/playlist` + `/heartbeat`, apiClient fetchers. Research: LIGHT (mirror v1.15 sensors).
-- **Phase 44 — PPTX Conversion Pipeline.** Independent; parallelize with 45. Dockerfile apt layer, async subprocess + timeout + semaphore, upload cap, status state machine, startup reset, downscale, visual-regression CI gate. Research: **HEAVY**.
-- **Phase 45 — SSE Broadcast.** Depends on 43. `signage_broadcast.py` with asyncio.Queue per device, `/events` via sse-starlette, 15s pings, 5-connection cap, `--workers 1` invariant comment. Research: MEDIUM (watchdog tuning on real Pi).
-- **Phase 46 — Admin UI.** Depends on 42+43 (optionally 45). `/signage` tabbed page, `/signage/pair`, launcher tile, App.tsx routes, DE/EN parity with CI, WYSIWYG preview, iframe HEAD pre-flight, nh3 sanitization. Research: LIGHT.
-- **Phase 47 — Player Bundle.** Depends on 42/43/45. `player.html` Vite entry, static mount, format handlers (image, video muted/playsinline/autoplay, pdf.js with worker URL + crossfade, sandboxed iframe, sandboxed HTML, PPTX-as-image-sequence), EventSource + watchdog, polling fallback, offline cache, persistent pairing state. Research: **HEAVY**.
-- **Phase 48 — Pi Provisioning + E2E + Docs.** systemd user service, Chromium kiosk flag set, dedicated `signage` user, unclutter, offline sidecar if chosen, E2E (fresh Pi → code → claim → playlist → play → net drop → loop → restore), bilingual admin guide, operator runbook. Research: MEDIUM.
+## Endpoint Verdict Roll-up
 
-**Ordering rationale:** 41 gates everything; 42 gates 43/45/47; 44 independent (start early); 45 ships after 46 is tolerable; 47 needs 42+43+45; 48 last.
+| Endpoint | Verdict | Phase | Notes |
+|---|---|---|---|
+| Tags CRUD | **MOVE** (delete 409 shape = scope slider) | C.1 | |
+| Schedules CRUD | **MOVE** (needs SSE bridge; `start_hhmm<end_hhmm` via DB CHECK + hook error message) | C.3 | |
+| Playlists GET/POST/PATCH | **MOVE** (needs SSE bridge) | C.4 | |
+| `DELETE /playlists/{id}` | **KEEP IN FASTAPI** (recommended, preserves `{detail, schedule_ids}` 409) OR Flow+adapter reconstruct | Scope slider | |
+| Playlists/{id}/items GET, PUT tags | **MOVE** | C.4 | |
+| `PUT /playlists/{id}/items` bulk replace | **KEEP IN FASTAPI** (atomic; compute-shaped) | — | |
+| `GET /signage/devices` list/detail | **HYBRID** — Directus serves rows; new FastAPI `GET /signage/resolved/{device_id}` for resolver; frontend merges | C.5 | |
+| `PATCH /signage/devices/{id}` (name) | **MOVE** | C.5 | |
+| `PATCH /signage/devices/{id}/calibration` | **KEEP IN FASTAPI** (Literal enum + per-device SSE) | — | |
+| `DELETE /signage/devices/{id}`, `PUT .../tags` | **MOVE** (needs SSE bridge on device_tag_map) | C.5 | |
+| `GET /signage/analytics/devices` | **KEEP IN FASTAPI** | — | |
+| `GET /api/data/sales` | **MOVE** (accept broader `?search=` OR encode `filter[_or]`) | C.2 (scope slider) | |
+| `GET /api/data/employees` | **SPLIT** — rows to Directus; `/overtime` roll-up new FastAPI | C.2 | |
+| `GET /api/me` | **DELETE** (frontend uses SDK `readMe`) | B | |
+| Media upload POST, pair/*, player/* stream, PPTX convert | **KEEP** | — | |
 
-**Needs `/gsd:research-phase` during planning:** Phase 44 (HEAVY — worker location, failure UX, visual-regression baseline), Phase 47 (HEAVY — offline cache architecture, pdf.js Vite integration, Pi 4 memory), Phase 42 (MEDIUM — token format), Phase 45 (MEDIUM — watchdog tuning), Phase 48 (MEDIUM — hardware validation).
+## Top Pitfalls (Ranked)
 
-**Standard patterns (skip research):** Phase 41 (Alembic), Phase 43 (mirror v1.15 sensor API), Phase 46 (mirror v1.15 admin UI).
+1. **Directus Data Model UI rewriting Alembic-owned schema** (P1, CRITICAL). Field-label edits can regenerate DDL and revert defaults/CHECKs. Prevention: operator discipline + CI `information_schema.columns` hash drift-check. Phase A.
+2. **SSE fanout silent break** (P5, HIGH). The keystone decision above. No Phase C endpoint PR lands without matching bridge piece + SSE integration test.
+3. **FK RESTRICT 409 shape divergence** (P4, HIGH). Frontend `PlaylistDeleteDialog` deep-links off `schedule_ids`. Prevention: keep DELETE in FastAPI (cheapest) OR Flow Filter(Blocking) Throw Error OR frontend adapter re-queries. Recommend keep-in-FastAPI.
+4. **Viewer field-level leak** (P9 + P15, HIGH). Explicit `fields` allowlists per permission row; integration test per collection. Phase B.
+5. **TanStack Query cache-key collision** (P7, HIGH). Namespace split (`["directus",...]` vs `signageKeys.*`); localStorage-gated one-shot cache bust; ESLint/grep guard. Phase D.
 
-## Open Decisions (STACK ↔ ARCHITECTURE ↔ PITFALLS diverge — roadmap must resolve)
+**Medium-severity noteworthy:** P8 `DB_EXCLUDE_TABLES` drift + `up -d` vs `restart` semantics; P10 filter/sort/pagination contract via `directusList<T>` adapter; P11 Alembic column-add freeze rule during v1.22; P12 per-phase rollback recipe (don't delete FastAPI routers until Phase E); P13 etag single-source discipline (bridge emits event+id only — FastAPI computes etag).
 
-| # | Decision | Option A (STACK-leaning) | Option B (ARCH/PITFALLS-leaning) | Resolve in |
-|---|----------|--------------------------|-----------------------------------|------------|
-| 1 | PPTX worker location | LibreOffice in api container + BackgroundTasks (simpler) | Dedicated pptx-worker container, read_only + cap_drop + no DB net; Postgres `FOR UPDATE SKIP LOCKED` queue (CVE blast-radius) | Phase 44 plan |
-| 2 | Media storage | Directus file storage + read-only volume mount; player fetches `/assets/<uuid>` | Backend-owned `/app/media/<uuid>.<ext>`; Directus metadata only; stable `/api/signage/media/:id/file` URL | Phase 41 plan (binds 43+44) |
-| 3 | Player offline cache | `vite-plugin-pwa` Service Worker + Cache API scoped to `/signage/player` | Pi-side sidecar (systemd before Chromium) writing manifest + media to `/var/lib/signage/` (SW needs HTTPS, nightly-reboot eviction) | Phase 47 plan (binds 48) |
-| 4 | Device token format | Opaque `secrets.token_urlsafe(32)` sha256-hashed; lives until admin revokes | Short-lived JWT HS256, `scope: "device"`, 24h exp, rotate on heartbeat within 2h + 1h grace | Phase 42 plan |
+## Recommended Phase Sequence
 
-**Recommendation:** Default to Option B on 1/3/4 (security-first, resilience-first); Option A on 2 (simplicity-first). Each phase plan runs ≤1-day spike to confirm.
+Ordering principle: ship plumbing before any frontend port. Phase A proves bridge works with zero user-visible change.
 
-## MVP Definition
+- **Phase A — Schema bootstrap + SSE bridge + policy foundation** (backend only, no user-visible change). `directus-schema-apply` service, stripped snapshot YAML, extended `bootstrap-roles.sh`, SSE bridge per user decision, shrunk `DB_EXCLUDE_TABLES`, compose `depends_on` reorder. Acceptance: `docker compose down -v && up -d` reproduces v1.21 behavior; manual Directus UI edit fires SSE to Pi <500ms.
+- **Phase B — Kill `me.py`** + `AuthContext` to SDK-only. Smallest surface. Tests `directus_users` Viewer field allowlist.
+- **Phase C — Per-endpoint migration** (sub-phases): C.1 Tags → C.2 data.py (sales + /employees split) → C.3 Schedules → C.4 Playlists + items + tag_map → C.5 Devices + device_tag_map → C.6 Analytics review. Each sub-phase adapter-wraps `signageApi.ts`, ships matching SSE bridge piece (if not Phase-A blanket), regression-tests SSE, keeps FastAPI router in place for rollback.
+- **Phase D — Frontend refactor.** Directus-backed hooks under `["directus", ...]`. `signageApi.ts` swaps to `directus.request()`. Contract-snapshot test per endpoint (old FastAPI response → adapter → diff empty).
+- **Phase E — Cleanup.** Delete moved routers/schemas/tests. Final `DB_EXCLUDE_TABLES` audit + CI guard. Rollback verification test.
 
-**Admin:** `/signage` admin-only launcher tile; Media library (upload image/video/PDF/PPTX/URL/HTML, preview, tag, delete with "in use by N"); Playlist CRUD (reorder + per-item duration + target-tag picker); Device list with green/amber/red status + edit + delete + issue pairing code; Pair flow (admin enters 6-digit code + name + tags); WYSIWYG preview panel; Full DE/EN parity + bilingual admin-guide article.
+**Research flags:** Phase A spike needed only if Option B (Flow pre-update payload shape, Throw Error body shape). Phase C.1 light validation spike. Phase C.4 needs scope decision on DELETE 409 + verify Directus 11 nested-O2M atomic PATCH. Phase B/C.5/D — no new research (standard patterns).
 
-**Player (Chromium kiosk at `/player/:device_token`):** Boot-time pairing-code display; polling resolve + 30s heartbeat; SSE push with pings + watchdog (DIFF-01); offline cache-and-loop; format handlers (image, video muted/playsinline/autoplay, sandboxed iframe URL with pre-flight warning, pdf.js with crossfade + 50-page cap + image fallback, sanitized+sandboxed HTML snippet, PPTX as image sequence).
+## Open Spikes (before roadmap OR early Phase A)
 
-**Infra:** Alembic migration (8 tables + partial-unique index + RESTRICT FK); FastAPI `/api/signage/*` (3 sub-routers); PPTX pipeline with 60s timeout + semaphore(1) + 50MB cap + state machine + startup reset; APScheduler heartbeat sweeper + pairing cleanup (`max_instances=1`); updated docker-compose.
+1. **[BLOCKING] User picks SSE bridge Option A vs B.**
+2. Directus `schema apply` against existing Alembic tables (known issue #25760) — REST `POST /collections {schema:null}` fallback path documented. Confirm in Phase A.
+3. Directus Flow pre-update payload access (Option B only).
+4. Directus 11 nested O2M atomic single-PATCH shape (Phase C.4).
+5. FK RESTRICT 409 reshape decision (Phase C.4).
+6. `/api/data/sales` search param scope (Phase C.2).
+7. `signage_pairing_sessions` exposure (Phase A; default keep excluded).
 
-**NOT in MVP:** dayparting, email/toast alerts, transition picker, expiration dates, thumbnail rows, analytics, 20+ device fleet tools, multi-site, mobile app, external API, regions/zones, video transcoding.
+## Sources
 
-## Open Questions for Phase-Level Research
-
-1. **PPTX failure UX** — hard "Upload failed" with no row, or persistent `failed` row with retry button? (Phase 44)
-2. **Offline cache eviction policy** — 500MB LRU? "Never evict current playlist"? 7-day grace after removed from manifest? (Phase 47)
-3. **Device-token scope enforcement model** — `Depends(require_scope("device"))` vs. middleware? Composition with existing admin-gate `APIRouter(dependencies=)` pattern. (Phase 42)
-4. **Pairing TTL + rate-limit tuning** — 10 vs. 5 min; `/pair/request` rate (5/min? 10/hour?). (Phase 42)
-5. **Watchdog tuning** on real Pi Wi-Fi — validate 45s silence → reconnect. (Phase 45 verification)
-6. **Visual-regression CI gate baseline** — which reference PPTX, diff threshold, CI env with LibreOffice. (Phase 44)
-7. **Directus SDK version bump** — is current pin ≥21.2.2 or does Phase 41 need a clean-migration pre-commit? (Phase 41 pre-work)
+Full citations in `STACK.md`, `FEATURES.md`, `ARCHITECTURE.md`, `PITFALLS.md` sources sections. Key external refs: Directus Schema API docs, Hooks/Flows guides, issue #25760, @directus/sdk + extensions-sdk on npm, asyncpg LISTEN docs. Repo files inspected: `docker-compose.yml`, `caddy/Caddyfile`, `directus/bootstrap-roles.sh`, `backend/app/security/directus_auth.py`, `backend/app/services/{signage_broadcast,signage_resolver}.py`, `backend/app/routers/signage_admin/*`, `backend/app/routers/{data,me}.py`, Alembic versions, `frontend/src/lib/*.ts`, `.planning/PROJECT.md`.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack versions | HIGH | All npm/PyPI/Docker verified directly; Pi/Chromium/systemd cross-verified ≥4 independent 2025-2026 sources |
-| Feature taxonomy | HIGH | Four reference platforms converge; anti-features explicit |
-| Architecture patterns | HIGH on reuse of v1.11/v1.15; MEDIUM on PPTX worker location + media storage + bundle split |
-| Pitfalls + prevention | HIGH | Upstream + community docs; all 24 pitfalls have mitigation |
-| Complexity labels | MEDIUM | PPTX + player hours could swing ±50% on edge-case UX |
+| Stack additions | HIGH | Versions verified against npm/Docker Hub; only 1 MEDIUM on schema-apply existing-table edge |
+| Feature verdicts (move/keep/split) | HIGH | Per-endpoint walk-through with Directus capability match; 2 MEDIUM (nested O2M atomicity, Flow pre-update payload) |
+| Architecture (schema+permissions+frontend seam) | HIGH | v1.11 bootstrap-roles precedent + known Directus 11 patterns |
+| SSE bridge mechanism | MEDIUM | Both options viable; researchers disagree; user call needed |
+| Pitfalls | HIGH | 18 mapped to phases with test coverage list |
 
-**Overall:** HIGH for scope/approach/risk; MEDIUM for exact phase sizing.
-
-### Gaps Needing Runtime Validation
-- Real Pi hardware for Wayland + systemd linger + EventSource reconnect — book Pi access early (Phase 42/44), not just Phase 48
-- Visual-regression PPTX baseline needs representative German-office deck
-- Reverse-proxy topology (if any Nginx/Caddy/Traefik in front of FastAPI): `proxy_buffering off` + `proxy_read_timeout` settings
-- pdf.js + video + crossfade memory ceiling on actual Pi 4
+**Overall: HIGH** with single MEDIUM-gated decision (SSE bridge).

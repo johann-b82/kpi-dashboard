@@ -1,268 +1,186 @@
-# Stack Research — v1.16 Digital Signage
+# Stack Research — v1.22 Backend Consolidation
 
-**Domain:** Digital signage CMS + Chromium-kiosk player on Raspberry Pi (small fleet, ≤5 devices) added to existing KPI Dashboard monorepo
-**Researched:** 2026-04-18
-**Confidence:** HIGH for library versions (verified against PyPI / npm); MEDIUM-HIGH for Pi/Chromium integration (cross-verified against 2025-2026 community guides and official Pi docs)
+**Milestone:** v1.22 Directus-first CRUD
+**Researched:** 2026-04-24
+**Overall confidence:** HIGH
+**Scope:** Incremental stack additions only. Core stack (FastAPI 0.135.3, asyncpg 0.31.0, SQLAlchemy 2.0.49, Alembic 1.18.4, React 19.2.5, Vite 8, TanStack Query 5.97.0, Directus 11.17.2, PostgreSQL 17-alpine) is **not re-researched** — see CLAUDE.md.
 
-## Scope
+---
 
-This document covers **only stack additions** for v1.16. The existing platform stack (FastAPI 0.135, SQLAlchemy 2.0 async, asyncpg, Alembic, Directus 11, React 19, Vite 8, Tailwind v4, shadcn/ui, TanStack Query 5, Recharts 3, react-i18next, APScheduler in-process, Fernet, `@directus/sdk`) is already validated — do NOT re-pick those. Integration points to that stack are called out inline.
+## Domain
 
-## Recommended Additions
+Moving **pure CRUD** FastAPI routers (`signage_admin/{devices,playlists,playlist_items,schedules,tags,analytics}`, `data.py` sales/employees lookups, `me.py`) to Directus 11.17.2 collections on top of **Alembic-owned Postgres tables** (`signage_devices`, `signage_device_tags`, `signage_device_tag_map`, `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_schedules`, `signage_heartbeat_event`, `sales_records`, `personio_employees`). FastAPI retains compute (upload parsing, KPIs aggregation, SSE, Personio sync, signage_player envelope/heartbeat, signage_pair JWT, PPTX subprocess, sensor polling).
 
-### Backend — PPTX Conversion Pipeline
+The core research question is: **who owns DDL, and what glue do we need to register the existing tables in Directus metadata without colliding with Alembic?** Answer: Alembic stays the exclusive DDL owner; Directus learns about the tables through a one-off introspection (`register-existing-tables`) plus a schema snapshot that carries only Directus metadata (collections/fields/relations configuration rows), never DDL.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| LibreOffice (headless) | 24.x (Debian `bookworm` package `libreoffice-impress`) | PPTX/PPT → PDF (step 1 of conversion) | The only mature FOSS renderer that faithfully reproduces real PowerPoint layouts, master themes, embedded fonts, and WordArt. No pure-Python library (`python-pptx`, community Aspose mirrors) matches visual fidelity. Invoked as `soffice --headless --convert-to pdf --outdir <dir> <file.pptx>`. Install directly in the API container — no separate service. |
-| `poppler-utils` | Debian bookworm package | System dependency for `pdf2image` (`pdftoppm`) | Single apt package; no config. |
-| `pdf2image` | 1.17.0 | Python wrapper over `pdftoppm` — PDF → PIL images (step 2) | `convert_from_path(pdf, dpi=150)` → list of PIL images; the tightest Python binding to poppler. One-call API from LibreOffice output to per-slide PNGs. |
-| `Pillow` | ≥10.x (transitive via pdf2image/pandas) | Image I/O + cap dimensions before upload | Needed by pdf2image; also use to downscale to 1920×1080 max to keep Directus file storage sane. |
-| Fonts: `fonts-crosextra-carlito`, `fonts-crosextra-caladea`, `fonts-noto-core`, `fonts-dejavu` | Debian stable | Metric-compatible Calibri/Cambria + broad coverage for LibreOffice rendering | **Critical** — without Carlito/Caladea, LibreOffice substitutes Liberation fonts and output drifts from what the uploader sees in PowerPoint. Install in Dockerfile alongside libreoffice-impress. |
+---
 
-**Pipeline:** `POST /api/signage/media` (PPTX) → FastAPI `BackgroundTasks` → `soffice --convert-to pdf` (tempdir) → `pdf2image.convert_from_path(dpi=150)` → iterate PIL images, downsize, upload each to **Directus file storage** via Files API using the existing service-account token → write slide asset IDs as ordered JSONB array on `signage_media.slides`. Status column (`pending`|`converting`|`ready`|`failed`) is the single source of truth; on container restart a startup hook resets any stuck `converting` → `failed`.
+## New Dependencies (frontend)
 
-### Backend — Server-Sent Events
+All versions verified against npm registry on 2026-04-24. The SDK is already at `^21.2.2` in `frontend/package.json` and is the **current** major (21.x) — no bump needed.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `sse-starlette` | 3.2.0 (released Mar 29 2026) | `EventSourceResponse` for FastAPI/Starlette with heartbeats + graceful disconnect | FastAPI's built-in `StreamingResponse` *can* do SSE, but `sse-starlette` adds the keep-alive ping loop, `retry:` hints, and client-disconnect handling you'd otherwise hand-roll. Tiny, pure-Python, no extras. Battle-tested in the FastAPI ecosystem. |
+| Package | Version (pin) | Why | Alternative rejected |
+|---|---|---|---|
+| `@directus/sdk` | **already present — keep `^21.2.2`** | Official TypeScript SDK; composable (`authentication` + `rest` modules already wired in `directusClient.ts`); request builders return plain Promises → drop directly into TanStack Query `queryFn`. Cookie-mode auth already working same-origin behind Caddy `/directus/*`. | Raw `fetch()` to `/directus/items/*` — loses typed collection interfaces, token-refresh logic, and query-string composition (`readItems(..., { filter, fields, sort, limit })`). Custom `apiClient.ts` wrapper — already retained for FastAPI compute endpoints; reusing it for Directus duplicates SDK auth handling and fights the cookie-mode flow. |
+| `@directus/errors` | **do not add to frontend** | Frontend-side: Directus returns errors as standard JSON `{errors:[{message, extensions:{code}}]}` over HTTP 4xx/5xx. The SDK already parses this and throws a structured error. Map `extensions.code === "RECORD_NOT_UNIQUE" / "FAILED_VALIDATION"` into user-facing toasts at the TanStack Query `onError` level. No additional package. | N/A |
 
-**Integration:** one route `GET /api/signage/devices/{id}/events` returning `EventSourceResponse`. Invalidation: when admin saves a playlist, publish to an in-process `asyncio.Queue` keyed by device ID; SSE handler drains the queue. **No Redis pub/sub** — fleet is ≤5 devices, single API container (`--workers 1` invariant already set by APScheduler). Fleet ≥ ~20 devices or multi-worker → swap to Redis pub/sub (see "Stack Patterns by Variant").
+**No new frontend packages are strictly required.** The single-client pattern already exists (`frontend/src/lib/directusClient.ts`). TanStack Query stays in place — each moved endpoint becomes a hook whose `queryFn` calls `directus.request(readItems('signage_devices', { ... }))`.
 
-**Reverse-proxy warning (record in ARCHITECTURE.md):** any Nginx/Caddy in front of FastAPI must set `proxy_buffering off` and `proxy_read_timeout` ≥ heartbeat interval or SSE streams get buffered/cut.
+### Frontend integration pattern (no new packages)
 
-### Backend — Async Job Execution
+```ts
+// src/features/signage/hooks/useDevices.ts
+import { readItems, createItem, updateItem, deleteItem } from "@directus/sdk";
+import { directus } from "@/lib/directusClient";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-**Recommendation: FastAPI `BackgroundTasks`. Do NOT add Celery / ARQ / RQ.**
+export const devicesKeys = {
+  all: ["directus", "signage_devices"] as const,
+  list: (filter?: object) => [...devicesKeys.all, "list", filter] as const,
+};
 
-| Approach | Verdict | Reason |
-|----------|---------|--------|
-| `BackgroundTasks` (FastAPI built-in) | ✓ Use this | PPTX conversions run 5-30s for typical decks; acceptable as a background task on `--workers 1`. Task runs in-process and completes before container shutdown (FastAPI awaits background tasks during response flush). |
-| `arq` 0.28.0 (Redis-backed async queue) | ✗ Defer | Adds a Redis container. Unjustified for ≤5 devices with sporadic PPTX uploads. Reconsider if a future milestone adds bulk import or video transcoding. |
-| Celery 5.x | ✗ Don't use | Sync-first, heavy broker requirement (RabbitMQ/Redis). Massively over-engineered. |
-| RQ | ✗ Don't use | Needs Redis; sync model mismatches FastAPI async. |
-
-### Frontend — PDF Page-Flip Playback
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `pdfjs-dist` | 5.6.205 (latest) | Raw PDF.js ESM build — render PDF page to `<canvas>` | Lower-level than `react-pdf` but gives exact control over page-flip timing, transitions, and offline-cached byte iteration. For a player that cycles pages every N seconds, raw pdfjs-dist in a small React hook (`usePdfPage(url, pageNum)`) is simpler than `react-pdf`'s `<Document>/<Page>` abstraction. |
-| `react-pdf` | 10.4.1 | React wrapper around pdfjs-dist (admin UI only) | Use only in admin media-library PDF *preview* (drop-in `<Document><Page/></Document>`). Keeps player bundle small by using raw pdfjs there. |
-
-**Vite 8 integration:** load the worker via `import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` and assign to `GlobalWorkerOptions.workerSrc`. Vite handles chunk naming and emits the worker to `dist/`.
-
-### Frontend — Video Playback
-
-**Recommendation: native `<video>` element. Do NOT add `react-player` / `video.js` / Plyr.**
-
-| Option | Verdict | Reason |
-|--------|---------|--------|
-| Native `<video autoplay muted loop playsinline>` | ✓ Use this | Chromium on Pi 4/5 plays MP4 (H.264/AAC) and WebM (VP9) natively with hardware acceleration where available. Muted autoplay allowed with kiosk flag. Zero dependencies, ~20 lines of React. |
-| `react-player` 3.4.0 | ✗ Don't use | ~30 KB for features we don't need (YouTube/Vimeo/Twitch, HLS). Our media is self-hosted MP4/WebM. |
-| `video.js` / Plyr | ✗ Don't use | Custom controls + plugins; signage has no UI chrome. |
-
-**Codec note:** Pi 4 has HW H.264 decode; Pi 5 dropped the HW decoder but CPU-decodes 1080p@30fps fine. Prefer H.264 MP4. VP9/WebM works but is CPU-heavier on Pi 5.
-
-### Frontend — Image Transitions / Carousel
-
-**Recommendation: hand-rolled CSS fade in a small React state machine. Do NOT add a carousel or motion library.**
-
-| Option | Verdict | Reason |
-|--------|---------|--------|
-| Hand-rolled `setTimeout` + Tailwind `transition-opacity duration-700` | ✓ Use this | Signage is single-item-at-a-time, not user-swipeable. ~30 LOC `<PlaylistPlayer>` is simpler and more debuggable than any library, and lean on Pi CPU. |
-| `embla-carousel-react` 8.6.0 (shadcn Carousel primitive) | ✗ Not here | Built for swipeable carousels with drag + snap — signage doesn't need that. |
-| `framer-motion` / `motion` v12 | ✗ Don't add | Single-property cross-fade; no spring physics / layout animation required. |
-
-**Transitions supported in v1.16:** `fade` (default), `cut` (instant). Defer slide/zoom/pan — they add Pi CPU + complexity without product value for small-fleet internal use.
-
-### Frontend — Directus SDK
-
-| Library | Version | Purpose | Notes |
-|---------|---------|---------|-------|
-| `@directus/sdk` | 21.2.2 (latest) | Type-safe CRUD client for Directus collections | Already in `package.json` from v1.11-directus (used for `/login` + cookie-refresh). **Verify current pin vs 21.2.2** in Phase 1; if behind, bump as a single clean migration before signage work begins — don't mix SDK upgrade with feature work. SDK v21 targets Directus server 11.x (our current version). |
-
-**Integration boundary (decide in ARCHITECTURE.md):** default recommendation is to keep all signage tables Alembic-managed and hidden from the Directus Data Model UI (same pattern as `sensors`, Personio, sales). Admin UI talks to **FastAPI** for signage CRUD (gives us validation, background task triggers, pairing flow, SSE wiring in one layer). Directus SDK remains responsible for auth/login and user-management UIs. This keeps v1.16 consistent with the v1.11 convention and avoids two ORM layers on the same table.
-
-### Player Host — Raspberry Pi
-
-| Component | Version / Choice | Purpose | Notes |
-|-----------|------------------|---------|-------|
-| Raspberry Pi OS | Bookworm 64-bit (2024-07+), **Lite** edition | Pi OS | Default since late 2023, mature in 2026. Lite + auto-login to TTY + a minimal Wayland compositor gives the cleanest kiosk; Desktop edition works but ships extra packages not needed. |
-| Chromium | 136+ (shipped via Pi OS apt, `chromium-browser`) | Kiosk browser | Supports all required `--kiosk` flags. Auto-updates with `apt` upgrade cycle. |
-| Display server | Wayland (Bookworm default on Pi 4/5) | Display session | Bookworm switched from X11 to Wayland/Wayfire as default. Chromium on Wayland works with `--ozone-platform=wayland`. **Fallback:** X11 via `sudo raspi-config` → Advanced → Wayland → X11 if rendering glitches appear. **Recommendation:** start on Wayland; document X11 fallback in admin guide. |
-| Service manager | **systemd user service** | Auto-start on boot | More reliable than `/etc/xdg/autostart` `.desktop` entries on Bookworm (the old `LXDE-pi/autostart` path is gone). Unit: `~/.config/systemd/user/signage-player.service`. Enable with `systemctl --user enable signage-player && sudo loginctl enable-linger pi` so it starts without login. Logs via `journalctl --user -u signage-player`. |
-| `unclutter` | Debian bookworm package | Hide mouse cursor | One-line install; runs in kiosk startup script. |
-
-**Recommended Chromium kiosk flag set:**
-
-```
-chromium-browser \
-  --kiosk \
-  --noerrdialogs \
-  --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-translate \
-  --autoplay-policy=no-user-gesture-required \
-  --overscroll-history-navigation=0 \
-  --disable-pinch \
-  --check-for-update-interval=31536000 \
-  --ozone-platform=wayland \
-  --app=https://<host>/signage/player?device=<id>
+export function useDevices() {
+  return useQuery({
+    queryKey: devicesKeys.list(),
+    queryFn: () =>
+      directus.request(
+        readItems("signage_devices", {
+          fields: ["id", "name", "status", "rotation", "hdmi_mode", "audio_enabled", "last_seen_at"],
+          sort: ["name"],
+          limit: -1,
+        }),
+      ),
+  });
+}
 ```
 
-- `--autoplay-policy=no-user-gesture-required` is **mandatory** for signage — without it, even muted videos fail to autoplay without a user gesture.
-- `--app=<url>` combined with `--kiosk` gives true fullscreen chromeless mode.
-- `--check-for-update-interval=31536000` suppresses the update nag banner.
+**Cache-key convention:** prefix all Directus-backed keys with `["directus", <collection>, ...]` so legacy FastAPI keys (`["signage", "devices"]`) can be invalidated independently during the cut-over. No `@tanstack/query-directus` bridge exists (confirmed via npm registry + RFC discussion #17808) — the manual queryKey pattern above is what the community uses today.
 
-**Offline cache strategy (player PWA):**
+---
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| `vite-plugin-pwa` | 1.x (latest) | Service-worker generation scoped to `/signage/player` route | Standard Vite choice, wraps Workbox with sensible defaults. Cache: player HTML/JS/CSS + latest playlist JSON + referenced media URLs. On network loss the service worker serves cached responses so the player keeps looping. Scope via `workbox.navigateFallbackAllowlist` so admin UI is unaffected. |
+## New Dependencies (backend / Directus extensions)
 
-## Installation Summary
+| Package / asset | Version | Where it lives | Why |
+|---|---|---|---|
+| `@directus/extensions-sdk` | `17.1.3` | `directus-extensions/` npm workspace (new) — only at build time | Needed to compile the one custom hook we need (see below). CLI: `directus-extension build`. Only required because we need server-side validation that matches existing FastAPI Pydantic constraints. |
+| `@directus/errors` | bundled with Directus 11 runtime — declare as peer only | inside the hook extension | `throw new InvalidPayloadError({ reason: "rotation must be 0, 90, 180, or 270" })` propagates as proper 422/400 responses instead of raw 500s. Already available to extensions at runtime, no install into the Directus image needed. |
+| Custom hook extension: `kpi-validation-hooks` | 1.0.0 (this repo) | `directus-extensions/kpi-validation-hooks/` bind-mounted into `directus:/directus/extensions/` | Single `hook` extension registering: (a) `items.signage_devices.create/update` → pre-validate `rotation ∈ {0,90,180,270}` and `audio_enabled ∈ {true,false}` (DB CHECK catches it anyway, but friendlier error); (b) `items.signage_playlist_items.delete` → translate Postgres FK RESTRICT (SQLSTATE `23503`) on `signage_media → signage_playlist_items` into HTTP 409 with a `reason` message (matches existing FastAPI behaviour for calibration + item lifecycle tests). |
+| Directus schema snapshot | YAML in `directus/snapshots/v1.22.yaml` | checked into the repo; applied by a compose one-shot service | Ships collection/field/relation **metadata only** (display names, interfaces, icons, sort order, field-level permissions) — does **not** touch DDL. Applied via `npx directus schema apply --yes ./snapshots/v1.22.yaml` inside the Directus container. |
 
-### Backend — `pyproject.toml` / `requirements.txt` additions
+### Do NOT add a Directus-extension-managed migration
 
-```
-pdf2image==1.17.0
-sse-starlette==3.2.0
-# Pillow already transitive via pdf2image; pin if not yet
-```
+The [Directus docs Migrations](https://directus.io/docs/configuration/migrations) feature is for Directus itself evolving the `directus_*` system tables — not for app DDL. Using it for `signage_*` would fight Alembic. Keep all table DDL in Alembic; use snapshot-apply only for Directus metadata.
 
-### Backend — Dockerfile apt layer
+### About `directus-sync` / `directus-extension-schema-sync`
 
-```dockerfile
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      libreoffice-impress libreoffice-core \
-      poppler-utils \
-      fonts-crosextra-carlito fonts-crosextra-caladea \
-      fonts-noto-core fonts-dejavu \
-    && rm -rf /var/lib/apt/lists/*
-```
+Third-party tools (`directus-sync` on npm, `directus-extension-schema-sync`) exist for promoting schema between environments. **Do not add them.** They duplicate what `npx directus schema snapshot`/`apply` already does since v11, and they add a dependency we'd have to audit. One canonical snapshot file per milestone + the built-in CLI is sufficient for our single-environment deploy.
 
-### Frontend — npm
+---
 
-```bash
-npm install pdfjs-dist@5.6.205 react-pdf@10.4.1
-npm install -D vite-plugin-pwa
-# @directus/sdk: verify pin >=21.2.2, bump if below
-```
+## Directus Configuration Changes
 
-### Raspberry Pi provisioning (shipped as `docs/pi-setup.md` / admin guide article)
+### `docker-compose.yml` — `directus` service
 
-```bash
-sudo apt update && sudo apt install -y chromium-browser unclutter
-mkdir -p ~/.config/systemd/user/
-# copy signage-player.service + kiosk-start.sh into place
-systemctl --user daemon-reload
-systemctl --user enable --now signage-player
-sudo loginctl enable-linger pi
-```
+1. **`DB_EXCLUDE_TABLES`** — remove the tables we're now surfacing. Keep Alembic-only tables hidden:
+   - **Remove from exclude list:** `signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags`, `signage_heartbeat_event` (+ join tables `signage_device_tag_map`, `signage_playlist_tag_map`, `signage_schedules`, plus `sales_records`, `personio_employees`).
+   - **Keep in exclude list:** `alembic_version`, `upload_batches`, `app_settings`, `personio_attendance`, `personio_absences`, `personio_sync_meta`, `sensors`, `sensor_readings`, `sensor_poll_log`, `signage_pairing_sessions`, `signage_media` (Directus-owned uploads — **do not** re-expose; stays Directus-native, FastAPI already reads it via path resolution).
+2. **Extensions mount:** add `./directus-extensions/dist:/directus/extensions:ro` (build output; build runs host-side or via a one-shot container).
+3. **Schema bootstrap service** (new, similar to `directus-bootstrap-roles`):
+   ```yaml
+   directus-schema-apply:
+     image: directus/directus:11.17.2
+     entrypoint: ["/bin/sh","-c","npx directus schema apply --yes /snapshots/v1.22.yaml"]
+     volumes:
+       - ./directus/snapshots:/snapshots:ro
+     depends_on:
+       directus:
+         condition: service_healthy
+     restart: "no"
+   ```
+4. **`bootstrap-roles.sh` extension:** add per-collection policy-permission rows for the newly surfaced collections. Viewer policy gets `read` on all 10 collections; Administrator (built-in) already has full access. Use the existing `POST /permissions` REST pattern (GET-before-POST idempotent). This is a script edit, not a new tool.
 
-## Alternatives Considered
+### Handling Alembic-owned tables in Directus metadata
 
-| Recommended | Alternative | When Alternative Would Be Better |
-|-------------|-------------|----------------------------------|
-| LibreOffice + pdf2image | `python-pptx` | Never for this job — python-pptx is for *generating* pptx, not rendering. |
-| LibreOffice + pdf2image | Aspose.Slides | Commercial license required; unnecessary. |
-| LibreOffice + pdf2image | `unoconv` | Deprecated / unmaintained; `soffice --convert-to pdf` is the supported path. |
-| LibreOffice + pdf2image | Pandoc | Structure only — doesn't render PowerPoint visuals. |
-| `sse-starlette` | `fastapi.WebSocket` | If the player ever sends data back (touch signage, interactive kiosks). For one-way push + polling fallback, SSE is simpler and proxies better. |
-| `sse-starlette` | Long-polling | Higher server load, worse latency. |
-| `BackgroundTasks` | `arq` 0.28.0 | Future milestone adds bulk import / video transcoding (100+ jobs, retry semantics needed). |
-| Native `<video>` | `react-player` 3.4.0 | Media type ever includes YouTube/Vimeo embeds (not planned). |
-| Hand-rolled CSS fade | `framer-motion` / `motion` v12 | Transitions grow to include spring physics / layout animation. |
-| Raw `pdfjs-dist` in player | `react-pdf` in player | Never — use react-pdf in admin preview only. |
-| Wayland on Pi | X11 | If Chromium Wayland rendering glitches surface on Pi 5 — fallback documented, not default. |
-| systemd user service | `.desktop` autostart | Bookworm dropped the LXDE autostart path; systemd is the modern recommendation. |
+Directus 11 since v11.10.0 has the [known issue #25760](https://github.com/directus/directus/issues/25760) where `schema apply` tries to CREATE an already-existing table. **Mitigation documented in the snapshot workflow:**
 
-## What NOT to Use
+- Snapshot file must be **generated** against a Directus instance where the tables already exist physically but are not yet in `directus_collections`. Do this once (dev workstation), author the yaml with `meta:` entries only, and commit.
+- In v11 the recommended workaround is to use `POST /collections` with `{schema: null, meta: {...}}` — this registers the Directus metadata row without issuing any DDL. Our `bootstrap-roles.sh` pattern scales to this: extend it to a `bootstrap-collections.sh` or fold it in.
+- **If `schema apply` ever barfs with "Collection already exists" during CI/boot,** fall back to the REST `POST /collections {schema: null}` path. This is the only part of the plan with MEDIUM confidence; the REST path is always available and proven.
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Celery | Broker + worker containers; sync model clashes with FastAPI async | `BackgroundTasks` (now); ARQ (if ever needed) |
-| Redis as a new service in v1.16 | ≤5 devices don't need pub/sub; adds a container | In-process `asyncio.Queue` for SSE fanout |
-| Microservices / separate PPTX worker container | Adds network hop, Compose complexity, debugging surface | Single FastAPI container with LibreOffice apt-installed |
-| Kubernetes | Scope is one VM + ≤5 Pis | Docker Compose (already in use) |
-| `unoconv` | Deprecated, unstable in 2026 | `soffice --headless --convert-to pdf` |
-| `react-pdf` in the player loop | Per-page render overhead; want direct canvas control | `pdfjs-dist` raw in player; `react-pdf` only in admin preview |
-| `framer-motion` (legacy name) | Package renamed to `motion` in 2025 — if it ever gets added in future work, pick `motion` v12. Doesn't matter here — we don't need it. | Native CSS transitions |
-| Hardcoded Chromium in a server-side Docker container for the player | Player runs on Pi hardware, not on the server | Native Chromium via apt on Pi OS |
-| `tailwind.config.js` additions | Project is Tailwind v4 CSS-first — no JS config file | Extend tokens in `:root`/`.dark` blocks (existing pattern) |
+---
 
-## Stack Patterns by Variant
+## Alembic ↔ Directus Ownership Model
 
-**If fleet grows beyond ~20 devices or multi-worker deployment:**
-- Replace in-process `asyncio.Queue` with Redis pub/sub for SSE fanout.
-- Add `arq` 0.28.0 for conversion queue (retry + visibility).
-- Consider CDN in front of Directus assets to offload Pi-origin fetches.
+**Single source of truth for DDL: Alembic.** Non-negotiable — Alembic owns every `public.*` table, every column, every CHECK, every FK, every index. Directus gets **zero** DDL authority over `public.*` in v1.22.
 
-**If video becomes the dominant content type:**
-- Add server-side `ffmpeg` transcoding to normalize to H.264/AAC MP4 (Pi 4 HW decode).
-- Move from `BackgroundTasks` to `arq` for long-running jobs with retries.
+| Concern | Owner | Tool | Notes |
+|---|---|---|---|
+| Create/drop tables | **Alembic** | migration files | Status quo. Directus `DB_EXCLUDE_TABLES` prevents Directus Data Model UI from even offering a "delete collection" that would DROP a table. |
+| Add/remove columns | **Alembic** | migration files | Same. Snapshot regen happens only *after* Alembic migration lands. |
+| CHECK constraints (e.g., `rotation IN (0,90,180,270)`, `weekday_mask BETWEEN 0 AND 127`) | **Alembic** | existing migrations | Directus hook re-validates for friendlier error messages, but the DB is the last line of defence. |
+| Foreign keys + RESTRICT behaviour | **Alembic** | existing `ondelete="RESTRICT"` on `signage_playlist_items.media_id`, `signage_schedules.playlist_id` | Directus hook translates Postgres `23503` → HTTP 409 on delete; does **not** redefine the constraint. |
+| Directus metadata (collection icon, field display, Admin/Viewer policy rows) | **Directus** | `directus_collections`, `directus_fields`, `directus_relations`, `directus_permissions` — written via `schema apply` + `bootstrap-collections.sh` | Lives in separate `directus_*` tables; never touches `public.*`. |
+| UUID / integer primary keys | **Alembic** | existing `gen_random_uuid()` server defaults | Directus respects whatever default the DB has; no change needed. |
+| `created_at` / `updated_at` | **Alembic** (server defaults + `onupdate`) | existing | Directus can optionally mark these `readonly` via the metadata snapshot so admin UI users don't fight the DB triggers. |
 
-**If Chromium Wayland proves unstable on Pi 5:**
-- Switch Pi to X11 via `raspi-config`; drop `--ozone-platform=wayland` from the flag set. Document in admin guide as a known runbook step.
+### Workflow for any schema change during v1.22
 
-**If PPTX decks are heavy (>50 slides) or upload volume spikes:**
-- Bump `--convert-to pdf` concurrency by running `soffice` in a subprocess with its own user profile dir (`-env:UserInstallation=file:///tmp/LO_<uuid>`) so parallel conversions don't stomp each other.
+1. Write Alembic migration (add column / change CHECK / etc.).
+2. `alembic upgrade head` (runs automatically via `migrate` compose service).
+3. On dev workstation: `docker compose exec directus npx directus schema snapshot /snapshots/v1.22.yaml` — regenerates YAML against the new DB shape.
+4. Commit the new `v1.22.yaml`.
+5. `directus-schema-apply` one-shot service reapplies on next `docker compose up`.
 
-## Version Compatibility
+---
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| `pdfjs-dist@5.6.205` | React 19, Vite 8 | Worker via `?url` import; types ship in-package (no `@types/pdfjs-dist` needed since v4). |
-| `react-pdf@10.4.1` | `pdfjs-dist@5.x`, React ≥16.8 | Admin UI only; verify peer-dep match on install. |
-| `sse-starlette@3.2.0` | Starlette (bundled with FastAPI 0.135), Python 3.11+ | No APScheduler conflict — SSE is request-scoped, scheduler is app-scoped. |
-| `pdf2image@1.17.0` | `poppler-utils` ≥21 (bookworm ships 22+) | Raises `PDFInfoNotInstalledError` if poppler missing — catch in conversion service, mark media `failed` with actionable message. |
-| LibreOffice 24.x + `pdf2image` | Python 3.11+ | Pipeline: `tempfile.TemporaryDirectory` → `subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", td, src])` → `pdf2image.convert_from_path(td/"*.pdf", dpi=150)` → upload each PIL image. |
-| `@directus/sdk@21.2.2` | Directus server 11.x | SDK v21 targets Directus 11; v20 and below target Directus 10 — confirm before bumping client. |
-| Chromium 136+ on Pi OS Bookworm | Wayland or X11 | `--autoplay-policy=no-user-gesture-required` + `muted` on `<video>` autoplays reliably in 2026 builds. |
-| `vite-plugin-pwa@1.x` | Vite 8 | Scope PWA behavior to `/signage/player` via `workbox.navigateFallbackAllowlist` so admin UI isn't affected. |
+## DO NOT Add
 
-## Confidence Assessment
+| Item | Why not |
+|---|---|
+| **A second ORM on the backend** (Prisma, Drizzle, tRPC) | SQLAlchemy 2.0 + asyncpg stays for FastAPI compute endpoints. Directus owns the Items API for moved collections. Adding a JS ORM would split schema authority three ways. |
+| **A separate auth library** (Auth.js/NextAuth, clerk, lucia, passport) | Directus is the identity provider (shipped v1.11-directus). Frontend gets its session via `@directus/sdk` cookie-mode; FastAPI validates HS256 JWTs with shared secret. Adding another auth lib = two bugs to chase. |
+| **`directus-sync` / `directus-extension-schema-sync`** | The built-in `schema snapshot/apply` CLI + our `bootstrap-roles.sh` REST pattern already cover every sync need for a single-environment deploy. |
+| **A Directus migration extension to own `signage_*` DDL** | Alembic is the DDL source of truth. Directus migrations are for `directus_*` system tables only. Cross-over = split-brain. |
+| **`@tanstack/query-sync-storage-persister` or offline-first sync wrappers (Indirectus RFC)** | Out of scope — we have a LAN-only, always-online deployment. Offline handling on the signage Pi is a separate compute path (sidecar cache) that doesn't touch this milestone. |
+| **A TanStack Query bridge to Directus** (no such official package exists in npm as of 2026-04) | Not needed; the manual queryFn pattern (shown above) is the community-standard approach per the [dev.to / TanStack Start guide](https://dev.to/wadethomastt/connecting-tanstack-start-to-directus-with-the-sdk-type-safe-data-fetching-in-one-file-1e0c). Adding a wrapper = one more thing to maintain. |
+| **GraphQL layer** (`@directus/sdk` graphql composable, codegen) | SDK `rest()` composable + `readItems/createItem/...` is simpler and matches our existing fetch-style code. GraphQL adds codegen tooling for zero runtime win in this size of app. |
+| **A new error-shape contract between frontend and Directus** | Reuse what the SDK throws. Do not wrap Directus errors into the existing FastAPI `{detail: "..."}` shape — that forces a translation layer and hides Directus error codes that the UI actually benefits from (`RECORD_NOT_UNIQUE`, `FAILED_VALIDATION`). Update toast handlers to read `error.errors?.[0]?.extensions?.code`. |
+| **Server-side schema-typed SDK generator** (e.g., hand-rolled `Schema` type from collection scans) — optional deferral | Directus SDK supports a generic `createDirectus<Schema>()` typed-client. Worth adding **only after** all collections land; premature for v1.22 Phase 1. Track as a post-v1.22 cleanup. |
 
-| Area | Confidence | Source |
-|------|------------|--------|
-| `sse-starlette` 3.2.0 | HIGH | PyPI release listing (Mar 29 2026) |
-| `pdf2image` 1.17.0 | HIGH | PyPI + readthedocs |
-| `arq` 0.28.0 (for "do not use now") | HIGH | PyPI + GitHub release Apr 16 2026 |
-| `pdfjs-dist` 5.6.205 | HIGH | npm registry + Mozilla releases |
-| `react-pdf` 10.4.1 | HIGH | npm registry |
-| `@directus/sdk` 21.2.2 | HIGH | npm registry |
-| `react-player` 3.4.0 (for "do not use") | HIGH | npm registry |
-| `embla-carousel-react` 8.6.0 (context) | HIGH | npm registry |
-| LibreOffice headless as the PPTX path | HIGH | Multiple 2025-2026 implementation guides + no viable pure-Python alternative |
-| Pi OS Bookworm + Wayland + systemd user service | MEDIUM-HIGH | Official Raspberry Pi tutorials + multiple 2025-2026 forum threads converge on this pattern |
-| Chromium kiosk flag set | HIGH | Cross-verified across 4 independent kiosk setup guides; `--autoplay-policy=no-user-gesture-required` is the critical one for autoplay |
-| Native `<video>` over react-player | HIGH | react-player's value is multi-platform URL support (YouTube etc.); self-hosted MP4/WebM is native-video territory |
-| `BackgroundTasks` over ARQ/Celery for v1.16 | HIGH | Sync semantics + small fleet + manual-upload cadence → heavier options are objectively wrong-sized |
-| `vite-plugin-pwa` for offline cache | MEDIUM | Standard choice; config depth (manifest + navigateFallback scoping) needs a small Phase 1 spike under sub-path deploys |
+---
+
+## Version Verification Table
+
+| Package / asset | Pinned version | Verified where | Confidence |
+|---|---|---|---|
+| `@directus/sdk` | `^21.2.2` (already present) | npm registry — latest as of 2026-04-24; last published ~14 days prior | HIGH |
+| `@directus/extensions-sdk` | `17.1.3` | npm registry — last published ~8 days prior | HIGH |
+| `create-directus-extension` | `11.0.29` (scaffolding only; npx, not a dep) | npm registry | HIGH |
+| `@directus/errors` | runtime-provided by Directus 11.17.2 — no pin | Directus docs — "available to all extensions without installation" | HIGH |
+| `directus/directus:11.17.2` image | **unchanged** from v1.11-directus | docker-compose.yml | HIGH |
+| `@tanstack/react-query` | **unchanged at `^5.97.0`** | docker-compose / package.json | HIGH |
+| Directus schema-apply CLI (`npx directus schema apply`) | ships inside `directus/directus:11.17.2` image | [Directus Schema API docs](https://directus.io/docs/api/schema) | HIGH — known issue #25760 flagged for existing-table case, documented mitigation above | MEDIUM on the existing-table path |
+
+**Confidence caveats:**
+- The "schema apply against already-existing Alembic-owned tables" path has a documented edge case ([#25760](https://github.com/directus/directus/issues/25760)). Mitigation (REST `POST /collections {schema: null}`) is documented but adds work to the roadmap. Flag for the requirements author as **phase-level risk**: worst-case we fall back to scripted REST registration (same pattern as `bootstrap-roles.sh`), which is HIGH confidence.
+- No official `@directus/sdk` ↔ TanStack Query bridge exists on npm (searched 2026-04-24). The manual queryFn-wraps-SDK pattern is what's in use by the community and what this milestone should adopt.
+
+---
 
 ## Sources
 
-- [sse-starlette on PyPI](https://pypi.org/project/sse-starlette/) — 3.2.0
-- [sse-starlette GitHub](https://github.com/sysid/sse-starlette) — `EventSourceResponse` docs
-- [pdf2image on PyPI](https://pypi.org/project/pdf2image/) — 1.17.0
-- [pdf2image readthedocs](https://pdf2image.readthedocs.io/en/latest/installation.html) — poppler dependency
-- [arq on PyPI](https://pypi.org/project/arq/) — 0.28.0 (context)
-- [pdfjs-dist on npm](https://www.npmjs.com/package/pdfjs-dist) — 5.6.205
-- [react-pdf on npm](https://www.npmjs.com/package/react-pdf) — 10.4.1
-- [React-PDF homepage](https://react-pdf.org/)
-- [@directus/sdk on npm](https://www.npmjs.com/package/@directus/sdk) — 21.2.2
-- [Directus JavaScript SDK docs](https://docs.directus.io/guides/sdk/getting-started.html)
-- [react-player on npm](https://www.npmjs.com/package/react-player) — 3.4.0 (context)
-- [embla-carousel-react on npm](https://www.npmjs.com/package/embla-carousel-react) — 8.6.0 (context)
-- [Motion (framer-motion rename) on npm](https://www.npmjs.com/package/motion)
-- [Raspberry Pi official kiosk-mode tutorial](https://www.raspberrypi.com/tutorials/how-to-use-a-raspberry-pi-in-kiosk-mode/)
-- [Kiosk mode on RPi 5 with Bookworm Lite (2025, verified) — Pi Forums](https://forums.raspberrypi.com/viewtopic.php?t=389880)
-- [Scalzotto — Chromium kiosk on Raspberry Pi](https://www.scalzotto.nl/posts/raspberry-pi-kiosk/)
-- [portalZINE — Pi kiosk for TV displays](https://portalzine.de/setting-up-a-raspberry-pi-as-a-web-client-kiosk-for-tv-display/)
-- [OneUptime — LibreOffice in Docker for document conversion (Feb 2026)](https://oneuptime.com/blog/post/2026-02-08-how-to-run-libreoffice-in-docker-for-document-conversion/view)
-- [LibreOffice DOCX→PDF Docker guide — Medium](https://medium.com/@jha.aaryan/convert-docx-to-pdf-for-free-a-docker-libreoffice-implementation-guide-cca493831391)
-
----
-*Stack research for: v1.16 Digital Signage — additions to existing FastAPI + Directus + React monorepo*
-*Researched: 2026-04-18*
+- [@directus/sdk on npm](https://www.npmjs.com/package/@directus/sdk)
+- [@directus/extensions-sdk on npm](https://www.npmjs.com/package/@directus/extensions-sdk)
+- [Directus Schema API docs](https://directus.io/docs/api/schema)
+- [Directus Hooks guide](https://directus.io/docs/guides/extensions/api-extensions/hooks)
+- [Validate Phone Numbers with Twilio in a Custom Hook (InvalidPayloadError pattern)](https://directus.io/docs/tutorials/extensions/validate-phone-numbers-with-twilio-in-a-custom-hook)
+- [Directus errors guide (`@directus/errors`, `createError`)](https://directus.io/docs/guides/connect/errors)
+- [Directus 11 Breaking Changes](https://directus.io/docs/releases/breaking-changes/version-11)
+- [Collections guide — adding to existing database](https://directus.io/docs/guides/data-model/collections)
+- [Add Directus to an Existing Database (learndirectus.com)](https://learndirectus.com/add-directus-to-an-existing-database/)
+- [Issue #25760 — v11.10.0 schema apply "Collection already exists" regression](https://github.com/directus/directus/issues/25760)
+- [Discussion #16407 — Applying schema snapshot has no effect](https://github.com/directus/directus/discussions/16407)
+- [Discussion #17808 — [RFC] Directus Offline First SDK + TanStack Query wrapper (Indirectus)](https://github.com/directus/directus/discussions/17808)
+- [Connecting TanStack Start to Directus with the SDK (community pattern)](https://dev.to/wadethomastt/connecting-tanstack-start-to-directus-with-the-sdk-type-safe-data-fetching-in-one-file-1e0c)
+- [Throwing Validation Error from Custom Hook (community forum)](https://community.directus.io/t/throwing-validation-error-from-custom-hook/606)
+- Repo files inspected: `docker-compose.yml`, `directus/bootstrap-roles.sh`, `backend/app/models/signage.py`, `backend/app/models/__init__.py`, `frontend/src/lib/directusClient.ts`, `frontend/package.json`, `.planning/PROJECT.md`.

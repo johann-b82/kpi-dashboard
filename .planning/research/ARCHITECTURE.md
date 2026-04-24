@@ -1,397 +1,429 @@
-# ARCHITECTURE — v1.16 Digital Signage Integration
+# Architecture Research — v1.22 Backend Consolidation
 
-**Researched:** 2026-04-18
-**Confidence:** HIGH for integration patterns (mirrors sensors/HR precedent); MEDIUM for PPTX worker location + player bundle trade-offs (gray areas with defensible recommendation).
+**Researched:** 2026-04-24
+**Scope:** Integration design for moving signage_admin CRUD + data lookups + `me` from FastAPI to Directus 11 on the shared Postgres 17 database.
+**Confidence:** HIGH on schema + permission + frontend seam; MEDIUM on SSE-on-Directus-mutation (multiple viable options, ranked below).
 
-## 1. Key Architecture Decisions
+---
 
-### Player Frontend — Separate Vite Bundle (Recommended)
+## Domain
 
-Build the player as a second Vite entry point in the same `frontend/` project, emitting a separate bundle served at `/player/*`, NOT as another wouter route in the main SPA.
+Shared-Postgres, split-responsibility architecture. Two HTTP services both read/write the same database:
 
-**Rationale:**
-- Main SPA bundle carries Directus SDK, AuthContext, Recharts, shadcn, i18next — a Pi kiosk needs **none** of this.
-- Player auth is orthogonal (device_token, not Directus JWT) — adding branches to `App.tsx` contaminates the auth flow.
-- A Pi runs Chromium 24/7; target <200KB gzipped player bundle vs. ~600KB for main SPA.
+- **Alembic** owns DDL for `public.signage_*` (8 tables verified in `v1_16_signage_schema.py`: devices, pairing_sessions, media, playlists, playlist_items, tags, playlist_tag_map, device_tag_map) plus `v1_18_signage_schedules`, `v1_18_signage_heartbeat_event`, and `v1_21_signage_calibration` columns.
+- **Directus 11** owns `directus_*` system tables and now (post-v1.22) exposes a subset of `public.signage_*` + `sales_records`, `personio_employees` as Directus Collections with role-based policies.
+- **FastAPI** retains compute: resolver (`resolve_playlist_for_device`, `_build_envelope_for_playlist`), SSE fanout (`signage_broadcast`), device-JWT minting (`signage_pair`), PPTX pipeline, APScheduler, media upload POST (multipart + file hashing), heartbeat, analytics read models.
 
-**Implementation:** Two Vite inputs via `rollupOptions.input`:
+The constraint: **`public` tables become shared writers**. Both sides must read consistent data, and SSE fanout (owned by FastAPI) must still fire when the *write* happens in Directus.
+
+---
+
+## Schema Ownership — Alembic + Directus on Shared Postgres
+
+**Alembic stays the DDL source of truth.** All migrations for `signage_*`, `sales_records`, `personio_*` continue to live in `backend/alembic/versions/` and run in the `migrate` service before Directus starts. This is already enforced by `depends_on: migrate: service_completed_successfully` on the `directus` service in `docker-compose.yml`.
+
+Directus needs to know the tables exist and what the columns mean. Three options for exposing Alembic-owned tables to Directus:
+
+### Option A — Directus "Create from Existing Table" (UI-click)
+- **What:** Open Data Model UI, click "Create Collection from Existing Table", Directus introspects `information_schema` and creates `directus_collections` + `directus_fields` metadata rows.
+- **Survives fresh deploy?** NO. State lives in `directus_*` tables only — disappears on volume reset unless you `pg_dump` those.
+- **In git?** NO.
+- **Idempotent?** Only via manual operator discipline.
+- **Verdict:** Reject. Dev-machine-reset unfriendly, not reviewable, not reproducible.
+
+### Option B — Directus schema snapshot apply (CLI or API)
+- **What:** `npx directus schema snapshot ./directus/snapshot.yaml` on a known-good instance → check into git → `npx directus schema apply ./directus/snapshot.yaml` on boot. Directus 11 exposes this via `POST /schema/diff` + `POST /schema/apply` (used by `@directus/sdk` `readCollections` / `readFields` endpoints) and the bundled CLI.
+- **Survives fresh deploy?** YES — snapshot is the reproducible SSOT for Directus Collection metadata.
+- **In git?** YES (`directus/snapshot.yaml`).
+- **Idempotent?** Diff-first pattern: apply is a no-op when snapshot matches current state. The migrate script can `schema diff --dry-run` to detect drift.
+- **Risk:** Directus 11 schema snapshots include `collections`, `fields`, `relations`, and in v11 also `policies` + `permissions` + `roles` + `access`. The v1.11-directus bootstrap (`bootstrap-roles.sh` lines 4–7) explicitly notes "the v10-style snapshot.yml approach (Plan 02) which was rejected by Directus 11's stricter schema apply (policies/access tables and role↔policy decoupling introduced in v11 made the v10 snapshot shape invalid)." That rejection was for a hand-authored snapshot that included roles/policies. A snapshot generated FROM a working v11 instance (not hand-authored) is valid.
+- **Verdict:** **Recommended for Collection/Field metadata.** Generate the snapshot once against a known-good configured dev instance, commit, and apply on every boot.
+
+### Option C — Pure REST API bootstrap script (extends `bootstrap-roles.sh`)
+- **What:** Same GET-before-POST idempotent shell script pattern already shipped for Viewer role/policy/access, extended to `POST /collections` + `POST /fields` for each Alembic table we want Directus to surface.
+- **Survives fresh deploy?** YES.
+- **In git?** YES.
+- **Idempotent?** Yes (the existing bootstrap-roles.sh already proves the pattern).
+- **Cost:** Lots of shell for 8+ tables × 5–15 fields each. Collection metadata (display, icon, translations, field widgets) is verbose in POST bodies.
+- **Verdict:** Good for a **handful** of collections (e.g., if we only expose 4 signage tables). At 8+ tables this gets painful to maintain vs. snapshot.
+
+### Recommendation
+**Hybrid:**
+1. **Collection + Field metadata**: Option B (snapshot apply). Add a `directus-bootstrap-schema` compose service (sibling of `directus-bootstrap-roles`) that runs `npx directus schema apply /snapshot.yaml` against the running Directus. Chain: `migrate` → `directus` → `directus-bootstrap-schema` → `directus-bootstrap-roles` → `api`.
+2. **Roles + Policies + Permissions**: Keep Option C (`bootstrap-roles.sh` extended) as the SSOT for authz. Reason: permissions are the *security boundary*; they deserve code review, not a diff-apply mechanism. Roles/policies are also small (2 roles, N policies, N*M permission rows) and the GET-before-POST pattern already exists.
+
+**Rationale for the split:** Schema drift (new column, renamed field) is frequent and low-risk to auto-apply. Permission drift is rare and high-risk — a snapshot apply that quietly grants Viewer write access to `signage_playlists` would be catastrophic; a code-reviewed shell script won't.
+
+**File layout:**
 ```
-{ main: 'index.html', player: 'player.html' }
-```
-FastAPI serves `GET /player/{device_token}` → built `player/index.html`.
-
-**Trade-off:** Single-bundle is ~1 day faster to ship. Acceptable for tight timeline, plan to split in v1.17.
-
-### Device Authentication — Opaque Bearer Token (Not JWT)
-
-Devices are not Directus users. Mint `secrets.token_urlsafe(32)` on pair-claim, store `sha256(token + server_pepper)` in `devices.token_hash`.
-
-**Why opaque, not JWT:** Devices don't expire sessions like user JWTs; tokens live until admin revokes (flip `devices.revoked=true`). JWT exp/refresh is ceremony with no benefit.
-
-**Auth dep:** New `backend/app/security/device_auth.py` exporting `get_current_device(Authorization: Bearer <token>) -> Device`. Mirrors `directus_auth.get_current_user`.
-
-**Router composition:**
-```python
-# /api/signage/* admin endpoints (admin-gated)
-signage_admin_router = APIRouter(
-    prefix="/api/signage",
-    dependencies=[Depends(get_current_user), Depends(require_admin)],
-)
-# /api/signage/player/* (device-token-gated)
-signage_player_router = APIRouter(
-    prefix="/api/signage/player",
-    dependencies=[Depends(get_current_device)],
-)
-# /api/signage/pair/* (unauthenticated pre-auth)
-signage_pair_router = APIRouter(prefix="/api/signage/pair")
-```
-
-### Pairing State Machine
-
-```
-[Pi boots, no token]
-  │
-  └─► POST /api/signage/pair/request  (anonymous, rate-limited 5/min by IP)
-        → { pairing_code: "A3F-K9M", pairing_session_id: <uuid>, expires_in: 600 }
-        → Pi stores session_id in memory, displays code on screen
-  │
-  ├─► Pi polls every 3s: GET /api/signage/pair/status?pairing_session_id=<uuid>
-  │     → 200 { status: "pending" } | { status: "claimed", device_token, device_id }
-  │     → 404 when expired (10min)
-  │
-  [Admin, separately]
-   └─► Admin visits /signage/pair → enters A3F-K9M + device name + tags
-        → POST /api/signage/pair/claim (admin-gated)
-           { pairing_code, name, tags: ["lobby"] }
-        → backend: creates Device row, mints token, marks session "claimed"
-  │
-  └─► Pi's next poll returns { status: "claimed", device_token }
-        → Pi stores token in localStorage, reloads as /player/{device_token}
+directus/
+  bootstrap-roles.sh          # existing — roles + policies + permissions (SSOT)
+  bootstrap-schema.sh         # new — wraps schema apply
+  snapshot.yaml               # new — collection + field metadata only (stripped of policies/roles)
 ```
 
-**Table:** `signage_pairing_sessions` (id UUID PK, code VARCHAR(8) UNIQUE, device_id FK NULL, claimed_at, expires_at, created_at). Cleanup expired rows in daily 03:00 UTC retention job.
+**Snapshot stripping:** `schema snapshot` generates a file containing policies/roles/permissions. Before commit, strip those sections (keep only `collections`, `fields`, `relations`). A one-line `yq` filter in `bootstrap-schema.sh` or a pre-commit check prevents accidental re-introduction. This avoids the v1.11 snapshot rejection.
 
-**Key insight:** Pi polls by `pairing_session_id` (UUID, machine-secure), not the 6-digit code. Admin enters the code (human-friendly), Pi polls by UUID. Codes are low-entropy and shoulder-surferable; UUIDs stay in Pi memory.
+---
 
-**Code format:** 6 chars base32 grouped `XXX-XXX` (exclude 0/O/1/I). 32⁶ ≈ 1B — with 10min expiry + rate-limited admin claims, collision/brute-force risk negligible.
+## Permissions Model — Admin/Viewer Policy Bootstrap
 
-### SSE Implementation — Safe with `--workers 1`
+**Existing state (v1.11 baseline):**
+- Built-in `Administrator` role (seeded by `ADMIN_EMAIL`/`ADMIN_PASSWORD` env) — full `admin_access: true`.
+- `Viewer` role + `Viewer Read` policy (`admin_access: false`, `app_access: true`) + access row linking them, all with fixed UUIDs in `bootstrap-roles.sh` for idempotency.
+- `Viewer Read` policy has **no permission rows yet** — the v1.11 bootstrap only established the role/policy/access skeleton.
 
-For ≤5 devices, holding one asyncio task per Pi inside a single uvicorn worker is trivially fine. SSE coexists with APScheduler in the event loop.
+**What v1.22 adds:** Permission rows on `Viewer Read` policy for each moved collection, mapped to the existing FastAPI `require_admin`/`get_current_user` split.
 
-**Pattern:** `GET /api/signage/player/stream` (device-token-gated). Uses `sse-starlette==3.2.0` (mature, handles disconnect cleanup).
+### Current FastAPI guard shape
+`backend/app/security/directus_auth.py`:
+- `get_current_user` → decodes HS256 JWT, maps role UUID → `Role.ADMIN` | `Role.VIEWER`.
+- `require_admin` → 403 with `{"detail": "admin role required"}` if role != ADMIN.
 
-**Broadcast — in-process `asyncio.Queue` per device:**
-```python
-# backend/app/services/signage_broadcast.py
-_device_queues: dict[int, asyncio.Queue] = {}
+`signage_admin/__init__.py` wires `require_admin` on the whole `/api/signage/*` admin router (mutations only; reads/analytics likewise).
 
-async def notify_device(device_id: int, event: dict) -> None:
-    q = _device_queues.get(device_id)
-    if q is not None:
-        try: q.put_nowait(event)
-        except asyncio.QueueFull: pass  # drop; Pi polls every 30s as safety net
+### Directus 11 policy → permissions mapping
 
-async def device_event_stream(device_id: int):
-    q = asyncio.Queue(maxsize=32)
-    _device_queues[device_id] = q
-    try:
-        yield {"event": "hello", "data": json.dumps({"device_id": device_id})}
-        while True:
-            try:
-                event = await asyncio.wait_for(q.get(), timeout=25)
-                yield {"event": event["type"], "data": json.dumps(event["payload"])}
-            except asyncio.TimeoutError:
-                yield {"event": "ping", "data": "{}"}  # keepalive
-    finally:
-        _device_queues.pop(device_id, None)
+For each moved collection (`signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_schedules`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `sales_records`, `personio_employees`):
+
+| Collection | Administrator (built-in) | Viewer Read policy |
+|------------|--------------------------|---------------------|
+| `signage_*` (all) | implicit full CRUD via `admin_access: true` | **no permission rows** — Viewers got NO signage access in pre-v1.22 because endpoints required admin. Keep it that way. |
+| `sales_records` | full | `read` only with `{ action: "read", fields: ["*"], permissions: {} }` |
+| `personio_employees` | full | `read` only |
+
+**Key property:** The `Administrator` role's `admin_access: true` flag bypasses the permissions table entirely — no per-collection permission rows needed for Admin. That's the natural analog of the FastAPI `require_admin` guard: "if role is Admin, skip all permission checks." Directus enforces this at the API layer.
+
+### Extending `bootstrap-roles.sh`
+
+Add a section 4 after the access row that POSTs permission rows. Each permission is a row in `directus_permissions` with fixed UUID for idempotency:
+
+```sh
+# --- 4. Permissions for Viewer Read policy ---
+ensure_permission() {
+  # $1=permission_id (fixed UUID)  $2=collection  $3=action
+  local pid="$1" coll="$2" act="$3"
+  status=$(api GET "/permissions/${pid}")
+  if [ "$status" != "200" ]; then
+    api POST "/permissions" "{
+      \"id\":\"${pid}\",
+      \"policy\":\"${VIEWER_POLICY_ID}\",
+      \"collection\":\"${coll}\",
+      \"action\":\"${act}\",
+      \"fields\":[\"*\"],
+      \"permissions\":{}
+    }"
+  fi
+}
+
+ensure_permission "b1111111-0001-...-...-..." "sales_records"       "read"
+ensure_permission "b1111111-0002-...-...-..." "personio_employees"  "read"
+# No signage_* permissions — Viewers have no signage access (intentional).
 ```
 
-**Triggering:** Admin PUT /api/signage/playlists/{id} → resolve affected devices (tag query) → `notify_device(d_id, ...)`.
+**SSOT property:** Every policy change is a diff on `bootstrap-roles.sh`. Git blame shows who granted what. Re-runs on a provisioned DB are no-ops. Fresh deploy reaches identical state.
 
-**Worker=1 invariant:** Queues are in-process. Any future scale to >1 worker breaks silently. Add the same comment block present in `docker-compose.yml` and `scheduler.py`.
+### Admin role detection post-v1.22
+FastAPI continues to validate HS256 JWTs for calls to `/api/signage/player/*` (device JWT) and `/api/signage/pair/*` (admin JWT for pairing claims, heartbeat endpoints still admin-gated). `directus_auth.py` logic unchanged. The role UUID → `Role` enum mapping in `config.py` stays in sync with the fixed UUIDs in `bootstrap-roles.sh`.
 
-**Polling baseline (30s) is belt-and-braces** — ensures correctness if SSE drops through a reverse proxy that strips `text/event-stream`.
+---
 
-### Directus ↔ Alembic Ownership
+## Frontend Client Seam
 
-FastAPI owns all new tables via Alembic. Directus gets read-access collections for CMS UX on select tables.
+### Current state
+- `frontend/src/lib/apiClient.ts`: bearer injection (from module-singleton pushed by `AuthContext`), 401→silent-refresh→retry, `Error(body.detail)` contract.
+- `frontend/src/lib/directusClient.ts`: SDK singleton, same-origin `/directus` base URL.
+- `frontend/src/signage/lib/signageApi.ts`: 20+ methods over `apiClient` + one `apiClientWithBody` variant for 409-body extraction on media/playlist delete.
+- `frontend/src/**/use*.ts` TanStack Query hooks consume `signageApi.*`.
 
-| Table | Alembic-managed | Exposed to Directus CMS UI? | Rationale |
-|---|---|---|---|
-| `signage_media` | ✅ | **Yes** (remove from `DB_EXCLUDE_TABLES`) | Admins upload via Directus's native file picker |
-| `signage_playlists` | ✅ | **Yes** | Directus M2M UI handles ordered lists well |
-| `signage_playlist_items` | ✅ | **Yes** | Junction table renders inline |
-| `signage_device_tags` | ✅ | **Yes** | Simple lookup table |
-| `signage_devices` | ✅ | **No** (excluded) | `token_hash` must never appear in Directus |
-| `signage_pairing_sessions` | ✅ | **No** | Ephemeral state |
+After the move, the signage admin pages need to call Directus SDK for CRUD. The question is: how to minimize churn across ~20 TanStack Query hooks and dialog components.
 
-**Critical ordering:** Remove media/playlists from `DB_EXCLUDE_TABLES` **only after** Alembic migration runs. The `migrate` → `directus` startup ordering enforces this.
+### Options
+**(a) Wrap Directus SDK in apiClient-shaped adapters**
+- `signageApi.listPlaylists = () => directus.request(readItems('signage_playlists'))`.
+- Pro: zero change to every `useQuery({ queryFn: signageApi.listPlaylists })` consumer.
+- Con: hides that these calls no longer go through `apiClient` (no bearer injection, different 401 path — SDK handles its own refresh internally).
+- Con: error shape differs — SDK throws `DirectusError` with `.errors[0].message`, not `Error(detail)`. Have to normalize.
 
-**Media upload path:** Directus `/files` endpoint for uploads (native multipart + storage + metadata). FastAPI `/api/signage/media` only lists/resolves (joins `directus_files` for public URL).
+**(b) Dedicated `directusAdminClient.ts` + `useDirectusQuery` hook**
+- New module wrapping `directus.request()` with typed helpers.
+- New hook factory that maps `DirectusError` → same `{detail}` shape as `apiClient`.
+- Pro: explicit boundary; a reader can see which pages are "Directus-backed" vs "FastAPI-backed".
+- Con: touches every consumer (20+ call sites) to switch from `useQuery(signageApi.listX)` to `useDirectusQuery(readItems('x'))`.
 
-**Note:** PITFALLS.md recommends backend-owned media volume (not Directus file storage) to avoid UUID/path mismatches and UID permission friction. This is a trade-off to resolve during Schema phase discuss — whichever is chosen, it must be consistent across phases.
+**(c) Raw SDK in each queryFn**
+- Pro: simplest.
+- Con: duplicates error normalization; 20+ `queryFn` closures with `directus.request(readItems(...))` inline.
 
-### Tag-Based Routing Query
+### Recommendation: **(a) — Wrap SDK in apiClient-shaped adapters inside `signageApi.ts`**
 
-**Schema:**
+Rationale:
+1. **Minimizes churn** in `usePlaylistsQuery`, `useDevicesQuery`, `ScheduleEditDialog`, etc. — the consumer contract stays `signageApi.listPlaylists(): Promise<SignagePlaylist[]>`.
+2. The `signageApi` module is already the abstraction layer. It was introduced in Phase 46 for exactly this reason (to hide the difference between `apiClient` and `apiClientWithBody`). Extending it to also hide the difference between `apiClient` and `directus.request()` is the same pattern.
+3. Error normalization happens in one place: a `fromDirectus<T>(p: Promise<T>): Promise<T>` wrapper that catches `DirectusError` and rethrows `Error(err.errors?.[0]?.message ?? "request failed")`. For the 409 FK-restrict case, rethrow a `ApiErrorWithBody` with the Directus error detail in `body`.
+4. FK-restrict + 409 translation: Directus returns `errors[0].extensions.code === "FOREIGN_KEY_CONSTRAINT_VIOLATION"` with the offending constraint name. Wrapper converts it into the existing `ApiErrorWithBody { status: 409, body: { detail, playlist_ids/schedule_ids } }` contract — but the `playlist_ids`/`schedule_ids` list is NOT in the Directus error payload (Directus just says "FK violation"). Two sub-options:
+
+   - **a1:** On catching the Directus FK error, fire a follow-up SDK query (`readItems('signage_schedules', { filter: { playlist_id: { _eq: id } }, fields: ['id'] })`) to compute the list client-side, then throw the structured 409. Slight extra RTT but keeps the UX identical.
+   - **a2:** Expose a tiny FastAPI helper endpoint `GET /api/signage/_meta/playlist-refs/{id}` that returns `{ schedule_ids }`. Only called on delete-failure. Keeps the "compute lives in FastAPI" principle.
+
+   **Pick a1** — zero new FastAPI surface; the SDK call is cheap and already authenticated.
+
+5. The auth token bridge stays: `AuthContext` pushes the token into `apiClient`'s module singleton; the Directus SDK has its own token (set by `directus.login()` / `directus.refresh()`). Both tokens originate from the same Directus auth and are refreshed via the same `directus.refresh()`. One auth path, two delivery mechanisms (bearer header for FastAPI, SDK-internal for Directus calls).
+
+**Net refactor surface:** `signageApi.ts` methods change body (apiClient → directus.request). Consumers unchanged. `apiClientWithBody` stays for the remaining FastAPI endpoints (media upload, player endpoints not moved).
+
+---
+
+## SSE Broadcast After Move (Sequencing Hazard)
+
+**The problem:** Today, `backend/app/routers/signage_admin/playlists.py:39` calls `_notify_playlist_changed()` AFTER `db.commit()`, which calls `signage_broadcast.notify_device()` on the in-process dict. After v1.22, the mutation happens inside Directus (`POST /items/signage_playlists`) — FastAPI never sees it. Player's `/api/signage/player/stream` will never receive the `playlist-changed` event; devices will only re-resolve on the 30s polling fallback.
+
+Ranked options from lowest to highest complexity:
+
+### Option 1 — Postgres LISTEN/NOTIFY trigger on the moved tables (RECOMMENDED)
+**Complexity:** LOW-MEDIUM.
+
+Alembic migration adds an `AFTER INSERT/UPDATE/DELETE` trigger on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`:
+
 ```sql
-signage_devices (id, name, token_hash, revoked, last_seen_at, created_at, updated_at)
-signage_device_tags (id, name UNIQUE)
-signage_device_tag_map (device_id FK, tag_id FK, PK(device_id, tag_id))
-signage_playlists (id, name, priority INT DEFAULT 0, enabled, updated_at)
-signage_playlist_tag_map (playlist_id FK, tag_id FK, PK(playlist_id, tag_id))
-signage_playlist_items (id, playlist_id FK, media_id, order_index, duration_s, transition)
+CREATE OR REPLACE FUNCTION signage_notify_change() RETURNS trigger AS $$
+DECLARE
+  payload jsonb;
+BEGIN
+  payload := jsonb_build_object(
+    'table', TG_TABLE_NAME,
+    'op', TG_OP,
+    'row_id', COALESCE(NEW.id::text, OLD.id::text)
+  );
+  PERFORM pg_notify('signage_change', payload::text);
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg_signage_playlists_notify
+  AFTER INSERT OR UPDATE OR DELETE ON signage_playlists
+  FOR EACH ROW EXECUTE FUNCTION signage_notify_change();
+-- repeat for other tables
 ```
 
-**Resolution query (one-playlist-per-device):**
+FastAPI starts a long-lived `LISTEN signage_change` task in `lifespan` (alongside APScheduler). Payloads arrive via asyncpg's `connection.add_listener('signage_change', handler)`. Handler parses `{table, op, row_id}`, calls the existing `devices_affected_by_playlist(db, row_id)` (or equivalent for schedules/devices), and fans out via existing `signage_broadcast.notify_device()`.
+
+**Pros:**
+- Database-level truth — fires whether the writer is Directus, psql, Alembic, or anyone else. Single choke point.
+- Zero Directus-specific coupling; no Flow configuration checked into Directus export files.
+- Uses `asyncpg`'s native LISTEN support — already in the dependency graph.
+- `--workers 1` invariant (see `scheduler.py`, `signage_broadcast.py`) already enforced; the single LISTEN connection is correctness-safe.
+
+**Cons:**
+- Needs an Alembic migration (one).
+- Needs a new `backend/app/services/signage_pg_listen.py` module + `lifespan` integration (~80 LOC).
+- NOTIFY payloads capped at 8000 bytes — fine for `{table, op, row_id}` shape but we must keep payloads small (don't dump the row). Resolution still happens in FastAPI by re-reading the DB.
+
+### Option 2 — Directus Flow that POSTs to a FastAPI internal webhook
+**Complexity:** MEDIUM.
+
+Directus Flow triggers on `items.*.create|update|delete` for the moved collections. Flow step: Webhook → `POST http://api:8000/api/_internal/signage-changed` with body `{collection, keys, op}`. FastAPI endpoint authenticated by a shared secret (new `SIGNAGE_INTERNAL_SECRET`). Endpoint calls existing fanout helper.
+
+**Pros:**
+- All logic stays in FastAPI.
+- Flow config is visible in Directus UI, exportable to snapshot.
+
+**Cons:**
+- Flows-as-code story is weaker than triggers-as-code (Alembic). Flow config lives in `directus_flows` / `directus_operations` tables; including them in the snapshot.yaml re-introduces the v11-snapshot-apply fragility we rejected in Schema Ownership section.
+- New internal auth surface (another shared secret, another HTTP path to lock down).
+- Breaks if anyone writes to `signage_playlists` via psql/Alembic (which WILL happen — Alembic runs DDL + seed data on boot).
+
+### Option 3 — Directus hook extension (TypeScript file in `/directus/extensions/`)
+**Complexity:** HIGH.
+
+Write a Directus TS hook that fires on `items.signage_playlists.create.after` etc., and POSTs to FastAPI. Compiled into the Directus extension folder, loaded at boot.
+
+**Cons:**
+- Introduces a Node/TS build artifact into the repo just for this.
+- Same "only fires on Directus writes" limitation as Option 2.
+- Extension loading in Docker requires a bind mount + `EXTENSIONS_PATH` env.
+
+### Option 4 — FastAPI scheduled poll
+**Complexity:** LOW, but defeats the purpose.
+
+Every 10s, APScheduler runs a job that compares playlist/schedule `updated_at` timestamps to a last-seen watermark and fires SSE. The 30s polling fallback on the player side makes this marginally redundant.
+
+**Cons:**
+- Extra DB load every 10s across all moved tables.
+- Latency floor of 10s — users see "save" complete instantly in admin UI but the Pi may wait 10s before re-fetching. Today this is near-instant via SSE.
+- Adds a third "time-based" moving part to APScheduler (already pinned at `--workers 1` for the same reason).
+
+### Ranking
+
+| # | Option | Complexity | Coverage | Recommendation |
+|---|--------|-----------|----------|----------------|
+| 1 | Postgres LISTEN/NOTIFY | LOW-MEDIUM | 100% (any writer) | **RECOMMENDED** |
+| 2 | Directus Flow → FastAPI webhook | MEDIUM | Directus writes only | Fallback |
+| 3 | Directus TS extension | HIGH | Directus writes only | Reject |
+| 4 | FastAPI scheduled poll | LOW | 100% but 10s latency | Reject |
+
+**Picked: Option 1.** The triggers live in Alembic (reviewable SQL in git), the listen task reuses existing `signage_broadcast` and `signage_resolver` infrastructure, and the mechanism is writer-agnostic — which matters because `sales_records` bulk inserts via FastAPI's upload path also stay (FastAPI owns upload), and future direct psql patches won't silently break the SSE UX.
+
+**Scope note — which SSE events need coverage:**
+- `playlist-changed` — trigger on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`. Derive affected devices via `devices_affected_by_playlist`.
+- `schedule-changed` — trigger on `signage_schedules`. Fan-out to all devices whose tags overlap the schedule's playlist's tags (same derivation).
+- `calibration-changed` — stays in FastAPI: the `PATCH /api/signage/devices/{id}/calibration` endpoint (v1.21) is **compute-shaped** (Pydantic `Literal[0,90,180,270]` validation + per-device SSE targeted fanout). Directus' built-in field validation can't replicate the rotation literal enum with a 422 response shape the player relies on. Keep this endpoint in FastAPI.
+- Device name/tag changes — trigger on `signage_devices` + `signage_device_tag_map`. Fan-out to `[device_id]`.
+
+Implementation note: To avoid chatty notifications on every `updated_at` bump, gate the trigger on `OLD IS DISTINCT FROM NEW` for updates. Inserts/deletes always fire.
+
+---
+
+## Cross-Boundary Flow Integrity
+
+Each flow traced end-to-end to confirm it still works:
+
+### Flow A — Admin edits playlist items (drag-reorder) → Pi updates
+1. Admin UI calls `signageApi.bulkReplaceItems(id, items)` → after v1.22 wraps `directus.request(updateItems(...))` or transactional equivalent.
+2. Directus writes `signage_playlist_items` rows, commits.
+3. Postgres trigger fires `pg_notify('signage_change', ...)`.
+4. FastAPI LISTEN handler receives payload → calls `devices_affected_by_playlist(db, playlist_id)` → `signage_broadcast.notify_device(device_id, {event: "playlist-changed", etag: ...})`.
+5. Player's SSE connection on `/api/signage/player/stream` receives the frame.
+6. Player issues `GET /api/signage/player/playlist` with `If-None-Match: <cached_etag>`.
+7. FastAPI `signage_player` router calls `resolve_playlist_for_device(db, device)` — reads `signage_playlists` (Directus-written) + `signage_playlist_items` + tag maps. Returns 304 or new envelope.
+
+**Verified:** The resolver (`signage_resolver.py`) uses plain SQLAlchemy reads. It does NOT care who wrote the rows, as long as the schema matches. Alembic owns the schema; Directus writes conform by construction (Directus writes through the same columns). No conflict.
+
+### Flow B — Playlist delete blocked by FK RESTRICT
+Today: FastAPI catches `IntegrityError`, returns 409 `{detail, schedule_ids}` (see `apiClientWithBody` + `ApiErrorWithBody` in `signageApi.ts`).
+
+After v1.22: Directus SDK `deleteItem('signage_playlists', id)` throws `DirectusError` with `errors[0].extensions.code === "FOREIGN_KEY_VIOLATION"`. The adapter in `signageApi.ts`:
+1. Catches the FK error.
+2. Issues a follow-up SDK query to compute `schedule_ids` (as described in Frontend Seam section).
+3. Throws `ApiErrorWithBody(409, {detail, schedule_ids}, detail)`.
+4. Existing dialogs (e.g. `PlaylistDeleteDialog`) continue to read `err.body.schedule_ids` — no UX change.
+
+**Verified:** The FK constraints themselves (`ON DELETE RESTRICT` on `signage_schedules.playlist_id`) live in the Alembic migration. Directus respects them.
+
+### Flow C — Calibration PATCH
+Stays in FastAPI. `DeviceEditDialog` calls `signageApi.updateDeviceCalibration()` which continues hitting `PATCH /api/signage/devices/{id}/calibration`. Direct `signage_broadcast.notify_device(id, {event: "calibration-changed"})` still works because FastAPI is the writer.
+
+This creates an asymmetry: `signage_devices.name` updates go through Directus (+ LISTEN/NOTIFY), but `rotation`/`hdmi_mode`/`audio_enabled` go through FastAPI (+ direct broadcast). That's fine — both produce the right SSE events.
+
+**Subtlety:** If the Directus LISTEN trigger fires on ANY `signage_devices` update (including the calibration PATCH from FastAPI), we'd double-fire `playlist-changed`. Fix: the LISTEN trigger on `signage_devices` only fires `device-updated`/`playlist-changed` when tag membership or `name` changed, not on calibration columns. Trigger predicate:
+
 ```sql
-SELECT p.*
-FROM signage_playlists p
-JOIN signage_playlist_tag_map pt ON pt.playlist_id = p.id
-WHERE p.enabled = true
-  AND pt.tag_id IN (
-    SELECT tag_id FROM signage_device_tag_map WHERE device_id = :device_id
-  )
-ORDER BY p.priority DESC, p.updated_at DESC
-LIMIT 1;
+WHEN (OLD.name IS DISTINCT FROM NEW.name)
+-- tag_map changes fire a separate trigger on signage_device_tag_map
 ```
 
-**Indexes:** `signage_playlist_tag_map(tag_id)`, `signage_device_tag_map(device_id)`.
+Calibration SSE is owned end-to-end by the FastAPI PATCH handler (v1.21 pattern preserved).
 
-### Media Storage — Shared Named Volume (Read-Only)
+### Flow D — Resolver reads tables Directus writes
+`resolve_playlist_for_device` loads `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_playlists`, `signage_playlist_items`, `signage_schedules`. All these are Alembic-schema tables; Directus writes rows that conform to the Alembic shape. No schema divergence risk because Alembic still owns DDL.
 
-```yaml
-api:
-  volumes:
-    - ./backend:/app
-    - directus_uploads:/directus/uploads:ro
+One gotcha: Directus lets Admin users set `enabled = false` on a playlist from the Data Model UI. The resolver already handles this (`SignagePlaylist.enabled.is_(True)` filter). Preserved.
+
+### Flow E — `me` kill
+Frontend `getCurrentUser()` call target moves from `GET /api/me` (FastAPI) → `readMe()` (Directus SDK). `AuthContext` already holds the SDK token. The role UUID comes back on the SDK response; `CurrentUser.role` is derived via the same UUID→enum map used in `directus_auth.py` (share the mapping across backend + frontend config).
+
+**One thing to preserve:** `CurrentUser` currently includes `email` as a synthesized placeholder (`directus_auth.py:57` — `f"{user_id}@directus.example.com"`). Directus SDK `readMe({fields: ['email']})` returns the real email, which is actually better. Frontend uses the real email; backend code paths that used placeholder email (if any) should be audited in Phase 1 of v1.22.
+
+---
+
+## Compose / Deployment Ordering
+
+Current chain (`docker-compose.yml`):
+```
+db (healthcheck)
+ └─ migrate (alembic upgrade head, exits)
+     ├─ api (waits for migrate completed)
+     ├─ directus (waits for db healthy + migrate completed)
+     │   └─ directus-bootstrap-roles (waits for directus healthy, exits)
+     ├─ frontend (waits for api healthy)
+     └─ caddy (waits for api/frontend/directus healthy)
 ```
 
-FastAPI reads files directly from `/directus/uploads/<file_id>` using `filename_disk` from `directus_files`. No proxy hop.
+### Required changes for v1.22
 
-**Player asset URLs:** `GET /api/signage/player/playlist` returns items with `url: "/assets/<file_id>"` (Directus built-in). Pi fetches directly from Directus; backend only needs read access for server-side PPTX conversion.
+1. **New service `directus-bootstrap-schema`** — runs `directus schema apply /snapshot.yaml` against the healthy Directus, exits. Must run BEFORE `directus-bootstrap-roles` because permissions reference collections that must exist.
 
-### PPTX Conversion — Separate Container, Postgres-Queued
+2. **Re-order**:
+   ```
+   migrate
+    └─ directus (healthy)
+        └─ directus-bootstrap-schema (exits successfully)
+            └─ directus-bootstrap-roles (exits successfully)
+                └─ api (NEW: gated on both bootstrap services completed)
+   ```
 
-**Rationale:** LibreOffice adds ~300MB to api container and significantly increases cold-start time.
+3. **`api` `depends_on` change**: add `directus-bootstrap-roles: condition: service_completed_successfully`. Rationale: if the API starts before Viewer role exists, the JWT role-UUID → enum lookup in `directus_auth.py` will throw 401 for any Viewer login. Currently this races because `directus-bootstrap-roles` is fire-and-forget; it works only because Viewers rarely log in within the first 5 seconds.
 
-**Queue mechanism:** `signage_media.conversion_status` enum (`pending | processing | done | failed`) + polling loop:
-```sql
-UPDATE signage_media SET conversion_status='processing', conversion_started_at=NOW()
-WHERE id = (
-  SELECT id FROM signage_media
-  WHERE conversion_status='pending' AND media_type='pptx'
-  ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1
-)
-RETURNING id;
-```
+4. **`frontend` `depends_on` change**: add `directus-bootstrap-schema: condition: service_completed_successfully`. Rationale: the built frontend bundle queries collections by name (`readItems('signage_playlists')`); if the collection metadata isn't registered yet, the SDK throws. Though, because the frontend is a static bundle served over `/`, the only practical effect is: the first admin page load after a fresh deploy could see a "collection not found" error. Gating the service start on schema-bootstrap completion eliminates the window.
 
-`FOR UPDATE SKIP LOCKED` gives safe concurrency for free.
+5. **`DB_EXCLUDE_TABLES` env on `directus` service** (line 95 of compose): shrinks. Remove `signage_devices`, `signage_pairing_sessions` (already excluded; revisit) and the moved tables go from hidden-from-Directus → visible-as-Collections. Keep excluded: `upload_batches`, `sales_records` (Phase says move it, but evaluate — see "open question" below), `app_settings` (compute-shaped, stay in FastAPI), `personio_attendance` / `personio_absences` / `personio_sync_meta` (raw sync data, stay FastAPI-managed), `alembic_version`, `sensors`, `sensor_readings`, `sensor_poll_log`, `signage_heartbeat_event` (append-only log, stay FastAPI).
 
-**Pipeline:** `.pptx` → `soffice --headless --convert-to pdf` → `pdf2image==1.17.0` → PNG per slide → Directus uploads → update `signage_media.slide_paths` JSONB → `notify_device` SSE event.
+   Revised `DB_EXCLUDE_TABLES`:
+   ```
+   upload_batches,app_settings,personio_attendance,personio_absences,personio_sync_meta,alembic_version,sensors,sensor_readings,sensor_poll_log,signage_heartbeat_event
+   ```
+   Surfaced to Directus: `signage_devices`, `signage_pairing_sessions` (read-only for admin visibility), `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `signage_media`, `sales_records`, `personio_employees`.
 
-**New files:**
-- `backend/app/services/pptx_converter.py`
-- `backend/Dockerfile.worker` (libreoffice + poppler-utils)
-- `backend/app/workers/pptx_worker.py`
-- `docker-compose.yml` — new `pptx-worker` service
+   **Open question for roadmap:** `signage_pairing_sessions` writes happen exclusively in `signage_pair` router (compute-shaped JWT minting). Exposing the collection read-only in Directus could help ops debugging but isn't required. Default: exclude it (keep FastAPI-only).
 
-**Note:** STACK.md recommends keeping PPTX conversion in the api container via `BackgroundTasks` for scope simplicity. This is a trade-off to resolve during Conversion phase planning — both work for ≤5 devices.
+6. **`SIGNAGE_DEVICE_JWT_SECRET`** stays on the `api` service only — Directus has no business minting device JWTs.
 
-### Player Offline Cache — Service Worker + Cache API
+---
 
-- **Playlist metadata** (JSON) → `localStorage`
-- **Media files** → Cache API via Service Worker
+## Recommended Phase Sequence (input to roadmapper)
 
-**Why SW over IndexedDB:** Cache API designed for HTTP response caching; no blob serialization. SW intercepts `/assets/*` transparently.
+**Ordering principle:** Make the schema + bootstrap + SSE plumbing reliable FIRST, before any frontend gets ported. Otherwise every frontend-port phase has to carry "and we fixed X in the bootstrap too" as churn.
 
-**Strategy:** Stale-while-revalidate for playlist metadata (5min); cache-first-fallback-to-network for media. On network failure, player keeps playing cached playlist indefinitely.
+### Phase A — Schema bootstrap + SSE bridge (backend-only, ships with no user-visible change)
+- Add `directus-bootstrap-schema` service + `snapshot.yaml` (generated from a one-time configured dev instance, stripped of policies).
+- Add LISTEN/NOTIFY triggers as Alembic migration on the 5 SSE-relevant tables.
+- Add `signage_pg_listen.py` service; wire into `lifespan`.
+- Extend `bootstrap-roles.sh` with `Viewer Read` permission rows for the read-allowed collections.
+- Integration test: admin edits a playlist via Directus Data Model UI (manually) → Pi player receives `playlist-changed`. Proves the bridge works without any frontend changes.
+- Rollback window: trivial (roll back the Alembic trigger migration + restore old bootstrap script).
 
-**Eviction:** LRU capped at 500MB via `navigator.storage.estimate()`.
+### Phase B — Move `me.py` + frontend `AuthContext` to SDK-only
+- Smallest surface. `AuthContext` already holds the SDK.
+- Delete `backend/app/routers/me.py` + test.
+- Frontend `useCurrentUser()` switches to `directus.request(readMe())`.
+- Low blast radius — affects only the header UserMenu and role gates.
 
-**Use `vite-plugin-pwa@1.x` scoped to `/signage/player` route** (per STACK.md recommendation).
+### Phase C — Move `data.py` (sales/employees lookups)
+- `signageApi.listSales` → `directus.request(readItems('sales_records', { filter, limit, ...}))`.
+- Server-side aggregation endpoints (`/api/kpis/*`, `/api/hr/kpis/*`) stay — they're compute, not CRUD.
+- Lookups (employee list, sales row list) move.
+- Delete the FastAPI `data.py` lookup endpoints only after all frontend call sites are ported.
 
-### App Launcher Integration
+### Phase D — Move `signage_admin` surface (the big one)
+- Port `signageApi.ts` methods one collection at a time: tags → media → playlists/items → devices (name/tags only) → schedules → analytics.
+- Each sub-phase: adapter-wrap in `signageApi.ts`, keep consumers unchanged, regression-test the SSE flow.
+- Keep: `POST /api/signage/media/upload` (file upload + hashing — compute-shaped), `POST /api/signage/media/{id}/convert` (PPTX pipeline), `PATCH /api/signage/devices/{id}/calibration`, `/api/signage/pair/*`, `/api/signage/player/*`, `/api/signage/analytics/devices` (read-model shaped, could move but has computed uptime buckets — evaluate separately).
 
-**LauncherPage.tsx** (admin-only tile):
-```tsx
-{user?.role === "admin" && (
-  <LauncherTile
-    to="/signage"
-    label={t("launcher.tiles.signage")}
-    icon={<MonitorPlay />}
-    adminOnly
-  />
-)}
-```
+### Phase E — Cleanup
+- Delete moved FastAPI routers, schemas, tests.
+- Shrink `DB_EXCLUDE_TABLES` env.
+- Docs update (admin guide screenshots now show Directus Data Model UI paths for Viewer role configuration).
 
-**App.tsx** (wouter is first-match — order matters):
-```tsx
-<Route path="/signage/pair" component={SignagePairPage} />
-<Route path="/signage" component={SignagePage} />
-```
+### Sequencing hazards (flag to roadmapper)
+- **Phase A must ship standalone.** If Phase A ships inside Phase D, any SSE regression is hidden by the frontend churn. Shipping A alone with "no user-visible change" as the acceptance criterion is the cleanest way to prove the LISTEN bridge is stable.
+- **Phase B before Phase D.** Frontend `AuthContext` refactor is the prerequisite for confident SDK usage in other hooks; doing it as a small isolated change de-risks D.
+- **Snapshot commit workflow.** The `snapshot.yaml` is generated once from a dev instance. If a future phase adds a field, the workflow is: edit dev Directus UI → `directus schema snapshot` → strip policies → commit. Document this in `directus/README.md` so future migrations don't drift.
+- **Don't port `signage_media` CRUD without porting upload**. File upload stays in FastAPI (multipart, hash, PPTX conversion). But the `listMedia`/`getMedia`/`deleteMedia` calls CAN move to Directus. Check that Directus's delete of a `signage_media` row doesn't orphan the file in `directus_uploads` volume (it shouldn't — Directus owns the volume already).
+- **Settings deliberately NOT moved** (per PROJECT.md scope). Don't accidentally include `app_settings` in the snapshot.
 
-**NavBar chrome:** Player served outside Vite SPA, so no `isPlayer` branch needed.
+---
 
-**SignagePage shell:** Mirror `SensorsPage.tsx` with tabs (Media / Playlists / Devices) via shadcn `<Tabs>`. Wrap in `<AdminOnly>`.
+## Sources
 
-## 2. Integration Points
-
-| Existing file | Change |
-|---|---|
-| `backend/app/models.py` | Append 8 models: SignageMedia, SignagePlaylist, SignagePlaylistItem, SignageDevice, SignageDeviceTag, SignageDeviceTagMap, SignagePlaylistTagMap, SignagePairingSession |
-| `backend/app/schemas.py` | Append Pydantic schemas + PairingRequest/Status/Claim, PlayerPlaylistResponse, DeviceHeartbeat |
-| `backend/app/main.py` | Register 3 routers; mount `/static/player/*` |
-| `backend/app/scheduler.py` | Add pairing cleanup job (reuse 03:00 UTC cron slot) |
-| `backend/alembic/versions/` | New migration `v1_16_signage_schema.py` |
-| `docker-compose.yml` | Add `pptx-worker`; mount `directus_uploads:/directus/uploads:ro`; adjust `DB_EXCLUDE_TABLES` |
-| `frontend/src/App.tsx` | Add `/signage`, `/signage/pair` routes |
-| `frontend/src/pages/LauncherPage.tsx` | Add admin-only signage tile |
-| `frontend/src/locales/en.json`, `de.json` | Add `launcher.tiles.signage`, `signage.*` keys |
-| `frontend/src/lib/api.ts` | Add signage fetchers via `apiClient<T>()` |
-| `frontend/vite.config.ts` | Add second input for player bundle |
-
-## 3. New Components
-
-**Backend:**
-```
-backend/app/routers/signage_admin.py       — admin CRUD
-backend/app/routers/signage_player.py      — device-authed playlist, heartbeat, SSE
-backend/app/routers/signage_pair.py        — pair/request, /status, /claim
-backend/app/security/device_auth.py
-backend/app/services/signage_broadcast.py  — in-process asyncio.Queue fanout
-backend/app/services/signage_resolver.py   — tag-to-playlist SQL + caching
-backend/app/services/pptx_converter.py
-backend/app/workers/pptx_worker.py
-backend/Dockerfile.worker
-backend/tests/test_signage_admin_gate.py
-backend/tests/test_device_auth.py
-backend/tests/test_pairing_flow.py
-```
-
-**Frontend admin (main bundle):**
-```
-frontend/src/pages/SignagePage.tsx              — tabs: Media | Playlists | Devices
-frontend/src/pages/SignagePairPage.tsx          — 6-digit code entry
-frontend/src/components/signage/MediaLibrary.tsx
-frontend/src/components/signage/MediaUploadButton.tsx
-frontend/src/components/signage/PlaylistEditor.tsx
-frontend/src/components/signage/DeviceTable.tsx
-frontend/src/components/signage/TagPicker.tsx
-frontend/src/hooks/useSignageMedia.ts
-frontend/src/hooks/useSignagePlaylists.ts
-frontend/src/hooks/useSignageDevices.ts
-```
-
-**Frontend player (separate bundle):**
-```
-frontend/player.html
-frontend/player/main.tsx
-frontend/player/App.tsx                    — playlist loop orchestrator
-frontend/player/auth.ts
-frontend/player/sse.ts                     — EventSource + reconnect
-frontend/player/poll.ts                    — 30s fallback polling
-frontend/player/cache.ts                   — Cache API helpers
-frontend/player/sw.ts                      — service worker
-frontend/player/pair/PairScreen.tsx
-frontend/player/players/ImagePlayer.tsx
-frontend/player/players/VideoPlayer.tsx
-frontend/player/players/PdfPlayer.tsx      — pdf.js with auto-page-flip
-frontend/player/players/IframePlayer.tsx
-frontend/player/players/HtmlPlayer.tsx
-frontend/player/players/PptxPlayer.tsx     — image sequence
-```
-
-## 4. Data Flow — Admin Upload → Playback
-
-```
-1. Admin opens /signage → Media tab → clicks Upload
-2. MediaUploadButton POSTs file to Directus /files (session cookie)
-3. On success → frontend POSTs /api/signage/media { file_id, name, media_type }
-4. IF media_type=='pptx':
-      conversion_status='pending'
-      → pptx-worker polls via FOR UPDATE SKIP LOCKED
-      → soffice --headless --convert-to pdf → pdf2image → N PNGs
-      → UPDATE slide_paths=[...], conversion_status='done'
-      → notify_affected_playlists(media_id)
-5. Admin drags media into PlaylistEditor → POST /api/signage/playlists/{id}/items
-6. Admin assigns tags to playlist + device
-7. On playlist save → resolve devices by tag overlap → notify_device(...)
-8. Pi's SSE connection receives "playlist-changed" event
-9. Pi calls GET /api/signage/player/playlist → items + asset URLs
-10. Pi pre-fetches new media into Service Worker Cache
-11. Pi renders items in sequence; heartbeat every 60s
-12. Network loss: poll fails, SSE disconnects → cached media serves → loop continues
-    On reconnect: poll resumes, SSE reconnects, missed changes pulled
-```
-
-## 5. Suggested Build Order (Dependency-Aware)
-
-**Phase 41 — Schema & Models (foundational; blocks everything else)**
-- Alembic migration for 8 signage tables + indexes
-- SQLAlchemy models in `models.py`
-- Pydantic schemas in `schemas.py`
-- Update docker-compose `DB_EXCLUDE_TABLES`
-- Unit tests for model constraints
-
-**Phase 42 — Device auth + pairing flow**
-- `device_auth.py` (token mint/hash/verify)
-- `signage_pair` router (request, status, claim)
-- Pairing session cleanup job in scheduler
-- Admin-gate regression test (mirrors v1.15 dep-audit)
-- Integration test: full pairing state machine
-
-**Phase 43 — Media + playlist admin API (no SSE yet)**
-- `signage_admin` router: CRUD for media, playlists, items, devices, tags
-- Tag-to-playlist resolver
-- `signage_player` router: `/playlist` + `/heartbeat` (polling-only works)
-- apiClient fetchers in `frontend/src/lib/api.ts`
-
-**Phase 44 — PPTX conversion worker (independent; parallelizable with Phase 45)**
-- `Dockerfile.worker` + `pptx-worker` compose service
-- `pptx_converter.py` + `pptx_worker.py`
-- Directus uploads volume mount
-- Integration test: upload .pptx → poll until `conversion_status='done'`
-
-**Phase 45 — SSE broadcast (depends on Phase 43)**
-- `signage_broadcast.py` with per-device asyncio.Queue
-- `/api/signage/player/stream` SSE endpoint
-- Admin mutations call `notify_device(...)`
-- Load test: 5 concurrent Pi connections + admin edit → all receive event <1s
-
-**Phase 46 — Admin UI (depends on Phases 42-45)**
-- `/signage` page with Media/Playlists/Devices tabs
-- `/signage/pair` page
-- Launcher tile + routes in App.tsx
-- AdminOnly wrap + role-aware launcher filter
-- DE/EN i18n parity
-
-**Phase 47 — Player bundle**
-- Vite second entry + static mount in FastAPI
-- Player orchestrator: fetch playlist → render loop
-- Format handlers (image, video, pdf, iframe, html, pptx)
-- Service Worker + Cache API
-- SSE + 30s poll fallback
-
-**Phase 48 — Verification + docs**
-- E2E: fresh Pi → code → claim → playlist → play → network drop → cache loop → restore
-- Bilingual admin guide
-- Operator runbook: Pi image build, Chromium kiosk flags, systemd service
-
-**Critical ordering:**
-- Phase 41 blocks everything (shared schema).
-- Phase 42 blocks Phases 43, 45, 47 (no device auth = no player API).
-- Phase 45 (SSE) can ship after Phase 46 — polling-only is functionally complete.
-- Phase 44 (PPTX) independent of 45-47.
-
-## 6. Trade-offs Surfaced for Decision
-
-| Decision point | Recommended | Alternative | When alternative wins |
-|---|---|---|---|
-| Player bundle | Separate Vite entry | One more wouter route in main SPA | Timeline pressure (~1 day saved) |
-| Device auth | Opaque sha256-hashed token | JWT with long exp | Uniform debug tooling |
-| Queue mechanism | Postgres FOR UPDATE SKIP LOCKED | Redis + RQ/ARQ | Already have Redis (we don't) |
-| PPTX location | Separate pptx-worker container | LibreOffice in api via BackgroundTasks | Hard constraint against new services |
-| SSE transport | asyncio.Queue per device (in-process) | Postgres LISTEN/NOTIFY | Multi-worker api deployment planned (not planned; `--workers 1` is invariant) |
-| Media storage | Read-only volume mount from Directus uploads | Backend-owned media volume (PITFALLS preference) | UUID/path issues surface during integration |
+- `docker-compose.yml` — existing service graph, Directus version `11.17.2`, `DB_EXCLUDE_TABLES` env (HIGH)
+- `caddy/Caddyfile` — existing reverse proxy layout, same-origin Directus path (HIGH)
+- `directus/bootstrap-roles.sh` — existing idempotent REST-API bootstrap pattern, fixed-UUID idempotency (HIGH)
+- `backend/app/security/directus_auth.py` — current JWT validation + role map (HIGH)
+- `backend/app/services/signage_broadcast.py` — in-process fanout, `--workers 1` invariant (HIGH)
+- `backend/app/services/signage_resolver.py` — resolver shape; `_build_envelope_for_playlist`, `devices_affected_by_playlist` (HIGH)
+- `backend/app/routers/signage_admin/playlists.py` — existing `_notify_playlist_changed` post-commit fanout pattern (HIGH)
+- `backend/alembic/versions/v1_16_signage_schema.py`, `v1_18_signage_schedules.py`, `v1_18_signage_heartbeat_event.py`, `v1_21_signage_calibration.py` — Alembic owns all signage DDL (HIGH)
+- `frontend/src/lib/apiClient.ts`, `frontend/src/lib/directusClient.ts`, `frontend/src/signage/lib/signageApi.ts` — current client seam + `ApiErrorWithBody` pattern (HIGH)
+- Directus 11 schema snapshot/apply: `directus schema snapshot|apply` CLI — documented at `docs.directus.io/reference/cli.html` (MEDIUM — training-data knowledge of Directus 11 CLI; verify exact flag shape during implementation)
+- Postgres `LISTEN/NOTIFY` + asyncpg `connection.add_listener` — standard Postgres feature, asyncpg documented support (HIGH)
+- v1.11-directus Phase 02 decision (`bootstrap-roles.sh` comment) — rejection of v10 snapshot shape (HIGH)
