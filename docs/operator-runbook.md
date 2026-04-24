@@ -663,3 +663,158 @@ This is a requirements text typo, not an implementation error. The intent of SGN
 - `frontend/src/docs/en/admin-guide/digital-signage.md` — User-facing admin guide (EN)
 - `frontend/src/docs/de/admin-guide/digital-signage.md` — User-facing admin guide (DE)
 - `.planning/phases/48-pi-provisioning-e2e-docs/48-E2E-RESULTS.md` — E2E walkthrough results (Plan 48-05)
+
+---
+
+## 12. Directus Data Model — DO NOT EDIT IN UI
+
+**Rule: Never edit the Directus Data Model using the Directus admin UI.**
+
+Alembic is the sole DDL owner for this project. All table creation, column additions, index creation, and constraint changes happen in `backend/alembic/versions/*.py` migration files. Directus metadata (what Directus knows about the tables — represented as rows in `directus_collections`, `directus_fields`, `directus_relations`) is derived from and must stay in sync with the committed `directus/snapshots/v1.22.yaml`.
+
+**Why this matters:** The CI drift guard (Guard B) runs `npx directus schema snapshot` against the live Directus instance and diffs the output against `directus/snapshots/v1.22.yaml`. Any edit made via the Data Model UI will produce a diff and **block PRs**. The guard treats any diff as a schema drift violation.
+
+**How to change schema correctly:**
+
+1. Write an Alembic migration in `backend/alembic/versions/` that modifies the database schema.
+2. Regenerate `directus/snapshots/v1.22.yaml` by running:
+   ```bash
+   make schema-fixture-update
+   ```
+   This regenerates both the DDL hash fixture (`directus/fixtures/schema-hash.txt`) and the snapshot YAML.
+3. Commit the Alembic migration, the updated snapshot YAML, and the updated hash fixture together in a single commit.
+
+**Detection:** Guard B (snapshot diff) runs in CI on every PR. Guard A (DDL hash) runs in CI to detect out-of-band database changes that bypass Alembic.
+
+---
+
+## 13. Recovery: directus-schema-apply Fails with "Relation Already Exists" (#25760)
+
+**Symptoms:** `docker compose logs directus-schema-apply` shows:
+
+```
+Collection already exists
+```
+
+or:
+
+```
+relation "<table_name>" already exists
+```
+
+**Cause:** Known regression in Directus 11.10+ ([issue #25760](https://github.com/directus/directus/issues/25760)). When the snapshot YAML's collection entries have a `schema:` block with a `name` field, `directus schema apply` tries to `CREATE TABLE` even though the table already exists (created by Alembic). The v1.22 snapshot uses `schema: null` on every collection to avoid this, but the issue can recur if the YAML is hand-edited.
+
+**Happy-path verification:** The `directus-schema-apply` container should exit 0 and produce log output ending with something like `Schema applied successfully`. If it exits non-zero, check the logs.
+
+**Fallback (operator-run — not automated):**
+
+This fallback registers each failing collection via the Directus REST API using `schema: null` (metadata-only), which is idempotent:
+
+1. Get an admin token:
+   ```bash
+   TOKEN=$(curl -sX POST http://localhost:8055/auth/login \
+     -H 'Content-Type: application/json' \
+     -d "{\"email\":\"$DIRECTUS_ADMIN_EMAIL\",\"password\":\"$DIRECTUS_ADMIN_PASSWORD\"}" \
+     | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+   echo "Token acquired: ${TOKEN:0:20}..."
+   ```
+
+2. For each failing collection, POST metadata-only (replace `<collection_name>` and `<note>`):
+   ```bash
+   curl -sX POST http://localhost:8055/collections \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d '{"collection":"<collection_name>","schema":null,"meta":{"note":"<note>","hidden":false}}'
+   ```
+
+   Collections to register (if not yet registered):
+   - `signage_devices`, `signage_playlists`, `signage_playlist_items`
+   - `signage_device_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`
+   - `signage_schedules`, `sales_records`, `personio_employees`
+
+3. Re-run the schema apply to confirm it is now a no-op:
+   ```bash
+   docker compose up -d directus-schema-apply
+   docker compose logs directus-schema-apply
+   ```
+   The second run should exit 0 with no error output.
+
+---
+
+## 14. DB_EXCLUDE_TABLES Requires `up -d`, Not `restart`
+
+**Rule: After changing `DB_EXCLUDE_TABLES` in `docker-compose.yml`, run `docker compose up -d directus`, not `docker compose restart directus`.**
+
+`docker compose restart directus` restarts the container process but does NOT re-read environment variables — the container was created with the old env baked in. To pick up the new `DB_EXCLUDE_TABLES` value, Compose must recreate the container:
+
+```bash
+# Correct: recreates the directus container with the updated env
+docker compose up -d directus
+
+# WRONG: does not pick up env changes
+docker compose restart directus
+```
+
+**When this matters:** Any time you shrink or expand `DB_EXCLUDE_TABLES`, run `up -d`. This is especially important after the v1.22 migration because the table set changed significantly.
+
+---
+
+## 15. SSE is Best-Effort — 30-Second Poll is the Durability Floor
+
+The Postgres LISTEN/NOTIFY SSE bridge (`signage_change` channel) provides at-most-once delivery. During a database restart or a listener reconnect window (up to 30s with exponential backoff), events can be missed.
+
+**What this means:**
+- Pi players receive `playlist-changed`, `device-changed`, and `schedule-changed` SSE events within 500 ms of a Directus or FastAPI mutation under normal conditions.
+- During a database restart or reconnect window, events are silently lost.
+- Players compensate by polling `GET /api/signage/player/playlist` every 30 seconds. Any change missed via SSE will be caught within 30s.
+
+**The 30s poll is the durability ceiling, not a fallback.** It always runs, regardless of SSE health.
+
+**No event-log table, no replay.** If strict zero-loss delivery is needed, the 30s poll is the only guarantee. Missed events during reconnect are logged as WARN in `docker compose logs backend`:
+
+```
+signage_pg_listen: reconnecting attempt=N backoff=Xs err=<reason>
+```
+
+---
+
+## 16. Rollback Recipe — Partial directus-schema-apply Failure on Fresh Volume
+
+If `directus-schema-apply` fails mid-way on a clean volume (e.g., on first `docker compose up -d`):
+
+**Step 1:** Inspect the logs to identify the failing collection:
+
+```bash
+docker compose logs directus-schema-apply
+```
+
+**Step 2:** If the failure is `#25760` ("relation already exists"), follow the fallback recipe in Section 13 above. The REST `POST /collections` approach is idempotent — running it multiple times for the same collection is safe.
+
+**Step 3:** If the failure is unrelated to #25760 (e.g., a network error or a malformed YAML):
+
+```bash
+# Tear down the stack and all volumes
+docker compose down -v
+
+# Restart only the database and Directus (without the schema-apply)
+docker compose up -d db directus
+
+# Wait for directus to be healthy, then inspect logs
+docker compose logs directus
+
+# Fix the YAML or the compose config, then redeploy
+docker compose up -d
+```
+
+**Step 4:** After a successful `docker compose up -d`, verify the 9 collections are registered:
+
+```bash
+TOKEN=$(curl -sX POST http://localhost:8055/auth/login \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$DIRECTUS_ADMIN_EMAIL\",\"password\":\"$DIRECTUS_ADMIN_PASSWORD\"}" \
+  | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+curl -s "http://localhost:8055/collections" \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | grep '"collection"' | head -20
+```
+
+You should see `signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, and `personio_employees` in the output.
