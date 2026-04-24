@@ -3,8 +3,16 @@ import { createDirectus, authentication, rest } from "@directus/sdk";
 // Phase 64 D-05: same-origin default. Caddy proxies /directus/* to directus:8055
 // (handle_path prefix-strip). Set VITE_DIRECTUS_URL to override for dev
 // workflows that need to bypass the proxy (e.g. direct :8055 access).
+//
+// NOTE: the Directus SDK validates its base URL via `new URL(...)` and rejects
+// bare relative paths. We compose `window.location.origin + "/directus"` so
+// the URL is absolute but still same-origin (cookies + no CORS preflight).
+// SSR/test fallback: if `window` is unavailable, use a localhost placeholder.
 const DIRECTUS_URL =
-  (import.meta.env.VITE_DIRECTUS_URL as string | undefined) ?? "/directus";
+  (import.meta.env.VITE_DIRECTUS_URL as string | undefined) ??
+  (typeof window !== "undefined"
+    ? `${window.location.origin}/directus`
+    : "http://localhost/directus");
 
 /**
  * Singleton Directus SDK client.
