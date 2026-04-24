@@ -255,6 +255,8 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 **Goal:** `docker compose build frontend` succeeds from a clean build without manual workarounds; dev + host-build unaffected.
 **Depends on:** Nothing (small, self-contained).
 **Requirements:** BUILD-01..03
-**Plans (1 planned):**
-- **63-01 Peer-dep resolution** — Compare `vite-plugin-pwa` release notes for vite@8 compatibility. If a compatible version exists, upgrade. Else add `--legacy-peer-deps` to the Dockerfile `npm install`. Rationale captured in SUMMARY. Validate via `docker compose build --no-cache frontend` + `npm run dev` + `npm run build`.
+**Plans:** 1 plan
+
+Plans:
+- [ ] 63-01-build-fix-PLAN.md — Apply `--legacy-peer-deps` to container (Dockerfile line 4) + host (new `frontend/.npmrc`) install paths; verify via `docker compose build --no-cache frontend` and clean-slate `npm install && npm run build && npm run dev` on the host. Upstream tracking reason: `vite-plugin-pwa@1.2.0` peer-deps cap at vite ^7.
 
