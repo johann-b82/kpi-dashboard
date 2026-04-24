@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: verifying
-stopped_at: Phase 67 context gathered
-last_updated: "2026-04-24T18:59:44.848Z"
-last_activity: 2026-04-24
+status: executing
+stopped_at: Completed 67-02-PLAN.md
+last_updated: "2026-04-24T19:20:52.302Z"
+last_activity: 2026-04-24 -- Phase 67 execution started
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 12
+  completed_plans: 9
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 66 — kill-me-py
+**Current focus:** Phase 67 — migrate-data-py-sales-employees-split
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,10 +37,10 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 67
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-24
+Phase: 67 (migrate-data-py-sales-employees-split) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 67
+Last activity: 2026-04-24 -- Phase 67 execution started
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 
@@ -193,6 +193,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 66 P01 | 102s | 3 tasks | 3 files |
 | Phase 66-kill-me-py P03 | 36s | 1 tasks | 1 files |
 | Phase 66-kill-me-py P02 | 58s | 2 tasks | 4 files |
+| Phase 67 P02 | 6m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -213,6 +214,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 66]: mapRoleName() switch maps Administrator->admin, Viewer->viewer, unknown->null (D-01/D-09); two-tier readMe (minimal for AuthContext, full for useCurrentUserProfile) is deliberate (D-03/D-05)
 - [Phase 66-kill-me-py]: Inline run: block chosen over dedicated scripts/ci/no-api-me.sh — reusable script pattern deferred until third endpoint-guard lands (Phase 67+)
 - [Phase 66-kill-me-py]: me_router removal is clean — no other routers imported from me.py; test file had no shared fixtures
+- [Phase 67]: Phase 67-02: fetchSalesRecords migrated to directus.request(readItems('sales_records', ...)) with filter/sort/limit/fields; multi-field search uses _or with _icontains (top-level search param avoided); SalesTable.tsx untouched (D-01); query-key unification deferred to Phase 71.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -258,6 +260,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T18:59:44.845Z
-**Stopped at:** Phase 67 context gathered
-**Resume file:** .planning/phases/67-migrate-data-py-sales-employees-split/67-CONTEXT.md
+**Last session:** 2026-04-24T19:20:52.299Z
+**Stopped at:** Completed 67-02-PLAN.md
+**Resume file:** None

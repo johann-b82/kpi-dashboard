@@ -282,10 +282,10 @@ Plans:
   2. `/hr` employees table renders rows fetched from Directus `personio_employees`; the row-data portion of `GET /api/data/employees` is removed.
   3. New FastAPI `GET /api/data/employees/overtime?date_from&date_to` returns per-employee total-hours / overtime roll-up over the requested window; frontend merges Directus rows with this compute response and the overtime badge values match v1.21 output.
   4. `data.py` is either deleted or reduced to the overtime endpoint; tests migrated or removed; no orphaned imports.
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 67-01-PLAN.md — Backend: create hr_overtime.py router + register in main.py (Wave 1)
-- [ ] 67-02-PLAN.md — Frontend: migrate fetchSalesRecords to Directus SDK readItems (Wave 1)
+- [x] 67-02-PLAN.md — Frontend: migrate fetchSalesRecords to Directus SDK readItems (Wave 1)
 - [ ] 67-03-PLAN.md — Frontend: migrate fetchEmployees + add useEmployeesWithOvertime merge hook + update EmployeeTable.tsx (Wave 2)
 - [ ] 67-04-PLAN.md — Cleanup: delete data.py, migrate tests, add CI grep guard (Wave 3)
 **UI hint**: yes
@@ -359,7 +359,7 @@ Plans:
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
-| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/4 | Planned | - |
+| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 1/4 | In Progress|  |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
