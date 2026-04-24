@@ -267,9 +267,9 @@ Plans:
   1. Post-login, `AuthContext` populates current user (`id`, `email`, `first_name`, `last_name`, `role`, `avatar`) via `directus.request(readMe(...))` — no `/api/me` network call in DevTools.
   2. `backend/app/routers/me.py`, its `main.py` registration, schemas, and tests are deleted; `/api/me` returns 404.
   3. A CI guard greps for `"/api/me"` in `frontend/src/` and fails if any reference remains.
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
-- [ ] 66-01-authcontext-readme-swap-PLAN.md — AuthContext readMe swap + useCurrentUserProfile hook + Viewer directus_roles permission (Wave 1)
+- [x] 66-01-authcontext-readme-swap-PLAN.md — AuthContext readMe swap + useCurrentUserProfile hook + Viewer directus_roles permission (Wave 1)
 - [ ] 66-02-delete-me-backend-PLAN.md — Delete backend/app/routers/me.py + main.py registration + tests + comment scrub (Wave 2)
 - [ ] 66-03-ci-guard-PLAN.md — CI workflow step: grep-fail on "/api/me" in frontend/src/ (Wave 2)
 
@@ -353,7 +353,7 @@ Plans:
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
-| 66. Kill `me.py` | v1.22 | 0/3 | Not started | - |
+| 66. Kill `me.py` | v1.22 | 1/3 | In Progress|  |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |

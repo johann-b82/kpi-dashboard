@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: verifying
-stopped_at: Phase 66 context gathered
-last_updated: "2026-04-24T18:24:59.722Z"
+status: executing
+stopped_at: Completed 66-01-authcontext-readme-swap-PLAN.md
+last_updated: "2026-04-24T18:41:24.424Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 65 — foundation-schema-authz-sse-bridge
+**Current focus:** Phase 66 — kill-me-py
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,9 +37,9 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 66
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 66 (kill-me-py) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-24
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
@@ -190,6 +190,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 65 P01 | 298 | 3 tasks | 4 files |
 | Phase 65 P04 | 151 | 2 tasks | 2 files |
 | Phase 65 P05 | 541s | 5 tasks | 11 files |
+| Phase 66 P01 | 102s | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -207,6 +208,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 65]: Schedule branch uses fetch-then-call: SELECT SignageSchedule.playlist_id then devices_affected_by_playlist(db, playlist_id); no devices_affected_by_schedule resolver exists in signage_resolver.py
 - [Phase 65]: Guard A uses MD5 (not SHA256+pgcrypto) for DDL hash — md5() is built-in Postgres, no extension required
 - [Phase 65]: Allowlist parity test runs pre-stack in CI (before docker compose up) for <1s fast fail on AUTHZ drift
+- [Phase 66]: mapRoleName() switch maps Administrator->admin, Viewer->viewer, unknown->null (D-01/D-09); two-tier readMe (minimal for AuthContext, full for useCurrentUserProfile) is deliberate (D-03/D-05)
 
 ### Cross-cutting hazards (hard gates)
 
@@ -252,6 +254,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T18:24:59.719Z
-**Stopped at:** Phase 66 context gathered
-**Resume file:** .planning/phases/66-kill-me-py/66-CONTEXT.md
+**Last session:** 2026-04-24T18:41:24.421Z
+**Stopped at:** Completed 66-01-authcontext-readme-swap-PLAN.md
+**Resume file:** None
