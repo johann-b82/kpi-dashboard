@@ -45,11 +45,11 @@
 
 ### SCHEMA — Directus metadata + Alembic ownership boundary
 
-- [ ] **SCHEMA-01**: Operator can apply a git-checked Directus snapshot YAML that registers the v1.22 collections (`signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, `personio_employees`) as Directus metadata — never as DDL.
-- [ ] **SCHEMA-02**: `docker compose up -d` on a fresh volume reproduces all v1.22 Directus collections idempotently via a `directus-schema-apply` compose service that runs after `directus` is healthy and before `directus-bootstrap-roles`.
+- [x] **SCHEMA-01**: Operator can apply a git-checked Directus snapshot YAML that registers the v1.22 collections (`signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, `personio_employees`) as Directus metadata — never as DDL.
+- [x] **SCHEMA-02**: `docker compose up -d` on a fresh volume reproduces all v1.22 Directus collections idempotently via a `directus-schema-apply` compose service that runs after `directus` is healthy and before `directus-bootstrap-roles`.
 - [ ] **SCHEMA-03**: A CI guard compares `information_schema.columns` hash against a fixture + asserts `directus schema snapshot` produces zero diff against the committed YAML — any drift fails CI.
-- [ ] **SCHEMA-04**: `DB_EXCLUDE_TABLES` is shrunk to the correct minimal set (admin/Personio raw/sensors/pairing/heartbeat) and a CI guard asserts it is a superset of a hard-coded "never expose" allowlist.
-- [ ] **SCHEMA-05**: Operators receive a documented "never edit the Data Model UI" rule in `docs/operator-runbook.md`; violation is detected by SCHEMA-03.
+- [x] **SCHEMA-04**: `DB_EXCLUDE_TABLES` is shrunk to the correct minimal set (admin/Personio raw/sensors/pairing/heartbeat) and a CI guard asserts it is a superset of a hard-coded "never expose" allowlist.
+- [x] **SCHEMA-05**: Operators receive a documented "never edit the Data Model UI" rule in `docs/operator-runbook.md`; violation is detected by SCHEMA-03.
 
 ### AUTHZ — Policies + per-collection permission rows
 
@@ -110,11 +110,11 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| SCHEMA-01 | Phase 65 | Pending |
-| SCHEMA-02 | Phase 65 | Pending |
+| SCHEMA-01 | Phase 65 | Complete |
+| SCHEMA-02 | Phase 65 | Complete |
 | SCHEMA-03 | Phase 65 | Pending |
-| SCHEMA-04 | Phase 65 | Pending |
-| SCHEMA-05 | Phase 65 | Pending |
+| SCHEMA-04 | Phase 65 | Complete |
+| SCHEMA-05 | Phase 65 | Complete |
 | AUTHZ-01 | Phase 65 | Complete |
 | AUTHZ-02 | Phase 65 | Complete |
 | AUTHZ-03 | Phase 65 | Complete |

@@ -251,9 +251,9 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
   3. Mutating a surfaced signage collection directly via the Directus Data Model UI fires the correct SSE event (`playlist-changed` / `device-changed` / `schedule-changed`) to connected Pi players within 500 ms.
   4. Calibration PATCH via FastAPI continues to fire `calibration-changed` SSE without double-firing from the LISTEN bridge (signage_devices trigger gated on name/tags-only predicate).
   5. The single-listener invariant holds: `--workers 1` preserved, asyncpg listener auto-reconnects on Postgres restart with a warn-log line (manually verified), and CI guard references the invariant.
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 Plans:
-- [ ] 65-01-PLAN.md — Directus snapshot YAML + compose chain + DB_EXCLUDE_TABLES + operator runbook
+- [x] 65-01-PLAN.md — Directus snapshot YAML + compose chain + DB_EXCLUDE_TABLES + operator runbook
 - [x] 65-02-PLAN.md — bootstrap-roles.sh section 5 (Viewer per-collection permission rows)
 - [x] 65-03-PLAN.md — Alembic migration: signage_notify() function + 8 triggers
 - [ ] 65-04-PLAN.md — signage_pg_listen.py listener + lifespan wiring
@@ -348,7 +348,7 @@ Plans:
 | 62. Signage Calibration | v1.21 | 4/4 | Complete (CAL-PI-07 waived) | 2026-04-24 |
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
-| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 2/5 | In Progress|  |
+| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 3/5 | In Progress|  |
 | 66. Kill `me.py` | v1.22 | 0/TBD | Not started | - |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |

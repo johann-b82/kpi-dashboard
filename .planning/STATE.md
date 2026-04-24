@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 65-03-PLAN.md
-last_updated: "2026-04-24T17:36:03.269Z"
+stopped_at: Completed 65-01-PLAN.md
+last_updated: "2026-04-24T17:39:26.251Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 65 (foundation-schema-authz-sse-bridge) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -187,6 +187,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 64 P01 | 8m 13s | 4 tasks | 10 files |
 | Phase 65 P02 | 88s | 1 tasks | 1 files |
 | Phase 65 P03 | 2min | 1 tasks | 1 files |
+| Phase 65 P01 | 298 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -199,6 +200,8 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 65]: ensure_permission helper placed before api() helper; section 5 appended; comment text paraphrased to satisfy strict grep exclusion check on sensitive column names
 - [Phase 65]: WHEN clause on signage_devices UPDATE trigger reduced to name-only (confirmed no tags column on signage_devices per v1_16_signage_schema.py inspection; tags live in signage_device_tag_map)
 - [Phase 65]: Tag map tables use composite PKs; signage_notify() function branches on TG_TABLE_NAME to emit device_id/playlist_id as id field for listener resolver compatibility
+- [Phase 65]: signage_device_tags confirmed as tag table name (not signage_tags); signage_devices has no tags column — WHEN clause in trigger is OLD.name IS DISTINCT FROM NEW.name only
+- [Phase 65]: DB_EXCLUDE_TABLES minimal superset: 11 entries including signage_heartbeat_event and signage_pairing_sessions; exposes 9 v1.22 collections to Directus
 
 ### Cross-cutting hazards (hard gates)
 
@@ -244,6 +247,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T17:36:03.266Z
-**Stopped at:** Completed 65-03-PLAN.md
+**Last session:** 2026-04-24T17:39:26.249Z
+**Stopped at:** Completed 65-01-PLAN.md
 **Resume file:** None
