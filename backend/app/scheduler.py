@@ -29,6 +29,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.sql import func
 
 from app.database import AsyncSessionLocal
+from app.services import signage_pg_listen
 from app.models import (
     AppSettings,
     SensorPollLog,
@@ -444,9 +445,11 @@ async def lifespan(app: FastAPI):
     log.info("pptx_stuck_reset hook executed")
 
     scheduler.start()
+    await signage_pg_listen.start(app)
     try:
         yield
     finally:
+        await signage_pg_listen.stop(app)
         scheduler.shutdown()
         _engine = None
         app.state.snmp_engine = None
