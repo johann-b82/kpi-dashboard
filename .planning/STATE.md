@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 65-02-PLAN.md
-last_updated: "2026-04-24T17:35:06.097Z"
+stopped_at: Completed 65-03-PLAN.md
+last_updated: "2026-04-24T17:36:03.269Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 65 (foundation-schema-authz-sse-bridge) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -186,6 +186,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 63 P01 | 3m 21s | 2 tasks | 2 files |
 | Phase 64 P01 | 8m 13s | 4 tasks | 10 files |
 | Phase 65 P02 | 88s | 1 tasks | 1 files |
+| Phase 65 P03 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -196,6 +197,8 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - **[v1.22 keep-in-FastAPI list 2026-04-24]:** Calibration PATCH, bulk `PUT /playlists/{id}/items`, `DELETE /playlists/{id}` (preserves 409 `{detail, schedule_ids}` shape), `GET /signage/analytics/devices`, media upload POST, pair/*, player/* stream, PPTX convert. `GET /signage/devices` list is hybrid: Directus rows + new FastAPI `/api/signage/resolved/{device_id}`.
 - [v1.21 prior decisions preserved — see MILESTONES.md for full history]
 - [Phase 65]: ensure_permission helper placed before api() helper; section 5 appended; comment text paraphrased to satisfy strict grep exclusion check on sensitive column names
+- [Phase 65]: WHEN clause on signage_devices UPDATE trigger reduced to name-only (confirmed no tags column on signage_devices per v1_16_signage_schema.py inspection; tags live in signage_device_tag_map)
+- [Phase 65]: Tag map tables use composite PKs; signage_notify() function branches on TG_TABLE_NAME to emit device_id/playlist_id as id field for listener resolver compatibility
 
 ### Cross-cutting hazards (hard gates)
 
@@ -241,6 +244,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T17:35:06.094Z
-**Stopped at:** Completed 65-02-PLAN.md
+**Last session:** 2026-04-24T17:36:03.266Z
+**Stopped at:** Completed 65-03-PLAN.md
 **Resume file:** None
