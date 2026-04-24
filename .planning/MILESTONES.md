@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.21 Signage Calibration + Build Hygiene + Reverse Proxy (Shipped: 2026-04-24)
+
+**Phases completed:** 3 phases (62–64), 6 plans. **24/25 requirements satisfied**, 1 waiver (CAL-PI-07).
+
+**Audit:** [milestones/v1.21-MILESTONE-AUDIT.md](milestones/v1.21-MILESTONE-AUDIT.md) — passed with waiver; hardware-environment diagnostic on test Pi carries forward as a quick task.
+
+**Key accomplishments:**
+
+- **Per-device signage calibration** (Phase 62, 4 plans) — Operators set rotation (0/90/180/270), HDMI mode, and audio on/off per signage Pi from `/signage/devices` admin UI. Backend: Alembic `v1_21_signage_calibration` migration adds three columns to `signage_devices`; admin `PATCH /api/signage/devices/{id}/calibration`; device-auth `GET /api/signage/player/calibration`; SSE `calibration-changed` event. Pi sidecar: new `httpx-sse` subscriber on the existing `/api/signage/player/stream` reuses the device JWT; `wlr-randr --transform` / `--mode` for display, `wpctl set-mute` with `pactl` fallback for audio, all via `asyncio.create_subprocess_exec` (no sync subprocess). `/var/lib/signage/calibration.json` persistence + boot replay gated behind a 15 s `_wait_for_wayland_socket` bounded poll (belt-and-braces over `After=labwc.service`). Player app toggles `<video>` `muted` attribute on SSE event. Unit coverage: 17/17 sidecar tests + 12/12 backend tests + 3/3 player tests. **CAL-PI-07 hardware-timing walkthrough waived pending per-Pi environment diagnostic.**
+- **Frontend build green** (Phase 63, 1 plan) — `docker compose build --no-cache frontend` exits 0 after adding `--legacy-peer-deps` to `frontend/Dockerfile` and a `frontend/.npmrc` carrying the same flag for host installs. Upstream `vite-plugin-pwa@1.2.0` caps vite at ^7 and no newer release exists; this is a documented workaround tracked in SUMMARY for revisit when the plugin adds vite@8 to peer-deps. Host `npm run dev` + `npm run build` unaffected.
+- **Caddy 2 reverse proxy on :80** (Phase 64, 1 plan + 2 post-ship hotfixes) — New `caddy` compose service fronts `/` → frontend:5173, `/api/*` → api:8000 (with `flush_interval -1` + 24 h `read_timeout` for SSE survival), `/directus/*` → directus:8055 (with `handle_path` prefix-strip so Directus sees bare paths), `/player/*` → api:8000 (FastAPI serves the built player bundle; Vite dev doesn't). Directus `CORS_ORIGIN` / `CORS_ENABLED` / `CORS_CREDENTIALS` removed — SPA calls are same-origin now. Frontend Directus SDK default → `window.location.origin + "/directus"` (bare `/directus` would fail `new URL()` validation in the SDK). Pi kiosk URL `http://<host>:80/...` from `provision-pi.sh` finally works. Unblocked CAL-PI-07's hardware walkthrough from LAN-access dead-ends.
+- **Authentik removed** (quick task, inline) — CLAUDE.md project description + constraint block + PROJECT.md overview updated to reflect Directus as the committed identity layer (shipped in v1.11-directus 2026-04-15); the "future Authentik pivot" phrasing is gone.
+
+**Tech debt carried to v1.22:**
+- **CAL-PI-07 hardware diagnostic** — specific to the paired test Pi; candidate for a post-ship `/gsd:quick` when sidecar-env isolation identifies the missing piece (likely `SIGNAGE_API_BASE`, device token path, or wayland env passthrough).
+- **Admin UI calibration render-loop test** — Phase 62-02 pivoted from render+fireEvent to static coverage after jsdom render-loop on the base-ui Dialog + Toggle combo; runtime coverage should come from CAL-PI-07.
+- **FastAPI cosmetic `/api/health`** — Phase 64 verify script referenced this path but only `/health` exists; not blocking, small future add.
+- **Stale `api` image** needs one-time `docker compose build --no-cache api` to pick up v1_21 alembic revision (env refresh, not a code bug).
+
+**Scope change mid-milestone:** v1.21 grew from 2 phases → 3 phases when Phase 62's hardware walkthrough exposed the dev compose stack had no reverse proxy and the Pi's `:80` URLs pointed at nothing. Phase 64 (Caddy) was added and shipped same-day. Two post-ship hotfixes on Phase 64 (Directus SDK URL + `/player/*` route).
+
+---
+
 ## v1.20 HR Date-Range Filter + TS Cleanup (Shipped: 2026-04-22)
 
 **Phases completed:** 2 phases (60–61), 5 plans.

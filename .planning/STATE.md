@@ -1,50 +1,47 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.21
-milestone_name: Signage Calibration + Build Hygiene + Reverse Proxy
-status: verifying
-stopped_at: Completed 64-01-reverse-proxy-PLAN.md; milestone v1.21 reverse-proxy item cleared; CAL-PI-07 unblocked
-last_updated: "2026-04-24T08:07:56.421Z"
+milestone: null
+milestone_name: null
+status: between-milestones
+stopped_at: v1.21 shipped (tag v1.21); CAL-PI-07 waived — pending per-Pi diagnostic as post-ship quick task
+last_updated: "2026-04-24T13:00:00.000Z"
 last_activity: 2026-04-24
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: KPI Dashboard
 
-**Last updated:** 2026-04-22
-**Session:** v1.21 Signage Calibration + Build Hygiene scoped; REQUIREMENTS + ROADMAP updated
+**Last updated:** 2026-04-24
+**Session:** v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped (tag `v1.21`, 3 phases, 6 plans, CAL-PI-07 waived)
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone + v1.21 scope)
+See: `.planning/PROJECT.md` (updated 2026-04-24 after v1.21 milestone)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 64 — reverse-proxy
+**Current focus:** between milestones — awaiting `/gsd:new-milestone` for v1.22 scope
 
+Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
-Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`).
 
 ---
 
 ## Current Position
 
-Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
-Phase: 64 (reverse-proxy) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
+Milestone: none active
+Phase: none active
+Status: v1.21 archived. Carry-forward: CAL-PI-07 real-Pi hardware walkthrough — candidate for a post-ship `/gsd:quick` when the Pi sidecar SSE-reachability diagnostic is isolated (`SIGNAGE_API_BASE`, device token path, wayland env).
 Last activity: 2026-04-24
 
-Progress: 0/2 phases complete, 3/4 plans fully complete in Phase 62 (62-04 partial — Task 1 CAL-PI-06 closed, Task 2 CAL-PI-07 open)
-
-Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 62-04 Task 2), fills `.planning/phases/62-signage-calibration/62-04-E2E-RESULTS.md`, and types "approved" to close CAL-PI-07 + Phase 62. Then Phase 63 (frontend build fix) is the final v1.21 item.
+Next action: `/gsd:new-milestone` to scope v1.22, or `/gsd:quick` targeting the CAL-PI-07 Pi diagnostic.
 
 ### Quick Tasks Completed
 
