@@ -50,6 +50,14 @@
 - [x] **CAL-PI-06**: Player app responds to `calibration-changed` by toggling `<video>` `muted` attribute to match `audio_enabled`.
 - [ ] **CAL-PI-07**: End-to-end (on real Pi hardware): admin rotates → wlr-randr reports new transform within 5 s; admin changes mode → monitor reports new mode within 10 s; admin enables audio → current playing video unmutes within 3 s.
 
+### Reverse proxy (PROXY-*) — v1.21 extension
+
+- [x] **PROXY-01**: A new Caddy service in `docker-compose.yml` binds `0.0.0.0:80:80` and routes: `/` → frontend:5173, `/api/*` → api:8000, `/directus/*` → directus:8055, `/player/*` → frontend:5173/player/. Hitting `http://<lan-ip>/login` from a browser on another LAN host lands on the admin SPA and auth succeeds end-to-end.
+- [x] **PROXY-02**: `/api/*` proxy preserves request body, headers, and long-lived connections (SSE `text/event-stream` stays open for ≥60 s without the proxy closing it). Player + sidecar EventSource clients keep working.
+- [x] **PROXY-03**: `/directus/*` proxy preserves the httpOnly refresh cookie set on the same-origin domain; `CORS_ORIGIN` in Directus env is no longer relevant for the admin SPA. Directus auth + asset GETs work at `/directus/auth/login`, `/directus/items/*`, `/directus/assets/*` etc.
+- [x] **PROXY-04**: `/player/*` serves the kiosk bundle (Vite build output under `dist/player/`); PWA precache manifest still resolves; no 404s on hashed chunks.
+- [x] **PROXY-05**: Frontend `directusClient.ts` default URL changes from `http://localhost:8055` to `/directus` (same-origin). `VITE_DIRECTUS_URL` env var still overrides for dev that wants to bypass the proxy. README + operator-runbook note the new architecture.
+
 ### Frontend build fix (BUILD-*)
 
 - [x] **BUILD-01**: `docker compose build frontend` succeeds from a clean state (`docker compose build --no-cache frontend`) without manual workarounds.
@@ -84,3 +92,8 @@
 | BUILD-02 | Phase 63 | TBD | Pending |
 | BUILD-03 | Phase 63 | TBD | Pending |
 | CLEAN-01 | quick | (inline) | Satisfied |
+| PROXY-01 | Phase 64 | TBD | Pending |
+| PROXY-02 | Phase 64 | TBD | Pending |
+| PROXY-03 | Phase 64 | TBD | Pending |
+| PROXY-04 | Phase 64 | TBD | Pending |
+| PROXY-05 | Phase 64 | TBD | Pending |

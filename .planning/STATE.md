@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.21
-milestone_name: Signage Calibration + Build Hygiene
+milestone_name: Signage Calibration + Build Hygiene + Reverse Proxy
 status: verifying
-stopped_at: Completed 63-01-build-fix-PLAN.md; milestone v1.21 build-hygiene item cleared
-last_updated: "2026-04-24T06:56:33.581Z"
+stopped_at: Completed 64-01-reverse-proxy-PLAN.md; milestone v1.21 reverse-proxy item cleared; CAL-PI-07 unblocked
+last_updated: "2026-04-24T08:07:56.421Z"
 last_activity: 2026-04-24
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone + v1.21 sc
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 63 — frontend-build-fix
+**Current focus:** Phase 64 — reverse-proxy
 
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
@@ -37,7 +37,7 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 ## Current Position
 
 Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
-Phase: 63 (frontend-build-fix) — EXECUTING
+Phase: 64 (reverse-proxy) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-24
@@ -160,6 +160,7 @@ Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 6
 | Phase 62 P02 | 30m | 2 tasks | 6 files |
 | Phase 62-signage-calibration P04-task-1 | ~6m | 1 tasks | 6 files |
 | Phase 63 P01 | 3m 21s | 2 tasks | 2 files |
+| Phase 64 P01 | 8m 13s | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -288,6 +289,7 @@ Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 6
 - [Phase 62]: Plan 62-02: Unit test is shape-based (apiClient spy + source regex + JSON locale load); render test blocked by jsdom/Toggle/Dialog/RHF interaction — 62-04 E2E carries runtime coverage
 - [Phase 62-signage-calibration]: Plan 62-04 Task 1 (CAL-PI-06) complete: player onCalibrationChanged SSE dispatch + fetchCalibration + <video muted> toggle via audioEnabled prop chain (VideoPlayer default muted=true preserves admin-preview behaviour). Task 2 (CAL-PI-07 real-Pi E2E) awaits human verification — plan remains open, CAL-PI-07 still pending.
 - [Phase 63]: Plan 63-01: --legacy-peer-deps applied at Dockerfile + frontend/.npmrc; no lockfile regen; rationale: vite-plugin-pwa@1.2.0 peerDeps cap at vite ^7 (registry 2026-04-24), vite downgrade + plugin swap rejected (D-02/D-03)
+- [Phase 64]: Phase 64 Plan 01: Caddy /api/* uses handle (preserve prefix); /directus/* uses handle_path (strip); flush_interval -1 + 24h read_timeout on /api/* transport for SSE; CORS env removed entirely from directus service; verify-phase-64-proxy.sh probes /api/me (401) instead of /api/health (absent). Unblocks Phase 62 CAL-PI-07.
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -329,6 +331,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T06:56:33.578Z
-**Stopped at:** Completed 63-01-build-fix-PLAN.md; milestone v1.21 build-hygiene item cleared
+**Last session:** 2026-04-24T08:07:56.418Z
+**Stopped at:** Completed 64-01-reverse-proxy-PLAN.md; milestone v1.21 reverse-proxy item cleared; CAL-PI-07 unblocked
 **Resume file:** None
