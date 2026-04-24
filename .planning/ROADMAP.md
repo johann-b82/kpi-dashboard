@@ -233,7 +233,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 
 - [x] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change. (completed 2026-04-24)
 - [x] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist. (completed 2026-04-24)
-- [ ] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute.
+- [x] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute. (completed 2026-04-24)
 - [ ] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed.
 - [ ] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression.
 - [ ] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression.
@@ -282,12 +282,12 @@ Plans:
   2. `/hr` employees table renders rows fetched from Directus `personio_employees`; the row-data portion of `GET /api/data/employees` is removed.
   3. New FastAPI `GET /api/data/employees/overtime?date_from&date_to` returns per-employee total-hours / overtime roll-up over the requested window; frontend merges Directus rows with this compute response and the overtime badge values match v1.21 output.
   4. `data.py` is either deleted or reduced to the overtime endpoint; tests migrated or removed; no orphaned imports.
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 67-01-PLAN.md — Backend: create hr_overtime.py router + register in main.py (Wave 1)
 - [x] 67-02-PLAN.md — Frontend: migrate fetchSalesRecords to Directus SDK readItems (Wave 1)
 - [x] 67-03-PLAN.md — Frontend: migrate fetchEmployees + add useEmployeesWithOvertime merge hook + update EmployeeTable.tsx (Wave 2)
-- [ ] 67-04-PLAN.md — Cleanup: delete data.py, migrate tests, add CI grep guard (Wave 3)
+- [x] 67-04-PLAN.md — Cleanup: delete data.py, migrate tests, add CI grep guard (Wave 3)
 **UI hint**: yes
 
 ### Phase 68: MIG-SIGN — Tags + Schedules
@@ -359,7 +359,7 @@ Plans:
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
-| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 3/4 | In Progress|  |
+| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete   | 2026-04-24 |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
