@@ -231,7 +231,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 
 **Locked architectural decisions (do not revisit):** SSE bridge = Postgres LISTEN/NOTIFY (Option A); calibration PATCH, `PUT /playlists/{id}/items` bulk-replace, `DELETE /playlists/{id}` (409 shape), `GET /signage/analytics/devices` all stay in FastAPI; `GET /signage/devices` list is hybrid (Directus rows + new FastAPI `/resolved/{device_id}`).
 
-- [ ] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change.
+- [x] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change. (completed 2026-04-24)
 - [ ] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist.
 - [ ] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute.
 - [ ] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed.
@@ -251,13 +251,13 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
   3. Mutating a surfaced signage collection directly via the Directus Data Model UI fires the correct SSE event (`playlist-changed` / `device-changed` / `schedule-changed`) to connected Pi players within 500 ms.
   4. Calibration PATCH via FastAPI continues to fire `calibration-changed` SSE without double-firing from the LISTEN bridge (signage_devices trigger gated on name/tags-only predicate).
   5. The single-listener invariant holds: `--workers 1` preserved, asyncpg listener auto-reconnects on Postgres restart with a warn-log line (manually verified), and CI guard references the invariant.
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] 65-01-PLAN.md — Directus snapshot YAML + compose chain + DB_EXCLUDE_TABLES + operator runbook
 - [x] 65-02-PLAN.md — bootstrap-roles.sh section 5 (Viewer per-collection permission rows)
 - [x] 65-03-PLAN.md — Alembic migration: signage_notify() function + 8 triggers
 - [x] 65-04-PLAN.md — signage_pg_listen.py listener + lifespan wiring
-- [ ] 65-05-PLAN.md — 6 SSE tests + AUTHZ tests + 4 CI guards + Makefile + GitHub Actions
+- [x] 65-05-PLAN.md — 6 SSE tests + AUTHZ tests + 4 CI guards + Makefile + GitHub Actions
 
 ### Phase 66: Kill `me.py`
 **Goal**: Frontend reads the current user identity entirely via Directus SDK; the FastAPI `/api/me` surface is gone and guarded by CI.
@@ -348,7 +348,7 @@ Plans:
 | 62. Signage Calibration | v1.21 | 4/4 | Complete (CAL-PI-07 waived) | 2026-04-24 |
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
-| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 4/5 | In Progress|  |
+| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete   | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 0/TBD | Not started | - |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |

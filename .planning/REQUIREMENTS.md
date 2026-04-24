@@ -47,7 +47,7 @@
 
 - [x] **SCHEMA-01**: Operator can apply a git-checked Directus snapshot YAML that registers the v1.22 collections (`signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, `personio_employees`) as Directus metadata — never as DDL.
 - [x] **SCHEMA-02**: `docker compose up -d` on a fresh volume reproduces all v1.22 Directus collections idempotently via a `directus-schema-apply` compose service that runs after `directus` is healthy and before `directus-bootstrap-roles`.
-- [ ] **SCHEMA-03**: A CI guard compares `information_schema.columns` hash against a fixture + asserts `directus schema snapshot` produces zero diff against the committed YAML — any drift fails CI.
+- [x] **SCHEMA-03**: A CI guard compares `information_schema.columns` hash against a fixture + asserts `directus schema snapshot` produces zero diff against the committed YAML — any drift fails CI.
 - [x] **SCHEMA-04**: `DB_EXCLUDE_TABLES` is shrunk to the correct minimal set (admin/Personio raw/sensors/pairing/heartbeat) and a CI guard asserts it is a superset of a hard-coded "never expose" allowlist.
 - [x] **SCHEMA-05**: Operators receive a documented "never edit the Data Model UI" rule in `docs/operator-runbook.md`; violation is detected by SCHEMA-03.
 
@@ -57,15 +57,15 @@
 - [x] **AUTHZ-02**: Viewer has no permission rows on any `signage_*` collection — matching pre-v1.22 Admin-only signage access.
 - [x] **AUTHZ-03**: `directus_users` has a Viewer permission row with an explicit fields allowlist (id, email, first_name, last_name, role, avatar) — `tfa_secret`, `auth_data`, `external_identifier` never exposed.
 - [x] **AUTHZ-04**: Bootstrap script is idempotent (GET-before-POST) on every re-run and commits fixed UUIDs for each permission row.
-- [ ] **AUTHZ-05**: An integration test per collection asserts a Viewer JWT cannot read excluded fields and cannot mutate any `signage_*` collection.
+- [x] **AUTHZ-05**: An integration test per collection asserts a Viewer JWT cannot read excluded fields and cannot mutate any `signage_*` collection.
 
 ### SSE — Postgres LISTEN/NOTIFY bridge (Option A)
 
 - [x] **SSE-01**: An Alembic migration creates AFTER-INSERT/UPDATE/DELETE triggers on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, and `signage_devices` (the last gated on `OLD.name IS DISTINCT FROM NEW.name OR OLD.tags IS DISTINCT FROM NEW.tags` so calibration updates never double-fire).
 - [x] **SSE-02**: Each trigger calls `pg_notify('signage_change', '{"table":..., "op":..., "id":...}')` with payload under 8000 bytes.
 - [x] **SSE-03**: FastAPI `lifespan` starts a long-lived asyncpg connection with `add_listener('signage_change', …)` that resolves affected devices using the existing `devices_affected_by_playlist` resolver and calls existing `notify_device()`.
-- [ ] **SSE-04**: Mutating a collection directly via Directus Data Model UI fires `playlist-changed` / `device-changed` / `schedule-changed` SSE to connected Pi players within 500 ms (integration test).
-- [ ] **SSE-05**: The `--workers 1` invariant is preserved (single listener). CI guard references this invariant.
+- [x] **SSE-04**: Mutating a collection directly via Directus Data Model UI fires `playlist-changed` / `device-changed` / `schedule-changed` SSE to connected Pi players within 500 ms (integration test).
+- [x] **SSE-05**: The `--workers 1` invariant is preserved (single listener). CI guard references this invariant.
 - [x] **SSE-06**: Listener auto-reconnects on connection loss; log warning on each reconnect (manual restart of Postgres verifies).
 
 ### MIG-AUTH — `me.py` deletion
@@ -112,19 +112,19 @@
 |--------|-------|--------|
 | SCHEMA-01 | Phase 65 | Complete |
 | SCHEMA-02 | Phase 65 | Complete |
-| SCHEMA-03 | Phase 65 | Pending |
+| SCHEMA-03 | Phase 65 | Complete |
 | SCHEMA-04 | Phase 65 | Complete |
 | SCHEMA-05 | Phase 65 | Complete |
 | AUTHZ-01 | Phase 65 | Complete |
 | AUTHZ-02 | Phase 65 | Complete |
 | AUTHZ-03 | Phase 65 | Complete |
 | AUTHZ-04 | Phase 65 | Complete |
-| AUTHZ-05 | Phase 65 | Pending |
+| AUTHZ-05 | Phase 65 | Complete |
 | SSE-01 | Phase 65 | Complete |
 | SSE-02 | Phase 65 | Complete |
 | SSE-03 | Phase 65 | Complete |
-| SSE-04 | Phase 65 | Pending |
-| SSE-05 | Phase 65 | Pending |
+| SSE-04 | Phase 65 | Complete |
+| SSE-05 | Phase 65 | Complete |
 | SSE-06 | Phase 65 | Complete |
 | MIG-AUTH-01 | Phase 66 | Pending |
 | MIG-AUTH-02 | Phase 66 | Pending |
