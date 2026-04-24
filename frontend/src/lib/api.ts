@@ -1,4 +1,7 @@
+import { readItems } from "@directus/sdk";
+
 import { apiClient } from "./apiClient";
+import { directus } from "./directusClient";
 
 export interface ValidationErrorDetail {
   row: number;
@@ -371,12 +374,53 @@ export async function fetchSalesRecords(params?: {
   customer?: string;
   search?: string;
 }): Promise<SalesRecordRow[]> {
-  const q = new URLSearchParams();
-  if (params?.start_date) q.set("start_date", params.start_date);
-  if (params?.end_date) q.set("end_date", params.end_date);
-  if (params?.customer) q.set("customer", params.customer);
-  if (params?.search) q.set("search", params.search);
-  return apiClient<SalesRecordRow[]>(`/api/data/sales?${q}`);
+  // Phase 67 MIG-DATA-01: Directus SDK replacement for GET /api/data/sales.
+  // Filter translation per CONTEXT D-10 (date range), D-11 (customer),
+  // D-12 (multi-field search), D-13 (sort), D-14 (limit). Fields list
+  // mirrors the Viewer allowlist in directus/bootstrap-roles.sh:179 and
+  // Pydantic SalesRecordRead — keep all three in lockstep.
+  const filter: Record<string, unknown> = {};
+
+  if (params?.start_date && params?.end_date) {
+    filter.order_date = { _between: [params.start_date, params.end_date] };
+  } else if (params?.start_date) {
+    filter.order_date = { _gte: params.start_date };
+  } else if (params?.end_date) {
+    filter.order_date = { _lte: params.end_date };
+  }
+
+  if (params?.customer) {
+    filter.customer_name = { _icontains: params.customer };
+  }
+
+  if (params?.search) {
+    filter._or = [
+      { order_number: { _icontains: params.search } },
+      { customer_name: { _icontains: params.search } },
+      { project_name: { _icontains: params.search } },
+    ];
+  }
+
+  const rows = await directus.request(
+    readItems("sales_records", {
+      filter,
+      sort: ["-order_date"],
+      limit: 500,
+      fields: [
+        "id",
+        "order_number",
+        "customer_name",
+        "city",
+        "order_date",
+        "total_value",
+        "remaining_value",
+        "responsible_person",
+        "project_name",
+        "status_code",
+      ],
+    }),
+  );
+  return rows as unknown as SalesRecordRow[];
 }
 
 export interface EmployeeRow {
