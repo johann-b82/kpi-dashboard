@@ -1,99 +1,134 @@
-# Requirements: v1.21 Signage Calibration + Build Hygiene
+# Requirements: v1.22 Backend Consolidation — Directus-First CRUD
 
-**Milestone:** v1.21
-**Status:** Roadmapped — 2 phases + 1 quick task
-**Created:** 2026-04-22
+**Milestone:** v1.22
+**Status:** Defining
+**Created:** 2026-04-24
 
-**Core Value:** Operators calibrate each signage Pi from the admin UI — rotation, HDMI mode, audio-on/off — without SSH-ing to the device or reprovisioning. Also: `docker compose build frontend` works again. Also: strip the stale Authentik references now that Directus is the committed identity layer.
+**Core Value:** Eliminate ~25 pure-CRUD FastAPI endpoints by moving the signage admin surface, sales/employee row lookups, and auth-identity into Directus 11 collections. Leave FastAPI focused on compute (parsing, aggregation, SSE, SNMP, PPTX, pairing JWT, Personio sync). Drop duplication; keep guarantees.
 
-**Locked scope (2026-04-22):**
+**Guiding principle:** Directus = shape. FastAPI = compute.
 
-- Runtime-editable per-device rotation (0/90/180/270) via labwc + `wlr-randr`.
-- Runtime-editable per-device HDMI mode via `wlr-randr`.
-- Runtime-editable per-device audio on/off (unmute/mute videos) via WirePlumber/PulseAudio controls and a player `<video>` `muted` toggle.
-- Changes propagate live from admin UI → SSE → sidecar within 10 s.
-- Sidecar persists last-applied calibration to `/var/lib/signage/calibration.json` so reboots restore state.
-- Default values on existing devices: `rotation=0`, `hdmi_mode=current/preferred`, `audio_enabled=false`.
+**Locked architectural decisions (2026-04-24, post-research):**
+- **DDL ownership:** Alembic remains sole owner of `public.*` tables. Directus owns metadata rows only (`directus_collections/fields/relations/permissions`).
+- **Schema exposure:** Directus snapshot YAML applied via `directus-schema-apply` compose service (stripped of policies/roles) + REST fallback path for issue [#25760](https://github.com/directus/directus/issues/25760).
+- **Permissions:** `directus/bootstrap-roles.sh` extended with per-collection Viewer permission rows + explicit `fields` allowlists mirroring Pydantic `*Read` schemas. Admin = built-in `admin_access:true`. Viewer = read-only on `sales_records` + `personio_employees`; **no signage permissions** (preserves pre-v1.22 Admin-only signage).
+- **SSE bridge (Option A, decided 2026-04-24):** Postgres `LISTEN/NOTIFY` via Alembic-owned triggers on `signage_{playlists, playlist_items, playlist_tag_map, device_tag_map, schedules, devices}`. FastAPI `lifespan` hosts asyncpg `add_listener` long-lived connection. Trigger on `signage_devices` predicated on `OLD.name IS DISTINCT FROM NEW.name OR ... tag_ids` — calibration columns **excluded** to avoid double-fire against existing FastAPI calibration SSE.
+- **Calibration PATCH stays in FastAPI** — `Literal[0,90,180,270]` + existing per-device SSE; compute-shaped.
+- **Bulk-replace `PUT /playlists/{id}/items` stays in FastAPI** — atomic DELETE+INSERT; compute-shaped.
+- **`DELETE /playlists/{id}` stays in FastAPI** — preserves structured 409 `{detail, schedule_ids}` that frontend `PlaylistDeleteDialog` deep-links off.
+- **`GET /signage/analytics/devices` stays in FastAPI** — bucketed uptime aggregate Directus `aggregate` can't express.
+- **`GET /signage/devices` is hybrid** — Directus serves rows; resolver exposed via a small new FastAPI endpoint.
 
-**Out of scope:**
+**Out of scope (deliberate):**
+- Settings rewrite (custom oklch/hex validators + SVG sanitization + ETag + logo BYTEA — not worth churn).
+- Uploads metadata GET/DELETE, sensors CRUD, signage media upload, signage pair, signage player SSE — all stay in FastAPI.
+- APScheduler jobs (Personio sync, sensor poll) — stay in FastAPI.
+- `signage_pairing_sessions` Directus exposure — stays internal / FastAPI-only.
+- CAL-PI-07 Pi hardware-timing diagnostic (v1.21 carry-forward) — remains a `/gsd:quick` candidate.
 
-- Brightness (no reliable HDMI-over-DDC/CI or Pi-side brightness chip for our typical displays).
-- Per-display colour calibration / gamma.
-- Reboot-only rotation via `/boot/firmware/config.txt`.
-- CSS-transform fallback rotation — we commit to labwc as the single source of truth.
-- Per-media audio-volume overrides.
+---
 
-## Requirements
+## Categories
 
-### Signage calibration — backend (CAL-BE-*)
+- **SCHEMA** — Directus metadata + schema bootstrap + Alembic/Directus boundary
+- **AUTHZ** — Permission rows + role policies + field allowlists
+- **SSE** — Postgres LISTEN/NOTIFY bridge
+- **MIG-AUTH** — `me.py` deletion + AuthContext migration
+- **MIG-DATA** — `data.py` sales + employees split
+- **MIG-SIGN** — signage_admin endpoint migrations (tags, schedules, playlists/items, devices)
+- **FE** — frontend adapter seam + cache namespace + contract-snapshot tests
+- **CLEAN** — dead code removal, rollback verification, CI guards
 
-- [x] **CAL-BE-01**: `signage_devices` table gains `rotation` (`INTEGER`, CHECK IN (0, 90, 180, 270), NOT NULL DEFAULT 0), `hdmi_mode` (`VARCHAR(64)`, nullable), `audio_enabled` (`BOOLEAN`, NOT NULL DEFAULT false) via Alembic migration. Backfill default values on existing rows.
-- [x] **CAL-BE-02**: `GET /api/signage/devices` + `GET /api/signage/devices/{id}` admin responses include the three calibration fields.
-- [x] **CAL-BE-03**: `PATCH /api/signage/devices/{id}/calibration` admin-only endpoint accepts partial updates; rejects invalid rotation values with HTTP 422.
-- [x] **CAL-BE-04**: Calibration mutations emit a `calibration-changed` SSE event targeted at the affected device's EventSource queue.
-- [x] **CAL-BE-05**: `GET /api/signage/player/calibration` (device-auth) returns the caller's current calibration JSON.
+---
 
-### Signage calibration — admin UI (CAL-UI-*)
+## v1.22 Requirements
 
-- [x] **CAL-UI-01**: Device edit dialog on `/signage/devices` gains a `Calibration` section with rotation dropdown (0/90/180/270), HDMI mode dropdown, audio on/off toggle.
-- [x] **CAL-UI-02**: HDMI mode dropdown options come from a device-reported mode list (populated once the device first reports available modes — until then, a placeholder "auto" entry).
-- [x] **CAL-UI-03**: Saving calls `PATCH /api/signage/devices/{id}/calibration`, invalidates the devices TanStack query, and shows a toast.
-- [x] **CAL-UI-04**: All copy i18n-localised (DE/EN parity; du-tone).
+### SCHEMA — Directus metadata + Alembic ownership boundary
 
-### Signage calibration — Pi sidecar + player (CAL-PI-*)
+- [ ] **SCHEMA-01**: Operator can apply a git-checked Directus snapshot YAML that registers the v1.22 collections (`signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, `personio_employees`) as Directus metadata — never as DDL.
+- [ ] **SCHEMA-02**: `docker compose up -d` on a fresh volume reproduces all v1.22 Directus collections idempotently via a `directus-schema-apply` compose service that runs after `directus` is healthy and before `directus-bootstrap-roles`.
+- [ ] **SCHEMA-03**: A CI guard compares `information_schema.columns` hash against a fixture + asserts `directus schema snapshot` produces zero diff against the committed YAML — any drift fails CI.
+- [ ] **SCHEMA-04**: `DB_EXCLUDE_TABLES` is shrunk to the correct minimal set (admin/Personio raw/sensors/pairing/heartbeat) and a CI guard asserts it is a superset of a hard-coded "never expose" allowlist.
+- [ ] **SCHEMA-05**: Operators receive a documented "never edit the Data Model UI" rule in `docs/operator-runbook.md`; violation is detected by SCHEMA-03.
 
-- [x] **CAL-PI-01**: Sidecar listens on the existing SSE stream for `calibration-changed`; on receipt, fetches `GET /api/signage/player/calibration`.
-- [x] **CAL-PI-02**: Sidecar applies rotation via `wlr-randr --output <name> --transform <0|90|180|270>`.
-- [x] **CAL-PI-03**: Sidecar applies HDMI mode via `wlr-randr --output <name> --mode <WIDTHxHEIGHT@REFRESH>`; errors surface to the backend via the heartbeat (or a new `/api/signage/player/calibration-result` POST).
-- [x] **CAL-PI-04**: Sidecar applies audio via `wpctl set-mute @DEFAULT_AUDIO_SINK@ 0|1`; if WirePlumber unavailable, fallback to `pactl set-sink-mute`.
-- [x] **CAL-PI-05**: Sidecar persists the last-applied calibration to `/var/lib/signage/calibration.json`; on boot, replays that state before hitting the network.
-- [x] **CAL-PI-06**: Player app responds to `calibration-changed` by toggling `<video>` `muted` attribute to match `audio_enabled`.
-- [ ] **CAL-PI-07**: End-to-end (on real Pi hardware): admin rotates → wlr-randr reports new transform within 5 s; admin changes mode → monitor reports new mode within 10 s; admin enables audio → current playing video unmutes within 3 s.
+### AUTHZ — Policies + per-collection permission rows
 
-### Reverse proxy (PROXY-*) — v1.21 extension
+- [ ] **AUTHZ-01**: `directus/bootstrap-roles.sh` creates per-collection Viewer permission rows with explicit `fields` allowlists for `sales_records` and `personio_employees` — no field star-imports.
+- [ ] **AUTHZ-02**: Viewer has no permission rows on any `signage_*` collection — matching pre-v1.22 Admin-only signage access.
+- [ ] **AUTHZ-03**: `directus_users` has a Viewer permission row with an explicit fields allowlist (id, email, first_name, last_name, role, avatar) — `tfa_secret`, `auth_data`, `external_identifier` never exposed.
+- [ ] **AUTHZ-04**: Bootstrap script is idempotent (GET-before-POST) on every re-run and commits fixed UUIDs for each permission row.
+- [ ] **AUTHZ-05**: An integration test per collection asserts a Viewer JWT cannot read excluded fields and cannot mutate any `signage_*` collection.
 
-- [x] **PROXY-01**: A new Caddy service in `docker-compose.yml` binds `0.0.0.0:80:80` and routes: `/` → frontend:5173, `/api/*` → api:8000, `/directus/*` → directus:8055, `/player/*` → frontend:5173/player/. Hitting `http://<lan-ip>/login` from a browser on another LAN host lands on the admin SPA and auth succeeds end-to-end.
-- [x] **PROXY-02**: `/api/*` proxy preserves request body, headers, and long-lived connections (SSE `text/event-stream` stays open for ≥60 s without the proxy closing it). Player + sidecar EventSource clients keep working.
-- [x] **PROXY-03**: `/directus/*` proxy preserves the httpOnly refresh cookie set on the same-origin domain; `CORS_ORIGIN` in Directus env is no longer relevant for the admin SPA. Directus auth + asset GETs work at `/directus/auth/login`, `/directus/items/*`, `/directus/assets/*` etc.
-- [x] **PROXY-04**: `/player/*` serves the kiosk bundle (Vite build output under `dist/player/`); PWA precache manifest still resolves; no 404s on hashed chunks.
-- [x] **PROXY-05**: Frontend `directusClient.ts` default URL changes from `http://localhost:8055` to `/directus` (same-origin). `VITE_DIRECTUS_URL` env var still overrides for dev that wants to bypass the proxy. README + operator-runbook note the new architecture.
+### SSE — Postgres LISTEN/NOTIFY bridge (Option A)
 
-### Frontend build fix (BUILD-*)
+- [ ] **SSE-01**: An Alembic migration creates AFTER-INSERT/UPDATE/DELETE triggers on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, and `signage_devices` (the last gated on `OLD.name IS DISTINCT FROM NEW.name OR OLD.tags IS DISTINCT FROM NEW.tags` so calibration updates never double-fire).
+- [ ] **SSE-02**: Each trigger calls `pg_notify('signage_change', '{"table":..., "op":..., "id":...}')` with payload under 8000 bytes.
+- [ ] **SSE-03**: FastAPI `lifespan` starts a long-lived asyncpg connection with `add_listener('signage_change', …)` that resolves affected devices using the existing `devices_affected_by_playlist` resolver and calls existing `notify_device()`.
+- [ ] **SSE-04**: Mutating a collection directly via Directus Data Model UI fires `playlist-changed` / `device-changed` / `schedule-changed` SSE to connected Pi players within 500 ms (integration test).
+- [ ] **SSE-05**: The `--workers 1` invariant is preserved (single listener). CI guard references this invariant.
+- [ ] **SSE-06**: Listener auto-reconnects on connection loss; log warning on each reconnect (manual restart of Postgres verifies).
 
-- [x] **BUILD-01**: `docker compose build frontend` succeeds from a clean state (`docker compose build --no-cache frontend`) without manual workarounds.
-- [x] **BUILD-02**: Chosen resolution path documented in SUMMARY with rationale (upgrade vs `--legacy-peer-deps` vs pin).
-- [x] **BUILD-03**: `npm run dev` + `npm run build` continue to work on host (no regression in dev workflow).
+### MIG-AUTH — `me.py` deletion
 
-### Authentik cleanup (CLEAN-*) — quick task
+- [ ] **MIG-AUTH-01**: Frontend `AuthContext` reads current user via Directus SDK `readMe({fields:[...]})` — no `/api/me` call.
+- [ ] **MIG-AUTH-02**: `backend/app/routers/me.py` and its registration in `main.py` + schemas + tests are deleted.
+- [ ] **MIG-AUTH-03**: All frontend call sites of the old `fetchMe` are migrated or deleted; a CI guard greps for `"/api/me"` and fails.
 
-- [x] **CLEAN-01**: Remove Authentik references from CLAUDE.md (`Identity (future): Authentik` constraint), PROJECT.md (any mentions), ROADMAP.md (if any), and README.md. Replace with "Identity: Directus 11 (shipped v1.11-directus)" where context requires a statement. **(Done inline during new-milestone 2026-04-22 — CLAUDE.md lines 6 + 14 + PROJECT.md line 5 updated.)**
+### MIG-DATA — `data.py` sales + employees split
+
+- [ ] **MIG-DATA-01**: Frontend `/sales` table consumes `sales_records` via Directus SDK (`readItems` + `?filter[order_date]`) — old `GET /api/data/sales` removed.
+- [ ] **MIG-DATA-02**: Frontend `/hr` employees table row-data comes from Directus `personio_employees` — old row-data portion of `GET /api/data/employees` removed.
+- [ ] **MIG-DATA-03**: A new FastAPI endpoint `GET /api/data/employees/overtime` computes total-hours / overtime roll-up per employee over `?date_from/?date_to` — frontend merges Directus rows with this compute response.
+- [ ] **MIG-DATA-04**: `data.py` is deleted (or reduced to the overtime endpoint); router registration updated; tests migrated or removed.
+
+### MIG-SIGN — signage_admin migrations (sub-phased)
+
+- [ ] **MIG-SIGN-01 (Tags)**: `signage_tags` CRUD moves to Directus; `DELETE /api/signage/tags/{id}` FastAPI route removed; frontend `useTags` hook swapped to Directus SDK; SSE `tag_map` bridge verified.
+- [ ] **MIG-SIGN-02 (Schedules)**: `signage_schedules` CRUD moves to Directus; `start_hhmm < end_hhmm` enforced via Alembic CHECK + Directus validation hook for friendly error; SSE `schedule-changed` bridge verified; FastAPI router removed.
+- [ ] **MIG-SIGN-03 (Playlists + items GET/PUT tags)**: `signage_playlists` GET/POST/PATCH and `playlist_items` GET + `playlists/{id}/tags` PUT move to Directus. `DELETE /playlists/{id}` and bulk `PUT /playlists/{id}/items` **stay in FastAPI** per scope decision. SSE `playlist-changed` bridge verified.
+- [ ] **MIG-SIGN-04 (Devices name/tags/delete)**: `signage_devices` PATCH name + DELETE + PUT tags move to Directus. Calibration PATCH **stays in FastAPI**. List endpoint hybrid: Directus serves rows; a new FastAPI `GET /api/signage/resolved/{device_id}` returns the schedule-resolved playlist; frontend merges. SSE `device-changed` / `tag_map` bridges verified.
+
+### FE — Frontend adapter seam
+
+- [ ] **FE-01**: `signageApi.ts` adapter functions wrap Directus SDK calls and return the same response shape existing TanStack Query consumers expect — zero churn in consuming components.
+- [ ] **FE-02**: New cache-key namespace `["directus", <collection>, ...]` is introduced; legacy `signageKeys.*` stays independent (not reused).
+- [ ] **FE-03**: A one-shot `queryClient.removeQueries({queryKey:["signage"]})` gated by a localStorage flag runs on first post-deploy boot to purge stale cached `/api/signage/*` responses.
+- [ ] **FE-04**: `DirectusError` is normalized inside the adapter to the existing `Error(detail)` / `ApiErrorWithBody` contract; FK 409 reshape done in adapter for any Directus-served delete (if scope slider selects Directus-served DELETE).
+- [ ] **FE-05**: A contract-snapshot test per migrated endpoint asserts old FastAPI response shape === new adapter-wrapped Directus response (diff empty).
+
+### CLEAN — Cleanup + rollback verification + CI guards
+
+- [ ] **CLEAN-01**: All FastAPI routers / schemas / tests for moved endpoints are deleted; no orphaned imports.
+- [ ] **CLEAN-02**: `main.py` router registrations for deleted routers are removed; `/api/*` smoke test confirms the expected surface shrinks.
+- [ ] **CLEAN-03**: Git-revert-from-clean rollback E2E: checking out the commit before MIG-SIGN-01 reproduces v1.21 behavior on a fresh `docker compose down -v && up -d` (manual test checklist in `docs/operator-runbook.md`).
+- [ ] **CLEAN-04**: CI guards: (a) `/api/me` grep in `frontend/src/`, (b) `GET /api/data/sales` + `/api/data/employees` grep in backend code, (c) `DB_EXCLUDE_TABLES` superset check, (d) SSE `--workers 1` invariant comment preserved.
+- [ ] **CLEAN-05**: `README.md` + `docs/architecture.md` (or equivalent) updated to reflect the new Directus/FastAPI boundary with the decision recorded.
+
+---
 
 ## Traceability
 
-| Requirement | Phase | Commit | Status |
-|---|---|---|---|
-| CAL-BE-01 | Phase 62 | TBD | Pending |
-| CAL-BE-02 | Phase 62 | TBD | Pending |
-| CAL-BE-03 | Phase 62 | TBD | Pending |
-| CAL-BE-04 | Phase 62 | TBD | Pending |
-| CAL-BE-05 | Phase 62 | TBD | Pending |
-| CAL-UI-01 | Phase 62 | TBD | Pending |
-| CAL-UI-02 | Phase 62 | TBD | Pending |
-| CAL-UI-03 | Phase 62 | TBD | Pending |
-| CAL-UI-04 | Phase 62 | TBD | Pending |
-| CAL-PI-01 | Phase 62 | TBD | Pending |
-| CAL-PI-02 | Phase 62 | TBD | Pending |
-| CAL-PI-03 | Phase 62 | TBD | Pending |
-| CAL-PI-04 | Phase 62 | TBD | Pending |
-| CAL-PI-05 | Phase 62 | TBD | Pending |
-| CAL-PI-06 | Phase 62 | TBD | Pending |
-| CAL-PI-07 | Phase 62 | TBD | Pending |
-| BUILD-01 | Phase 63 | TBD | Pending |
-| BUILD-02 | Phase 63 | TBD | Pending |
-| BUILD-03 | Phase 63 | TBD | Pending |
-| CLEAN-01 | quick | (inline) | Satisfied |
-| PROXY-01 | Phase 64 | TBD | Pending |
-| PROXY-02 | Phase 64 | TBD | Pending |
-| PROXY-03 | Phase 64 | TBD | Pending |
-| PROXY-04 | Phase 64 | TBD | Pending |
-| PROXY-05 | Phase 64 | TBD | Pending |
+| REQ-ID | Phase | Status |
+|--------|-------|--------|
+| *(populated by roadmapper)* | | |
+
+---
+
+## Future Requirements (deferred)
+
+- **Settings rewrite to Directus** — reopen when oklch/hex validators + SVG sanitization can be ported as Directus hooks without losing guarantees.
+- **Analytics to Directus** — defer until Directus `aggregate` supports windowed uptime-%; may never be feasible.
+- **`signage_pairing_sessions` as read-only Directus collection** — ops-debugging convenience only; not needed now.
+
+## Out of Scope (v1.22)
+
+| Item | Reason |
+|------|--------|
+| Settings rewrite | oklch/hex + SVG sanitization + ETag + logo BYTEA too custom; low ROI |
+| Uploads metadata GET/DELETE move | Few endpoints, keeps upload path coherent in FastAPI |
+| Sensors CRUD move | Few endpoints; SNMP compute already in FastAPI |
+| Signage media CRUD move | Upload + PPTX conversion keep file lifecycle coherent in FastAPI |
+| APScheduler → Directus Flows | Python tooling stronger; Fernet creds + retry logic in place |
+| `/api/data/sales` search semantics broadening | Keep current narrow filter contract |
+| DELETE /playlists 409 reshape to Directus | Preserve `{detail, schedule_ids}` frontend contract |
+| CAL-PI-07 Pi hardware-timing walkthrough | Carry-forward from v1.21; independent `/gsd:quick` when Pi diagnostic lands |
