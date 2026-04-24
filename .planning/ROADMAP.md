@@ -348,7 +348,7 @@ Plans:
 | 62. Signage Calibration | v1.21 | 4/4 | Complete (CAL-PI-07 waived) | 2026-04-24 |
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
-| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete   | 2026-04-24 |
+| 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 0/TBD | Not started | - |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
