@@ -52,9 +52,9 @@
 
 ### Frontend build fix (BUILD-*)
 
-- [ ] **BUILD-01**: `docker compose build frontend` succeeds from a clean state (`docker compose build --no-cache frontend`) without manual workarounds.
-- [ ] **BUILD-02**: Chosen resolution path documented in SUMMARY with rationale (upgrade vs `--legacy-peer-deps` vs pin).
-- [ ] **BUILD-03**: `npm run dev` + `npm run build` continue to work on host (no regression in dev workflow).
+- [x] **BUILD-01**: `docker compose build frontend` succeeds from a clean state (`docker compose build --no-cache frontend`) without manual workarounds.
+- [x] **BUILD-02**: Chosen resolution path documented in SUMMARY with rationale (upgrade vs `--legacy-peer-deps` vs pin).
+- [x] **BUILD-03**: `npm run dev` + `npm run build` continue to work on host (no regression in dev workflow).
 
 ### Authentik cleanup (CLEAN-*) — quick task
 

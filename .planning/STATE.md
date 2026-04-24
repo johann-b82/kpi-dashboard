@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: Signage Calibration + Build Hygiene
-status: executing
-stopped_at: Plan 62-04 Task 1 complete (CAL-PI-06 closed); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification — do not advance
-last_updated: "2026-04-22T21:38:30.899Z"
-last_activity: 2026-04-22
+status: verifying
+stopped_at: Completed 63-01-build-fix-PLAN.md; milestone v1.21 build-hygiene item cleared
+last_updated: "2026-04-24T06:56:33.581Z"
+last_activity: 2026-04-24
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-22 after v1.20 milestone + v1.21 sc
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 62 — signage-calibration
+**Current focus:** Phase 63 — frontend-build-fix
 
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
 Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
@@ -37,10 +37,10 @@ Previous milestone v1.18 Pi Polish + Scheduling shipped 2026-04-21 (tag `v1.18`)
 ## Current Position
 
 Milestone: v1.21 Signage Calibration + Build Hygiene — roadmapped
-Phase: 62 (signage-calibration) — EXECUTING (Plan 62-04 Task 2 awaits human verification)
-Plan: 4 of 4 (Task 1 complete, Task 2 awaits real-Pi walkthrough)
-Status: awaiting-human-verify — CAL-PI-07
-Last activity: 2026-04-22
+Phase: 63 (frontend-build-fix) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-04-24
 
 Progress: 0/2 phases complete, 3/4 plans fully complete in Phase 62 (62-04 partial — Task 1 CAL-PI-06 closed, Task 2 CAL-PI-07 open)
 
@@ -159,6 +159,7 @@ Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 6
 | Phase 62-signage-calibration P03 | 529 | 2 tasks | 5 files |
 | Phase 62 P02 | 30m | 2 tasks | 6 files |
 | Phase 62-signage-calibration P04-task-1 | ~6m | 1 tasks | 6 files |
+| Phase 63 P01 | 3m 21s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -286,6 +287,7 @@ Next action: Human operator runs the real-Pi E2E walkthrough (4 scenarios from 6
 - [Phase 62]: Plan 62-02: Toggle segments memoised to stabilize Toggle.useLayoutEffect dep identity — avoids jsdom render loop + extra prod paint
 - [Phase 62]: Plan 62-02: Unit test is shape-based (apiClient spy + source regex + JSON locale load); render test blocked by jsdom/Toggle/Dialog/RHF interaction — 62-04 E2E carries runtime coverage
 - [Phase 62-signage-calibration]: Plan 62-04 Task 1 (CAL-PI-06) complete: player onCalibrationChanged SSE dispatch + fetchCalibration + <video muted> toggle via audioEnabled prop chain (VideoPlayer default muted=true preserves admin-preview behaviour). Task 2 (CAL-PI-07 real-Pi E2E) awaits human verification — plan remains open, CAL-PI-07 still pending.
+- [Phase 63]: Plan 63-01: --legacy-peer-deps applied at Dockerfile + frontend/.npmrc; no lockfile regen; rationale: vite-plugin-pwa@1.2.0 peerDeps cap at vite ^7 (registry 2026-04-24), vite downgrade + plugin swap rejected (D-02/D-03)
 
 ### Cross-cutting hazards (hard gates, see ROADMAP.md)
 
@@ -327,6 +329,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T21:38:30.896Z
-**Stopped at:** Plan 62-04 Task 1 complete (CAL-PI-06 closed); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification — do not advance
+**Last session:** 2026-04-24T06:56:33.578Z
+**Stopped at:** Completed 63-01-build-fix-PLAN.md; milestone v1.21 build-hygiene item cleared
 **Resume file:** None

@@ -214,7 +214,7 @@ Full details: [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md)
 ### 🚧 v1.21 Signage Calibration + Build Hygiene (In Progress)
 
 - [ ] **Phase 62: Signage Calibration** — Per-device runtime calibration (rotation 0/90/180/270, HDMI mode, audio on/off) editable from `/signage/devices` admin UI, applied live by the Pi sidecar via `wlr-randr` + WirePlumber. SSE `calibration-changed` fanout. Sidecar persists last-applied state to `/var/lib/signage/calibration.json` for reboot survival. Real-Pi E2E required. **Plan 62-04 Task 1 shipped 2026-04-22 (CAL-PI-06); Task 2 (CAL-PI-07 real-Pi E2E walkthrough) awaits human verification on hardware.**
-- [ ] **Phase 63: Frontend Build Fix** — Resolve the `vite@8` / `vite-plugin-pwa@1.2.0` peer-dep conflict so `docker compose build frontend` succeeds. Planner picks between upgrade / `--legacy-peer-deps` / pin; committed rationale in SUMMARY.
+- [x] **Phase 63: Frontend Build Fix** — Resolve the `vite@8` / `vite-plugin-pwa@1.2.0` peer-dep conflict so `docker compose build frontend` succeeds. Planner picks between upgrade / `--legacy-peer-deps` / pin; committed rationale in SUMMARY. (completed 2026-04-24)
 
 Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md / README.md now that Directus is the committed identity layer.
 
@@ -235,7 +235,7 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 | 60. HR Date-Range Filter | v1.20 | 4/4 | Complete   | 2026-04-22 |
 | 61. TS Cleanup | v1.20 | 1/1 | Complete   | 2026-04-22 |
 | 62. Signage Calibration | v1.21 | 3.5/4 | Task-1 shipped, CAL-PI-07 awaits human verify | — |
-| 63. Frontend Build Fix | v1.21 | 0/1 | Not started | — |
+| 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 
 ## Phase Details
 
@@ -255,8 +255,8 @@ Quick task (not a phase): strip Authentik references from CLAUDE.md / PROJECT.md
 **Goal:** `docker compose build frontend` succeeds from a clean build without manual workarounds; dev + host-build unaffected.
 **Depends on:** Nothing (small, self-contained).
 **Requirements:** BUILD-01..03
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 63-01-build-fix-PLAN.md — Apply `--legacy-peer-deps` to container (Dockerfile line 4) + host (new `frontend/.npmrc`) install paths; verify via `docker compose build --no-cache frontend` and clean-slate `npm install && npm run build && npm run dev` on the host. Upstream tracking reason: `vite-plugin-pwa@1.2.0` peer-deps cap at vite ^7.
+- [x] 63-01-build-fix-PLAN.md — Apply `--legacy-peer-deps` to container (Dockerfile line 4) + host (new `frontend/.npmrc`) install paths; verify via `docker compose build --no-cache frontend` and clean-slate `npm install && npm run build && npm run dev` on the host. Upstream tracking reason: `vite-plugin-pwa@1.2.0` peer-deps cap at vite ^7.
 
