@@ -32,11 +32,16 @@
 		reverse_proxy directus:8055
 	}
 
-	# --- /player/* → frontend (kiosk bundle) -----------------------------------
-	# Vite dev serves /player/ as a separate entry; prod build writes to
-	# dist/player/. Prefix preserved.
+	# --- /player/* → FastAPI (kiosk bundle) ------------------------------------
+	# The player bundle is built into frontend/dist/player/ and mounted by
+	# FastAPI as a StaticFiles handler (see backend/app/main.py:44-62). Vite
+	# dev mode does NOT serve the player entry — single-instance Vite resolves
+	# /player/ to the admin index.html, which would boot the Pi into a login
+	# screen. Route through FastAPI so the Pi always gets the built player
+	# bundle regardless of dev/prod mode. Rebuild with `npm run build:player`
+	# when the player source changes. Prefix preserved.
 	handle /player/* {
-		reverse_proxy frontend:5173
+		reverse_proxy api:8000
 	}
 
 	# --- / (catch-all) → admin SPA --------------------------------------------
