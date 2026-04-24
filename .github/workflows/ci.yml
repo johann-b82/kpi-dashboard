@@ -75,6 +75,26 @@ jobs:
           echo "OK: no /api/me references in frontend/src/"
 
       # -----------------------------------------------------------------------
+      # Phase 67 MIG-DATA-04 + CLEAN-04(b): CI guard — fail on any literal
+      # `"/api/data/sales"` or `"/api/data/employees"` (with trailing quote or
+      # non-slash character, so `"/api/data/employees/overtime"` is ALLOWED)
+      # under backend/app/. data.py was deleted; row-data is served by
+      # Directus (sales_records + personio_employees). The overtime compute
+      # endpoint lives at `/api/data/employees/overtime` and MUST remain.
+      # Pre-stack grep — fails in <1s on regression.
+      # -----------------------------------------------------------------------
+      - name: "Guard — no /api/data/sales or /api/data/employees in backend (MIG-DATA-04)"
+        run: |
+          # Pattern 1: "/api/data/sales" literal.
+          # Pattern 2: "/api/data/employees" followed by a quote or any char
+          #   that is NOT `/` (so /overtime is allowed). Use extended regex.
+          if grep -rnE '"/api/data/sales"|"/api/data/employees"|"/api/data/employees[^/"]' backend/app/; then
+            echo "ERROR: /api/data/sales or /api/data/employees reference found in backend/app/ (Phase 67 MIG-DATA-04 — data.py deleted; row-data is served by Directus. /api/data/employees/overtime is allowed.)"
+            exit 1
+          fi
+          echo "OK: no /api/data/sales or /api/data/employees references in backend/app/ (overtime endpoint permitted)"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
