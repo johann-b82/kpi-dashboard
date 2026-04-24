@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 65-01-PLAN.md
-last_updated: "2026-04-24T17:39:26.251Z"
+stopped_at: Completed 65-04-PLAN.md
+last_updated: "2026-04-24T17:44:27.551Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 65 (foundation-schema-authz-sse-bridge) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -188,6 +188,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 65 P02 | 88s | 1 tasks | 1 files |
 | Phase 65 P03 | 2min | 1 tasks | 1 files |
 | Phase 65 P01 | 298 | 3 tasks | 4 files |
+| Phase 65 P04 | 151 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -202,6 +203,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 65]: Tag map tables use composite PKs; signage_notify() function branches on TG_TABLE_NAME to emit device_id/playlist_id as id field for listener resolver compatibility
 - [Phase 65]: signage_device_tags confirmed as tag table name (not signage_tags); signage_devices has no tags column — WHEN clause in trigger is OLD.name IS DISTINCT FROM NEW.name only
 - [Phase 65]: DB_EXCLUDE_TABLES minimal superset: 11 entries including signage_heartbeat_event and signage_pairing_sessions; exposes 9 v1.22 collections to Directus
+- [Phase 65]: Schedule branch uses fetch-then-call: SELECT SignageSchedule.playlist_id then devices_affected_by_playlist(db, playlist_id); no devices_affected_by_schedule resolver exists in signage_resolver.py
 
 ### Cross-cutting hazards (hard gates)
 
@@ -247,6 +249,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T17:39:26.249Z
-**Stopped at:** Completed 65-01-PLAN.md
+**Last session:** 2026-04-24T17:44:27.549Z
+**Stopped at:** Completed 65-04-PLAN.md
 **Resume file:** None

@@ -63,10 +63,10 @@
 
 - [x] **SSE-01**: An Alembic migration creates AFTER-INSERT/UPDATE/DELETE triggers on `signage_playlists`, `signage_playlist_items`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, and `signage_devices` (the last gated on `OLD.name IS DISTINCT FROM NEW.name OR OLD.tags IS DISTINCT FROM NEW.tags` so calibration updates never double-fire).
 - [x] **SSE-02**: Each trigger calls `pg_notify('signage_change', '{"table":..., "op":..., "id":...}')` with payload under 8000 bytes.
-- [ ] **SSE-03**: FastAPI `lifespan` starts a long-lived asyncpg connection with `add_listener('signage_change', …)` that resolves affected devices using the existing `devices_affected_by_playlist` resolver and calls existing `notify_device()`.
+- [x] **SSE-03**: FastAPI `lifespan` starts a long-lived asyncpg connection with `add_listener('signage_change', …)` that resolves affected devices using the existing `devices_affected_by_playlist` resolver and calls existing `notify_device()`.
 - [ ] **SSE-04**: Mutating a collection directly via Directus Data Model UI fires `playlist-changed` / `device-changed` / `schedule-changed` SSE to connected Pi players within 500 ms (integration test).
 - [ ] **SSE-05**: The `--workers 1` invariant is preserved (single listener). CI guard references this invariant.
-- [ ] **SSE-06**: Listener auto-reconnects on connection loss; log warning on each reconnect (manual restart of Postgres verifies).
+- [x] **SSE-06**: Listener auto-reconnects on connection loss; log warning on each reconnect (manual restart of Postgres verifies).
 
 ### MIG-AUTH — `me.py` deletion
 
@@ -122,10 +122,10 @@
 | AUTHZ-05 | Phase 65 | Pending |
 | SSE-01 | Phase 65 | Complete |
 | SSE-02 | Phase 65 | Complete |
-| SSE-03 | Phase 65 | Pending |
+| SSE-03 | Phase 65 | Complete |
 | SSE-04 | Phase 65 | Pending |
 | SSE-05 | Phase 65 | Pending |
-| SSE-06 | Phase 65 | Pending |
+| SSE-06 | Phase 65 | Complete |
 | MIG-AUTH-01 | Phase 66 | Pending |
 | MIG-AUTH-02 | Phase 66 | Pending |
 | MIG-AUTH-03 | Phase 66 | Pending |
