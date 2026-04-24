@@ -105,8 +105,12 @@ Step by step. Every command is copy-paste-ready against a clean clone.
 
 ## First Admin (verify bootstrap)
 
-- Log in to the Directus admin UI at `http://localhost:8055`. You should land on the **Content** module. Confirm the user-menu avatar in the bottom-left shows the email you set in `.env`.
-- Log in to the app at `http://localhost:5173` with the same credentials. The dashboard should load.
+- Log in to the Directus admin UI at `http://localhost:8055` (direct loopback) or `http://localhost/directus/admin` (via the Caddy proxy, v1.21+). You should land on the **Content** module. Confirm the user-menu avatar in the bottom-left shows the email you set in `.env`.
+- Log in to the app at `http://localhost/` (primary entry via Caddy, v1.21+). The direct `http://localhost:5173` Vite dev URL also works for developer workflows. The dashboard should load with the same credentials.
+
+### About the reverse proxy (Phase 64, v1.21+)
+
+Phase 64 added a Caddy reverse proxy fronting the whole stack on port 80. The application entry point is now `http://<host>/`. Caddy routes `/` and `/player/*` to the frontend, `/api/*` to FastAPI, and `/directus/*` to Directus (prefix stripped before forwarding). Because the SPA reaches Directus same-origin via `/directus`, the old `CORS_ENABLED` / `CORS_ORIGIN` / `CORS_CREDENTIALS` env vars are no longer needed and were removed from `docker-compose.yml`. The existing direct-port exposures (`:5173`, `:8000`, `:8055`) stay open for developer access; normal operator workflows should use `:80`.
 
 If either sign-in fails, see **Troubleshooting** below.
 

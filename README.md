@@ -114,9 +114,16 @@ docker compose up --build
 
 Once containers are healthy:
 
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
+- **App (via Caddy reverse proxy):** http://localhost/
+- **FastAPI (direct dev):** http://localhost:8000
 - **OpenAPI docs:** http://localhost:8000/docs
+- **Vite dev server (direct dev):** http://localhost:5173
+- **Directus admin UI:** http://localhost:8055 (loopback-only; Caddy also
+  exposes the Directus API same-origin at http://localhost/directus for the SPA)
+
+Phase 64 added a Caddy reverse proxy (`caddy:2-alpine`) fronting the stack
+on port 80. Normal operator + LAN workflows use `http://<host>/`; the
+direct-port exposures above remain for developer ergonomics.
 
 ### Prerequisites
 
@@ -143,6 +150,12 @@ docker compose up
   +-- migrate  (alembic upgrade head)         --> exits after migration
   +-- api      (uvicorn + FastAPI)            --> :8000
   +-- frontend (vite dev server)              --> :5173 (proxies /api to :8000)
+  +-- directus (directus:11.x identity)       --> 127.0.0.1:8055 (loopback)
+  +-- caddy    (reverse proxy)                --> :80
+        / → frontend:5173 (admin SPA + /login + /signage/pair + launcher)
+        /api/* → api:8000 (FastAPI; SSE passthrough via flush_interval -1)
+        /directus/* → directus:8055 (prefix stripped; same-origin cookies)
+        /player/* → frontend:5173 (kiosk bundle)
 ```
 
 ### Project Structure
@@ -311,7 +324,7 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 - First-time login: browse to `/login`, enter email + password.
 - Viewer users see the dashboards but no upload/sync/save controls — those are admin-only and are hidden from the DOM entirely, not just disabled.
-- Administrators manage users via Directus at `http://localhost:8055`.
+- Administrators manage users via Directus at `http://localhost:8055` (direct) or through the proxy at `http://localhost/directus/admin` (v1.21+).
 
 </details>
 
