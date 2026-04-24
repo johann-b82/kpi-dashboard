@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { readItems } from "@directus/sdk";
 
 import { apiClient } from "./apiClient";
@@ -442,16 +444,129 @@ export async function fetchEmployees(params?: {
   department?: string;
   status?: string;
   search?: string;
-  date_from?: string;
-  date_to?: string;
 }): Promise<EmployeeRow[]> {
-  const q = new URLSearchParams();
-  if (params?.department) q.set("department", params.department);
-  if (params?.status) q.set("status", params.status);
-  if (params?.search) q.set("search", params.search);
-  if (params?.date_from) q.set("date_from", params.date_from);
-  if (params?.date_to) q.set("date_to", params.date_to);
-  return apiClient<EmployeeRow[]>(`/api/data/employees?${q}`);
+  // Phase 67 MIG-DATA-02: Directus SDK replacement for GET /api/data/employees
+  // row-data portion. date_from/date_to dropped from this signature (D-15) —
+  // they drive only fetchEmployeesOvertime now.
+  // Filter translation per CONTEXT D-15. Fields list = 9 column-backed
+  // fields (total_hours/overtime_hours/overtime_ratio are compute-only,
+  // hydrated by useEmployeesWithOvertime merge).
+  const filter: Record<string, unknown> = {};
+
+  if (params?.department) {
+    filter.department = { _icontains: params.department };
+  }
+  if (params?.status) {
+    filter.status = { _eq: params.status };
+  }
+  if (params?.search) {
+    filter._or = [
+      { first_name: { _icontains: params.search } },
+      { last_name: { _icontains: params.search } },
+      { position: { _icontains: params.search } },
+    ];
+  }
+
+  const rows = await directus.request(
+    readItems("personio_employees", {
+      filter,
+      sort: ["last_name"],
+      limit: 500,
+      fields: [
+        "id",
+        "first_name",
+        "last_name",
+        "status",
+        "department",
+        "position",
+        "hire_date",
+        "termination_date",
+        "weekly_working_hours",
+      ],
+    }),
+  );
+
+  // Zero-fill compute fields until the merge hook replaces them. Keeps
+  // EmployeeRow's contract intact for any consumer calling fetchEmployees
+  // directly without the merge hook.
+  return (rows as unknown as Array<Omit<EmployeeRow, "total_hours" | "overtime_hours" | "overtime_ratio">>)
+    .map((r) => ({
+      ...r,
+      total_hours: 0,
+      overtime_hours: 0,
+      overtime_ratio: null,
+    }));
+}
+
+// Phase 67 MIG-DATA-03: FastAPI compute endpoint for per-employee overtime
+// roll-up. Shape per backend/app/routers/hr_overtime.py (CONTEXT D-04).
+export interface OvertimeEntry {
+  employee_id: number;
+  total_hours: number;
+  overtime_hours: number;
+  overtime_ratio: number | null;
+}
+
+export async function fetchEmployeesOvertime(
+  date_from: string,
+  date_to: string,
+): Promise<OvertimeEntry[]> {
+  const q = new URLSearchParams({ date_from, date_to });
+  return apiClient<OvertimeEntry[]>(
+    `/api/data/employees/overtime?${q.toString()}`,
+  );
+}
+
+/**
+ * Phase 67 MIG-DATA-02 + MIG-DATA-03: composite hook that fetches employee
+ * rows from Directus and overtime roll-up from FastAPI, then merges them
+ * by employee_id. Zero-fills overtime fields for employees absent from
+ * the overtime response (e.g. no attendance in the window). Mirrors the
+ * v1.21 data.py behavior where every employee appears in the table,
+ * with 0h values when there is no attendance in the requested window.
+ *
+ * QueryKeys (Claude's Discretion per CONTEXT):
+ *  - rows: ["directus", "personio_employees", { search }]
+ *    (deliberately new namespace — avoids cache-collision with legacy
+ *    hrKpiKeys.employees per Pitfall 4)
+ *  - overtime: ["employeesOvertime", date_from, date_to]
+ *    (invalidates on date-range change only; search edits don't refetch)
+ */
+export function useEmployeesWithOvertime(params: {
+  search?: string;
+  date_from: string;
+  date_to: string;
+}): { data: EmployeeRow[] | undefined; isLoading: boolean } {
+  const rowsQ = useQuery({
+    queryKey: ["directus", "personio_employees", { search: params.search }] as const,
+    queryFn: () => fetchEmployees({ search: params.search }),
+  });
+
+  const otQ = useQuery({
+    queryKey: ["employeesOvertime", params.date_from, params.date_to] as const,
+    queryFn: () => fetchEmployeesOvertime(params.date_from, params.date_to),
+  });
+
+  const data = useMemo<EmployeeRow[] | undefined>(() => {
+    if (!rowsQ.data) return undefined;
+    const byId = new Map<number, OvertimeEntry>(
+      (otQ.data ?? []).map((e) => [e.employee_id, e]),
+    );
+    return rowsQ.data.map((r) => {
+      const ot = byId.get(r.id);
+      return {
+        ...r,
+        total_hours: ot?.total_hours ?? 0,
+        overtime_hours: ot?.overtime_hours ?? 0,
+        overtime_ratio: ot?.overtime_ratio ?? null,
+      };
+    });
+  }, [rowsQ.data, otQ.data]);
+
+  return {
+    data,
+    isLoading: rowsQ.isLoading || otQ.isLoading,
+  };
 }
 
 // ---------------------------------------------------------------------------
