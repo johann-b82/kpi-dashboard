@@ -267,7 +267,11 @@ Plans:
   1. Post-login, `AuthContext` populates current user (`id`, `email`, `first_name`, `last_name`, `role`, `avatar`) via `directus.request(readMe(...))` — no `/api/me` network call in DevTools.
   2. `backend/app/routers/me.py`, its `main.py` registration, schemas, and tests are deleted; `/api/me` returns 404.
   3. A CI guard greps for `"/api/me"` in `frontend/src/` and fails if any reference remains.
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 66-01-authcontext-readme-swap-PLAN.md — AuthContext readMe swap + useCurrentUserProfile hook + Viewer directus_roles permission (Wave 1)
+- [ ] 66-02-delete-me-backend-PLAN.md — Delete backend/app/routers/me.py + main.py registration + tests + comment scrub (Wave 2)
+- [ ] 66-03-ci-guard-PLAN.md — CI workflow step: grep-fail on "/api/me" in frontend/src/ (Wave 2)
 
 ### Phase 67: Migrate `data.py` — Sales + Employees split
 **Goal**: Sales and HR row-data lookups come from Directus; overtime roll-up per employee stays in FastAPI; frontend tables render the same rows and compute values as v1.21 with no user-visible regression.
@@ -349,7 +353,7 @@ Plans:
 | 63. Frontend Build Fix | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
-| 66. Kill `me.py` | v1.22 | 0/TBD | Not started | - |
+| 66. Kill `me.py` | v1.22 | 0/3 | Not started | - |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 0/TBD | Not started | - |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
