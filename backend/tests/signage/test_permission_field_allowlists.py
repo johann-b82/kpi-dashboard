@@ -34,7 +34,7 @@ BOOTSTRAP_PATH = REPO_ROOT / "directus" / "bootstrap-roles.sh"
 
 # ---------------------------------------------------------------------------
 # Compute-derived EmployeeRead fields NOT backed by personio_employees columns.
-# These come from /api/data/employees/overtime (Phase 67), not from Directus.
+# These come from /api/data/employees/overtime (Phase 67 complete — row-data via Directus readItems('personio_employees'); overtime compute fields hydrated by /api/data/employees/overtime), not from Directus.
 # Directus Viewer allowlist must NOT contain these fields.
 # ---------------------------------------------------------------------------
 COMPUTE_DERIVED_EMPLOYEE_FIELDS: frozenset[str] = frozenset({
@@ -140,7 +140,7 @@ def test_personio_employees_allowlist_matches_pydantic_EmployeeRead_column_subse
     must be set-equal with EmployeeRead.model_fields.keys() MINUS compute-derived fields.
 
     COMPUTE_DERIVED_EMPLOYEE_FIELDS = {total_hours, overtime_hours, overtime_ratio}
-    are sourced from /api/data/employees/overtime (Phase 67) and must NOT appear
+    are sourced from /api/data/employees/overtime (Phase 67 complete — row-data via Directus readItems('personio_employees'); overtime compute fields hydrated by /api/data/employees/overtime) and must NOT appear
     in the Directus Viewer allowlist (they have no DB column in personio_employees).
 
     Failure modes:
@@ -157,7 +157,7 @@ def test_personio_employees_allowlist_matches_pydantic_EmployeeRead_column_subse
         f"Compute-derived field(s) leaked into personio_employees Viewer allowlist:\n"
         f"  leaked: {sorted(compute_leak)}\n"
         f"  These fields ({sorted(COMPUTE_DERIVED_EMPLOYEE_FIELDS)}) are sourced from\n"
-        f"  /api/data/employees/overtime (Phase 67), not from personio_employees DB columns.\n"
+        f"  /api/data/employees/overtime (Phase 67 complete — row-data via Directus readItems('personio_employees'); overtime compute fields hydrated by /api/data/employees/overtime), not from personio_employees DB columns.\n"
         f"  Remove them from bootstrap-roles.sh section 5 (UUID={EMPLOYEE_PERM_UUID})."
     )
 

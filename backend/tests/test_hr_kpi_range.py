@@ -11,8 +11,9 @@ Covers the 11 required behaviours (see 60-04-PLAN.md Task 1 <behavior>):
   6.  /api/hr/kpis/history 60-day range — weekly buckets labelled YYYY-Www (D-06).
   7.  /api/hr/kpis/history no params — 12 monthly buckets (D-07 thisYear parity).
   8.  /api/hr/kpis/history 1000-day range — quarterly buckets labelled YYYY-Qn.
-  9.  /api/data/employees with date_from/date_to scopes attendance aggregation.
-  10. Invalid ranges (half-provided, inverted) return HTTP 400 on all three endpoints.
+  9.  (Removed in Phase 67 — overtime compute moved to its own endpoint;
+       coverage lives in tests/test_hr_overtime_endpoint.py.)
+  10. Invalid ranges (half-provided, inverted) return HTTP 400 on the two HR KPI endpoints.
   11. /api/hr/kpis — sick_leave_ratio is a whole-range ratio, NOT an average of
       per-month ratios (D-05 mirror of overtime).
 
@@ -454,66 +455,9 @@ async def test_hr_kpis_history_quarterly_buckets(client):
 
 
 # ---------------------------------------------------------------------------
-# 9. /api/data/employees date_from/date_to scopes attendance (D-11)
-# ---------------------------------------------------------------------------
-
-
-async def test_employees_range_scopes_attendance(client):
-    """Seed 1 employee with an 8h attendance on 2026-04-10 and another on
-    2026-05-10. Request April window — only April attendance contributes.
-    """
-    prefix = "emp-range-scope"
-    emp = _emp_id(prefix, 0)
-    async with AsyncSessionLocal() as session:
-        session.add(PersonioEmployee(
-            id=emp,
-            first_name="Scope", last_name="Test",
-            status="active",
-            hire_date=date(2025, 1, 1),
-            termination_date=None,
-            weekly_working_hours=Decimal("40.00"),
-            synced_at=datetime.now(timezone.utc),
-        ))
-        att_base = 9_820_000 + (abs(hash(prefix)) % 10_000) * 10
-        session.add(PersonioAttendance(
-            id=att_base,
-            employee_id=emp,
-            date=date(2026, 4, 10),
-            start_time=time(8, 0), end_time=time(16, 0),  # 8h, no OT
-            break_minutes=0,
-            synced_at=datetime.now(timezone.utc),
-        ))
-        session.add(PersonioAttendance(
-            id=att_base + 1,
-            employee_id=emp,
-            date=date(2026, 5, 10),
-            start_time=time(8, 0), end_time=time(16, 0),
-            break_minutes=0,
-            synced_at=datetime.now(timezone.utc),
-        ))
-        await session.commit()
-
-        try:
-            res = await client.get(
-                "/api/data/employees",
-                params={"date_from": "2026-04-01", "date_to": "2026-04-30"},
-                headers=_auth_headers(),
-            )
-            assert res.status_code == 200, res.text
-            rows = res.json()
-            match = [r for r in rows if r["id"] == emp]
-            assert len(match) == 1, match
-            row = match[0]
-            assert row["total_hours"] == 8.0, row
-            assert row["overtime_hours"] == 0.0, row
-            # D-13: ot == 0 => overtime_ratio is None
-            assert row["overtime_ratio"] is None
-        finally:
-            await _cleanup_employees(session, [emp])
-
-
-# ---------------------------------------------------------------------------
-# 10. Invalid ranges return 400 on all three endpoints
+# 9. Invalid ranges return 400 on the two HR KPI endpoints
+# (Phase 67: legacy employees endpoint deleted; overtime endpoint 422 cases
+# live in tests/test_hr_overtime_endpoint.py)
 # ---------------------------------------------------------------------------
 
 
@@ -522,7 +466,6 @@ async def test_employees_range_scopes_attendance(client):
     [
         "/api/hr/kpis",
         "/api/hr/kpis/history",
-        "/api/data/employees",
     ],
 )
 async def test_invalid_range_returns_400(client, url):
