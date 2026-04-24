@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Step 1: Set up Python (for pure-python pre-stack tests)
+      # -----------------------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # -----------------------------------------------------------------------
+      # Step 2: Install backend Python deps (for pure-python allowlist test)
+      # The allowlist parity test imports app.schemas._base — needs requirements.
+      # -----------------------------------------------------------------------
+      - name: Install backend Python deps (for pure-python tests)
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      # -----------------------------------------------------------------------
+      # Step 3: Pydantic-vs-shell allowlist parity test (PRE-STACK FAST FAIL)
+      # Runs before docker compose up — catches drift in <1s vs ~2 min for stack.
+      # This test is pure-Python; it only reads directus/bootstrap-roles.sh.
+      # Rationale: D-17 requires drift to fail fast. Shell-vs-Pydantic drift is
+      # a AUTHZ risk (Viewer over/under-exposure). Catching it here costs 0 stack
+      # time.
+      # -----------------------------------------------------------------------
+      - name: "Pydantic-vs-shell allowlist parity (pre-stack, <1s)"
+        run: cd backend && pytest tests/signage/test_permission_field_allowlists.py -v
+
+      # -----------------------------------------------------------------------
+      # Step 4: Write test .env
+      # -----------------------------------------------------------------------
+      - name: Write test .env
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=kpi
+          POSTGRES_PASSWORD=kpi_test_pw
+          POSTGRES_DB=kpi
+          DIRECTUS_KEY=${{ secrets.DIRECTUS_KEY || 'ci-fake-key-00000000-0000-0000-0000-000000000000' }}
+          DIRECTUS_SECRET=${{ secrets.DIRECTUS_SECRET || 'ci-fake-secret-00000000-0000-0000-0000-000000000000' }}
+          DIRECTUS_ADMIN_EMAIL=admin@example.com
+          DIRECTUS_ADMIN_PASSWORD=admin_test_pw
+          VIEWER_EMAIL=viewer@example.com
+          VIEWER_PASSWORD=viewer_test_pw
+          API_BASE_URL=http://localhost:8000
+          DIRECTUS_BASE_URL=http://localhost:8055
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Step 5: Bring up full stack and wait for healthchecks
+      # --wait blocks until all services report healthy (or timeout).
+      # -----------------------------------------------------------------------
+      - name: Bring up stack
+        run: docker compose up -d --wait
+        timeout-minutes: 5
+
+      # -----------------------------------------------------------------------
+      # Step 6: Run Alembic migrations (explicit, even if startup command runs them)
+      # -----------------------------------------------------------------------
+      - name: Run migrations
+        run: docker compose run --rm migrate alembic upgrade head
+
+      # -----------------------------------------------------------------------
+      # Step 7: Apply Directus schema snapshot (v1.22)
+      # -----------------------------------------------------------------------
+      - name: Apply Directus schema
+        run: docker compose run --rm directus-schema-apply || true
+        # `|| true` — schema-apply is idempotent; if service exits 0 it's fine.
+        # If no directus-schema-apply service, guard B will catch drift.
+
+      # -----------------------------------------------------------------------
+      # Step 8: Bootstrap Directus roles and permissions
+      # -----------------------------------------------------------------------
+      - name: Bootstrap Directus roles
+        run: |
+          docker compose run --rm \
+            -e DIRECTUS_URL=http://directus:8055 \
+            -e DIRECTUS_ADMIN_EMAIL=admin@example.com \
+            -e DIRECTUS_ADMIN_PASSWORD=admin_test_pw \
+            directus sh /directus/bootstrap-roles.sh || \
+          bash -c '
+            DIRECTUS_URL=http://localhost:8055 \
+            DIRECTUS_ADMIN_EMAIL=admin@example.com \
+            DIRECTUS_ADMIN_PASSWORD=admin_test_pw \
+            bash directus/bootstrap-roles.sh
+          '
+
+      # -----------------------------------------------------------------------
+      # Step 9: Guard A — DDL hash (SCHEMA-03)
+      # -----------------------------------------------------------------------
+      - name: "Guard A — DDL hash (SCHEMA-03)"
+        run: |
+          export POSTGRES_USER=kpi
+          export POSTGRES_DB=kpi
+          bash scripts/ci/check_schema_hash.sh
+
+      # -----------------------------------------------------------------------
+      # Step 10: Guard B — Directus snapshot diff (SCHEMA-03)
+      # -----------------------------------------------------------------------
+      - name: "Guard B — Directus snapshot diff (SCHEMA-03)"
+        run: bash scripts/ci/check_directus_snapshot_diff.sh
+
+      # -----------------------------------------------------------------------
+      # Step 11: Guard C — DB_EXCLUDE_TABLES superset (SCHEMA-04)
+      # -----------------------------------------------------------------------
+      - name: "Guard C — DB_EXCLUDE_TABLES superset (SCHEMA-04)"
+        run: bash scripts/ci/check_db_exclude_tables_superset.sh
+
+      # -----------------------------------------------------------------------
+      # Step 12: Guard D — --workers 1 invariant (SSE-05)
+      # -----------------------------------------------------------------------
+      - name: "Guard D — --workers 1 invariant (SSE-05)"
+        run: bash scripts/ci/check_workers_one_invariant.sh
+
+      # -----------------------------------------------------------------------
+      # Step 13: SSE integration tests — 500 ms hard ceiling (SSE-04)
+      # Runs inside the api container so it can reach all compose services.
+      # Flakes on the 500 ms SLA are real signal — do NOT retry or soften.
+      # -----------------------------------------------------------------------
+      - name: "SSE integration tests (500 ms ceiling, SSE-04)"
+        run: |
+          docker compose exec -T api pytest \
+            tests/signage/test_pg_listen_sse.py -v \
+            -m "not slow" \
+            --tb=short
+
+      # -----------------------------------------------------------------------
+      # Step 14: AUTHZ tests — Viewer field-leak + mutation denial (AUTHZ-05)
+      # -----------------------------------------------------------------------
+      - name: "AUTHZ tests — Viewer field-leak + mutation denial (AUTHZ-05)"
+        run: |
+          docker compose exec -T \
+            -e DIRECTUS_BASE_URL=http://directus:8055 \
+            -e VIEWER_EMAIL=viewer@example.com \
+            -e VIEWER_PASSWORD=viewer_test_pw \
+            api pytest \
+            tests/signage/test_viewer_authz.py -v \
+            --tb=short
+
+      # -----------------------------------------------------------------------
+      # Teardown — always runs, even on failure
+      # -----------------------------------------------------------------------
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
