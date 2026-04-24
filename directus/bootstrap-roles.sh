@@ -29,6 +29,29 @@ VIEWER_ACCESS_ID="a2222222-cccc-cccc-cccc-cccccccccccc"
 
 log() { printf '[bootstrap-roles] %s\n' "$*"; }
 
+# ensure_permission: GET-before-POST idempotent permission row creation.
+# Args: $1=permission_id (fixed UUID), $2=collection, $3=action, $4=fields_json_array
+ensure_permission() {
+  pid="$1"; coll="$2"; act="$3"; fields="$4"
+  status=$(api GET "/permissions/${pid}")
+  if [ "$status" = "200" ]; then
+    log "permission ${pid} (${coll}.${act}) exists — skipping"
+    return 0
+  fi
+  log "creating permission ${pid} (${coll}.${act}) fields=${fields}"
+  status=$(api POST "/permissions" "{
+    \"id\":\"${pid}\",
+    \"policy\":\"${VIEWER_POLICY_ID}\",
+    \"collection\":\"${coll}\",
+    \"action\":\"${act}\",
+    \"fields\":${fields},
+    \"permissions\":{}
+  }")
+  [ "$status" = "200" ] || [ "$status" = "204" ] || {
+    log "ERROR: POST /permissions returned ${status}"; cat /tmp/api.body 2>/dev/null; exit 1
+  }
+}
+
 # curl helper that prints body and captures HTTP status to a file descriptor.
 # Usage: http_status=$(api GET /roles/xxx) ; body in /tmp/api.body
 api() {
@@ -146,5 +169,29 @@ if [ "$status" = "200" ]; then
 else
   log "WARN: GET /roles?filter=Administrator returned HTTP ${status}"
 fi
+
+# --- 5. Viewer per-collection permission rows (v1.22 AUTHZ-01..04) ---
+log "section 5: viewer permission rows"
+
+# AUTHZ-01: sales_records — mirrors SalesRecordRead (all 10 column-backed fields).
+# Schema source: backend/app/schemas/_base.py SalesRecordRead (line 268).
+ensure_permission "b2222222-0001-4000-a000-000000000001" "sales_records" "read" \
+  '["id","order_number","customer_name","city","order_date","total_value","remaining_value","responsible_person","project_name","status_code"]'
+
+# AUTHZ-01: personio_employees — mirrors EmployeeRead, COLUMN-BACKED ONLY.
+# Exclude compute-derived fields (total_hours, overtime_hours, overtime_ratio) —
+# those come from FastAPI /api/data/employees/overtime (Phase 67).
+# Schema source: backend/app/schemas/_base.py EmployeeRead (line 291).
+ensure_permission "b2222222-0002-4000-a000-000000000002" "personio_employees" "read" \
+  '["id","first_name","last_name","status","department","position","hire_date","termination_date","weekly_working_hours"]'
+
+# AUTHZ-03: directus_users — explicit allowlist (id, email, first_name, last_name, role, avatar only).
+# Sensitive columns (2FA secret, auth data, external identifier) are intentionally excluded.
+ensure_permission "b2222222-0003-4000-a000-000000000003" "directus_users" "read" \
+  '["id","email","first_name","last_name","role","avatar"]'
+
+# AUTHZ-02: intentionally NO permission rows on signage_* collections for Viewer.
+# Admin is handled by admin_access:true on the Admin policy (existing).
+log "section 5 complete: sales_records + personio_employees + directus_users Viewer-readable; no signage_* permissions for Viewer"
 
 log "Bootstrap complete."
