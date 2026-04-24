@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: verifying
-stopped_at: Completed 66-03-ci-guard-PLAN.md
-last_updated: "2026-04-24T18:43:35.045Z"
+stopped_at: Completed 66-02-delete-me-backend-PLAN.md
+last_updated: "2026-04-24T18:43:48.067Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 7
@@ -192,6 +192,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 65 P05 | 541s | 5 tasks | 11 files |
 | Phase 66 P01 | 102s | 3 tasks | 3 files |
 | Phase 66-kill-me-py P03 | 36s | 1 tasks | 1 files |
+| Phase 66-kill-me-py P02 | 58s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -211,6 +212,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 65]: Allowlist parity test runs pre-stack in CI (before docker compose up) for <1s fast fail on AUTHZ drift
 - [Phase 66]: mapRoleName() switch maps Administrator->admin, Viewer->viewer, unknown->null (D-01/D-09); two-tier readMe (minimal for AuthContext, full for useCurrentUserProfile) is deliberate (D-03/D-05)
 - [Phase 66-kill-me-py]: Inline run: block chosen over dedicated scripts/ci/no-api-me.sh — reusable script pattern deferred until third endpoint-guard lands (Phase 67+)
+- [Phase 66-kill-me-py]: me_router removal is clean — no other routers imported from me.py; test file had no shared fixtures
 
 ### Cross-cutting hazards (hard gates)
 
@@ -256,6 +258,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T18:43:27.633Z
-**Stopped at:** Completed 66-03-ci-guard-PLAN.md
+**Last session:** 2026-04-24T18:43:48.064Z
+**Stopped at:** Completed 66-02-delete-me-backend-PLAN.md
 **Resume file:** None
