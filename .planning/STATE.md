@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 69-05-ci-grep-guard-PLAN.md
-last_updated: "2026-04-25T06:55:39.264Z"
+stopped_at: Completed 69-04-sse-regression-tests-PLAN.md
+last_updated: "2026-04-25T06:56:01.906Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 69 (mig-sign-playlists) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -207,6 +207,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 69-mig-sign-playlists P01 | 120s | 1 tasks | 2 files |
 | Phase 69 P03 | 216s | 2 tasks | 1 files |
 | Phase 69-mig-sign-playlists P05 | 78s | 1 tasks | 1 files |
+| Phase 69-mig-sign-playlists P04 | 93s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -240,6 +241,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 69-mig-sign-playlists]: Plan 69-01: kept IntegrityError import (surviving DELETE catches it for 409 reshape); HEAD-method assertion in surface regression test catches GET-shaped route leak (Starlette auto-adds HEAD)
 - [Phase 69]: Plan 69-03: tag_ids hydration via Option A parallel readItems(signage_playlist_tag_map) merge — preserves PlaylistEditorPage consumer contract; replacePlaylistTags uses deleteItems query/filter form because signage_playlist_tag_map has composite PK (playlist_id, tag_id) with no surrogate id column.
 - [Phase 69-mig-sign-playlists]: Plan 69-05: Third grep scoped to playlists.py + playlist_items.py (NOT signage_admin/ directory) to avoid false-positive on surviving devices.py PUT /{device_id}/tags (Phase 70 surface) — Rule 1 deviation from plan-as-written.
+- [Phase 69-mig-sign-playlists]: Plan 69-04: Adopted existing open_sse_stream/next_frame helper API (plan's wait_for_event/sse_subscription fixtures don't exist); transient-playlist tests must bind paired_device.tag_id via signage_playlist_tag_map for resolver routing; TDD split skipped per Phase 68 P06 precedent.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -285,6 +287,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T06:55:39.261Z
-**Stopped at:** Completed 69-05-ci-grep-guard-PLAN.md
+**Last session:** 2026-04-25T06:56:01.902Z
+**Stopped at:** Completed 69-04-sse-regression-tests-PLAN.md
 **Resume file:** None
