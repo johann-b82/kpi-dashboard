@@ -1,48 +1,46 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.22
-milestone_name: Backend Consolidation — Directus-First CRUD
-status: executing
-stopped_at: Completed 71-05-PLAN.md
-last_updated: "2026-04-25T09:35:49.244Z"
+milestone: null
+milestone_name: null
+status: milestone_complete
+stopped_at: v1.22 shipped 2026-04-25 — awaiting /gsd:new-milestone
+last_updated: "2026-04-25T12:00:00.000Z"
 last_activity: 2026-04-25
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 39
-  completed_plans: 39
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: KPI Dashboard
 
-**Last updated:** 2026-04-24
-**Session:** v1.22 Backend Consolidation — roadmap drafted (Phases 65–71)
+**Last updated:** 2026-04-25
+**Session:** v1.22 Backend Consolidation shipped — awaiting next milestone
 
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.22)
+See: `.planning/PROJECT.md` (updated 2026-04-25 — v1.22 shipped)
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 71 — fe-polish-clean
+**Current focus:** Planning next milestone
 
+Previous milestone v1.22 Backend Consolidation — Directus-First CRUD shipped 2026-04-25 (tag `v1.22`, audit `tech_debt`: 4 HUMAN-UAT walkthroughs + 2 partial-scope integration findings carried forward).
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
-Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 ---
 
 ## Current Position
 
-Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 71
-Plan: Not started
-Status: Ready to execute
+Milestone: none active
+Status: v1.22 shipped — milestone_complete
 Last activity: 2026-04-25
 
-Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
+Next action: `/gsd:new-milestone` to scope the next milestone, or run pending HUMAN-UAT walkthroughs against the `v1.22` tag.
 
 ### Quick Tasks Completed
 

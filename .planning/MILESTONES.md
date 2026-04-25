@@ -1,5 +1,33 @@
 # Milestones
 
+## v1.22 Backend Consolidation — Directus-First CRUD (Shipped: 2026-04-25)
+
+**Phases completed:** 7 phases (65–71), 39 plans. **33/33 requirements satisfied at code level.** Audit status: `tech_debt` (4 HUMAN-UAT walkthroughs + 2 partial-scoping integration findings carried forward).
+
+**Audit:** [milestones/v1.22-MILESTONE-AUDIT.md](milestones/v1.22-MILESTONE-AUDIT.md)
+
+**Goal achieved:** Moved ~25 pure-CRUD FastAPI endpoints (`me.py`, sales/employee row reads in `data.py`, signage admin tags/schedules/playlists/devices) to Directus collections on the shared Postgres, leaving FastAPI focused on compute (upload, KPIs, Personio sync, SSE, calibration, bulk playlist-item replace, PPTX, device-JWT minting, analytics).
+
+**Key accomplishments:**
+
+- **Phase 65 — Foundation.** Directus snapshot YAML (9 collections, schema:null) + idempotent `directus-schema-apply` compose service; `bootstrap-roles.sh` per-collection Viewer permission rows with explicit fields allowlists for `sales_records` / `personio_employees` / `directus_users` (no signage rows; secret fields excluded). Alembic migration `v1_22_signage_notify_triggers` ships shared `signage_notify()` PL/pgSQL function + 8 AFTER triggers on 6 signage tables emitting `pg_notify('signage_change', JSON)` with preflight assertion and clean downgrade. Asyncpg long-lived LISTEN connection on `signage_change` dispatches INSERT/UPDATE/DELETE events to affected player SSE streams via resolver + `notify_device()` with exponential-backoff reconnect. `--workers 1` invariant + 4 CI guards (DDL hash, snapshot diff, DB_EXCLUDE_TABLES superset, workers-one comment).
+- **Phase 66 — Kill `me.py`.** `AuthContext.tsx` hydrates current user via `directus.request(readMe(...))` — no `/api/me` network call; FastAPI router + test deleted; Viewer role granted `directus_roles` read; `useCurrentUserProfile()` React Query hook added. Pre-stack grep CI guard fails the build in <1s if `"/api/me"` reappears in `frontend/src/`.
+- **Phase 67 — Migrate `data.py`.** `fetchSalesRecords` + `fetchEmployees` migrated to Directus SDK `readItems` with `?filter[order_date]` date-range filtering; new compute-only `GET /api/data/employees/overtime` isolated in `backend/app/routers/hr_overtime.py`; `useEmployeesWithOvertime` composite hook merges Directus rows + overtime via `useMemo` with zero-fill; dedicated `test_hr_overtime_endpoint.py` (8 tests); CI grep guard blocks `/api/data/sales` + `/api/data/employees` literal reappearance in `backend/app/`.
+- **Phase 68 — MIG-SIGN Tags + Schedules.** `signage_tags` + `signage_schedules` CRUD via Directus SDK; Alembic CHECK (`start_hhmm < end_hhmm`) + Directus validation hook returning `schedule_end_before_start` for friendly i18n error; FastAPI tags + schedules routers removed; SSE regression tests for Directus-originated schedule lifecycle + tag silent-on-CRUD.
+- **Phase 69 — MIG-SIGN Playlists.** GET/POST/PATCH on `/playlists`, GET on `/{id}/items`, PUT on `/{id}/tags` migrated to Directus SDK; surviving FastAPI surface = `DELETE /playlists/{id}` (structured 409 `{detail, schedule_ids}` preserved) + bulk `PUT /playlists/{id}/items` (atomic DELETE+INSERT); `_notify_playlist_changed` retained on both surviving handlers; SSE `playlist-changed` regression tests for both Directus and FastAPI writers.
+- **Phase 70 — MIG-SIGN Devices.** `signage_devices` trimmed to surviving `PATCH /{device_id}/calibration` only (calibration-changed SSE preserved); list/by-id/name/delete/tags-PUT migrated to Directus SDK; new compute-only `GET /api/signage/resolved/{device_id}` returns `{current_playlist_id, current_playlist_name, tag_ids}` per device; `DevicesPage.tsx` introduces project's first cross-source `useQueries` merge (Directus rows + per-row FastAPI resolved fan-out) preserving v1.21 column shape; SSE `device-changed` + tag-map + calibration no-double-fire regression tests.
+- **Phase 71 — FE Polish + CLEAN.** Central `toApiError()` helper normalizes Directus SDK errors to `ApiErrorWithBody` across 30 `signageApi.ts` call sites; localStorage-gated one-shot `kpi.cache_purge_v22` purges legacy `['signage', ...]` TanStack cache keys in `bootstrap.ts`; 10 deterministic JSON contract fixtures + 344-line vitest suite freeze the FE adapter response shape; OpenAPI paths snapshot (`backend/tests/contracts/openapi_paths.json`, 44 paths) + DB_EXCLUDE_TABLES `isdisjoint` absent-from check; orphan signage Pydantic schemas swept (8 deleted, `SignageDeviceBase` retained as inheritance guard); ADR-0001 documents the Directus/FastAPI split with STAYS list + Settings deferral, linked from `docs/architecture.md` + `README.md`; v1.22 Rollback Procedure runbook section.
+
+**Stats:** 155 commits, 186 files changed, +28,322 / -3,662 LOC. Timeline: 2026-04-23 → 2026-04-25 (3 days).
+
+### Known Gaps (carried as tech debt)
+
+- **HUMAN-UAT pending (4 walkthroughs):** Phase 65 live-stack verification (SSE latency, calibration no-double-fire, listener reconnect, AUTHZ live, fresh-volume idempotency); Phase 68 admin Directus CRUD smoke for tags + schedules; Phase 69 admin Directus CRUD smoke for playlists + tag-map; Phase 71 v1.22 rollback drill (CLEAN-03) per `docs/operator-runbook.md`.
+- **INT-01 (medium):** `toApiError` adapter scoped to `signageApi.ts` only. Phase 66 (`AuthContext.tsx`, `useCurrentUserProfile.ts`) and Phase 67 (`fetchSalesRecords`, `fetchEmployees` in `lib/api.ts`) Directus call sites bypass error normalization — affects FE-01, FE-04, MIG-AUTH-01, MIG-DATA-01..03 (functional but error-shape leaks raw Directus plain-objects on failure).
+- **INT-02 (low):** Cache namespace separation is one-shot eviction. Only DevicesPage migrated to `['directus', 'signage_devices']` in 70-04; ~23 admin call sites (tags, schedules, playlists, media, pair) still write the legacy `['signage', ...]` namespace post-purge. No collision (FE-02 invariant holds), but FE-03 spirit is partial.
+
+---
+
 ## v1.21 Signage Calibration + Build Hygiene + Reverse Proxy (Shipped: 2026-04-24)
 
 **Phases completed:** 3 phases (62–64), 6 plans. **24/25 requirements satisfied**, 1 waiver (CAL-PI-07).
@@ -14,6 +42,7 @@
 - **Authentik removed** (quick task, inline) — CLAUDE.md project description + constraint block + PROJECT.md overview updated to reflect Directus as the committed identity layer (shipped in v1.11-directus 2026-04-15); the "future Authentik pivot" phrasing is gone.
 
 **Tech debt carried to v1.22:**
+
 - **CAL-PI-07 hardware diagnostic** — specific to the paired test Pi; candidate for a post-ship `/gsd:quick` when sidecar-env isolation identifies the missing piece (likely `SIGNAGE_API_BASE`, device token path, or wayland env passthrough).
 - **Admin UI calibration render-loop test** — Phase 62-02 pivoted from render+fireEvent to static coverage after jsdom render-loop on the base-ui Dialog + Toggle combo; runtime coverage should come from CAL-PI-07.
 - **FastAPI cosmetic `/api/health`** — Phase 64 verify script referenced this path but only `/health` exists; not blocking, small future add.
