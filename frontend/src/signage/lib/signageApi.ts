@@ -67,6 +67,20 @@ export async function apiClientWithBody<T>(
   return body as T;
 }
 
+// Phase 68-04 (D-07): field allowlist mirroring SignageSchedule (signageTypes.ts)
+// — applied to every Directus schedule request to keep payload shape stable.
+const SCHEDULE_FIELDS = [
+  "id",
+  "playlist_id",
+  "weekday_mask",
+  "start_hhmm",
+  "end_hhmm",
+  "priority",
+  "enabled",
+  "created_at",
+  "updated_at",
+] as const;
+
 // Typed GETs — reused by primitives + sub-pages. Use apiClient (not
 // apiClientWithBody) for anything that does NOT need 409-body extraction.
 export const signageApi = {
@@ -220,21 +234,26 @@ export const signageApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  // Phase 52 SGN-SCHED-UI-01/02 — Schedules CRUD.
-  // Backend router: backend/app/routers/signage_admin/schedules.py.
-  // All methods use the shared apiClient (hard gate 2 — no raw fetch).
+  // Phase 68-04 (D-07): Schedule CRUD swapped from FastAPI to Directus SDK.
+  // Sort matches FastAPI's prior contract (priority desc, updated_at desc).
+  // Inverted-range writes surface as DirectusError carrying the validation
+  // hook's i18n key (Plan 02). Public signatures unchanged (D-00g).
   listSchedules: () =>
-    apiClient<SignageSchedule[]>("/api/signage/schedules"),
+    directus.request(
+      readItems("signage_schedules", {
+        fields: [...SCHEDULE_FIELDS],
+        sort: ["-priority", "-updated_at"],
+        limit: -1,
+      }),
+    ) as Promise<SignageSchedule[]>,
   createSchedule: (body: SignageScheduleCreate) =>
-    apiClient<SignageSchedule>("/api/signage/schedules", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+    directus.request(
+      createItem("signage_schedules", body, { fields: [...SCHEDULE_FIELDS] }),
+    ) as Promise<SignageSchedule>,
   updateSchedule: (id: string, body: SignageScheduleUpdate) =>
-    apiClient<SignageSchedule>(`/api/signage/schedules/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+    directus.request(
+      updateItem("signage_schedules", id, body, { fields: [...SCHEDULE_FIELDS] }),
+    ) as Promise<SignageSchedule>,
   deleteSchedule: (id: string) =>
-    apiClient<null>(`/api/signage/schedules/${id}`, { method: "DELETE" }),
+    directus.request(deleteItem("signage_schedules", id)) as Promise<null>,
 };
