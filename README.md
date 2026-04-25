@@ -176,14 +176,18 @@ kpi-light/
 │   │   │   ├── uploads.py       # File upload, upload history
 │   │   │   ├── kpis.py          # Sales KPI aggregation + chart
 │   │   │   ├── hr_kpis.py       # HR KPI current + 12-month history
-│   │   │   ├── data.py          # Raw data listing (sales records, employees)
+│   │   │   ├── hr_overtime.py   # /api/data/employees/overtime compute roll-up (v1.22)
 │   │   │   ├── settings.py      # App settings + Personio options
 │   │   │   ├── sync.py          # Personio sync trigger + meta
-│   │   │   └── sensors.py       # Sensor CRUD, SNMP probe/walk, polling endpoints
+│   │   │   ├── sensors.py       # Sensor CRUD, SNMP probe/walk, polling endpoints
+│   │   │   ├── signage_admin/   # Compute-only signage surface (v1.22): playlist DELETE, bulk playlist-items PUT, device calibration PATCH, resolved/{device_id}, analytics
+│   │   │   ├── signage_player.py # Kiosk-facing playlist + asset + SSE stream
+│   │   │   └── signage_pair.py  # Device JWT minting + pairing flow
 │   │   └── services/
 │   │       ├── kpi_aggregation.py
 │   │       ├── hr_kpi_aggregation.py
-│   │       └── snmp_poller.py   # SNMP polling, walk, probe utilities
+│   │       ├── snmp_poller.py   # SNMP polling, walk, probe utilities
+│   │       └── signage_pg_listen.py # Postgres LISTEN/NOTIFY → SSE bridge (v1.22)
 │   ├── alembic/                 # Migration chain
 │   └── requirements.txt
 │
@@ -223,8 +227,7 @@ kpi-light/
 | GET | `/api/kpis/latest-upload` | Latest upload timestamp |
 | GET | `/api/hr/kpis` | HR KPI values (current month + comparisons) |
 | GET | `/api/hr/kpis/history` | HR KPI 12-month history for trend charts |
-| GET | `/api/data/sales` | Sales records listing (filterable by date, customer, search) |
-| GET | `/api/data/employees` | Employee listing with overtime hours for current month |
+| GET | `/api/data/employees/overtime` | Per-employee total-hours / overtime roll-up over `?date_from&date_to` (compute-only; row data comes from Directus `personio_employees`, v1.22) |
 | POST | `/api/sync` | Trigger Personio data sync |
 | POST | `/api/sync/test` | Test Personio credential validity |
 | GET | `/api/sync/meta` | Last sync status and counts |
@@ -241,13 +244,18 @@ kpi-light/
 | GET | `/api/signage/pair/status` | Kiosk polls until admin claims (unauthenticated) |
 | POST | `/api/signage/pair/claim` | Admin claims a pairing code → binds device JWT (admin-only) |
 | POST | `/api/signage/pair/devices/{id}/revoke` | Revoke a device token (admin-only) |
-| GET,POST,PATCH,DELETE | `/api/signage/{media,playlists,devices,tags}` | Admin signage CRUD (admin-only) |
+| GET,POST,PATCH,DELETE | `/api/signage/media` | Admin media CRUD (admin-only) |
+| DELETE | `/api/signage/playlists/{id}` | Delete playlist; structured `409 {detail, schedule_ids}` when referenced (admin-only; CRUD list/create/update via Directus, v1.22) |
+| PUT | `/api/signage/playlists/{id}/items` | Atomic bulk DELETE+INSERT of playlist items (admin-only; items GET via Directus, v1.22) |
+| PATCH | `/api/signage/devices/{id}/calibration` | Update rotation/HDMI mode/audio (admin-only; device CRUD list/create/rename/delete/tags via Directus, v1.22) |
+| GET | `/api/signage/resolved/{device_id}` | Schedule-resolved playlist for a device — `{current_playlist_id, current_playlist_name, tag_ids}` — merged client-side with Directus rows (admin-only, v1.22) |
 | GET | `/api/signage/player/playlist` | Tag-resolved playlist envelope for the kiosk (device-auth) |
 | GET | `/api/signage/player/asset/{media_id}` | Device-auth'd media passthrough (device-auth) |
 | GET | `/api/signage/player/stream` | SSE stream of playlist-change events (device-auth, `?token=` query) |
 | POST | `/api/signage/player/heartbeat` | Kiosk presence beacon (device-auth) |
-| GET,POST,PATCH,DELETE | `/api/signage/schedules` | Admin schedule CRUD (admin-only, v1.18) |
 | GET | `/api/signage/analytics/devices` | Per-device uptime + missed-window counts over the last 24 h (admin-only, v1.18) |
+
+**Migrated to Directus (v1.22):** `signage_tags`, `signage_schedules`, `signage_playlists` (list/create/rename/re-tag), `signage_playlist_items` (GET), `signage_devices` (list/get/rename/tags/delete), `sales_records`, `personio_employees`, current-user `readMe`. Frontend reaches these via the Directus SDK (same-origin at `/directus/*` through Caddy); the surviving FastAPI surface above is compute-only.
 
 ---
 
@@ -334,6 +342,7 @@ Exits 0 on success; non-zero and prints the failing step on failure. The harness
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v1.22 | 2026-04-25 | Backend Consolidation — Directus-First CRUD — moved ~25 pure-CRUD FastAPI endpoints (`/api/me`, sales/employee row reads in `data.py`, signage admin tags/schedules/playlists/devices) to Directus collections on the shared Postgres, leaving FastAPI focused on compute (upload, KPIs, Personio sync, SSE, calibration, bulk playlist-item replace, PPTX, device-JWT minting, analytics). New Postgres `LISTEN/NOTIFY` → asyncpg → SSE bridge fans out Directus-originated mutations to Pi players within 500 ms across 5 signage tables. Frontend `signageApi.ts` adapter wraps Directus SDK calls and normalizes errors to the existing `ApiErrorWithBody` contract; 10 contract-snapshot fixtures lock the wire shape. New compute-only endpoints: `GET /api/data/employees/overtime` and `GET /api/signage/resolved/{device_id}`. CI guards prevent any of the migrated routes from reappearing; OpenAPI paths snapshot + `DB_EXCLUDE_TABLES` superset check freeze the surface. ADR-0001 documents the Directus = shape / FastAPI = compute split. |
 | v1.21 | 2026-04-24 | Signage Calibration + Build Hygiene + Reverse Proxy — per-device runtime calibration of signage Pis (rotation, HDMI mode, audio on/off) editable from the admin UI and applied live by the Pi sidecar via `wlr-randr` + WirePlumber; `/var/lib/signage/calibration.json` persistence + bounded wayland-wait boot replay (CAL-PI-07 real-Pi walkthrough waived pending per-device diagnostic). `docker compose build frontend` now exits 0 via `--legacy-peer-deps` workaround for `vite@8` / `vite-plugin-pwa@1.2.0`. New Caddy 2 reverse proxy on `:80` fronts admin SPA, FastAPI (SSE-safe), Directus (prefix-stripped, no CORS), and the kiosk bundle — `http://<lan-ip>/login` finally works from any LAN host; Pi `:80` URLs in `provision-pi.sh` resolve. Authentik references removed from docs now that Directus is the committed identity layer |
 | v1.20 | 2026-04-22 | HR Date-Range Filter + TS Cleanup — shared `DateRangeFilter` wired into `/hr` (KPI cards, charts, employee table); backend `date_from`/`date_to` on all HR endpoints with adaptive daily/weekly/monthly/quarterly bucketing; fluctuation denominator switched to avg-active-headcount; Personio sync reworked to full first-run backfill + incremental `max(stored_date)-14d` with 429 exponential backoff and weekly default cadence; HR delta-badge + chart-axis naming matched to Sales; `/sales`-only upload icon; Balken/Linien toggle ordering unified. Phase 61 closed 31 pre-existing TypeScript errors across 9 files — `npm run build` now exits 0 with zero `error TS` |
 | v1.19 | 2026-04-22 | UI Consistency Pass 2 — new `Toggle` primitive (pill + animated indicator, radiogroup a11y, reduced-motion-aware) drives all 2-option switches; consolidated `Input`/`Select`/`Button`/`Textarea`/`Dropdown` primitives on the `h-8` height token with shared focus/disabled/invalid states; identity-only top header with breadcrumb trail + `UserMenu` dropdown (Docs/Settings/Sign-out); `SectionHeader` + shared `DeleteButton`/`DeleteDialog` across every admin surface; `/sensors` page body slimmed to cards+chart with picker and Jetzt-messen hoisted to SubHeader; DE/EN parity and dark-mode sweep across 13 migrated surfaces with CI guards |
