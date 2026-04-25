@@ -256,3 +256,151 @@ def test_admin_can_crud_signage_playlist_tag_map(directus_admin_token: str) -> N
                 f"/items/signage_playlists/{playlist_id}",
                 headers=_hdr(directus_admin_token),
             )
+
+
+def test_admin_signage_devices_crud_smoke(directus_admin_token: str) -> None:
+    """Phase 70 D-11: Admin (admin_access: true) can fully CRUD
+    signage_devices via Directus REST.
+
+    Mirrors the Phase 69 D-09 playlist smoke pattern: self-provision a
+    transient row (no environment dependency), PATCH name, GET-after-PATCH,
+    DELETE, GET-after-DELETE asserts 403-or-404 (Directus avoids existence
+    leak — Phase 68 Plan 08 / Phase 69 Plan 06 pattern).
+    """
+    name_a = f"phase70-dev-{int(time.time() * 1000)}"
+    name_b = f"{name_a}-renamed"
+    with httpx.Client(base_url=DIRECTUS_BASE_URL, timeout=10.0) as c:
+        r = c.post(
+            "/items/signage_devices",
+            headers=_hdr(directus_admin_token),
+            json={"name": name_a, "paired": True},
+        )
+        assert r.status_code in (200, 201), (
+            f"create failed (D-08 fallback?): {r.status_code} {r.text}"
+        )
+        device_id = r.json()["data"]["id"]
+
+        r = c.patch(
+            f"/items/signage_devices/{device_id}",
+            headers=_hdr(directus_admin_token),
+            json={"name": name_b},
+        )
+        assert r.status_code == 200, f"patch failed: {r.status_code} {r.text}"
+
+        # Confirm post-PATCH state.
+        r = c.get(
+            f"/items/signage_devices/{device_id}",
+            headers=_hdr(directus_admin_token),
+        )
+        assert r.status_code == 200, f"get-after-patch failed: {r.status_code} {r.text}"
+        assert r.json()["data"]["name"] == name_b, (
+            f"post-PATCH name mismatch: got {r.json()['data']['name']!r}"
+        )
+
+        r = c.delete(
+            f"/items/signage_devices/{device_id}",
+            headers=_hdr(directus_admin_token),
+        )
+        assert r.status_code == 204, f"delete failed: {r.status_code} {r.text}"
+
+        # Directus returns 403 (Forbidden) for GET on a missing row by design
+        # (avoids leaking existence). Either 404 or 403 confirms the row is gone.
+        r = c.get(
+            f"/items/signage_devices/{device_id}",
+            headers=_hdr(directus_admin_token),
+        )
+        assert r.status_code in (403, 404), (
+            f"row should be gone: {r.status_code} {r.text}"
+        )
+
+
+@pytest.mark.xfail(
+    reason=(
+        "Phase 69 Plan 06 lesson: signage_device_tag_map is a composite-PK "
+        "join table (no surrogate id column). Directus 11 reports FORBIDDEN on "
+        "/items access for this collection even with admin_access: true, "
+        "because the snapshot's `schema: null` registration does not register "
+        "the fields needed to expose the composite PK via REST. Same root cause "
+        "as Phase 69-06's signage_playlist_tag_map xfail. Resolution requires "
+        "registering field metadata for the join table; deferred to Phase 71 CLEAN. "
+        "Note: regardless of REST CRUD availability, the Phase 65 LISTEN bridge "
+        "fires `device-changed` (NOT playlist-changed) for tag-map mutations — "
+        "see backend/app/services/signage_pg_listen.py:86-88."
+    ),
+    strict=False,
+)
+def test_admin_signage_device_tag_map_crud_smoke(directus_admin_token: str) -> None:
+    """Phase 70 D-11: Admin can read/insert/delete signage_device_tag_map
+    join rows via Directus REST.
+
+    Same composite-PK metadata-registration gap as Phase 69 Plan 06's
+    signage_playlist_tag_map smoke. xfail(strict=False) so the test
+    auto-passes once the meta gap closes (Phase 71 CLEAN).
+    """
+    with httpx.Client(base_url=DIRECTUS_BASE_URL, timeout=10.0) as c:
+        # Setup: transient device + transient tag.
+        r = c.post(
+            "/items/signage_devices",
+            headers=_hdr(directus_admin_token),
+            json={
+                "name": f"phase70-tagmap-dev-{int(time.time() * 1000)}",
+                "paired": True,
+            },
+        )
+        assert r.status_code in (200, 201), (
+            f"setup device failed: {r.status_code} {r.text}"
+        )
+        device_id = r.json()["data"]["id"]
+
+        r = c.post(
+            "/items/signage_device_tags",
+            headers=_hdr(directus_admin_token),
+            json={"name": f"phase70-tagmap-tag-{int(time.time() * 1000)}"},
+        )
+        assert r.status_code in (200, 201), (
+            f"setup tag failed: {r.status_code} {r.text}"
+        )
+        tag_id = r.json()["data"]["id"]
+
+        try:
+            # READ collection (may return [] but must not 403).
+            r = c.get(
+                "/items/signage_device_tag_map?limit=1",
+                headers=_hdr(directus_admin_token),
+            )
+            assert r.status_code == 200, (
+                f"read failed (composite-PK metadata gap?): {r.status_code} {r.text}"
+            )
+
+            # CREATE map row.
+            r = c.post(
+                "/items/signage_device_tag_map",
+                headers=_hdr(directus_admin_token),
+                json={"device_id": device_id, "tag_id": tag_id},
+            )
+            assert r.status_code in (200, 201), (
+                f"map create failed (composite-PK metadata gap?): "
+                f"{r.status_code} {r.text}"
+            )
+
+            # DELETE via filter form (composite-PK has no surrogate id).
+            r = c.delete(
+                "/items/signage_device_tag_map",
+                headers=_hdr(directus_admin_token),
+                params={
+                    "filter[device_id][_eq]": device_id,
+                    "filter[tag_id][_eq]": tag_id,
+                },
+            )
+            assert r.status_code in (200, 204), (
+                f"map delete failed: {r.status_code} {r.text}"
+            )
+        finally:
+            c.delete(
+                f"/items/signage_device_tags/{tag_id}",
+                headers=_hdr(directus_admin_token),
+            )
+            c.delete(
+                f"/items/signage_devices/{device_id}",
+                headers=_hdr(directus_admin_token),
+            )
