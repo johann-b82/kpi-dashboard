@@ -94,6 +94,23 @@ const PLAYLIST_FIELDS = [
   "updated_at",
 ] as const;
 
+// Phase 70-03: mirrors SignageDeviceRead minus computed fields
+// (current_playlist_id, current_playlist_name, tag_ids are populated
+// client-side via getResolvedForDevice — see DevicesPage useQueries merge).
+// `status` is also computed server-side from heartbeat; it is filled by the
+// resolved-merge layer or kept undefined for the row-only path.
+const DEVICE_FIELDS = [
+  "id",
+  "name",
+  "created_at",
+  "updated_at",
+  "last_seen_at",
+  "revoked_at",
+  "rotation",
+  "hdmi_mode",
+  "audio_enabled",
+] as const;
+
 // Phase 68-04 (D-07): field allowlist mirroring SignageSchedule (signageTypes.ts)
 // — applied to every Directus schedule request to keep payload shape stable.
 const SCHEDULE_FIELDS = [
@@ -296,27 +313,110 @@ export const signageApi = {
       `/api/signage/playlists/${id}/items`,
       { method: "PUT", body: JSON.stringify({ items }) },
     ),
-  listDevices: () => apiClient<SignageDevice[]>("/api/signage/devices"),
+  // Phase 70-03 (D-00g, D-04): listDevices reads from Directus signage_devices.
+  // current_playlist_id / current_playlist_name / tag_ids are populated
+  // client-side by DevicesPage's useQueries merge against
+  // getResolvedForDevice — they are computed fields with no Directus column
+  // (D-04 / D-04a — no rename to resolved_*).
+  listDevices: () =>
+    directus.request(
+      readItems("signage_devices", {
+        fields: [...DEVICE_FIELDS],
+        sort: ["created_at"],
+        limit: -1,
+      }),
+    ) as Promise<SignageDevice[]>,
+  // Phase 70-03: per-device row read (matches old GET /api/signage/devices/{id}).
+  getDevice: async (id: string) => {
+    const rows = (await directus.request(
+      readItems("signage_devices", {
+        filter: { id: { _eq: id } },
+        fields: [...DEVICE_FIELDS],
+        limit: 1,
+      }),
+    )) as SignageDevice[];
+    if (!rows.length) throw new Error(`Device ${id} not found`);
+    return rows[0];
+  },
+  // Phase 70-03 (D-01, D-02): per-device resolved playlist + tag_ids from
+  // FastAPI compute endpoint. Used by DevicesPage useQueries to merge with
+  // Directus row data; field names align with SignageDevice extras so the
+  // merge is `{...row, ...resolved}` with zero rename.
+  getResolvedForDevice: (id: string) =>
+    apiClient<{
+      current_playlist_id: string | null;
+      current_playlist_name: string | null;
+      tag_ids: number[] | null;
+    }>(`/api/signage/resolved/${id}`),
   // Phase 53 SGN-ANA-01 — Analytics-lite. Separate query from listDevices
   // so the two data streams can poll/invalidate independently (D-11).
   // Backend: backend/app/routers/signage_admin/analytics.py
   listDeviceAnalytics: () =>
     apiClient<SignageDeviceAnalytics[]>("/api/signage/analytics/devices"),
-  // 46-06 — device admin + pairing claim
-  // Backend SignageDeviceAdminUpdate accepts {name?} only; tags are bulk-replaced
-  // via the separate PUT /devices/{id}/tags endpoint. updateDevice() filters the
-  // body so callers can pass {name, tag_ids} for ergonomics — tag_ids is forwarded
-  // to replaceDeviceTags() by DeviceEditDialog (sequenced PATCH then PUT).
+  // Phase 70-03 (D-00g): updateDevice's name PATCH swaps to Directus
+  // updateItem. Public signature unchanged: still accepts {name, tag_ids}
+  // for ergonomic call sites (DeviceEditDialog), but only forwards `name`
+  // here — the caller sequences this with replaceDeviceTags(id, tag_ids)
+  // (research Open Question 2: keep PATCH-then-PUT sequenced).
   updateDevice: (id: string, body: { name?: string; tag_ids?: number[] }) =>
-    apiClient<SignageDevice>(`/api/signage/devices/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ name: body.name }),
-    }),
-  replaceDeviceTags: (id: string, tag_ids: number[]) =>
-    apiClient<{ tag_ids: number[] }>(`/api/signage/devices/${id}/tags`, {
-      method: "PUT",
-      body: JSON.stringify({ tag_ids }),
-    }),
+    directus.request(
+      updateItem(
+        "signage_devices",
+        id,
+        { name: body.name },
+        { fields: [...DEVICE_FIELDS] },
+      ),
+    ) as Promise<SignageDevice>,
+  // Phase 70-03 (D-03, D-03d): FE-driven diff against signage_device_tag_map.
+  // IDENTICAL shape to replacePlaylistTags so Phase 71 FE-01 can extract a
+  // shared replaceTagMap util mechanically. Composite PK (device_id, tag_id)
+  // — deleteItems uses the query/filter form (Pitfall 5).
+  // SSE: each map-row insert/delete fires `device-changed` per Phase 65
+  // listener mapping (signage_pg_listen.py:86-88 — NOT playlist-changed,
+  // research Pitfall 1 corrects CONTEXT D-03b). Multi-event tolerance
+  // (D-03b — assert at-least-once, not exactly-once).
+  replaceDeviceTags: async (id: string, tag_ids: number[]) => {
+    const existing = (await directus.request(
+      readItems("signage_device_tag_map", {
+        filter: { device_id: { _eq: id } },
+        fields: ["tag_id"],
+        limit: -1,
+      }),
+    )) as { tag_id: number }[];
+    const existingTagIds = new Set(existing.map((r) => r.tag_id));
+    const desiredTagIds = new Set(tag_ids);
+    const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
+    const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
+    await Promise.all([
+      toRemove.length > 0
+        ? directus.request(
+            deleteItems("signage_device_tag_map", {
+              filter: {
+                _and: [
+                  { device_id: { _eq: id } },
+                  { tag_id: { _in: toRemove } },
+                ],
+              },
+            }),
+          )
+        : Promise.resolve(),
+      toAdd.length > 0
+        ? directus.request(
+            createItems(
+              "signage_device_tag_map",
+              toAdd.map((tagId) => ({ device_id: id, tag_id: tagId })),
+            ),
+          )
+        : Promise.resolve(),
+    ]);
+    return { tag_ids } as { tag_ids: number[] };
+  },
+  // Phase 70-03: Directus DELETE on signage_devices. Currently no UI
+  // consumer (the visible "Revoke" CTA flips revoked_at via the pair
+  // router — see revokeDevice below). Provided for parity with the
+  // migrated route surface and for any future hard-delete UI.
+  deleteDevice: (id: string) =>
+    directus.request(deleteItem("signage_devices", id)) as Promise<null>,
   // Phase 62 — CAL-UI-03. PATCH /api/signage/devices/{id}/calibration. Body is
   // partial; backend applies only provided fields (exclude_unset=True) and
   // emits a `calibration-changed` SSE event. Returns the updated device so the
