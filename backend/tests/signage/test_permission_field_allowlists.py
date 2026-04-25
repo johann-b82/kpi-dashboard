@@ -13,6 +13,17 @@ against the live stack.
 Run without docker stack:
     cd backend && pytest tests/signage/test_permission_field_allowlists.py -v
 Expected runtime: <1s (pure-python; reads only bootstrap-roles.sh).
+
+# Phase 68 (MIG-SIGN-01/02) — tags + schedules surface migrated to Directus
+# signage_device_tags + signage_schedules collections; FastAPI tags router
+# removed.
+# Phase 69 (MIG-SIGN-03) — playlists CRUD + items GET migrated to Directus
+# signage_playlists; FastAPI retains DELETE /playlists/{id} (409 reshape)
+# + bulk PUT /playlists/{id}/items.
+# Phase 70 (MIG-SIGN-04) — devices CRUD migrated to Directus signage_devices
+# collection. PATCH /devices/{id}/calibration STAYS in FastAPI per D-00j.
+# No allowlist changes: admin uses admin_access:true bypass; Viewer has no
+# signage permissions per AUTHZ-02 (sales_records + personio_employees only).
 """
 from __future__ import annotations
 

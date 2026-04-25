@@ -25,6 +25,16 @@ READ_ROUTES = [
     ("GET", "/api/uploads"),
     ("GET", "/api/sync/meta"),
 ]
+# Phase 70 (MIG-SIGN-04) D-09 — devices list/by-id migrated to Directus
+# signage_devices collection. New per-device resolved playlist endpoint
+# `GET /api/signage/resolved/{device_id}` is admin-gated (router-level
+# require_admin in signage_admin/__init__.py per cross-cutting hazard #5
+# — same RBAC class as the rest of signage_admin). PATCH
+# /devices/{id}/calibration STAYS in FastAPI per D-00j and is exercised
+# in tests/test_signage_calibration.py (own RBAC asserts). The migrated
+# read paths (GET /api/signage/devices, GET /api/signage/devices/{id})
+# were never in READ_ROUTES because signage routes have always been
+# admin-gated, not read-class.
 
 # Viewer JWT → 403 + {"detail": "admin role required"}
 # Admin JWT  → not 403 (business-logic 4xx/5xx acceptable)
@@ -35,6 +45,10 @@ MUTATION_ROUTES = [
     ("POST",   "/api/sync/test"),
     ("PUT",    "/api/settings"),
     ("POST",   "/api/settings/logo"),
+    # Phase 70 D-09: admin-only signage_admin/resolved router.
+    # Admin reaches the handler (404 expected — fake UUID — but not 403).
+    # Viewer must get 403 with canonical {"detail": "admin role required"}.
+    ("GET",    "/api/signage/resolved/00000000-0000-4000-a000-000000000001"),
 ]
 
 
