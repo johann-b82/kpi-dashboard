@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 71-03-PLAN.md
-last_updated: "2026-04-25T08:55:49.118Z"
+stopped_at: Completed 71-02-PLAN.md
+last_updated: "2026-04-25T08:56:32.965Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 39
-  completed_plans: 34
+  completed_plans: 36
 ---
 
 # Project State: KPI Dashboard
@@ -217,6 +217,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 70-mig-sign-devices P04 | ~7m | 2 tasks | 4 files |
 | Phase 71-fe-polish-clean P07 | 85s | 2 tasks | 4 files |
 | Phase 71 P03 | 90s | 1 tasks | 11 files |
+| Phase 71-fe-polish-clean P02 | 164s | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -261,6 +262,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 70-mig-sign-devices]: Plan 70-04: DevicesPage hybrid render confirmed via human-verify checkpoint (visual parity with v1.21); legacy signageKeys.* invalidation kept alongside new namespaced keys for backward compat — Phase 71 FE-03 to purge with one-shot removeQueries.
 - [Phase 71-fe-polish-clean]: Plan 71-07: ADR-0001 records v1.22 Directus=shape/FastAPI=compute split; 4-digit zero-padded numbering; Settings deferred-not-decided in Consequences
 - [Phase 71]: Plan 71-03: readMe fixtures call directus.request(readMe(...)) directly; AuthContext/useCurrentUserProfile glue tested elsewhere — contract suite locks pure transport shape only
+- [Phase 71-fe-polish-clean]: Plan 71-02: In-memory localStorage shim required in tests — Node 25 experimental localStorage global overrides jsdom Storage; reinterpreted Test 4 to assert purge-block contract only (upstream lang line throws first)
 
 ### Cross-cutting hazards (hard gates)
 
@@ -306,6 +308,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:55:49.054Z
-**Stopped at:** Completed 71-03-PLAN.md
+**Last session:** 2026-04-25T08:56:32.962Z
+**Stopped at:** Completed 71-02-PLAN.md
 **Resume file:** None
