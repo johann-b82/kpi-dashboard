@@ -201,4 +201,83 @@ ensure_permission "b2222222-0004-4000-a000-000000000004" "directus_roles" "read"
 # Admin is handled by admin_access:true on the Admin policy (existing).
 log "section 5 complete: sales_records + personio_employees + directus_users + directus_roles Viewer-readable; no signage_* permissions for Viewer"
 
+# --- 6. Phase 68 MIG-SIGN-02: signage_schedules validation Flow ---
+# Filter Flow on items.create + items.update for signage_schedules. Throws a
+# JSON-encoded error containing the stable code "schedule_end_before_start"
+# when start_hhmm >= end_hhmm. The DB-level CHECK constraint
+# ck_signage_schedules_start_before_end (Alembic v1_23_signage_schedule_check)
+# is the source of truth; this Flow is the friendly-error layer between
+# Directus clients and the raw 23514 Postgres error, so the frontend can
+# map the code to an i18n key (Plan 68-05).
+#
+# Fixed UUIDs (idempotent re-runs, mirrors snapshot YAML documentation block):
+SCHEDULE_VALIDATE_FLOW_ID="68aaaaaa-0000-4000-8000-000000000001"
+SCHEDULE_VALIDATE_OP_ID="68aaaaaa-0000-4000-8000-000000000002"
+
+log "section 6: signage_schedules validation Flow"
+
+# 6a. Ensure the Run-Script operation exists.
+status=$(api GET "/operations/${SCHEDULE_VALIDATE_OP_ID}")
+if [ "$status" = "200" ]; then
+  log "schedule-validate operation exists (${SCHEDULE_VALIDATE_OP_ID}) — skipping"
+elif [ "$status" = "403" ] || [ "$status" = "404" ]; then
+  log "creating schedule-validate operation (${SCHEDULE_VALIDATE_OP_ID})"
+  # Heredoc-escape backticks and \\n via base64 to dodge JSON-in-JSON quoting.
+  SCHEDULE_VALIDATE_CODE='module.exports = async function ({ $trigger }) {\n  const payload = ($trigger && $trigger.payload) || {};\n  let start = payload.start_hhmm;\n  let end = payload.end_hhmm;\n  if ((typeof start !== "number" || typeof end !== "number") && Array.isArray($trigger.keys) && $trigger.keys.length) {\n    return;\n  }\n  if (typeof start === "number" && typeof end === "number" && start >= end) {\n    throw new Error(JSON.stringify({ code: "schedule_end_before_start" }));\n  }\n};'
+  status=$(api POST "/operations" "{
+    \"id\":\"${SCHEDULE_VALIDATE_OP_ID}\",
+    \"flow\":\"${SCHEDULE_VALIDATE_FLOW_ID}\",
+    \"name\":\"throw schedule_end_before_start\",
+    \"key\":\"validate_start_before_end\",
+    \"type\":\"exec\",
+    \"position_x\":19,
+    \"position_y\":17,
+    \"options\":{\"code\":\"${SCHEDULE_VALIDATE_CODE}\"}
+  }")
+  if [ "$status" != "200" ] && [ "$status" != "204" ]; then
+    log "ERROR: creating schedule-validate operation returned HTTP ${status}"
+    cat /tmp/api.body; exit 1
+  fi
+  log "schedule-validate operation created"
+else
+  log "ERROR: unexpected GET /operations status ${status}"
+  cat /tmp/api.body; exit 1
+fi
+
+# 6b. Ensure the Flow exists.
+# Trigger options: filter type, scope items.create + items.update,
+# collections [signage_schedules]. The operation field links to the op above.
+status=$(api GET "/flows/${SCHEDULE_VALIDATE_FLOW_ID}")
+if [ "$status" = "200" ]; then
+  log "schedule-validate flow exists (${SCHEDULE_VALIDATE_FLOW_ID}) — skipping"
+elif [ "$status" = "403" ] || [ "$status" = "404" ]; then
+  log "creating schedule-validate flow (${SCHEDULE_VALIDATE_FLOW_ID})"
+  status=$(api POST "/flows" "{
+    \"id\":\"${SCHEDULE_VALIDATE_FLOW_ID}\",
+    \"name\":\"signage_schedules validate start<end\",
+    \"icon\":\"fact_check\",
+    \"color\":\"#E35169\",
+    \"description\":\"Reject signage_schedules writes where start_hhmm >= end_hhmm with stable code 'schedule_end_before_start' before the Postgres CHECK fires.\",
+    \"status\":\"active\",
+    \"trigger\":\"event\",
+    \"accountability\":\"all\",
+    \"options\":{
+      \"type\":\"filter\",
+      \"scope\":[\"items.create\",\"items.update\"],
+      \"collections\":[\"signage_schedules\"]
+    },
+    \"operation\":\"${SCHEDULE_VALIDATE_OP_ID}\"
+  }")
+  if [ "$status" != "200" ] && [ "$status" != "204" ]; then
+    log "ERROR: creating schedule-validate flow returned HTTP ${status}"
+    cat /tmp/api.body; exit 1
+  fi
+  log "schedule-validate flow created"
+else
+  log "ERROR: unexpected GET /flows status ${status}"
+  cat /tmp/api.body; exit 1
+fi
+
+log "section 6 complete: signage_schedules Flow active — items.create / items.update guarded by schedule_end_before_start"
+
 log "Bootstrap complete."
