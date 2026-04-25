@@ -3,8 +3,10 @@ import { directus } from "@/lib/directusClient";
 import {
   readItems,
   createItem,
+  createItems,
   updateItem,
   deleteItem,
+  deleteItems,
 } from "@directus/sdk";
 import type {
   SignageTag,
@@ -67,6 +69,31 @@ export async function apiClientWithBody<T>(
   return body as T;
 }
 
+// Phase 69-03 (D-01): mirrors SignagePlaylistItemRead 8 fields.
+// Applied to every Directus playlist-items GET to keep payload shape stable.
+const PLAYLIST_ITEM_FIELDS = [
+  "id",
+  "playlist_id",
+  "media_id",
+  "position",
+  "duration_s",
+  "transition",
+  "created_at",
+  "updated_at",
+] as const;
+
+// Phase 69-03: mirrors SignagePlaylistRead minus derived tag_ids
+// (tag_ids is hydrated separately via signage_playlist_tag_map).
+const PLAYLIST_FIELDS = [
+  "id",
+  "name",
+  "description",
+  "priority",
+  "enabled",
+  "created_at",
+  "updated_at",
+] as const;
+
 // Phase 68-04 (D-07): field allowlist mirroring SignageSchedule (signageTypes.ts)
 // — applied to every Directus schedule request to keep payload shape stable.
 const SCHEDULE_FIELDS = [
@@ -110,35 +137,76 @@ export const signageApi = {
     apiClient<SignageMedia>(`/api/signage/media/${id}`),
   deleteMedia: (id: string) =>
     apiClientWithBody<null>(`/api/signage/media/${id}`, { method: "DELETE" }),
-  listPlaylists: () => apiClient<SignagePlaylist[]>("/api/signage/playlists"),
-  getPlaylist: (id: string) =>
-    apiClient<SignagePlaylist>(`/api/signage/playlists/${id}`),
-  // 46-05 — playlist mutations.
+  // Phase 69-03 (D-07, D-00g, D-01): playlist metadata + items GET swapped from
+  // FastAPI to Directus SDK. Public signatures unchanged so consumers
+  // (PlaylistsPage, PlaylistEditorPage, PlaylistEditDialog) continue to receive
+  // SignagePlaylist[] / SignagePlaylist with `tag_ids` populated. tag_ids is
+  // hydrated by a parallel readItems('signage_playlist_tag_map', ...) call
+  // (Option A: preserve consumer contract — PlaylistEditorPage reads
+  // data.playlist.tag_ids unconditionally).
   //
-  // Backend contract notes (verified against
-  // backend/app/routers/signage_admin/{playlists,playlist_items}.py):
-  //   - createPlaylist: POST body is SignagePlaylistCreate; the router calls
-  //     `payload.model_dump(exclude={"tag_ids"})`, so tags MUST be assigned
-  //     via replacePlaylistTags() AFTER create.
-  //   - updatePlaylist: PATCH (NOT PUT). Accepts only
-  //     {name, description, priority, enabled}; tags also flow through
-  //     replacePlaylistTags().
-  //   - replacePlaylistTags: PUT /playlists/{id}/tags — atomic bulk replace.
-  //   - bulkReplaceItems: PUT /playlists/{id}/items, body
-  //     { items: [{ media_id, position, duration_s, transition }] }.
-  //   - listPlaylistItems: GET /playlists/{id}/items — authoritative path
-  //     for editor item hydration (the GET /playlists/{id} response does
-  //     NOT include items).
+  // Surviving FastAPI surface (D-00 architectural lock):
+  //   - deletePlaylist: keeps apiClientWithBody to preserve the 409
+  //     `{detail, schedule_ids}` shape consumed by PlaylistDeleteDialog.
+  //   - bulkReplaceItems: keeps apiClient PUT for atomic DELETE+INSERT.
+  listPlaylists: async () => {
+    const [rows, map] = await Promise.all([
+      directus.request(
+        readItems("signage_playlists", {
+          fields: [...PLAYLIST_FIELDS],
+          sort: ["name"],
+          limit: -1,
+        }),
+      ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
+      directus.request(
+        readItems("signage_playlist_tag_map", {
+          fields: ["playlist_id", "tag_id"],
+          limit: -1,
+        }),
+      ) as Promise<{ playlist_id: string; tag_id: number }[]>,
+    ]);
+    const byPid = new Map<string, number[]>();
+    for (const m of map) {
+      const arr = byPid.get(m.playlist_id) ?? [];
+      arr.push(m.tag_id);
+      byPid.set(m.playlist_id, arr);
+    }
+    return rows.map(
+      (r) => ({ ...r, tag_ids: byPid.get(r.id) ?? [] }) as SignagePlaylist,
+    );
+  },
+  getPlaylist: async (id: string) => {
+    const [row, tagRows] = await Promise.all([
+      directus.request(
+        readItems("signage_playlists", {
+          filter: { id: { _eq: id } },
+          fields: [...PLAYLIST_FIELDS],
+          limit: 1,
+        }),
+      ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
+      directus.request(
+        readItems("signage_playlist_tag_map", {
+          filter: { playlist_id: { _eq: id } },
+          fields: ["tag_id"],
+          limit: -1,
+        }),
+      ) as Promise<{ tag_id: number }[]>,
+    ]);
+    if (!row.length) throw new Error(`Playlist ${id} not found`);
+    return {
+      ...row[0],
+      tag_ids: tagRows.map((t) => t.tag_id),
+    } as SignagePlaylist;
+  },
   createPlaylist: (body: {
     name: string;
     description?: string | null;
     priority?: number;
     enabled?: boolean;
   }) =>
-    apiClient<SignagePlaylist>("/api/signage/playlists", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+    directus.request(
+      createItem("signage_playlists", body, { fields: [...PLAYLIST_FIELDS] }),
+    ) as Promise<SignagePlaylist>,
   updatePlaylist: (
     id: string,
     body: {
@@ -148,13 +216,15 @@ export const signageApi = {
       enabled?: boolean;
     },
   ) =>
-    apiClient<SignagePlaylist>(`/api/signage/playlists/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+    directus.request(
+      updateItem("signage_playlists", id, body, {
+        fields: [...PLAYLIST_FIELDS],
+      }),
+    ) as Promise<SignagePlaylist>,
   // Phase 52 D-13: uses apiClientWithBody so callers can read the 409
   // response body { detail, schedule_ids } when a playlist is blocked by
   // active schedules (FK RESTRICT from signage_schedules.playlist_id).
+  // PRESERVED: D-00 architectural lock — DELETE stays in FastAPI.
   deletePlaylist: (id: string) =>
     apiClientWithBody<null>(`/api/signage/playlists/${id}`, {
       method: "DELETE",
@@ -165,9 +235,14 @@ export const signageApi = {
       body: JSON.stringify({ tag_ids }),
     }),
   listPlaylistItems: (id: string) =>
-    apiClient<SignagePlaylistItem[]>(
-      `/api/signage/playlists/${id}/items`,
-    ),
+    directus.request(
+      readItems("signage_playlist_items", {
+        filter: { playlist_id: { _eq: id } },
+        fields: [...PLAYLIST_ITEM_FIELDS],
+        sort: ["position"],
+        limit: -1,
+      }),
+    ) as Promise<SignagePlaylistItem[]>,
   bulkReplaceItems: (
     id: string,
     items: Array<{
