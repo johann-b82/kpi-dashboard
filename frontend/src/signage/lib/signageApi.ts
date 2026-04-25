@@ -1,4 +1,11 @@
 import { apiClient, getAccessToken } from "@/lib/apiClient";
+import { directus } from "@/lib/directusClient";
+import {
+  readItems,
+  createItem,
+  updateItem,
+  deleteItem,
+} from "@directus/sdk";
 import type {
   SignageTag,
   SignageMedia,
@@ -63,12 +70,27 @@ export async function apiClientWithBody<T>(
 // Typed GETs — reused by primitives + sub-pages. Use apiClient (not
 // apiClientWithBody) for anything that does NOT need 409-body extraction.
 export const signageApi = {
-  listTags: () => apiClient<SignageTag[]>("/api/signage/tags"),
+  // Phase 68-04 (D-04, D-07): Tag CRUD swapped from FastAPI to Directus SDK.
+  // Collection name is `signage_device_tags` (verified directus/snapshots/v1.22.yaml),
+  // NOT `signage_tags`. Public signatures unchanged (D-00g).
+  listTags: () =>
+    directus.request(
+      readItems("signage_device_tags", {
+        fields: ["id", "name"],
+        sort: ["id"],
+        limit: -1,
+      }),
+    ) as Promise<SignageTag[]>,
   createTag: (name: string) =>
-    apiClient<SignageTag>("/api/signage/tags", {
-      method: "POST",
-      body: JSON.stringify({ name }),
-    }),
+    directus.request(
+      createItem("signage_device_tags", { name }, { fields: ["id", "name"] }),
+    ) as Promise<SignageTag>,
+  updateTag: (id: number, name: string) =>
+    directus.request(
+      updateItem("signage_device_tags", id, { name }, { fields: ["id", "name"] }),
+    ) as Promise<SignageTag>,
+  deleteTag: (id: number) =>
+    directus.request(deleteItem("signage_device_tags", id)) as Promise<null>,
   listMedia: () => apiClient<SignageMedia[]>("/api/signage/media"),
   getMedia: (id: string) =>
     apiClient<SignageMedia>(`/api/signage/media/${id}`),
