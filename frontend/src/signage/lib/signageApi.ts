@@ -1,5 +1,6 @@
 import { apiClient, getAccessToken } from "@/lib/apiClient";
 import { directus } from "@/lib/directusClient";
+import { toApiError } from "@/lib/toApiError";
 import {
   readItems,
   createItem,
@@ -127,33 +128,64 @@ const SCHEDULE_FIELDS = [
 
 // Typed GETs — reused by primitives + sub-pages. Use apiClient (not
 // apiClientWithBody) for anything that does NOT need 409-body extraction.
+//
+// Phase 71-01 (FE-04, D-03): every adapter function wraps its Directus SDK
+// or apiClient call in try { ... } catch (e) { throw toApiError(e); } to
+// normalize Directus plain-object throws into ApiErrorWithBody. Public TYPE
+// signatures are unchanged (still Promise<T>) — D-00e preserved.
 export const signageApi = {
   // Phase 68-04 (D-04, D-07): Tag CRUD swapped from FastAPI to Directus SDK.
   // Collection name is `signage_device_tags` (verified directus/snapshots/v1.22.yaml),
   // NOT `signage_tags`. Public signatures unchanged (D-00g).
-  listTags: () =>
-    directus.request(
-      readItems("signage_device_tags", {
-        fields: ["id", "name"],
-        sort: ["id"],
-        limit: -1,
-      }),
-    ) as Promise<SignageTag[]>,
-  createTag: (name: string) =>
-    directus.request(
-      createItem("signage_device_tags", { name }, { fields: ["id", "name"] }),
-    ) as Promise<SignageTag>,
-  updateTag: (id: number, name: string) =>
-    directus.request(
-      updateItem("signage_device_tags", id, { name }, { fields: ["id", "name"] }),
-    ) as Promise<SignageTag>,
-  deleteTag: (id: number) =>
-    directus.request(deleteItem("signage_device_tags", id)) as Promise<null>,
-  listMedia: () => apiClient<SignageMedia[]>("/api/signage/media"),
-  getMedia: (id: string) =>
-    apiClient<SignageMedia>(`/api/signage/media/${id}`),
-  deleteMedia: (id: string) =>
-    apiClientWithBody<null>(`/api/signage/media/${id}`, { method: "DELETE" }),
+  listTags: async (): Promise<SignageTag[]> => {
+    try {
+      return (await directus.request(
+        readItems("signage_device_tags", {
+          fields: ["id", "name"],
+          sort: ["id"],
+          limit: -1,
+        }),
+      )) as SignageTag[];
+    } catch (e) { throw toApiError(e); }
+  },
+  createTag: async (name: string): Promise<SignageTag> => {
+    try {
+      return (await directus.request(
+        createItem("signage_device_tags", { name }, { fields: ["id", "name"] }),
+      )) as SignageTag;
+    } catch (e) { throw toApiError(e); }
+  },
+  updateTag: async (id: number, name: string): Promise<SignageTag> => {
+    try {
+      return (await directus.request(
+        updateItem("signage_device_tags", id, { name }, { fields: ["id", "name"] }),
+      )) as SignageTag;
+    } catch (e) { throw toApiError(e); }
+  },
+  deleteTag: async (id: number): Promise<null> => {
+    try {
+      return (await directus.request(
+        deleteItem("signage_device_tags", id),
+      )) as null;
+    } catch (e) { throw toApiError(e); }
+  },
+  listMedia: async (): Promise<SignageMedia[]> => {
+    try {
+      return await apiClient<SignageMedia[]>("/api/signage/media");
+    } catch (e) { throw toApiError(e); }
+  },
+  getMedia: async (id: string): Promise<SignageMedia> => {
+    try {
+      return await apiClient<SignageMedia>(`/api/signage/media/${id}`);
+    } catch (e) { throw toApiError(e); }
+  },
+  deleteMedia: async (id: string): Promise<null> => {
+    try {
+      return await apiClientWithBody<null>(`/api/signage/media/${id}`, {
+        method: "DELETE",
+      });
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 69-03 (D-07, D-00g, D-01): playlist metadata + items GET swapped from
   // FastAPI to Directus SDK. Public signatures unchanged so consumers
   // (PlaylistsPage, PlaylistEditorPage, PlaylistEditDialog) continue to receive
@@ -166,65 +198,75 @@ export const signageApi = {
   //   - deletePlaylist: keeps apiClientWithBody to preserve the 409
   //     `{detail, schedule_ids}` shape consumed by PlaylistDeleteDialog.
   //   - bulkReplaceItems: keeps apiClient PUT for atomic DELETE+INSERT.
-  listPlaylists: async () => {
-    const [rows, map] = await Promise.all([
-      directus.request(
-        readItems("signage_playlists", {
-          fields: [...PLAYLIST_FIELDS],
-          sort: ["name"],
-          limit: -1,
-        }),
-      ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
-      directus.request(
-        readItems("signage_playlist_tag_map", {
-          fields: ["playlist_id", "tag_id"],
-          limit: -1,
-        }),
-      ) as Promise<{ playlist_id: string; tag_id: number }[]>,
-    ]);
-    const byPid = new Map<string, number[]>();
-    for (const m of map) {
-      const arr = byPid.get(m.playlist_id) ?? [];
-      arr.push(m.tag_id);
-      byPid.set(m.playlist_id, arr);
-    }
-    return rows.map(
-      (r) => ({ ...r, tag_ids: byPid.get(r.id) ?? [] }) as SignagePlaylist,
-    );
+  //
+  // Phase 71-01: composite reads wrap the OUTER awaited expression in one
+  // try/catch so the first thrower normalizes the whole call.
+  listPlaylists: async (): Promise<SignagePlaylist[]> => {
+    try {
+      const [rows, map] = await Promise.all([
+        directus.request(
+          readItems("signage_playlists", {
+            fields: [...PLAYLIST_FIELDS],
+            sort: ["name"],
+            limit: -1,
+          }),
+        ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
+        directus.request(
+          readItems("signage_playlist_tag_map", {
+            fields: ["playlist_id", "tag_id"],
+            limit: -1,
+          }),
+        ) as Promise<{ playlist_id: string; tag_id: number }[]>,
+      ]);
+      const byPid = new Map<string, number[]>();
+      for (const m of map) {
+        const arr = byPid.get(m.playlist_id) ?? [];
+        arr.push(m.tag_id);
+        byPid.set(m.playlist_id, arr);
+      }
+      return rows.map(
+        (r) => ({ ...r, tag_ids: byPid.get(r.id) ?? [] }) as SignagePlaylist,
+      );
+    } catch (e) { throw toApiError(e); }
   },
-  getPlaylist: async (id: string) => {
-    const [row, tagRows] = await Promise.all([
-      directus.request(
-        readItems("signage_playlists", {
-          filter: { id: { _eq: id } },
-          fields: [...PLAYLIST_FIELDS],
-          limit: 1,
-        }),
-      ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
-      directus.request(
-        readItems("signage_playlist_tag_map", {
-          filter: { playlist_id: { _eq: id } },
-          fields: ["tag_id"],
-          limit: -1,
-        }),
-      ) as Promise<{ tag_id: number }[]>,
-    ]);
-    if (!row.length) throw new Error(`Playlist ${id} not found`);
-    return {
-      ...row[0],
-      tag_ids: tagRows.map((t) => t.tag_id),
-    } as SignagePlaylist;
+  getPlaylist: async (id: string): Promise<SignagePlaylist> => {
+    try {
+      const [row, tagRows] = await Promise.all([
+        directus.request(
+          readItems("signage_playlists", {
+            filter: { id: { _eq: id } },
+            fields: [...PLAYLIST_FIELDS],
+            limit: 1,
+          }),
+        ) as Promise<Omit<SignagePlaylist, "tag_ids" | "tags">[]>,
+        directus.request(
+          readItems("signage_playlist_tag_map", {
+            filter: { playlist_id: { _eq: id } },
+            fields: ["tag_id"],
+            limit: -1,
+          }),
+        ) as Promise<{ tag_id: number }[]>,
+      ]);
+      if (!row.length) throw new Error(`Playlist ${id} not found`);
+      return {
+        ...row[0],
+        tag_ids: tagRows.map((t) => t.tag_id),
+      } as SignagePlaylist;
+    } catch (e) { throw toApiError(e); }
   },
-  createPlaylist: (body: {
+  createPlaylist: async (body: {
     name: string;
     description?: string | null;
     priority?: number;
     enabled?: boolean;
-  }) =>
-    directus.request(
-      createItem("signage_playlists", body, { fields: [...PLAYLIST_FIELDS] }),
-    ) as Promise<SignagePlaylist>,
-  updatePlaylist: (
+  }): Promise<SignagePlaylist> => {
+    try {
+      return (await directus.request(
+        createItem("signage_playlists", body, { fields: [...PLAYLIST_FIELDS] }),
+      )) as SignagePlaylist;
+    } catch (e) { throw toApiError(e); }
+  },
+  updatePlaylist: async (
     id: string,
     body: {
       name?: string;
@@ -232,20 +274,28 @@ export const signageApi = {
       priority?: number;
       enabled?: boolean;
     },
-  ) =>
-    directus.request(
-      updateItem("signage_playlists", id, body, {
-        fields: [...PLAYLIST_FIELDS],
-      }),
-    ) as Promise<SignagePlaylist>,
+  ): Promise<SignagePlaylist> => {
+    try {
+      return (await directus.request(
+        updateItem("signage_playlists", id, body, {
+          fields: [...PLAYLIST_FIELDS],
+        }),
+      )) as SignagePlaylist;
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 52 D-13: uses apiClientWithBody so callers can read the 409
   // response body { detail, schedule_ids } when a playlist is blocked by
   // active schedules (FK RESTRICT from signage_schedules.playlist_id).
   // PRESERVED: D-00 architectural lock — DELETE stays in FastAPI.
-  deletePlaylist: (id: string) =>
-    apiClientWithBody<null>(`/api/signage/playlists/${id}`, {
-      method: "DELETE",
-    }),
+  // Phase 71-01: toApiError is a pass-through for ApiErrorWithBody already
+  // thrown by apiClientWithBody, so wrapping is safe + idempotent.
+  deletePlaylist: async (id: string): Promise<null> => {
+    try {
+      return await apiClientWithBody<null>(`/api/signage/playlists/${id}`, {
+        method: "DELETE",
+      });
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 69-03 (D-02): FE-driven diff against signage_playlist_tag_map.
   // Read existing rows, compute toAdd/toRemove sets, fire concurrent
   // deleteItems + createItems via Promise.all (D-02a). signage_playlist_tag_map
@@ -255,52 +305,60 @@ export const signageApi = {
   // Each map-row mutation fires a `playlist-changed` SSE via the Phase 65
   // trigger; FE deduplicates downstream (no consumer change needed — D-02b).
   // Return shape unchanged (D-00g): `{ tag_ids: number[] }` — the new desired set.
-  replacePlaylistTags: async (id: string, tag_ids: number[]) => {
-    const existing = (await directus.request(
-      readItems("signage_playlist_tag_map", {
-        filter: { playlist_id: { _eq: id } },
-        fields: ["tag_id"],
-        limit: -1,
-      }),
-    )) as { tag_id: number }[];
-    const existingTagIds = new Set(existing.map((r) => r.tag_id));
-    const desiredTagIds = new Set(tag_ids);
-    const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
-    const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
-    await Promise.all([
-      toRemove.length > 0
-        ? directus.request(
-            deleteItems("signage_playlist_tag_map", {
-              filter: {
-                _and: [
-                  { playlist_id: { _eq: id } },
-                  { tag_id: { _in: toRemove } },
-                ],
-              },
-            }),
-          )
-        : Promise.resolve(),
-      toAdd.length > 0
-        ? directus.request(
-            createItems(
-              "signage_playlist_tag_map",
-              toAdd.map((tagId) => ({ playlist_id: id, tag_id: tagId })),
-            ),
-          )
-        : Promise.resolve(),
-    ]);
-    return { tag_ids } as { tag_ids: number[] };
+  replacePlaylistTags: async (
+    id: string,
+    tag_ids: number[],
+  ): Promise<{ tag_ids: number[] }> => {
+    try {
+      const existing = (await directus.request(
+        readItems("signage_playlist_tag_map", {
+          filter: { playlist_id: { _eq: id } },
+          fields: ["tag_id"],
+          limit: -1,
+        }),
+      )) as { tag_id: number }[];
+      const existingTagIds = new Set(existing.map((r) => r.tag_id));
+      const desiredTagIds = new Set(tag_ids);
+      const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
+      const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
+      await Promise.all([
+        toRemove.length > 0
+          ? directus.request(
+              deleteItems("signage_playlist_tag_map", {
+                filter: {
+                  _and: [
+                    { playlist_id: { _eq: id } },
+                    { tag_id: { _in: toRemove } },
+                  ],
+                },
+              }),
+            )
+          : Promise.resolve(),
+        toAdd.length > 0
+          ? directus.request(
+              createItems(
+                "signage_playlist_tag_map",
+                toAdd.map((tagId) => ({ playlist_id: id, tag_id: tagId })),
+              ),
+            )
+          : Promise.resolve(),
+      ]);
+      return { tag_ids } as { tag_ids: number[] };
+    } catch (e) { throw toApiError(e); }
   },
-  listPlaylistItems: (id: string) =>
-    directus.request(
-      readItems("signage_playlist_items", {
-        filter: { playlist_id: { _eq: id } },
-        fields: [...PLAYLIST_ITEM_FIELDS],
-        sort: ["position"],
-        limit: -1,
-      }),
-    ) as Promise<SignagePlaylistItem[]>,
-  bulkReplaceItems: (
+  listPlaylistItems: async (id: string): Promise<SignagePlaylistItem[]> => {
+    try {
+      return (await directus.request(
+        readItems("signage_playlist_items", {
+          filter: { playlist_id: { _eq: id } },
+          fields: [...PLAYLIST_ITEM_FIELDS],
+          sort: ["position"],
+          limit: -1,
+        }),
+      )) as SignagePlaylistItem[];
+    } catch (e) { throw toApiError(e); }
+  },
+  bulkReplaceItems: async (
     id: string,
     items: Array<{
       media_id: string;
@@ -308,65 +366,93 @@ export const signageApi = {
       duration_s: number;
       transition: string | null;
     }>,
-  ) =>
-    apiClient<SignagePlaylistItem[]>(
-      `/api/signage/playlists/${id}/items`,
-      { method: "PUT", body: JSON.stringify({ items }) },
-    ),
+  ): Promise<SignagePlaylistItem[]> => {
+    try {
+      return await apiClient<SignagePlaylistItem[]>(
+        `/api/signage/playlists/${id}/items`,
+        { method: "PUT", body: JSON.stringify({ items }) },
+      );
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 70-03 (D-00g, D-04): listDevices reads from Directus signage_devices.
   // current_playlist_id / current_playlist_name / tag_ids are populated
   // client-side by DevicesPage's useQueries merge against
   // getResolvedForDevice — they are computed fields with no Directus column
   // (D-04 / D-04a — no rename to resolved_*).
-  listDevices: () =>
-    directus.request(
-      readItems("signage_devices", {
-        fields: [...DEVICE_FIELDS],
-        sort: ["created_at"],
-        limit: -1,
-      }),
-    ) as Promise<SignageDevice[]>,
+  listDevices: async (): Promise<SignageDevice[]> => {
+    try {
+      return (await directus.request(
+        readItems("signage_devices", {
+          fields: [...DEVICE_FIELDS],
+          sort: ["created_at"],
+          limit: -1,
+        }),
+      )) as SignageDevice[];
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 70-03: per-device row read (matches old GET /api/signage/devices/{id}).
-  getDevice: async (id: string) => {
-    const rows = (await directus.request(
-      readItems("signage_devices", {
-        filter: { id: { _eq: id } },
-        fields: [...DEVICE_FIELDS],
-        limit: 1,
-      }),
-    )) as SignageDevice[];
-    if (!rows.length) throw new Error(`Device ${id} not found`);
-    return rows[0];
+  getDevice: async (id: string): Promise<SignageDevice> => {
+    try {
+      const rows = (await directus.request(
+        readItems("signage_devices", {
+          filter: { id: { _eq: id } },
+          fields: [...DEVICE_FIELDS],
+          limit: 1,
+        }),
+      )) as SignageDevice[];
+      if (!rows.length) throw new Error(`Device ${id} not found`);
+      return rows[0];
+    } catch (e) { throw toApiError(e); }
   },
   // Phase 70-03 (D-01, D-02): per-device resolved playlist + tag_ids from
   // FastAPI compute endpoint. Used by DevicesPage useQueries to merge with
   // Directus row data; field names align with SignageDevice extras so the
   // merge is `{...row, ...resolved}` with zero rename.
-  getResolvedForDevice: (id: string) =>
-    apiClient<{
-      current_playlist_id: string | null;
-      current_playlist_name: string | null;
-      tag_ids: number[] | null;
-    }>(`/api/signage/resolved/${id}`),
+  getResolvedForDevice: async (
+    id: string,
+  ): Promise<{
+    current_playlist_id: string | null;
+    current_playlist_name: string | null;
+    tag_ids: number[] | null;
+  }> => {
+    try {
+      return await apiClient<{
+        current_playlist_id: string | null;
+        current_playlist_name: string | null;
+        tag_ids: number[] | null;
+      }>(`/api/signage/resolved/${id}`);
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 53 SGN-ANA-01 — Analytics-lite. Separate query from listDevices
   // so the two data streams can poll/invalidate independently (D-11).
   // Backend: backend/app/routers/signage_admin/analytics.py
-  listDeviceAnalytics: () =>
-    apiClient<SignageDeviceAnalytics[]>("/api/signage/analytics/devices"),
+  listDeviceAnalytics: async (): Promise<SignageDeviceAnalytics[]> => {
+    try {
+      return await apiClient<SignageDeviceAnalytics[]>(
+        "/api/signage/analytics/devices",
+      );
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 70-03 (D-00g): updateDevice's name PATCH swaps to Directus
   // updateItem. Public signature unchanged: still accepts {name, tag_ids}
   // for ergonomic call sites (DeviceEditDialog), but only forwards `name`
   // here — the caller sequences this with replaceDeviceTags(id, tag_ids)
   // (research Open Question 2: keep PATCH-then-PUT sequenced).
-  updateDevice: (id: string, body: { name?: string; tag_ids?: number[] }) =>
-    directus.request(
-      updateItem(
-        "signage_devices",
-        id,
-        { name: body.name },
-        { fields: [...DEVICE_FIELDS] },
-      ),
-    ) as Promise<SignageDevice>,
+  updateDevice: async (
+    id: string,
+    body: { name?: string; tag_ids?: number[] },
+  ): Promise<SignageDevice> => {
+    try {
+      return (await directus.request(
+        updateItem(
+          "signage_devices",
+          id,
+          { name: body.name },
+          { fields: [...DEVICE_FIELDS] },
+        ),
+      )) as SignageDevice;
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 70-03 (D-03, D-03d): FE-driven diff against signage_device_tag_map.
   // IDENTICAL shape to replacePlaylistTags so Phase 71 FE-01 can extract a
   // shared replaceTagMap util mechanically. Composite PK (device_id, tag_id)
@@ -375,100 +461,144 @@ export const signageApi = {
   // listener mapping (signage_pg_listen.py:86-88 — NOT playlist-changed,
   // research Pitfall 1 corrects CONTEXT D-03b). Multi-event tolerance
   // (D-03b — assert at-least-once, not exactly-once).
-  replaceDeviceTags: async (id: string, tag_ids: number[]) => {
-    const existing = (await directus.request(
-      readItems("signage_device_tag_map", {
-        filter: { device_id: { _eq: id } },
-        fields: ["tag_id"],
-        limit: -1,
-      }),
-    )) as { tag_id: number }[];
-    const existingTagIds = new Set(existing.map((r) => r.tag_id));
-    const desiredTagIds = new Set(tag_ids);
-    const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
-    const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
-    await Promise.all([
-      toRemove.length > 0
-        ? directus.request(
-            deleteItems("signage_device_tag_map", {
-              filter: {
-                _and: [
-                  { device_id: { _eq: id } },
-                  { tag_id: { _in: toRemove } },
-                ],
-              },
-            }),
-          )
-        : Promise.resolve(),
-      toAdd.length > 0
-        ? directus.request(
-            createItems(
-              "signage_device_tag_map",
-              toAdd.map((tagId) => ({ device_id: id, tag_id: tagId })),
-            ),
-          )
-        : Promise.resolve(),
-    ]);
-    return { tag_ids } as { tag_ids: number[] };
+  replaceDeviceTags: async (
+    id: string,
+    tag_ids: number[],
+  ): Promise<{ tag_ids: number[] }> => {
+    try {
+      const existing = (await directus.request(
+        readItems("signage_device_tag_map", {
+          filter: { device_id: { _eq: id } },
+          fields: ["tag_id"],
+          limit: -1,
+        }),
+      )) as { tag_id: number }[];
+      const existingTagIds = new Set(existing.map((r) => r.tag_id));
+      const desiredTagIds = new Set(tag_ids);
+      const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
+      const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
+      await Promise.all([
+        toRemove.length > 0
+          ? directus.request(
+              deleteItems("signage_device_tag_map", {
+                filter: {
+                  _and: [
+                    { device_id: { _eq: id } },
+                    { tag_id: { _in: toRemove } },
+                  ],
+                },
+              }),
+            )
+          : Promise.resolve(),
+        toAdd.length > 0
+          ? directus.request(
+              createItems(
+                "signage_device_tag_map",
+                toAdd.map((tagId) => ({ device_id: id, tag_id: tagId })),
+              ),
+            )
+          : Promise.resolve(),
+      ]);
+      return { tag_ids } as { tag_ids: number[] };
+    } catch (e) { throw toApiError(e); }
   },
   // Phase 70-03: Directus DELETE on signage_devices. Currently no UI
   // consumer (the visible "Revoke" CTA flips revoked_at via the pair
   // router — see revokeDevice below). Provided for parity with the
   // migrated route surface and for any future hard-delete UI.
-  deleteDevice: (id: string) =>
-    directus.request(deleteItem("signage_devices", id)) as Promise<null>,
+  deleteDevice: async (id: string): Promise<null> => {
+    try {
+      return (await directus.request(
+        deleteItem("signage_devices", id),
+      )) as null;
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 62 — CAL-UI-03. PATCH /api/signage/devices/{id}/calibration. Body is
   // partial; backend applies only provided fields (exclude_unset=True) and
   // emits a `calibration-changed` SSE event. Returns the updated device so the
   // admin UI can reconcile without a second GET (backend returns
   // SignageDeviceRead with resolved playlist + tags). 422 on invalid rotation.
-  updateDeviceCalibration: (
+  updateDeviceCalibration: async (
     id: string,
     body: Partial<{
       rotation: 0 | 90 | 180 | 270;
       hdmi_mode: string | null;
       audio_enabled: boolean;
     }>,
-  ) =>
-    apiClient<SignageDevice>(`/api/signage/devices/${id}/calibration`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+  ): Promise<SignageDevice> => {
+    try {
+      return await apiClient<SignageDevice>(
+        `/api/signage/devices/${id}/calibration`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        },
+      );
+    } catch (e) { throw toApiError(e); }
+  },
   // Revoke lives on the pair router per backend/app/routers/signage_pair.py
   // (`POST /api/signage/pair/devices/{device_id}/revoke`).
-  revokeDevice: (id: string) =>
-    apiClient<null>(`/api/signage/pair/devices/${id}/revoke`, {
-      method: "POST",
-    }),
-  claimPairingCode: (body: {
+  revokeDevice: async (id: string): Promise<null> => {
+    try {
+      return await apiClient<null>(
+        `/api/signage/pair/devices/${id}/revoke`,
+        { method: "POST" },
+      );
+    } catch (e) { throw toApiError(e); }
+  },
+  claimPairingCode: async (body: {
     code: string;
     device_name: string;
     tag_ids: number[] | null;
-  }) =>
-    apiClient<null>("/api/signage/pair/claim", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+  }): Promise<null> => {
+    try {
+      return await apiClient<null>("/api/signage/pair/claim", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    } catch (e) { throw toApiError(e); }
+  },
   // Phase 68-04 (D-07): Schedule CRUD swapped from FastAPI to Directus SDK.
   // Sort matches FastAPI's prior contract (priority desc, updated_at desc).
   // Inverted-range writes surface as DirectusError carrying the validation
   // hook's i18n key (Plan 02). Public signatures unchanged (D-00g).
-  listSchedules: () =>
-    directus.request(
-      readItems("signage_schedules", {
-        fields: [...SCHEDULE_FIELDS],
-        sort: ["-priority", "-updated_at"],
-        limit: -1,
-      }),
-    ) as Promise<SignageSchedule[]>,
-  createSchedule: (body: SignageScheduleCreate) =>
-    directus.request(
-      createItem("signage_schedules", body, { fields: [...SCHEDULE_FIELDS] }),
-    ) as Promise<SignageSchedule>,
-  updateSchedule: (id: string, body: SignageScheduleUpdate) =>
-    directus.request(
-      updateItem("signage_schedules", id, body, { fields: [...SCHEDULE_FIELDS] }),
-    ) as Promise<SignageSchedule>,
-  deleteSchedule: (id: string) =>
-    directus.request(deleteItem("signage_schedules", id)) as Promise<null>,
+  listSchedules: async (): Promise<SignageSchedule[]> => {
+    try {
+      return (await directus.request(
+        readItems("signage_schedules", {
+          fields: [...SCHEDULE_FIELDS],
+          sort: ["-priority", "-updated_at"],
+          limit: -1,
+        }),
+      )) as SignageSchedule[];
+    } catch (e) { throw toApiError(e); }
+  },
+  createSchedule: async (
+    body: SignageScheduleCreate,
+  ): Promise<SignageSchedule> => {
+    try {
+      return (await directus.request(
+        createItem("signage_schedules", body, { fields: [...SCHEDULE_FIELDS] }),
+      )) as SignageSchedule;
+    } catch (e) { throw toApiError(e); }
+  },
+  updateSchedule: async (
+    id: string,
+    body: SignageScheduleUpdate,
+  ): Promise<SignageSchedule> => {
+    try {
+      return (await directus.request(
+        updateItem("signage_schedules", id, body, {
+          fields: [...SCHEDULE_FIELDS],
+        }),
+      )) as SignageSchedule;
+    } catch (e) { throw toApiError(e); }
+  },
+  deleteSchedule: async (id: string): Promise<null> => {
+    try {
+      return (await directus.request(
+        deleteItem("signage_schedules", id),
+      )) as null;
+    } catch (e) { throw toApiError(e); }
+  },
 };

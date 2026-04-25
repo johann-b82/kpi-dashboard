@@ -1,0 +1,1 @@
+- [Plan 71-01] Pre-existing test failures in `frontend/src/components/ui/toggle.test.tsx` (8 failed — ResizeObserver missing in jsdom env) and `frontend/tests/e2e/rebuild-persistence.spec.ts` (Playwright e2e suite, not run under vitest). Confirmed pre-existing via git stash diff. Out of scope for FE-04.
