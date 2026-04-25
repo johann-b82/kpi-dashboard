@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 70-06-ci-grep-guard-PLAN.md
-last_updated: "2026-04-25T07:48:39.252Z"
+stopped_at: Completed 70-05-sse-tests-and-triage-PLAN.md
+last_updated: "2026-04-25T07:52:53.503Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 32
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 70 (mig-sign-devices) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -213,6 +213,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 70 P03 | 80s | 1 tasks | 1 files |
 | Phase 70 P02 | 2m | 1 tasks | 1 files |
 | Phase 70-mig-sign-devices P06 | 2m | 1 tasks | 1 files |
+| Phase 70 P05 | 4m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -252,6 +253,8 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 70]: Plan 70-03: replaceDeviceTags mirrors replacePlaylistTags verbatim (D-03d) — composite-PK signage_device_tag_map deleteItems via query/filter form; revokeDevice STAYS on FastAPI pair router (Open Question 1: revoked_at flag != row delete).
 - [Phase 70]: Plan 70-02: Inlined _attach_resolved_playlist logic into update_device_calibration to preserve v1.21 response shape (D-00j); _notify_device_self retained per D-03c despite no in-file caller (Phase 71 CLEAN will consolidate).
 - [Phase 70-mig-sign-devices]: Plan 70-06: Phase 70 device-route grep guard inserted after Phase 69 guard, pre-stack; two-grep design with suffix-anchored allow-list for calibration PATCH (Pitfall 3 fix); _notify_device_self helper intentionally not guarded per D-06c
+- [Phase 70]: Plan 70-05 D-09 deviation (Rule 1): added /api/signage/resolved/{id} to MUTATION_ROUTES (admin-gated) not READ_ROUTES — signage routes have always been admin-only via signage_admin/__init__.py router-level require_admin.
+- [Phase 70]: Plan 70-05: SSE test 3 (device_tag_map) marked xfail(strict=False) per Phase 69 Plan 06 lesson — composite-PK schema:null collection metadata gap; auto-passes once meta registered in Phase 71 CLEAN.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -297,6 +300,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T07:48:39.249Z
-**Stopped at:** Completed 70-06-ci-grep-guard-PLAN.md
+**Last session:** 2026-04-25T07:52:53.500Z
+**Stopped at:** Completed 70-05-sse-tests-and-triage-PLAN.md
 **Resume file:** None
