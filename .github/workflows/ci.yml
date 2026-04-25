@@ -203,6 +203,69 @@ jobs:
           echo "Phase 70 device-route guard: clean"
 
       # -----------------------------------------------------------------------
+      # Phase 71 guard: DB_EXCLUDE_TABLES does not hide migrated Directus
+      # collections (CLEAN-04 / D-08). Pure-python pytest reads
+      # docker-compose.yml and asserts the migrated v1.22 collections set is
+      # disjoint from DB_EXCLUDE_TABLES — i.e. none of the 9 Directus-served
+      # collections may be re-added to the deny-list. Complementary to the
+      # post-stack `check_db_exclude_tables_superset.sh` (Guard C, never-expose
+      # superset). Pre-stack — runs in <1s alongside the other Phase 7x guards.
+      # NOT consolidated with the existing per-phase grep guards (D-09a).
+      # -----------------------------------------------------------------------
+      - name: 'Phase 71 guard: DB_EXCLUDE_TABLES does not hide migrated Directus collections (D-08)'
+        run: |
+          cd backend
+          pytest tests/test_db_exclude_tables_directus_collections.py -x -v
+
+      # -----------------------------------------------------------------------
+      # Phase 71 guard: SSE --workers 1 invariant comment preserved (CLEAN-04).
+      # Existing scripts/ci/check_workers_one_invariant.sh (Guard D, post-stack)
+      # asserts the literal `--workers 1` flag and a specific INVARIANT comment
+      # marker live in three locations. THIS step adds belt-and-suspenders
+      # rationale-comment preservation: a future PR that strips the explanatory
+      # prose around `--workers 1` (without removing the flag itself) would
+      # otherwise still pass Guard D's marker check. Here we re-verify, in the
+      # same per-phase shape as Phases 66–70 grep guards (no consolidation per
+      # D-09a), that EACH flag site retains an explanatory comment within 3
+      # lines of the `--workers 1` literal.
+      # -----------------------------------------------------------------------
+      - name: 'Phase 71 guard: SSE --workers 1 invariant comment preserved (CLEAN-04)'
+        run: |
+          set -euo pipefail
+          # Three flag-bearing sites — must mirror scripts/ci/check_workers_one_invariant.sh.
+          FILES=(
+            "docker-compose.yml"
+            "backend/app/services/signage_pg_listen.py"
+            "backend/app/services/signage_broadcast.py"
+          )
+          fail=0
+          for f in "${FILES[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "FAIL: $f not found"
+              fail=1
+              continue
+            fi
+            if ! grep -qE "workers 1" "$f"; then
+              echo "FAIL: $f — '--workers 1' literal missing"
+              fail=1
+              continue
+            fi
+            # Look for any explanatory comment within 3 lines of the flag.
+            # Accepts asyncpg / LISTEN / INVARIANT / single / SSE / scheduler /
+            # APScheduler / hazard rationale phrasing — all current sites match.
+            if ! grep -B3 -A3 "workers 1" "$f" \
+                | grep -qiE "(asyncpg|listen|invariant|single|SSE|scheduler|APScheduler|hazard)"; then
+              echo "FAIL: $f — '--workers 1' present but no explanatory comment within 3 lines"
+              echo "Add a comment near --workers 1 explaining the asyncpg/SSE/scheduler invariant."
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi
+          echo "OK: --workers 1 explanatory comment preserved in all 3 sites"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
