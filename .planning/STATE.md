@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 71-02-PLAN.md
-last_updated: "2026-04-25T08:56:32.965Z"
+stopped_at: Completed 71-04-openapi-snapshot-and-pytest-guards-PLAN.md
+last_updated: "2026-04-25T08:56:43.445Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 71 (fe-polish-clean) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -218,6 +218,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 71-fe-polish-clean P07 | 85s | 2 tasks | 4 files |
 | Phase 71 P03 | 90s | 1 tasks | 11 files |
 | Phase 71-fe-polish-clean P02 | 164s | 1 tasks | 2 files |
+| Phase 71 P04 | 154s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -263,6 +264,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 71-fe-polish-clean]: Plan 71-07: ADR-0001 records v1.22 Directus=shape/FastAPI=compute split; 4-digit zero-padded numbering; Settings deferred-not-decided in Consequences
 - [Phase 71]: Plan 71-03: readMe fixtures call directus.request(readMe(...)) directly; AuthContext/useCurrentUserProfile glue tested elsewhere — contract suite locks pure transport shape only
 - [Phase 71-fe-polish-clean]: Plan 71-02: In-memory localStorage shim required in tests — Node 25 experimental localStorage global overrides jsdom Storage; reinterpreted Test 4 to assert purge-block contract only (upstream lang line throws first)
+- [Phase 71]: Plan 71-04: OpenAPI baseline locked at 44 paths; DB_EXCLUDE_TABLES absent-from semantics enforced verbatim per D-08 (NOT superset)
 
 ### Cross-cutting hazards (hard gates)
 
@@ -308,6 +310,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:56:32.962Z
-**Stopped at:** Completed 71-02-PLAN.md
+**Last session:** 2026-04-25T08:56:43.442Z
+**Stopped at:** Completed 71-04-openapi-snapshot-and-pytest-guards-PLAN.md
 **Resume file:** None
