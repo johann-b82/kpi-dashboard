@@ -1343,3 +1343,77 @@ relations:
       foreign_key_table: signage_playlists
       foreign_key_column: id
       constraint_name: fk_signage_schedules_playlist_id
+
+# ---------------------------------------------------------------------------
+# Phase 68 MIG-SIGN-02: Directus Flow for friendly schedule validation error
+# ---------------------------------------------------------------------------
+# Source-of-truth deployment path: directus/bootstrap-roles.sh section 6 issues
+# the corresponding `POST /flows` and `POST /operations` REST calls (idempotent
+# GET-before-POST). Phase 65 established that mutation of policies/roles/
+# permissions/flows lives in the imperative bootstrap script — `directus
+# schema apply` is collections+fields+relations only.
+#
+# This declarative block is documentation: it lets grep + reviewers see the
+# Flow shape in one place, mirrors the fixed UUIDs used by the bootstrap
+# script, and keeps the snapshot YAML idempotent (Directus 11 schema apply
+# ignores unknown top-level keys; if a future Directus version begins
+# capturing flows in snapshots, switch this to a real `flows:` /
+# `operations:` section.)
+#
+# Trigger: items.create + items.update on signage_schedules.
+# Operation: Run-Script in sandbox throws JSON {code: "schedule_end_before_start"}
+# when start_hhmm >= end_hhmm. Frontend (Plan 05) maps the code to an i18n key.
+
+# flows:
+#   - id: 68aaaaaa-0000-4000-8000-000000000001
+#     name: signage_schedules validate start<end
+#     icon: fact_check
+#     color: "#E35169"
+#     description: >-
+#       Reject signage_schedules writes where start_hhmm >= end_hhmm with a
+#       stable error code "schedule_end_before_start" before they reach the
+#       Postgres CHECK ck_signage_schedules_start_before_end.
+#     status: active
+#     trigger: event
+#     accountability: all
+#     options:
+#       type: filter
+#       scope:
+#         - items.create
+#         - items.update
+#       collections:
+#         - signage_schedules
+#     operation: 68aaaaaa-0000-4000-8000-000000000002
+#
+# operations:
+#   - id: 68aaaaaa-0000-4000-8000-000000000002
+#     flow: 68aaaaaa-0000-4000-8000-000000000001
+#     name: throw schedule_end_before_start
+#     key: validate_start_before_end
+#     type: exec
+#     position_x: 19
+#     position_y: 17
+#     options:
+#       code: |
+#         module.exports = async function ({ $trigger }) {
+#           // $trigger.payload is the incoming write; $trigger.keys is the
+#           // updated row id list on update events. On items.update where
+#           // only one of (start_hhmm, end_hhmm) is in the payload, fetch
+#           // the existing values via $trigger.keys + accountability.
+#           const payload = ($trigger && $trigger.payload) || {};
+#           let start = payload.start_hhmm;
+#           let end = payload.end_hhmm;
+#           if ((typeof start !== 'number' || typeof end !== 'number')
+#               && Array.isArray($trigger.keys) && $trigger.keys.length) {
+#             // partial update: defer to DB CHECK as last line of defence;
+#             // this Flow can only enforce the friendly path when both
+#             // values are present in the payload merge.
+#             return;
+#           }
+#           if (typeof start === 'number' && typeof end === 'number'
+#               && start >= end) {
+#             throw new Error(
+#               JSON.stringify({ code: 'schedule_end_before_start' })
+#             );
+#           }
+#         };
