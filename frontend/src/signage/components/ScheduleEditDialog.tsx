@@ -78,6 +78,29 @@ type Touched = Partial<Record<FieldName, boolean>>;
 
 const INIT_WEEKDAYS: boolean[] = [false, false, false, false, false, false, false];
 
+/**
+ * Phase 68 Plan 05 (MIG-SIGN-02): Detects the Directus Flow validation error
+ * (code `schedule_end_before_start`) thrown server-side when start_hhmm >= end_hhmm
+ * is written outside the dialog's client-side validators (e.g. via the Directus
+ * Data Model UI or REST). Matches both the JSON-stringified Error.message shape
+ * (Plan 02 throws `new Error(JSON.stringify({ code }))`) AND the canonical
+ * Directus SDK error shape `{ errors: [{ extensions: { code } }] }`.
+ */
+function isScheduleEndBeforeStartError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("schedule_end_before_start")) return true;
+  if (err && typeof err === "object" && "errors" in err) {
+    const errs = (err as { errors?: Array<{ extensions?: { code?: string } }> })
+      .errors;
+    if (Array.isArray(errs)) {
+      return errs.some(
+        (e) => e?.extensions?.code === "schedule_end_before_start",
+      );
+    }
+  }
+  return false;
+}
+
 function validateAll(values: {
   playlist_id: string;
   weekdays: boolean[];
@@ -161,6 +184,14 @@ export function ScheduleEditDialog({
       onOpenChange(false);
     },
     onError: (err) => {
+      if (isScheduleEndBeforeStartError(err)) {
+        setErrors((prev) => ({
+          ...prev,
+          time: "signage.admin.schedules.error.start_after_end",
+        }));
+        setTouched((prev) => ({ ...prev, time: true }));
+        return;
+      }
       const detail = err instanceof Error ? err.message : String(err);
       toast.error(
         t("signage.admin.schedules.error.save_failed", { detail }),
@@ -177,6 +208,14 @@ export function ScheduleEditDialog({
       onOpenChange(false);
     },
     onError: (err) => {
+      if (isScheduleEndBeforeStartError(err)) {
+        setErrors((prev) => ({
+          ...prev,
+          time: "signage.admin.schedules.error.start_after_end",
+        }));
+        setTouched((prev) => ({ ...prev, time: true }));
+        return;
+      }
       const detail = err instanceof Error ? err.message : String(err);
       toast.error(
         t("signage.admin.schedules.error.save_failed", { detail }),

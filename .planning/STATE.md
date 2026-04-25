@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 68-04-frontend-signageapi-swap-PLAN.md
-last_updated: "2026-04-25T06:01:18.080Z"
+stopped_at: Completed 68-07-ci-grep-guard-PLAN.md
+last_updated: "2026-04-25T06:05:31.711Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 20
-  completed_plans: 14
+  completed_plans: 16
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 68 (mig-sign-tags-schedules) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -198,6 +198,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 67 P03 | 4m | 2 tasks | 2 files |
 | Phase 68 P01 | 59s | 2 tasks | 2 files |
 | Phase 68-mig-sign-tags-schedules P04 | 2m | 2 tasks | 1 files |
+| Phase 68-mig-sign-tags-schedules P07 | 38s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -223,6 +224,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 67]: Plan 67-03: fetchEmployees migrated to Directus readItems('personio_employees') with 9-field allowlist; date_from/date_to dropped from signature (D-15). useEmployeesWithOvertime composite hook merges Directus rows + FastAPI overtime via useMemo + Map; rows cache key namespaced ['directus', 'personio_employees', { search }] (Pitfall 4); overtime key ['employeesOvertime', date_from, date_to] — search edits don't refetch overtime.
 - [Phase 68]: [Phase 68-01]: Tags FastAPI router removal — D-04 scope only signage_tags collection routes; tag-map writes deferred to Phase 69/70. Test suite required no edits (RBAC matrix already had zero tag refs).
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-04: Used @/lib/directusClient (verified canonical singleton) over plan-text @/lib/directus; added updateTag+deleteTag (D-04 covers all 4 verbs, FastAPI tags surface gone); SCHEDULE_FIELDS allowlist constant centralizes payload shape
+- [Phase 68-mig-sign-tags-schedules]: Plan 68-07: Anchored grep regex (quote + quote-slash alternations) blocks /api/signage/tags + /api/signage/schedules without false-positive on Phase 69/70 nested /playlists/{id}/tags and /devices/{id}/tags paths.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -268,6 +270,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T06:01:09.663Z
-**Stopped at:** Completed 68-04-frontend-signageapi-swap-PLAN.md
+**Last session:** 2026-04-25T06:05:31.709Z
+**Stopped at:** Completed 68-07-ci-grep-guard-PLAN.md
 **Resume file:** None
