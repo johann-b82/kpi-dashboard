@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Phase 71 context gathered
-last_updated: "2026-04-25T08:08:41.971Z"
+stopped_at: Completed 71-07-PLAN.md
+last_updated: "2026-04-25T08:55:03.260Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 32
-  completed_plans: 32
+  total_plans: 39
+  completed_plans: 33
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 70 — mig-sign-devices
+**Current focus:** Phase 71 — fe-polish-clean
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,8 +37,8 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 71
-Plan: Not started
+Phase: 71 (fe-polish-clean) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -215,6 +215,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 70-mig-sign-devices P06 | 2m | 1 tasks | 1 files |
 | Phase 70 P05 | 4m | 3 tasks | 4 files |
 | Phase 70-mig-sign-devices P04 | ~7m | 2 tasks | 4 files |
+| Phase 71-fe-polish-clean P07 | 85s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -257,6 +258,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 70]: Plan 70-05 D-09 deviation (Rule 1): added /api/signage/resolved/{id} to MUTATION_ROUTES (admin-gated) not READ_ROUTES — signage routes have always been admin-only via signage_admin/__init__.py router-level require_admin.
 - [Phase 70]: Plan 70-05: SSE test 3 (device_tag_map) marked xfail(strict=False) per Phase 69 Plan 06 lesson — composite-PK schema:null collection metadata gap; auto-passes once meta registered in Phase 71 CLEAN.
 - [Phase 70-mig-sign-devices]: Plan 70-04: DevicesPage hybrid render confirmed via human-verify checkpoint (visual parity with v1.21); legacy signageKeys.* invalidation kept alongside new namespaced keys for backward compat — Phase 71 FE-03 to purge with one-shot removeQueries.
+- [Phase 71-fe-polish-clean]: Plan 71-07: ADR-0001 records v1.22 Directus=shape/FastAPI=compute split; 4-digit zero-padded numbering; Settings deferred-not-decided in Consequences
 
 ### Cross-cutting hazards (hard gates)
 
@@ -302,6 +304,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:08:41.968Z
-**Stopped at:** Phase 71 context gathered
-**Resume file:** .planning/phases/71-fe-polish-clean/71-CONTEXT.md
+**Last session:** 2026-04-25T08:55:03.257Z
+**Stopped at:** Completed 71-07-PLAN.md
+**Resume file:** None
