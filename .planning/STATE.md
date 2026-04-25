@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 70-03-frontend-signageapi-swap-PLAN.md
-last_updated: "2026-04-25T07:45:55.863Z"
+stopped_at: Completed 70-02-backend-devices-router-trim-PLAN.md
+last_updated: "2026-04-25T07:46:34.778Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 70 (mig-sign-devices) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -211,6 +211,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 69-mig-sign-playlists P06 | 288s | 2 tasks | 1 files |
 | Phase 70-mig-sign-devices P01 | 53s | 2 tasks | 2 files |
 | Phase 70 P03 | 80s | 1 tasks | 1 files |
+| Phase 70 P02 | 2m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -248,6 +249,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 69-mig-sign-playlists]: Plan 69-06: D-08 fallback gap discovered — signage_playlist_tag_map (composite-PK, schema:null in v1.22 snapshot) returns 403 on /items even with admin_access:true; permission rows in bootstrap-roles.sh §6 do NOT fix this (admin bypasses permissions). Test marked xfail(strict=False); meta-registration deferred to Phase 71 CLEAN. Same root cause blocks preexisting Phase 68-06 SSE tag_map test.
 - [Phase 70-mig-sign-devices]: Plan 70-01: ResolvedDeviceResponse field names mirror SignageDeviceRead extras exactly so FE merge {...directusRow, ...resolvedResponse} needs no rename layer; tag_ids returns None (not []) when device has zero tag-map rows.
 - [Phase 70]: Plan 70-03: replaceDeviceTags mirrors replacePlaylistTags verbatim (D-03d) — composite-PK signage_device_tag_map deleteItems via query/filter form; revokeDevice STAYS on FastAPI pair router (Open Question 1: revoked_at flag != row delete).
+- [Phase 70]: Plan 70-02: Inlined _attach_resolved_playlist logic into update_device_calibration to preserve v1.21 response shape (D-00j); _notify_device_self retained per D-03c despite no in-file caller (Phase 71 CLEAN will consolidate).
 
 ### Cross-cutting hazards (hard gates)
 
@@ -293,6 +295,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T07:45:55.860Z
-**Stopped at:** Completed 70-03-frontend-signageapi-swap-PLAN.md
+**Last session:** 2026-04-25T07:46:34.775Z
+**Stopped at:** Completed 70-02-backend-devices-router-trim-PLAN.md
 **Resume file:** None
