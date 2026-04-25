@@ -229,11 +229,51 @@ export const signageApi = {
     apiClientWithBody<null>(`/api/signage/playlists/${id}`, {
       method: "DELETE",
     }),
-  replacePlaylistTags: (id: string, tag_ids: number[]) =>
-    apiClient<{ tag_ids: number[] }>(`/api/signage/playlists/${id}/tags`, {
-      method: "PUT",
-      body: JSON.stringify({ tag_ids }),
-    }),
+  // Phase 69-03 (D-02): FE-driven diff against signage_playlist_tag_map.
+  // Read existing rows, compute toAdd/toRemove sets, fire concurrent
+  // deleteItems + createItems via Promise.all (D-02a). signage_playlist_tag_map
+  // has a composite PK (playlist_id, tag_id) — no surrogate `id` column —
+  // so deleteItems uses the query/filter form (verified deleteItems signature
+  // accepts `string[] | number[] | TQuery` in @directus/sdk@21.2.2).
+  // Each map-row mutation fires a `playlist-changed` SSE via the Phase 65
+  // trigger; FE deduplicates downstream (no consumer change needed — D-02b).
+  // Return shape unchanged (D-00g): `{ tag_ids: number[] }` — the new desired set.
+  replacePlaylistTags: async (id: string, tag_ids: number[]) => {
+    const existing = (await directus.request(
+      readItems("signage_playlist_tag_map", {
+        filter: { playlist_id: { _eq: id } },
+        fields: ["tag_id"],
+        limit: -1,
+      }),
+    )) as { tag_id: number }[];
+    const existingTagIds = new Set(existing.map((r) => r.tag_id));
+    const desiredTagIds = new Set(tag_ids);
+    const toAdd = [...desiredTagIds].filter((t) => !existingTagIds.has(t));
+    const toRemove = [...existingTagIds].filter((t) => !desiredTagIds.has(t));
+    await Promise.all([
+      toRemove.length > 0
+        ? directus.request(
+            deleteItems("signage_playlist_tag_map", {
+              filter: {
+                _and: [
+                  { playlist_id: { _eq: id } },
+                  { tag_id: { _in: toRemove } },
+                ],
+              },
+            }),
+          )
+        : Promise.resolve(),
+      toAdd.length > 0
+        ? directus.request(
+            createItems(
+              "signage_playlist_tag_map",
+              toAdd.map((tagId) => ({ playlist_id: id, tag_id: tagId })),
+            ),
+          )
+        : Promise.resolve(),
+    ]);
+    return { tag_ids } as { tag_ids: number[] };
+  },
   listPlaylistItems: (id: string) =>
     directus.request(
       readItems("signage_playlist_items", {
