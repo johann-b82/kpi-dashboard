@@ -186,7 +186,19 @@ export function DeviceEditDialog({
       }
     },
     onSuccess: () => {
+      // Phase 70-04 (D-05a): namespaced cache keys — name PATCH and tag-map
+      // mutations both can flip the resolved cell. Invalidate both Directus
+      // device list/row and the per-device FastAPI resolved cache.
       queryClient.invalidateQueries({ queryKey: signageKeys.devices() });
+      queryClient.invalidateQueries({ queryKey: ["directus", "signage_devices"] });
+      if (device) {
+        queryClient.invalidateQueries({
+          queryKey: ["directus", "signage_devices", device.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["fastapi", "resolved", device.id],
+        });
+      }
       queryClient.invalidateQueries({ queryKey: signageKeys.tags() });
       toast.success(t("signage.admin.device.calibration.saved"));
       form.reset(form.getValues());

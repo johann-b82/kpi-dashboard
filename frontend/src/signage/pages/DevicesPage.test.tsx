@@ -10,6 +10,12 @@ vi.mock("@/signage/lib/signageApi", () => ({
   signageApi: {
     listDevices: vi.fn(),
     listDeviceAnalytics: vi.fn(),
+    getResolvedForDevice: vi.fn(async (id: string) => ({
+      current_playlist_id: null,
+      current_playlist_name: null,
+      tag_ids: null,
+      _id: id,
+    })),
     revokeDevice: vi.fn(),
     updateDevice: vi.fn(),
     replaceDeviceTags: vi.fn(),

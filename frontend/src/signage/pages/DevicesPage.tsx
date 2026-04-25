@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Pencil, ShieldOff } from "lucide-react";
@@ -50,11 +55,43 @@ export function DevicesPage() {
   const [editTarget, setEditTarget] = useState<SignageDevice | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<SignageDevice | null>(null);
 
-  const { data: devices = [], isLoading } = useQuery({
-    queryKey: signageKeys.devices(),
+  // Phase 70-04 (D-02, D-05): Directus row list. Resolved playlist + tag_ids
+  // are fetched per-device via useQueries below and merged client-side.
+  const { data: deviceRows = [], isLoading } = useQuery({
+    queryKey: ["directus", "signage_devices"] as const,
     queryFn: signageApi.listDevices,
     refetchInterval: 30_000,
   });
+
+  // Phase 70-04 (D-02, D-02a): per-device resolved playlist via FastAPI
+  // /api/signage/resolved/{id}. Cache key per device aligns with SSE bridge
+  // (D-02c, D-05a) — playlist-changed / device-changed events for device X
+  // invalidate exactly that key. N parallel HTTP/2 requests acceptable for
+  // typical device counts <20 (D-02b).
+  const resolvedQueries = useQueries({
+    queries: deviceRows.map((d) => ({
+      queryKey: ["fastapi", "resolved", d.id] as const,
+      queryFn: () => signageApi.getResolvedForDevice(d.id),
+      staleTime: 30_000,
+    })),
+  });
+
+  // Phase 70-04 (D-02, D-04): merge Directus row + resolved response.
+  // Field names align with SignageDevice extras so the spread is loss-free
+  // — current_playlist_id / current_playlist_name / tag_ids land directly
+  // on the SignageDevice shape (D-04 / D-04a — no rename to resolved_*).
+  const devices: SignageDevice[] = useMemo(
+    () =>
+      deviceRows.map((row, i) => ({
+        ...row,
+        ...(resolvedQueries[i]?.data ?? {
+          current_playlist_id: null,
+          current_playlist_name: null,
+          tag_ids: null,
+        }),
+      })) as SignageDevice[],
+    [deviceRows, resolvedQueries],
+  );
 
   // Phase 53 SGN-ANA-01 — per-device analytics. Separate query so the two
   // streams poll/invalidate independently. 30 s matches existing cadence;
@@ -85,7 +122,8 @@ export function DevicesPage() {
   const revokeMutation = useMutation({
     mutationFn: (id: string) => signageApi.revokeDevice(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: signageKeys.devices() });
+      queryClient.invalidateQueries({ queryKey: ["directus", "signage_devices"] });
+      queryClient.invalidateQueries({ queryKey: ["fastapi", "resolved"] });
       toast.success(t("signage.admin.device.revoked"));
       setRevokeTarget(null);
     },

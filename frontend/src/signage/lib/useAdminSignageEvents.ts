@@ -57,15 +57,39 @@ export function useAdminSignageEvents(opts: AdminSignageEventsOptions = {}) {
             queryClient.invalidateQueries({
               queryKey: signageKeys.schedules(),
             });
+            // Phase 68-04: schedules are now Directus-served too.
+            queryClient.invalidateQueries({
+              queryKey: ["directus", "signage_schedules"],
+            });
             break;
           case "playlist-changed":
             queryClient.invalidateQueries({
               queryKey: signageKeys.playlists(),
             });
+            // Phase 69-03: playlists are Directus-served.
+            queryClient.invalidateQueries({
+              queryKey: ["directus", "signage_playlists"],
+            });
+            // Phase 70-04 (D-05a, Pitfall 1): tag-map mutations on
+            // signage_device_tag_map ALSO fire device-changed (not playlist-changed)
+            // per signage_pg_listen.py:86-88, but a true playlist-changed event
+            // (item reorder, metadata) may flip the resolver output for any device
+            // whose tags match. Invalidate the entire ['fastapi', 'resolved']
+            // prefix so all per-device caches refresh.
+            queryClient.invalidateQueries({
+              queryKey: ["fastapi", "resolved"],
+            });
             break;
           case "device-changed":
+            // Phase 70-04 (D-05a): namespaced device list + resolved prefix.
             queryClient.invalidateQueries({
               queryKey: signageKeys.devices(),
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["directus", "signage_devices"],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["fastapi", "resolved"],
             });
             break;
           default:
