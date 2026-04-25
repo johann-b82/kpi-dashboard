@@ -333,6 +333,63 @@ describe("ScheduleEditDialog — validation + quick-picks (D-12, D-05, D-11)", (
     expect(isChecked(getDayCheckbox("Sun"))).toBe(true);
   });
 
+  test("renders friendly inline error when Directus rejects with schedule_end_before_start (Phase 68 MIG-SIGN-02 — create)", async () => {
+    const err = new Error(JSON.stringify({ code: "schedule_end_before_start" }));
+    vi.mocked(signageApi.createSchedule).mockRejectedValueOnce(err);
+    const { toast } = await import("sonner");
+
+    renderWithProviders(
+      <ScheduleEditDialog open onOpenChange={() => {}} schedule={null} />,
+    );
+    await waitForPlaylistLoaded();
+
+    fireEvent.change(getSelect(), { target: { value: "p1" } });
+    fireEvent.click(getDayCheckbox("Mon"));
+    fireEvent.change(screen.getByLabelText("Start time"), {
+      target: { value: "07:00" },
+    });
+    fireEvent.change(screen.getByLabelText("End time"), {
+      target: { value: "11:00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: T.create_cta }));
+
+    expect(await screen.findByText(T.start_after_end)).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  test("renders friendly inline error when Directus rejects with schedule_end_before_start (Phase 68 MIG-SIGN-02 — update via SDK error shape)", async () => {
+    // Use the Directus SDK error shape: { errors: [{ extensions: { code } }] }
+    const err = {
+      errors: [{ message: "boom", extensions: { code: "schedule_end_before_start" } }],
+    };
+    vi.mocked(signageApi.updateSchedule).mockRejectedValueOnce(err);
+    const { toast } = await import("sonner");
+
+    const existing = {
+      id: "s-1",
+      playlist_id: "p1",
+      weekday_mask: 1,
+      start_hhmm: 700,
+      end_hhmm: 1100,
+      priority: 0,
+      enabled: true,
+      created_at: "x",
+      updated_at: "x",
+    };
+    renderWithProviders(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <ScheduleEditDialog open onOpenChange={() => {}} schedule={existing as any} />,
+    );
+    await waitForPlaylistLoaded();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save changes" }),
+    );
+
+    expect(await screen.findByText(T.start_after_end)).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
   test("blur triggers per-field validation for touched fields (D-11)", async () => {
     renderWithProviders(
       <ScheduleEditDialog open onOpenChange={() => {}} schedule={null} />,
