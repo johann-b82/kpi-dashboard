@@ -818,3 +818,65 @@ curl -s "http://localhost:8055/collections" \
 ```
 
 You should see `signage_devices`, `signage_playlists`, `signage_playlist_items`, `signage_device_tags`, `signage_playlist_tag_map`, `signage_device_tag_map`, `signage_schedules`, `sales_records`, and `personio_employees` in the output.
+
+---
+
+## v1.22 Rollback Procedure
+
+If a critical regression is discovered after a v1.22 deployment, the
+following procedure restores v1.21 signage admin behavior. Total time:
+~10 minutes.
+
+**Rollback target:** the commit immediately PRECEDING Phase 68 (the first
+MIG-SIGN migration phase). Older targets — pre-Phase 65 — are NOT
+supported, because Phase 65 added Postgres triggers via Alembic that
+would need to be reverted manually (out of scope).
+
+**Prerequisites:** SSH access to the production host, ability to run
+`docker compose` commands as the deploy user, admin Directus credentials.
+
+### Steps
+
+1. **Checkout pre-Phase-68 commit** on the production host:
+   ```bash
+   cd /opt/kpi-dashboard
+   git fetch --all
+   git checkout <pre-phase-68-sha>   # see CHANGELOG / git log --oneline
+   ```
+
+2. **Tear down + bring up clean:**
+   ```bash
+   docker compose down -v
+   docker compose up -d --wait
+   ```
+   `down -v` drops named volumes (DB, Directus uploads). Confirm before
+   running on production — restore from the latest `./backups/` if needed.
+
+3. **Wait for healthchecks:** `docker compose ps` — all services
+   must show `healthy`. Approx. 60s for first-boot Postgres seeding.
+
+4. **Log in as Admin** at `https://<host>/login`.
+
+5. **Verify signage admin renders v1.21 shape** (each step ≤ 30s):
+   - `/signage/devices` — admin Devices tab shows the v1.21 7-column layout
+     (Name, Status, Last Seen, Tags, Current Playlist, Uptime, Actions).
+   - `/signage/playlists` — admin Playlists tab loads, lists existing playlists.
+   - Pair one device end-to-end (`/signage/pair` → enter code on Pi → confirm
+     device appears in `/signage/devices`).
+   - Push one playlist update — Pi player swaps content within ~500 ms (SSE).
+   - View one sales dashboard at `/sales` — KPI cards + chart render.
+
+6. **Pass / Fail criteria:**
+   - **Pass:** all 6 verifications green → v1.21 behavior restored.
+   - **Fail:** open an issue with `docker compose logs --no-color > rollback.log`
+     attached, and abort rollback (re-checkout main).
+
+### Known limitations
+
+- Phase 65 (schema + AuthZ + SSE bridge) is schema-additive — its triggers
+  remain in place after a Phase 68+ rollback. They are inert when no Directus
+  writes touch the trigger-bearing tables (which is the v1.21 state). No
+  action required, but operators should know the triggers exist post-rollback.
+- Composite-PK Directus collections (`signage_playlist_tag_map`,
+  `signage_device_tag_map`) return 403 to admin REST queries on the v1.22
+  forward state too — this is unrelated to rollback.
