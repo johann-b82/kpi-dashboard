@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 69-02-backend-playlist-items-router-trim-PLAN.md
-last_updated: "2026-04-25T06:49:44.590Z"
+stopped_at: Completed 69-01-backend-playlists-router-removal-PLAN.md
+last_updated: "2026-04-25T06:50:47.784Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 69 (mig-sign-playlists) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -204,6 +204,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 68-mig-sign-tags-schedules P05 | 3m | 2 tasks | 2 files |
 | Phase 68-mig-sign-tags-schedules P08 | 99s | 2 tasks | 1 files |
 | Phase 69-mig-sign-playlists P02 | 59s | 1 tasks | 1 files |
+| Phase 69-mig-sign-playlists P01 | 120s | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -234,6 +235,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-06: SSE regression tests added — Directus schedule lifecycle + tag-map (positive) + signage_device_tags (negative D-05). TDD split skipped because bridge already shipped in Phase 65 — single test-only commit.
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-08: D-08 bet CONFIRMED — Admin (admin_access: true) can CRUD signage_device_tags + signage_schedules via Directus REST without explicit bootstrap-roles.sh §6 permission rows. Smoke test asserts 403-or-404 on GET-after-DELETE (Directus avoids existence leak); schedule test self-provisions a transient playlist when none exist.
 - [Phase 69-mig-sign-playlists]: Plan 69-02: Surgical removal of GET /api/signage/playlists/{id}/items — surviving bulk PUT + _notify_playlist_changed helper retained per D-04b/D-05a; consolidation deferred to Phase 71 CLEAN.
+- [Phase 69-mig-sign-playlists]: Plan 69-01: kept IntegrityError import (surviving DELETE catches it for 409 reshape); HEAD-method assertion in surface regression test catches GET-shaped route leak (Starlette auto-adds HEAD)
 
 ### Cross-cutting hazards (hard gates)
 
@@ -279,6 +281,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T06:49:44.587Z
-**Stopped at:** Completed 69-02-backend-playlist-items-router-trim-PLAN.md
+**Last session:** 2026-04-25T06:50:47.781Z
+**Stopped at:** Completed 69-01-backend-playlists-router-removal-PLAN.md
 **Resume file:** None
