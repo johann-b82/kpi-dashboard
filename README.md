@@ -143,6 +143,10 @@ direct-port exposures above remain for developer ergonomics.
 
 ## Architecture
 
+**Architecture (v1.22):** Directus serves shape (CRUD on sales,
+employees, signage admin); FastAPI serves compute (upload, KPIs,
+sync, SSE, calibration). See [ADR-0001](./docs/adr/0001-directus-fastapi-split.md).
+
 ```
 docker compose up
   |

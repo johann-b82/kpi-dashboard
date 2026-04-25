@@ -69,3 +69,29 @@ docker compose up
 
 For deeper detail on any single subsystem (signage, sensors, HR pipeline,
 etc.) see the per-phase plans under `.planning/phases/`.
+
+---
+
+## Directus / FastAPI Boundary (v1.22)
+
+Since v1.22 (2026-04), kpi-dashboard splits its backend along a
+canonical boundary: **Directus = shape, FastAPI = compute**.
+
+- **Directus serves CRUD** on `sales_records`, `personio_employees`,
+  and the signage admin collections (`signage_devices`,
+  `signage_playlists`, `signage_playlist_items`, `signage_*_tag_map`,
+  `signage_schedules`, `signage_device_tags`). Identity reads via
+  `readMe()`.
+- **FastAPI serves compute:** file upload + parsing, KPI aggregation,
+  Personio/sensor sync (APScheduler), the `signage_player` SSE
+  bridge, JWT minting, media + PPTX, calibration PATCH,
+  `/api/signage/resolved/{id}`, and the structured-409 `DELETE
+  /playlists/{id}` + atomic bulk `PUT /playlists/{id}/items`.
+- **Postgres LISTEN/NOTIFY** bridges Directus writes back to SSE so
+  Pi players see fan-out within ~500 ms regardless of which writer
+  (Directus, psql, FastAPI compute) touched the row. Single-listener
+  invariant via `--workers 1`.
+- **Alembic** remains the sole DDL owner; Directus stores metadata
+  rows only.
+
+Decision recorded in [ADR-0001](./adr/0001-directus-fastapi-split.md).
