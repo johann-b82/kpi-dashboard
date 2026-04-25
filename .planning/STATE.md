@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
-last_updated: "2026-04-25T05:23:27.771Z"
+stopped_at: Completed 68-01-PLAN.md (FastAPI signage tags router removal)
+last_updated: "2026-04-25T05:59:16.544Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 20
+  completed_plans: 13
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 67 — migrate-data-py-sales-employees-split
+**Current focus:** Phase 68 — mig-sign-tags-schedules
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,8 +37,8 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 68
-Plan: Not started
+Phase: 68 (mig-sign-tags-schedules) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -196,6 +196,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 67 P02 | 6m | 1 tasks | 1 files |
 | Phase 67 P01 | 3m | 2 tasks | 3 files |
 | Phase 67 P03 | 4m | 2 tasks | 2 files |
+| Phase 68 P01 | 59s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 67]: Phase 67-02: fetchSalesRecords migrated to directus.request(readItems('sales_records', ...)) with filter/sort/limit/fields; multi-field search uses _or with _icontains (top-level search param avoided); SalesTable.tsx untouched (D-01); query-key unification deferred to Phase 71.
 - [Phase 67]: [Phase 67-01]: Inverted-range guard returns 422 (FastAPI semantic) instead of data.py legacy 400 — D-07. Compute endpoint returns flat dict array (not Pydantic model); frontend zero-fills missing employees.
 - [Phase 67]: Plan 67-03: fetchEmployees migrated to Directus readItems('personio_employees') with 9-field allowlist; date_from/date_to dropped from signature (D-15). useEmployeesWithOvertime composite hook merges Directus rows + FastAPI overtime via useMemo + Map; rows cache key namespaced ['directus', 'personio_employees', { search }] (Pitfall 4); overtime key ['employeesOvertime', date_from, date_to] — search edits don't refetch overtime.
+- [Phase 68]: [Phase 68-01]: Tags FastAPI router removal — D-04 scope only signage_tags collection routes; tag-map writes deferred to Phase 69/70. Test suite required no edits (RBAC matrix already had zero tag refs).
 
 ### Cross-cutting hazards (hard gates)
 
@@ -264,6 +266,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T19:25:51.051Z
-**Stopped at:** Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
+**Last session:** 2026-04-25T05:59:16.541Z
+**Stopped at:** Completed 68-01-PLAN.md (FastAPI signage tags router removal)
 **Resume file:** None
