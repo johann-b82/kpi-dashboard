@@ -1,22 +1,27 @@
-"""Signage playlist CRUD + bulk-replace tags (D-18).
+"""Phase 69 MIG-SIGN-03: surviving DELETE only.
 
-All endpoints inherit admin gate from parent router.
+POST/GET/PATCH/PUT-tags moved to Directus collections ``signage_playlists``
+and ``signage_playlist_tag_map``. DELETE stays here to preserve the
+structured ``409 {detail, schedule_ids}`` shape consumed by
+``frontend/src/signage/components/PlaylistDeleteDialog.tsx`` (D-00
+architectural lock). The ``_notify_playlist_changed`` helper is retained
+per D-04b/D-05a — the surviving DELETE still fans out playlist-changed
+events explicitly alongside the Phase 65 LISTEN/NOTIFY bridge.
+
+All endpoints inherit the admin gate from the parent router.
 """
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_db_session
-from app.models import SignagePlaylist, SignagePlaylistTagMap, SignageSchedule
-from app.schemas.signage import SignagePlaylistCreate, SignagePlaylistRead
+from app.models import SignagePlaylist, SignageSchedule
 from app.services import signage_broadcast
 from app.services.signage_resolver import (
     compute_playlist_etag,
@@ -28,7 +33,8 @@ router = APIRouter(prefix="/playlists", tags=["signage-admin-playlists"])
 
 
 # ---------------------------------------------------------------------------
-# Phase 45 SGN-BE-05: broadcast fanout helpers (Plan 45-02).
+# Phase 45 SGN-BE-05 broadcast fanout helper (Plan 45-02), retained per
+# Phase 69 D-04b/D-05a — surviving DELETE still calls this explicitly.
 #
 # Pitfall 3: every notify call MUST fire AFTER ``await db.commit()``. The
 # helper itself just resolves the affected devices and pushes a frame per
@@ -63,84 +69,11 @@ async def _notify_playlist_changed(db: AsyncSession, playlist_id) -> None:
         signage_broadcast.notify_device(device_id, payload)
 
 
-class SignagePlaylistUpdate(BaseModel):
-    name: str | None = Field(default=None, max_length=128)
-    description: str | None = None
-    priority: int | None = None
-    enabled: bool | None = None
-
-
-class TagAssignmentRequest(BaseModel):
-    tag_ids: list[int]
-
-
 # ---------------------------------------------------------------------------
-# CRUD
+# Surviving DELETE — preserves structured 409 ``{detail, schedule_ids}``
+# (Phase 51 Plan 02 SGN-TIME-04 / RESEARCH Q2). Frontend
+# PlaylistDeleteDialog consumes this exact shape.
 # ---------------------------------------------------------------------------
-
-
-@router.post("", response_model=SignagePlaylistRead, status_code=201)
-async def create_playlist(
-    payload: SignagePlaylistCreate,
-    db: AsyncSession = Depends(get_async_db_session),
-) -> SignagePlaylist:
-    data = payload.model_dump(exclude={"tag_ids"})
-    row = SignagePlaylist(**data)
-    db.add(row)
-    await db.commit()
-    await db.refresh(row)
-    # Phase 45 D-02: notify any devices that could be affected.
-    await _notify_playlist_changed(db, row.id)
-    return row
-
-
-@router.get("", response_model=list[SignagePlaylistRead])
-async def list_playlists(
-    db: AsyncSession = Depends(get_async_db_session),
-) -> list[SignagePlaylist]:
-    result = await db.execute(select(SignagePlaylist).order_by(SignagePlaylist.created_at))
-    return list(result.scalars().all())
-
-
-@router.get("/{playlist_id}", response_model=SignagePlaylistRead)
-async def get_playlist(
-    playlist_id: uuid.UUID,
-    db: AsyncSession = Depends(get_async_db_session),
-) -> SignagePlaylistRead:
-    row = (
-        await db.execute(select(SignagePlaylist).where(SignagePlaylist.id == playlist_id))
-    ).scalar_one_or_none()
-    if row is None:
-        raise HTTPException(404, "playlist not found")
-    tag_rows = await db.execute(
-        select(SignagePlaylistTagMap.tag_id).where(
-            SignagePlaylistTagMap.playlist_id == playlist_id
-        )
-    )
-    tag_ids = [tid for (tid,) in tag_rows.fetchall()]
-    out = SignagePlaylistRead.model_validate(row)
-    out.tag_ids = tag_ids or None
-    return out
-
-
-@router.patch("/{playlist_id}", response_model=SignagePlaylistRead)
-async def update_playlist(
-    playlist_id: uuid.UUID,
-    payload: SignagePlaylistUpdate,
-    db: AsyncSession = Depends(get_async_db_session),
-) -> SignagePlaylist:
-    row = (
-        await db.execute(select(SignagePlaylist).where(SignagePlaylist.id == playlist_id))
-    ).scalar_one_or_none()
-    if row is None:
-        raise HTTPException(404, "playlist not found")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(row, k, v)
-    await db.commit()
-    await db.refresh(row)
-    # Phase 45 D-02: playlist mutated — fan out to all overlapping devices.
-    await _notify_playlist_changed(db, playlist_id)
-    return row
 
 
 @router.delete("/{playlist_id}", status_code=204)
@@ -193,66 +126,3 @@ async def delete_playlist(
                 "etag": "deleted",
             },
         )
-
-
-# ---------------------------------------------------------------------------
-# D-18: bulk-replace tag assignments in single transaction (Pitfall 3)
-# ---------------------------------------------------------------------------
-
-
-@router.put("/{playlist_id}/tags")
-async def replace_playlist_tags(
-    playlist_id: uuid.UUID,
-    payload: TagAssignmentRequest,
-    db: AsyncSession = Depends(get_async_db_session),
-) -> dict[str, Any]:
-    exists = (
-        await db.execute(select(SignagePlaylist.id).where(SignagePlaylist.id == playlist_id))
-    ).scalar_one_or_none()
-    if exists is None:
-        raise HTTPException(404, "playlist not found")
-
-    # Single transaction: delete existing maps, insert new ones, commit once.
-    await db.execute(
-        delete(SignagePlaylistTagMap).where(
-            SignagePlaylistTagMap.playlist_id == playlist_id
-        )
-    )
-    # Capture previously-affected device set BEFORE the tag map changes —
-    # otherwise devices that lose this playlist after the tag swap would
-    # never learn to refetch (their tag no longer overlaps).
-    prev_affected = await devices_affected_by_playlist(db, playlist_id)
-
-    if payload.tag_ids:
-        await db.execute(
-            insert(SignagePlaylistTagMap),
-            [
-                {"playlist_id": playlist_id, "tag_id": tid}
-                for tid in payload.tag_ids
-            ],
-        )
-    await db.commit()
-
-    # Phase 45 D-02: notify both the old overlap (so dropped devices refetch
-    # and see a different resolved playlist) and the new overlap.
-    new_affected = await devices_affected_by_playlist(db, playlist_id)
-    union = set(prev_affected) | set(new_affected)
-    for device_id in union:
-        from app.models import SignageDevice as _Dev
-
-        dev = (
-            await db.execute(select(_Dev).where(_Dev.id == device_id))
-        ).scalar_one_or_none()
-        if dev is None:
-            continue
-        envelope = await resolve_playlist_for_device(db, dev)
-        signage_broadcast.notify_device(
-            device_id,
-            {
-                "event": "playlist-changed",
-                "playlist_id": str(playlist_id),
-                "etag": compute_playlist_etag(envelope),
-            },
-        )
-
-    return {"tag_ids": list(payload.tag_ids)}
