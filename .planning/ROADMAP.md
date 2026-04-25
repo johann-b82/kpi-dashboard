@@ -318,13 +318,13 @@ Plans:
   1. Admin can list/create/rename/re-tag playlists via `/signage/playlists` with writes going through Directus SDK (`readItems` / `createItem` / `updateItem` on `signage_playlists`, PUT tags via `signage_playlist_tag_map`).
   2. `DELETE /api/signage/playlists/{id}` still returns the structured `409 {detail, schedule_ids}` shape that `PlaylistDeleteDialog` deep-links off when a playlist is referenced by schedules; bulk `PUT /api/signage/playlists/{id}/items` still performs an atomic DELETE+INSERT.
   3. A Pi player receives `playlist-changed` SSE within 500 ms whether the write originated from Directus (items reordered, metadata renamed, tags updated) or FastAPI (bulk-replace, delete).
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 Plans:
 - [x] 69-01-backend-playlists-router-removal-PLAN.md — Trim playlists.py: remove POST/GET/PATCH/PUT-tags routes; preserve DELETE + _notify_playlist_changed (Wave 1)
 - [x] 69-02-backend-playlist-items-router-trim-PLAN.md — Trim playlist_items.py: remove GET /{id}/items; preserve bulk PUT + helper (Wave 1)
 - [x] 69-03-frontend-signageapi-swap-PLAN.md — Inline-swap listPlaylists/getPlaylist/createPlaylist/updatePlaylist/listPlaylistItems + replacePlaylistTags FE-driven diff to Directus SDK (Wave 1)
 - [ ] 69-04-sse-regression-tests-PLAN.md — Extend test_pg_listen_sse.py with Directus playlist + tag-map diff cases + FastAPI DELETE/bulk-PUT regression (Wave 2)
-- [ ] 69-05-ci-grep-guard-PLAN.md — Method-anchored CI guard blocking migrated playlist routes; allow surviving DELETE + bulk-PUT items (Wave 2)
+- [x] 69-05-ci-grep-guard-PLAN.md — Method-anchored CI guard blocking migrated playlist routes; allow surviving DELETE + bulk-PUT items (Wave 2)
 - [ ] 69-06-admin-permission-smoke-and-test-triage-PLAN.md — Admin Directus CRUD smoke for signage_playlists + signage_playlist_tag_map; rbac + allowlists comment refresh (Wave 2)
 **UI hint**: yes
 
@@ -377,6 +377,6 @@ Plans:
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
-| 69. MIG-SIGN — Playlists | v1.22 | 3/6 | In Progress|  |
+| 69. MIG-SIGN — Playlists | v1.22 | 4/6 | In Progress|  |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
 | 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |
