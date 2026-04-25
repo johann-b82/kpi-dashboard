@@ -359,7 +359,7 @@ Plans:
 | 64. Reverse Proxy | v1.21 | 1/1 | Complete   | 2026-04-24 |
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
-| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete   | 2026-04-24 |
+| 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/TBD | Not started | - |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |

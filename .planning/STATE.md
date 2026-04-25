@@ -4,8 +4,8 @@ milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
 stopped_at: Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
-last_updated: "2026-04-24T21:04:55.068Z"
-last_activity: 2026-04-24
+last_updated: "2026-04-25T05:23:27.771Z"
+last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 3
@@ -37,10 +37,10 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 67 (migrate-data-py-sales-employees-split) — EXECUTING
-Plan: 4 of 4
+Phase: 68
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-24
+Last activity: 2026-04-25
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 
