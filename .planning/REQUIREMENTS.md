@@ -94,7 +94,7 @@
 - [ ] **FE-02**: New cache-key namespace `["directus", <collection>, ...]` is introduced; legacy `signageKeys.*` stays independent (not reused).
 - [ ] **FE-03**: A one-shot `queryClient.removeQueries({queryKey:["signage"]})` gated by a localStorage flag runs on first post-deploy boot to purge stale cached `/api/signage/*` responses.
 - [ ] **FE-04**: `DirectusError` is normalized inside the adapter to the existing `Error(detail)` / `ApiErrorWithBody` contract; FK 409 reshape done in adapter for any Directus-served delete (if scope slider selects Directus-served DELETE).
-- [ ] **FE-05**: A contract-snapshot test per migrated endpoint asserts old FastAPI response shape === new adapter-wrapped Directus response (diff empty).
+- [x] **FE-05**: A contract-snapshot test per migrated endpoint asserts old FastAPI response shape === new adapter-wrapped Directus response (diff empty).
 
 ### CLEAN — Cleanup + rollback verification + CI guards
 
@@ -141,7 +141,7 @@
 | FE-02 | Phase 71 | Pending |
 | FE-03 | Phase 71 | Pending |
 | FE-04 | Phase 71 | Pending |
-| FE-05 | Phase 71 | Pending |
+| FE-05 | Phase 71 | Complete |
 | CLEAN-01 | Phase 71 | Pending |
 | CLEAN-02 | Phase 71 | Pending |
 | CLEAN-03 | Phase 71 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 71-07-PLAN.md
-last_updated: "2026-04-25T08:55:03.260Z"
+stopped_at: Completed 71-03-PLAN.md
+last_updated: "2026-04-25T08:55:49.118Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 39
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State: KPI Dashboard
@@ -216,6 +216,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 70 P05 | 4m | 3 tasks | 4 files |
 | Phase 70-mig-sign-devices P04 | ~7m | 2 tasks | 4 files |
 | Phase 71-fe-polish-clean P07 | 85s | 2 tasks | 4 files |
+| Phase 71 P03 | 90s | 1 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -259,6 +260,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 70]: Plan 70-05: SSE test 3 (device_tag_map) marked xfail(strict=False) per Phase 69 Plan 06 lesson — composite-PK schema:null collection metadata gap; auto-passes once meta registered in Phase 71 CLEAN.
 - [Phase 70-mig-sign-devices]: Plan 70-04: DevicesPage hybrid render confirmed via human-verify checkpoint (visual parity with v1.21); legacy signageKeys.* invalidation kept alongside new namespaced keys for backward compat — Phase 71 FE-03 to purge with one-shot removeQueries.
 - [Phase 71-fe-polish-clean]: Plan 71-07: ADR-0001 records v1.22 Directus=shape/FastAPI=compute split; 4-digit zero-padded numbering; Settings deferred-not-decided in Consequences
+- [Phase 71]: Plan 71-03: readMe fixtures call directus.request(readMe(...)) directly; AuthContext/useCurrentUserProfile glue tested elsewhere — contract suite locks pure transport shape only
 
 ### Cross-cutting hazards (hard gates)
 
@@ -304,6 +306,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:55:03.257Z
-**Stopped at:** Completed 71-07-PLAN.md
+**Last session:** 2026-04-25T08:55:49.054Z
+**Stopped at:** Completed 71-03-PLAN.md
 **Resume file:** None
