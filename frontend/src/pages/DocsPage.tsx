@@ -27,8 +27,12 @@ export default function DocsPage() {
     }
   }, [section, slug, role, navigate]);
 
-  // D-03: Viewer on admin-guide → silent redirect to user guide intro
+  // D-03: Viewer on admin-guide → silent redirect to user guide intro.
+  // role === null means auth hasn't hydrated yet (or just cleared); don't
+  // treat that as "not admin" or we'd bounce /docs/admin-guide/* away while
+  // AuthGate is still about to take over and redirect to /login.
   useEffect(() => {
+    if (role === null) return;
     if (section === "admin-guide" && role !== "admin") {
       navigate("/docs/user-guide/intro", { replace: true });
     }
@@ -36,6 +40,7 @@ export default function DocsPage() {
 
   // Guard render while redirecting (prevent flash per Pitfall 4)
   if (!section || !slug) return null;
+  if (role === null) return null;
   if (section === "admin-guide" && role !== "admin") return null;
 
   const content = registry[lang]?.[section]?.[slug]
