@@ -159,6 +159,50 @@ jobs:
           echo "OK: no migrated playlist routes in backend/app/"
 
       # -----------------------------------------------------------------------
+      # Phase 70 MIG-SIGN-04: CI guard — fail on any reintroduction of the
+      # five migrated FastAPI device routes (list, by-id GET, name PATCH,
+      # DELETE, tags PUT) inside backend/app/routers/signage_admin/devices.py.
+      # Method-anchored, file-scoped (D-06b lesson re-applied from Phase 69
+      # D-04). The surviving calibration PATCH on /{device_id}/calibration is
+      # explicitly allowed via the suffix-based negative filter. The new
+      # GET /api/signage/resolved/{device_id} lives in resolved.py (a
+      # different file) and is not in scope of this grep.
+      # _notify_device_self helper is INTENTIONALLY NOT guarded against
+      # (D-06c — surviving calibration PATCH may use it after consolidation).
+      # Pre-stack grep — fails in <1s on regression.
+      # -----------------------------------------------------------------------
+      - name: "Phase 70 — block reintroduced device CRUD routes (MIG-SIGN-04)"
+        run: |
+          set -euo pipefail
+          FILE="backend/app/routers/signage_admin/devices.py"
+          if [ ! -f "$FILE" ]; then
+            echo "ERROR: $FILE not found — Phase 70 trim must have left calibration route in place"
+            exit 1
+          fi
+          # Block: GET (list + by-id), PATCH name, DELETE on /api/signage/devices.
+          # The regex captures `@router.<method>("/...")` decorators where the
+          # path is "" or "/{device_id}" — i.e. lands under /api/signage/devices
+          # via the package router's /devices prefix.
+          # ALLOWS: @router.patch("/{device_id}/calibration", ...) via the
+          # suffix-anchored `grep -v '/calibration"'` belt-and-suspenders filter.
+          if grep -nE '@router\.(get|patch|delete)\(\s*"(/?\{?device_id\}?)?"\s*[,)]' "$FILE" \
+            | grep -v '/calibration"' ; then
+            echo "ERROR: Phase 70 (MIG-SIGN-04): forbidden FastAPI device route in $FILE."
+            echo "       List/get/patch-name/delete moved to Directus signage_devices collection."
+            echo "       Only PATCH /{device_id}/calibration is allowed to remain."
+            echo "       See .planning/phases/70-mig-sign-devices/70-02-backend-devices-router-trim-PLAN.md"
+            exit 1
+          fi
+          # Block: PUT /{device_id}/tags
+          if grep -nE '@router\.put\(\s*"/\{device_id\}/tags"' "$FILE" ; then
+            echo "ERROR: Phase 70 (MIG-SIGN-04): forbidden PUT /tags in $FILE."
+            echo "       Tag-map writes moved to Directus signage_device_tag_map via FE-driven diff."
+            echo "       See signageApi.replaceDeviceTags."
+            exit 1
+          fi
+          echo "Phase 70 device-route guard: clean"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
