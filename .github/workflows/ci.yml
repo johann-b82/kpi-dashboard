@@ -113,6 +113,52 @@ jobs:
           echo "OK: no /api/signage/tags or /api/signage/schedules references in backend/app/"
 
       # -----------------------------------------------------------------------
+      # Phase 69 MIG-SIGN-03: CI guard — fail on any backend/app/ file
+      # reintroducing the migrated playlist routes. Two complementary checks:
+      #   (a) literal path string `"/api/signage/playlists"` reappearing
+      #       anywhere in backend/app/ (catches client-style URLs, docs,
+      #       accidental pastes); does NOT match surviving DELETE +
+      #       bulk-PUT decorators which use the relative `"/{playlist_id}"`
+      #       form on the sub-router.
+      #   (b) method-anchored decorator regex on backend/app/routers/signage_admin/
+      #       blocking POST/GET/PATCH reintroductions while
+      #       allowing the surviving DELETE on /{playlist_id} (D-04 allow).
+      #   (c) /tags PUT discriminator scoped to playlists.py + playlist_items.py
+      #       (NOT devices.py — its surviving @router.put("/{device_id}/tags")
+      #       is the Phase 70 device-tags endpoint and must not trip this guard).
+      # _notify_playlist_changed helper is INTENTIONALLY NOT guarded
+      # against (D-04b — surviving DELETE + bulk-PUT still use it).
+      # Pre-stack grep — fails in <1s on regression.
+      # -----------------------------------------------------------------------
+      - name: "Guard — no migrated playlist routes in backend (MIG-SIGN-03)"
+        run: |
+          # (a) Literal path string check — block reappearance under backend/app/.
+          if grep -rnE '"/api/signage/playlists"|"/api/signage/playlists/' backend/app/; then
+            echo "ERROR: '/api/signage/playlists' literal found in backend/app/ (Phase 69 — playlist metadata + tags + items GET migrated to Directus collections signage_playlists / signage_playlist_items / signage_playlist_tag_map)."
+            exit 1
+          fi
+          # (b) Method-anchored decorator regex — block POST/GET/PATCH on the
+          # playlists sub-router file. The surviving file's only decorator is
+          # @router.delete which the (post|get|patch) alternation cannot match.
+          if grep -rnE '@router\.(post|get|patch)\b' backend/app/routers/signage_admin/playlists.py; then
+            echo "ERROR: forbidden decorator (POST/GET/PATCH) found in backend/app/routers/signage_admin/playlists.py (Phase 69 — only @router.delete survives in this file; CRUD goes through Directus)."
+            exit 1
+          fi
+          # (c) Block @router.put on /{...}/tags inside playlists.py +
+          # playlist_items.py. The /tags-suffix is the precise discriminator
+          # vs the surviving bulk-PUT on /{...}/items in playlist_items.py.
+          # Scope deliberately EXCLUDES devices.py — its
+          # @router.put("/{device_id}/tags") is the Phase 70 device-tags
+          # endpoint and is allowed.
+          if grep -nE '@router\.put\b[^@]*"/?\{[^}]+\}/tags"?' \
+              backend/app/routers/signage_admin/playlists.py \
+              backend/app/routers/signage_admin/playlist_items.py 2>/dev/null; then
+            echo "ERROR: @router.put on /{...}/tags found in playlists.py or playlist_items.py (Phase 69 — playlist tags PUT migrated to Directus signage_playlist_tag_map FE-driven diff)."
+            exit 1
+          fi
+          echo "OK: no migrated playlist routes in backend/app/"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
