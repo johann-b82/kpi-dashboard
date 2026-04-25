@@ -422,3 +422,211 @@ async def test_listener_reconnects_after_db_bounce(
         assert frame["event"] == "playlist-changed", (
             f"expected playlist-changed after reconnect, got {frame['event']!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Phase 68 D-09: Directus-originated schedule lifecycle regression.
+# Proves Plan 03's deletion of `_fanout_schedule_changed` did not break
+# schedule-changed SSE fan-out. CREATE / UPDATE / DELETE via Directus REST
+# must each fire `schedule-changed` within the 500 ms ceiling (D-17).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_schedule_lifecycle_fires_sse_each_step(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 68 D-09: schedule create/update/delete via Directus each fire
+    `schedule-changed` SSE within 500 ms.
+
+    Regression coverage for Plan 03 — confirms the Phase 65 LISTEN/NOTIFY bridge
+    still delivers schedule events after the FastAPI `_fanout_schedule_changed`
+    helper was deleted.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    schedule_id: str | None = None
+
+    async with open_sse_stream(paired_device.id) as stream:
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            # ---- 1. CREATE ----
+            t0 = time.monotonic()
+            r = await c.post(
+                "/items/signage_schedules",
+                json={
+                    "playlist_id": paired_device.playlist_id,
+                    "device_id": paired_device.id,
+                    "day_of_week": 1,
+                    "start_time": "10:00:00",
+                    "end_time": "12:00:00",
+                },
+            )
+            assert r.status_code in (200, 201), f"create failed: {r.status_code} {r.text}"
+            schedule_id = r.json()["data"]["id"]
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            create_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "schedule-changed", (
+                f"CREATE: expected schedule-changed, got {frame['event']!r}"
+            )
+            assert create_ms < SSE_TIMEOUT_MS, (
+                f"CREATE latency {create_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+
+            # ---- 2. UPDATE (priority/start_time change) ----
+            t0 = time.monotonic()
+            r = await c.patch(
+                f"/items/signage_schedules/{schedule_id}",
+                json={"start_time": "11:00:00"},
+            )
+            assert r.status_code == 200, f"update failed: {r.status_code} {r.text}"
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            update_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "schedule-changed", (
+                f"UPDATE: expected schedule-changed, got {frame['event']!r}"
+            )
+            assert update_ms < SSE_TIMEOUT_MS, (
+                f"UPDATE latency {update_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+
+            # ---- 3. DELETE ----
+            t0 = time.monotonic()
+            r = await c.delete(f"/items/signage_schedules/{schedule_id}")
+            assert r.status_code == 204, f"delete failed: {r.status_code} {r.text}"
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            delete_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "schedule-changed", (
+                f"DELETE: expected schedule-changed, got {frame['event']!r}"
+            )
+            assert delete_ms < SSE_TIMEOUT_MS, (
+                f"DELETE latency {delete_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+
+            logger.info(
+                "schedule lifecycle SSE latencies: create=%.0fms update=%.0fms delete=%.0fms",
+                create_ms, update_ms, delete_ms,
+            )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_tag_map_mutation_still_fires_sse_after_phase68(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 68 D-09: After Plan 01 (tags FastAPI removal) + Plan 03
+    (schedule helper deletion), `signage_playlist_tag_map` mutations via
+    Directus must still fire `playlist-changed` SSE within 500 ms.
+
+    This sanity case proves the listener still resolves devices correctly
+    despite the FastAPI surface shrink.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    tag_id = str(uuid.uuid4())
+
+    async with httpx.AsyncClient(
+        headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        # Pre-create a tag (no SSE expected from this — see negative test below).
+        r = await c.post(
+            "/items/signage_device_tags",
+            json={"id": tag_id, "name": f"phase68-regress-{int(time.time())}"},
+        )
+        assert r.status_code in (200, 201), f"tag create failed: {r.status_code} {r.text}"
+
+        # Ensure the device is bound to this tag so the resolver maps the
+        # playlist-tag-map row back to paired_device.id.
+        await c.post(
+            "/items/signage_device_tag_map",
+            json={"device_id": paired_device.id, "tag_id": tag_id},
+        )
+
+    try:
+        async with open_sse_stream(paired_device.id) as stream:
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                r = await c.post(
+                    "/items/signage_playlist_tag_map",
+                    json={"playlist_id": paired_device.playlist_id, "tag_id": tag_id},
+                )
+                assert r.status_code in (200, 201), (
+                    f"playlist_tag_map create failed: {r.status_code} {r.text}"
+                )
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"expected playlist-changed for tag-map mutation, got {frame['event']!r}"
+            )
+            assert elapsed_ms < SSE_TIMEOUT_MS, (
+                f"tag-map SSE latency {elapsed_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+    finally:
+        # Cleanup mapping + tag (best-effort; ignore failures on re-run).
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            try:
+                await c.delete(
+                    "/items/signage_playlist_tag_map",
+                    params={
+                        "filter[playlist_id][_eq]": paired_device.playlist_id,
+                        "filter[tag_id][_eq]": tag_id,
+                    },
+                )
+            except Exception:
+                pass
+            try:
+                await c.delete(f"/items/signage_device_tags/{tag_id}")
+            except Exception:
+                pass
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_signage_device_tags_fires_no_sse(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 68 D-05: `signage_device_tags` has NO LISTEN trigger
+    (Phase 65 SSE-01 deliberately did not add one — tag rows alone don't
+    affect any device's playback). CRUD on the table must NOT emit any SSE
+    frame within a 1-second window.
+
+    Negative-assertion regression: confirms no false-positive trigger leak.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    tag_id = str(uuid.uuid4())
+
+    async with open_sse_stream(paired_device.id) as stream:
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            # CREATE
+            r = await c.post(
+                "/items/signage_device_tags",
+                json={"id": tag_id, "name": f"phase68-noevent-{int(time.time())}"},
+            )
+            assert r.status_code in (200, 201), f"tag create failed: {r.status_code} {r.text}"
+
+            # UPDATE
+            r = await c.patch(
+                f"/items/signage_device_tags/{tag_id}",
+                json={"name": f"phase68-renamed-{int(time.time())}"},
+            )
+            assert r.status_code == 200, f"tag update failed: {r.status_code} {r.text}"
+
+            # DELETE
+            r = await c.delete(f"/items/signage_device_tags/{tag_id}")
+            assert r.status_code == 204, f"tag delete failed: {r.status_code} {r.text}"
+
+        # Within a 1 s window, NO SSE frame must arrive — tag table has no trigger.
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(stream.next_frame(), timeout=1.0)
