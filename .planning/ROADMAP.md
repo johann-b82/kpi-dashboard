@@ -234,7 +234,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 - [x] **Phase 65: Foundation — Schema + AuthZ + SSE Bridge** — Directus snapshot apply + per-collection Viewer permission rows + Postgres LISTEN/NOTIFY SSE bridge. Backend-only; zero user-visible change. (completed 2026-04-24)
 - [x] **Phase 66: Kill `me.py`** — Frontend AuthContext switches to Directus SDK `readMe`; FastAPI `me` router deleted. Smallest bite, exercises `directus_users` field allowlist. (completed 2026-04-24)
 - [x] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute. (completed 2026-04-24)
-- [ ] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed.
+- [x] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed. (completed 2026-04-25)
 - [ ] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression.
 - [ ] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression.
 - [ ] **Phase 71: FE polish + CLEAN** — Adapter seam refinement, contract-snapshot tests per migrated endpoint, dead FastAPI router/schema/test deletion, CI guards, rollback E2E, README/architecture docs.
@@ -298,7 +298,7 @@ Plans:
   1. Admin can create, rename, and delete signage tags from the `/signage/tags` admin surface; writes go to Directus via the SDK; `DELETE /api/signage/tags/{id}` and related FastAPI tag routes are removed.
   2. Admin can create, edit, and delete schedules from `/signage/schedules`; `start_hhmm < end_hhmm` is enforced (Alembic CHECK + Directus validation hook for friendly error message); FastAPI schedules router is removed.
   3. Directus-originated mutations on `signage_tags` / `signage_playlist_tag_map` / `signage_device_tag_map` / `signage_schedules` fan out the correct SSE events (`playlist-changed` on tag-map changes, `schedule-changed` on schedule changes) to affected Pi players within 500 ms (SSE regression test per table).
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 Plans:
 - [x] 68-01-backend-tags-removal-PLAN.md — Delete FastAPI tags.py + registration; refresh test refs (Wave 1)
 - [x] 68-02-alembic-check-and-directus-validation-hook-PLAN.md — Alembic CHECK (start_hhmm < end_hhmm) + Directus Flow returning code schedule_end_before_start (Wave 1)
@@ -307,7 +307,7 @@ Plans:
 - [x] 68-05-frontend-schedule-validation-ux-PLAN.md — Map Directus schedule_end_before_start error to existing i18n key + tests (Wave 2)
 - [x] 68-06-sse-regression-tests-PLAN.md — Extend test_pg_listen_sse.py with Directus-originated schedule lifecycle + tag CRUD silent (Wave 2)
 - [x] 68-07-ci-grep-guard-PLAN.md — CI guard blocking /api/signage/tags + /api/signage/schedules in backend/app/ (Wave 2)
-- [ ] 68-08-admin-permission-smoke-PLAN.md — Admin Directus CRUD smoke for both collections; refresh allowlists test comments (Wave 2)
+- [x] 68-08-admin-permission-smoke-PLAN.md — Admin Directus CRUD smoke for both collections; refresh allowlists test comments (Wave 2)
 **UI hint**: yes
 
 ### Phase 69: MIG-SIGN — Playlists
@@ -369,7 +369,7 @@ Plans:
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
-| 68. MIG-SIGN — Tags + Schedules | v1.22 | 7/8 | In Progress|  |
+| 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
 | 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 68-05-frontend-schedule-validation-ux-PLAN.md
-last_updated: "2026-04-25T06:06:34.366Z"
+stopped_at: Completed 68-08-admin-permission-smoke-PLAN.md
+last_updated: "2026-04-25T06:12:52.005Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 68 (mig-sign-tags-schedules) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -202,6 +202,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 68-mig-sign-tags-schedules P03 | 67s | 2 tasks | 3 files |
 | Phase 68-mig-sign-tags-schedules P06 | 73s | 1 tasks | 1 files |
 | Phase 68-mig-sign-tags-schedules P05 | 3m | 2 tasks | 2 files |
+| Phase 68-mig-sign-tags-schedules P08 | 99s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -230,6 +231,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-07: Anchored grep regex (quote + quote-slash alternations) blocks /api/signage/tags + /api/signage/schedules without false-positive on Phase 69/70 nested /playlists/{id}/tags and /devices/{id}/tags paths.
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-03: SCHEDULE_CHANGED_EVENT constant removed entirely (Phase 65 listener emits the literal 'schedule-changed' string); SSE assertions ported to Plan 06 test_pg_listen_sse.py; CHECK-422 covered by Plan 02 test_signage_schedule_check.py; playlist DELETE 409 tests re-handed to Plan 69 (DELETE /playlists/{id} stays in FastAPI).
 - [Phase 68-mig-sign-tags-schedules]: Plan 68-06: SSE regression tests added — Directus schedule lifecycle + tag-map (positive) + signage_device_tags (negative D-05). TDD split skipped because bridge already shipped in Phase 65 — single test-only commit.
+- [Phase 68-mig-sign-tags-schedules]: Plan 68-08: D-08 bet CONFIRMED — Admin (admin_access: true) can CRUD signage_device_tags + signage_schedules via Directus REST without explicit bootstrap-roles.sh §6 permission rows. Smoke test asserts 403-or-404 on GET-after-DELETE (Directus avoids existence leak); schedule test self-provisions a transient playlist when none exist.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -275,6 +277,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T06:06:34.363Z
-**Stopped at:** Completed 68-05-frontend-schedule-validation-ux-PLAN.md
+**Last session:** 2026-04-25T06:12:52.002Z
+**Stopped at:** Completed 68-08-admin-permission-smoke-PLAN.md
 **Resume file:** None
