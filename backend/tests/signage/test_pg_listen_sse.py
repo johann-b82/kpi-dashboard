@@ -1052,3 +1052,332 @@ async def test_fastapi_bulk_replace_items_still_fires_sse(
                     await c.delete(f"/items/signage_playlists/{playlist_id}")
                 except Exception:
                     pass
+
+
+# ---------------------------------------------------------------------------
+# Phase 70 D-07: Directus-originated device + tag-map regression cases.
+# Plus calibration no-double-fire infra-level invariant pinning success
+# criterion #4 (the v1_22_signage_notify_triggers WHEN-gate excludes
+# calibration columns from signage_devices_update_notify).
+#
+# Event-name correctness (research Pitfall 1):
+# `signage_device_tag_map` mutations emit `device-changed` (NOT
+# `playlist-changed` as CONTEXT D-03b incorrectly stated). Source of
+# truth: backend/app/services/signage_pg_listen.py:86-88 maps
+# signage_device_tag_map -> "device-changed".
+# ---------------------------------------------------------------------------
+
+
+async def _create_transient_device(
+    c: httpx.AsyncClient, name: str, tag_id: str | None = None
+) -> str:
+    """Create a transient signage_devices row (and optional tag-map binding)
+    via Directus. Returns the new device id.
+
+    Best-effort helper for Phase 70 device tests — the caller is responsible
+    for cleanup.
+    """
+    r = await c.post(
+        "/items/signage_devices",
+        json={"name": name, "paired": True},
+    )
+    assert r.status_code in (200, 201), (
+        f"transient device create failed: {r.status_code} {r.text}"
+    )
+    device_id = r.json()["data"]["id"]
+    if tag_id is not None:
+        await c.post(
+            "/items/signage_device_tag_map",
+            json={"device_id": device_id, "tag_id": tag_id},
+        )
+    return device_id
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_device_name_update_emits_device_changed(
+    directus_admin_token: str,
+) -> None:
+    """Phase 70 D-07 case 1: Directus updateItem('signage_devices', id, {name})
+    fires `device-changed` SSE within 500 ms.
+
+    Proves Plan 70-02's removal of FastAPI device PATCH did not break the
+    Phase 65 LISTEN/NOTIFY bridge — Directus writers exercise the same
+    trigger that v1_22_signage_notify_triggers installed.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    device_id: str | None = None
+
+    async with httpx.AsyncClient(
+        headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        device_id = await _create_transient_device(
+            c, name=f"phase70-rename-pre-{int(time.time() * 1000)}"
+        )
+
+    try:
+        async with open_sse_stream(device_id) as stream:
+            await _drain_events(stream, settle_ms=200)
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                r = await c.patch(
+                    f"/items/signage_devices/{device_id}",
+                    json={"name": f"phase-70-rename-test-{int(time.time() * 1000)}"},
+                )
+                assert r.status_code == 200, (
+                    f"device PATCH failed: {r.status_code} {r.text}"
+                )
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "device-changed", (
+                f"expected device-changed for name update, got {frame['event']!r}"
+            )
+            assert elapsed_ms < SSE_TIMEOUT_MS, (
+                f"device name-update SSE latency {elapsed_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+            logger.info("phase70 device name-update SSE latency: %.0fms", elapsed_ms)
+    finally:
+        if device_id is not None:
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                try:
+                    await c.delete(f"/items/signage_devices/{device_id}")
+                except Exception:
+                    pass
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_device_delete_emits_device_changed(
+    directus_admin_token: str,
+) -> None:
+    """Phase 70 D-07 case 2: Directus deleteItem('signage_devices', id) fires
+    `device-changed` SSE within 500 ms (DELETE branch in signage_pg_listen.py
+    sets affected=[] but still emits the event for any subscriber).
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    device_id: str | None = None
+
+    async with httpx.AsyncClient(
+        headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        device_id = await _create_transient_device(
+            c, name=f"phase70-delete-{int(time.time() * 1000)}"
+        )
+
+    # Open the SSE stream BEFORE the DELETE so we still hold a valid device JWT
+    # at the moment of deletion (post-delete pair calls would 404).
+    async with open_sse_stream(device_id) as stream:
+        await _drain_events(stream, settle_ms=200)
+        t0 = time.monotonic()
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            r = await c.delete(f"/items/signage_devices/{device_id}")
+            assert r.status_code == 204, (
+                f"device DELETE failed: {r.status_code} {r.text}"
+            )
+
+        frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+        elapsed_ms = (time.monotonic() - t0) * 1000
+        assert frame["event"] == "device-changed", (
+            f"expected device-changed for delete, got {frame['event']!r}"
+        )
+        assert elapsed_ms < SSE_TIMEOUT_MS, (
+            f"device DELETE SSE latency {elapsed_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+        )
+        logger.info("phase70 device DELETE SSE latency: %.0fms", elapsed_ms)
+
+
+@pytest.mark.xfail(
+    reason=(
+        "Phase 69 Plan 06 lesson: signage_device_tag_map is a composite-PK join "
+        "table (no surrogate id column). Directus 11 reports FORBIDDEN on /items "
+        "access for this collection even with admin_access: true, because the "
+        "snapshot's `schema: null` registration does not register the fields "
+        "needed to expose the composite PK via REST. Resolution requires "
+        "registering field metadata for the join table; deferred to Phase 71 CLEAN."
+    ),
+    strict=False,
+)
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_device_tag_map_emits_device_changed(
+    directus_admin_token: str,
+) -> None:
+    """Phase 70 D-07 case 3: Directus createItem on signage_device_tag_map
+    fires AT LEAST ONE `device-changed` SSE within 1000 ms.
+
+    NOTE: research Pitfall 1 — CONTEXT D-03b incorrectly stated this should
+    emit `playlist-changed`. The truth is `device-changed`:
+    signage_pg_listen.py:86-88 maps signage_device_tag_map -> 'device-changed'.
+
+    Multi-event tolerance per D-03b: the diff strategy used by the FE
+    (replaceDeviceTags = deleteItems + createItems) may emit multiple
+    triggers — assert at-least-once.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    device_id: str | None = None
+    tag_id: str | None = None
+
+    async with httpx.AsyncClient(
+        headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        # Setup: transient device + transient tag (NOT yet bound).
+        device_id = await _create_transient_device(
+            c, name=f"phase70-tagmap-dev-{int(time.time() * 1000)}"
+        )
+        r = await c.post(
+            "/items/signage_device_tags",
+            json={"name": f"phase70-tagmap-tag-{int(time.time() * 1000)}"},
+        )
+        assert r.status_code in (200, 201), r.text
+        tag_id = r.json()["data"]["id"]
+
+    try:
+        async with open_sse_stream(device_id) as stream:
+            await _drain_events(stream, settle_ms=200)
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                # Insert the device_tag_map row via Directus. If composite-PK
+                # metadata gap (Pitfall 2) blocks this, xfail-strict-false
+                # tolerates it per Phase 69 Plan 06 precedent.
+                r = await c.post(
+                    "/items/signage_device_tag_map",
+                    json={"device_id": device_id, "tag_id": tag_id},
+                )
+                assert r.status_code in (200, 201), (
+                    f"signage_device_tag_map insert failed (composite-PK gap?): "
+                    f"{r.status_code} {r.text}"
+                )
+
+            # At-least-once: first frame must be device-changed within 1 s.
+            # NOT playlist-changed (signage_pg_listen.py:86-88 mapping).
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=1.0)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "device-changed", (
+                f"signage_device_tag_map insert: expected device-changed "
+                f"(NOT playlist-changed per signage_pg_listen.py:86-88), "
+                f"got {frame['event']!r}"
+            )
+            assert elapsed_ms < 1000, (
+                f"device_tag_map SSE first-event latency {elapsed_ms:.0f} ms > 1000 ms"
+            )
+            logger.info(
+                "phase70 device_tag_map first-event SSE latency: %.0fms", elapsed_ms
+            )
+    finally:
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            if device_id and tag_id:
+                try:
+                    await c.delete(
+                        "/items/signage_device_tag_map",
+                        params={
+                            "filter[device_id][_eq]": device_id,
+                            "filter[tag_id][_eq]": tag_id,
+                        },
+                    )
+                except Exception:
+                    pass
+            if tag_id:
+                try:
+                    await c.delete(f"/items/signage_device_tags/{tag_id}")
+                except Exception:
+                    pass
+            if device_id:
+                try:
+                    await c.delete(f"/items/signage_devices/{device_id}")
+                except Exception:
+                    pass
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_calibration_patch_does_not_fire_device_changed(
+    directus_admin_token: str,
+) -> None:
+    """Phase 70 D-07 case 4: PATCH /api/signage/devices/{id}/calibration
+    fires `calibration-changed` AND must NOT fire any subsequent
+    `device-changed` event within 1500 ms.
+
+    Pins success criterion #4 at the infra level: the v1_22 trigger
+    `signage_devices_update_notify` WHEN-gate
+    (backend/alembic/versions/v1_22_signage_notify_triggers.py:128 —
+    `WHEN OLD.name IS DISTINCT FROM NEW.name`) excludes calibration columns
+    (rotation, hdmi_mode, audio_enabled, last_seen_at, revoked_at) from
+    firing the LISTEN trigger. So a calibration-only update path emits the
+    FastAPI in-process `calibration-changed` event but NOT the LISTEN-bridge
+    `device-changed` event.
+
+    Complements the existing
+    `test_calibration_patch_fires_single_frame_no_device_changed_double`
+    case but with the explicit Phase 70 naming (D-07 case 4) and a longer
+    1500 ms negative-assertion window per plan.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    device_id: str | None = None
+
+    async with httpx.AsyncClient(
+        headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        device_id = await _create_transient_device(
+            c, name=f"phase70-calib-{int(time.time() * 1000)}"
+        )
+
+    try:
+        device_jwt = _get_device_jwt(device_id)
+        async with httpx.AsyncClient(
+            base_url=API_BASE_URL,
+            timeout=10,
+            headers={"Authorization": f"Bearer {device_jwt}"},
+        ) as api_client:
+            async with open_sse_stream(device_id) as stream:
+                await _drain_events(stream, settle_ms=200)
+
+                t0 = time.monotonic()
+                r = await api_client.patch(
+                    f"/api/signage/devices/{device_id}/calibration",
+                    json={"rotation": 90},
+                )
+                assert r.status_code in (200, 204), (
+                    f"calibration PATCH failed: {r.status_code} {r.text}"
+                )
+
+                # First frame must be calibration-changed within 500 ms.
+                first = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+                first_ms = (time.monotonic() - t0) * 1000
+                assert first["event"] == "calibration-changed", (
+                    f"expected calibration-changed first, got {first['event']!r}"
+                )
+                assert first_ms < SSE_TIMEOUT_MS, (
+                    f"calibration first-event latency {first_ms:.0f} ms > {SSE_TIMEOUT_MS} ms"
+                )
+
+                # Negative assertion: NO device-changed within 1500 ms.
+                # Proves the WHEN-gate (v1_22 line 128) excludes calibration
+                # columns from signage_devices_update_notify.
+                with pytest.raises(asyncio.TimeoutError):
+                    await asyncio.wait_for(stream.next_frame(), timeout=1.5)
+
+                logger.info(
+                    "phase70 calibration no-double-fire confirmed; "
+                    "calibration-changed first-event latency: %.0fms",
+                    first_ms,
+                )
+    finally:
+        if device_id is not None:
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                try:
+                    await c.delete(f"/items/signage_devices/{device_id}")
+                except Exception:
+                    pass
