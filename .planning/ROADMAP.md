@@ -394,4 +394,4 @@ Plans:
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
 | 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete    | 2026-04-25 |
 | 70. MIG-SIGN — Devices | v1.22 | 6/6 | Complete    | 2026-04-25 |
-| 71. FE polish + CLEAN | v1.22 | 7/7 | Complete   | 2026-04-25 |
+| 71. FE polish + CLEAN | v1.22 | 7/7 | Complete    | 2026-04-25 |

@@ -4,7 +4,7 @@ milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
 stopped_at: Completed 71-05-PLAN.md
-last_updated: "2026-04-25T09:05:06.758Z"
+last_updated: "2026-04-25T09:35:49.244Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
@@ -37,8 +37,8 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 71 (fe-polish-clean) — EXECUTING
-Plan: 6 of 7
+Phase: 71
+Plan: Not started
 Status: Ready to execute
 Last activity: 2026-04-25
 
