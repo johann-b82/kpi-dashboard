@@ -3,6 +3,7 @@ import { queryClient } from "./queryClient";
 import { fetchSettings } from "./lib/api";
 
 const LANG_STORAGE_KEY = "kpi-light-lang";
+const CACHE_PURGE_KEY = "kpi.cache_purge_v22";
 
 // Guard against double-init (hot reload, StrictMode effects, etc.).
 let bootstrapPromise: Promise<void> | null = null;
@@ -47,6 +48,14 @@ export function bootstrap(): Promise<void> {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn("[bootstrap] fetchSettings failed:", err);
+    }
+
+    // Phase 71 FE-03 (D-02 / D-02a): one-shot purge of legacy ['signage', ...]
+    // cache keys to evict pre-Phase-65 cached /api/signage/* responses. New
+    // ['directus', ...] and ['fastapi', ...] namespaces are NOT touched.
+    if (typeof localStorage !== "undefined" && localStorage.getItem(CACHE_PURGE_KEY) !== "done") {
+      queryClient.removeQueries({ queryKey: ["signage"] });
+      localStorage.setItem(CACHE_PURGE_KEY, "done");
     }
   })();
   return bootstrapPromise;
