@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 70-01-backend-resolved-router-PLAN.md
-last_updated: "2026-04-25T07:45:08.274Z"
+stopped_at: Completed 70-03-frontend-signageapi-swap-PLAN.md
+last_updated: "2026-04-25T07:45:55.863Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 32
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State: KPI Dashboard
@@ -210,6 +210,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 69-mig-sign-playlists P04 | 93s | 1 tasks | 1 files |
 | Phase 69-mig-sign-playlists P06 | 288s | 2 tasks | 1 files |
 | Phase 70-mig-sign-devices P01 | 53s | 2 tasks | 2 files |
+| Phase 70 P03 | 80s | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -246,6 +247,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 69-mig-sign-playlists]: Plan 69-04: Adopted existing open_sse_stream/next_frame helper API (plan's wait_for_event/sse_subscription fixtures don't exist); transient-playlist tests must bind paired_device.tag_id via signage_playlist_tag_map for resolver routing; TDD split skipped per Phase 68 P06 precedent.
 - [Phase 69-mig-sign-playlists]: Plan 69-06: D-08 fallback gap discovered — signage_playlist_tag_map (composite-PK, schema:null in v1.22 snapshot) returns 403 on /items even with admin_access:true; permission rows in bootstrap-roles.sh §6 do NOT fix this (admin bypasses permissions). Test marked xfail(strict=False); meta-registration deferred to Phase 71 CLEAN. Same root cause blocks preexisting Phase 68-06 SSE tag_map test.
 - [Phase 70-mig-sign-devices]: Plan 70-01: ResolvedDeviceResponse field names mirror SignageDeviceRead extras exactly so FE merge {...directusRow, ...resolvedResponse} needs no rename layer; tag_ids returns None (not []) when device has zero tag-map rows.
+- [Phase 70]: Plan 70-03: replaceDeviceTags mirrors replacePlaylistTags verbatim (D-03d) — composite-PK signage_device_tag_map deleteItems via query/filter form; revokeDevice STAYS on FastAPI pair router (Open Question 1: revoked_at flag != row delete).
 
 ### Cross-cutting hazards (hard gates)
 
@@ -291,6 +293,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T07:45:01.849Z
-**Stopped at:** Completed 70-01-backend-resolved-router-PLAN.md
+**Last session:** 2026-04-25T07:45:55.860Z
+**Stopped at:** Completed 70-03-frontend-signageapi-swap-PLAN.md
 **Resume file:** None
