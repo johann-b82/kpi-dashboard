@@ -237,7 +237,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 - [x] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed. (completed 2026-04-25)
 - [x] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression. (completed 2026-04-25)
 - [x] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression. (completed 2026-04-25)
-- [ ] **Phase 71: FE polish + CLEAN** — Adapter seam refinement, contract-snapshot tests per migrated endpoint, dead FastAPI router/schema/test deletion, CI guards, rollback E2E, README/architecture docs.
+- [x] **Phase 71: FE polish + CLEAN** — Adapter seam refinement, contract-snapshot tests per migrated endpoint, dead FastAPI router/schema/test deletion, CI guards, rollback E2E, README/architecture docs. (completed 2026-04-25)
 
 ## Phase Details
 
@@ -358,13 +358,13 @@ Plans:
   4. All migrated FastAPI routers, schemas, and tests are deleted; `main.py` registrations removed; `/api/*` smoke test confirms the expected surface shrinks; no orphaned imports.
   5. Rollback verification: checking out the commit before Phase 68 from a clean tree and running `docker compose down -v && up -d` reproduces v1.21 signage admin behavior end-to-end (manual test checklist in `docs/operator-runbook.md`).
   6. CI guards green: `/api/me` grep in `frontend/src/`, `GET /api/data/sales` + `/api/data/employees` greps in backend code, `DB_EXCLUDE_TABLES` superset check, SSE `--workers 1` invariant comment preserved; README + `docs/architecture.md` updated to reflect the new Directus/FastAPI boundary decision.
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 Plans:
 - [x] 71-01-toApiError-adapter-PLAN.md — toApiError helper + wrap signageApi.ts call sites (FE-01, FE-04)
 - [x] 71-02-cache-purge-bootstrap-PLAN.md — Versioned localStorage-gated one-shot ['signage'] cache purge (FE-02, FE-03)
 - [x] 71-03-contract-snapshot-tests-PLAN.md — 10 vitest snapshot fixtures locking adapter wire shape (FE-05)
 - [x] 71-04-openapi-snapshot-and-pytest-guards-PLAN.md — OpenAPI paths snapshot + DB_EXCLUDE_TABLES absent-from pytest (CLEAN-02, CLEAN-04)
-- [ ] 71-05-orphan-sweep-and-main-cleanup-PLAN.md — Orphan schema/test sweep + main.py cleanup + regen openapi baseline (CLEAN-01, CLEAN-02)
+- [x] 71-05-orphan-sweep-and-main-cleanup-PLAN.md — Orphan schema/test sweep + main.py cleanup + regen openapi baseline (CLEAN-01, CLEAN-02)
 - [x] 71-06-ci-guards-and-rollback-runbook-PLAN.md — CI step additions + v1.22 rollback runbook section (CLEAN-03, CLEAN-04)
 - [x] 71-07-architecture-doc-and-adr-PLAN.md — ADR-0001 + architecture.md + README updates (CLEAN-05)
 **UI hint**: yes
@@ -394,4 +394,4 @@ Plans:
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
 | 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete    | 2026-04-25 |
 | 70. MIG-SIGN — Devices | v1.22 | 6/6 | Complete    | 2026-04-25 |
-| 71. FE polish + CLEAN | v1.22 | 6/7 | In Progress|  |
+| 71. FE polish + CLEAN | v1.22 | 7/7 | Complete   | 2026-04-25 |

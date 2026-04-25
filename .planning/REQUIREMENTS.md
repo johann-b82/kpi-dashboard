@@ -98,7 +98,7 @@
 
 ### CLEAN — Cleanup + rollback verification + CI guards
 
-- [ ] **CLEAN-01**: All FastAPI routers / schemas / tests for moved endpoints are deleted; no orphaned imports.
+- [x] **CLEAN-01**: All FastAPI routers / schemas / tests for moved endpoints are deleted; no orphaned imports.
 - [x] **CLEAN-02**: `main.py` router registrations for deleted routers are removed; `/api/*` smoke test confirms the expected surface shrinks.
 - [x] **CLEAN-03**: Git-revert-from-clean rollback E2E: checking out the commit before MIG-SIGN-01 reproduces v1.21 behavior on a fresh `docker compose down -v && up -d` (manual test checklist in `docs/operator-runbook.md`).
 - [x] **CLEAN-04**: CI guards: (a) `/api/me` grep in `frontend/src/`, (b) `GET /api/data/sales` + `/api/data/employees` grep in backend code, (c) `DB_EXCLUDE_TABLES` superset check, (d) SSE `--workers 1` invariant comment preserved.
@@ -142,7 +142,7 @@
 | FE-03 | Phase 71 | Complete |
 | FE-04 | Phase 71 | Complete |
 | FE-05 | Phase 71 | Complete |
-| CLEAN-01 | Phase 71 | Pending |
+| CLEAN-01 | Phase 71 | Complete |
 | CLEAN-02 | Phase 71 | Complete |
 | CLEAN-03 | Phase 71 | Complete |
 | CLEAN-04 | Phase 71 | Complete |
