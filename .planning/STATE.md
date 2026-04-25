@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 70-05-sse-tests-and-triage-PLAN.md
-last_updated: "2026-04-25T07:52:53.503Z"
+stopped_at: Completed 70-04-frontend-devices-page-merge-PLAN.md
+last_updated: "2026-04-25T07:56:16.141Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State: KPI Dashboard
@@ -214,6 +214,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 70 P02 | 2m | 1 tasks | 1 files |
 | Phase 70-mig-sign-devices P06 | 2m | 1 tasks | 1 files |
 | Phase 70 P05 | 4m | 3 tasks | 4 files |
+| Phase 70-mig-sign-devices P04 | ~7m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -255,6 +256,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 70-mig-sign-devices]: Plan 70-06: Phase 70 device-route grep guard inserted after Phase 69 guard, pre-stack; two-grep design with suffix-anchored allow-list for calibration PATCH (Pitfall 3 fix); _notify_device_self helper intentionally not guarded per D-06c
 - [Phase 70]: Plan 70-05 D-09 deviation (Rule 1): added /api/signage/resolved/{id} to MUTATION_ROUTES (admin-gated) not READ_ROUTES — signage routes have always been admin-only via signage_admin/__init__.py router-level require_admin.
 - [Phase 70]: Plan 70-05: SSE test 3 (device_tag_map) marked xfail(strict=False) per Phase 69 Plan 06 lesson — composite-PK schema:null collection metadata gap; auto-passes once meta registered in Phase 71 CLEAN.
+- [Phase 70-mig-sign-devices]: Plan 70-04: DevicesPage hybrid render confirmed via human-verify checkpoint (visual parity with v1.21); legacy signageKeys.* invalidation kept alongside new namespaced keys for backward compat — Phase 71 FE-03 to purge with one-shot removeQueries.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -300,6 +302,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T07:52:53.500Z
-**Stopped at:** Completed 70-05-sse-tests-and-triage-PLAN.md
+**Last session:** 2026-04-25T07:56:16.073Z
+**Stopped at:** Completed 70-04-frontend-devices-page-merge-PLAN.md
 **Resume file:** None

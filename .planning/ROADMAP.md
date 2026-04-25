@@ -236,7 +236,7 @@ Full details: [milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) · [aud
 - [x] **Phase 67: Migrate `data.py` — Sales + Employees split** — Sales row list + employee row list move to Directus; new FastAPI `/api/data/employees/overtime` compute endpoint; frontend merges rows + compute. (completed 2026-04-24)
 - [x] **Phase 68: MIG-SIGN — Tags + Schedules** — `signage_tags` and `signage_schedules` CRUD move to Directus; SSE regression per table; FastAPI routers removed. (completed 2026-04-25)
 - [x] **Phase 69: MIG-SIGN — Playlists** — `signage_playlists` GET/POST/PATCH, `playlist_items` GET, `playlists/{id}/tags` PUT move to Directus; DELETE + bulk-items PUT stay in FastAPI; SSE regression. (completed 2026-04-25)
-- [ ] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression.
+- [x] **Phase 70: MIG-SIGN — Devices** — Device name PATCH + DELETE + tags PUT move to Directus; new FastAPI `GET /api/signage/resolved/{device_id}` for hybrid list; calibration PATCH untouched; SSE regression. (completed 2026-04-25)
 - [ ] **Phase 71: FE polish + CLEAN** — Adapter seam refinement, contract-snapshot tests per migrated endpoint, dead FastAPI router/schema/test deletion, CI guards, rollback E2E, README/architecture docs.
 
 ## Phase Details
@@ -337,12 +337,12 @@ Plans:
   2. Calibration PATCH (rotation/HDMI/audio) continues to hit FastAPI `PATCH /api/signage/devices/{id}/calibration` with `Literal[0,90,180,270]` validation and fires `calibration-changed` SSE to the single target device — unchanged from v1.21.
   3. The devices list in the admin UI shows each device's currently-resolved playlist, fetched from a new FastAPI `GET /api/signage/resolved/{device_id}` endpoint and merged client-side with the Directus row data.
   4. Directus mutations on `signage_devices` name/tags fire `device-changed` (and/or `playlist-changed` on tag-map changes) SSE within 500 ms; the `signage_devices` LISTEN trigger does NOT fire on calibration-only updates (no double SSE).
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 Plans:
 - [x] 70-01-backend-resolved-router-PLAN.md — NEW FastAPI GET /api/signage/resolved/{device_id} + register in signage_admin package (Wave 1)
 - [x] 70-02-backend-devices-router-trim-PLAN.md — Trim devices.py to calibration PATCH + retained _notify_device_self helper (Wave 1)
 - [x] 70-03-frontend-signageapi-swap-PLAN.md — Swap listDevices/getDevice/updateDevice/replaceDeviceTags + add getResolvedForDevice/deleteDevice; revokeDevice unchanged (Wave 1)
-- [ ] 70-04-frontend-devices-page-merge-PLAN.md — DevicesPage useQuery + useQueries + useMemo merge; SSE handler invalidates namespaced keys (Wave 2; checkpoint:human-verify visual parity)
+- [x] 70-04-frontend-devices-page-merge-PLAN.md — DevicesPage useQuery + useQueries + useMemo merge; SSE handler invalidates namespaced keys (Wave 2; checkpoint:human-verify visual parity)
 - [x] 70-05-sse-tests-and-triage-PLAN.md — SSE regression for device + tag-map + calibration no-double-fire; admin smoke; RBAC + allowlists triage (Wave 2)
 - [x] 70-06-ci-grep-guard-PLAN.md — Method-anchored CI guard scoped to devices.py blocking migrated routes; allow calibration PATCH (Wave 2)
 **UI hint**: yes
@@ -385,5 +385,5 @@ Plans:
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
 | 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete    | 2026-04-25 |
-| 70. MIG-SIGN — Devices | v1.22 | 5/6 | In Progress|  |
+| 70. MIG-SIGN — Devices | v1.22 | 6/6 | Complete   | 2026-04-25 |
 | 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |
