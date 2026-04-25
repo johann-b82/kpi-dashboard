@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 71-04-openapi-snapshot-and-pytest-guards-PLAN.md
-last_updated: "2026-04-25T08:56:43.445Z"
+stopped_at: Completed 71-01-PLAN.md
+last_updated: "2026-04-25T08:57:58.575Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 39
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 71 (fe-polish-clean) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -219,6 +219,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 71 P03 | 90s | 1 tasks | 11 files |
 | Phase 71-fe-polish-clean P02 | 164s | 1 tasks | 2 files |
 | Phase 71 P04 | 154s | 2 tasks | 3 files |
+| Phase 71-fe-polish-clean P01 | 244s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -265,6 +266,8 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 71]: Plan 71-03: readMe fixtures call directus.request(readMe(...)) directly; AuthContext/useCurrentUserProfile glue tested elsewhere — contract suite locks pure transport shape only
 - [Phase 71-fe-polish-clean]: Plan 71-02: In-memory localStorage shim required in tests — Node 25 experimental localStorage global overrides jsdom Storage; reinterpreted Test 4 to assert purge-block contract only (upstream lang line throws first)
 - [Phase 71]: Plan 71-04: OpenAPI baseline locked at 44 paths; DB_EXCLUDE_TABLES absent-from semantics enforced verbatim per D-08 (NOT superset)
+- [Phase 71-fe-polish-clean]: Plan 71-01: Wrapped apiClient calls (not just Directus SDK calls) with toApiError because the helper passes ApiErrorWithBody through unchanged — single contract end-to-end with no double-wrap risk.
+- [Phase 71-fe-polish-clean]: Plan 71-01: Renamed local interface DirectusErrorShape → DirectusThrownShape so toApiError.ts contains zero 'DirectusError' string occurrences (acceptance criterion + future grep audit hygiene).
 
 ### Cross-cutting hazards (hard gates)
 
@@ -310,6 +313,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:56:43.442Z
-**Stopped at:** Completed 71-04-openapi-snapshot-and-pytest-guards-PLAN.md
+**Last session:** 2026-04-25T08:57:52.413Z
+**Stopped at:** Completed 71-01-PLAN.md
 **Resume file:** None

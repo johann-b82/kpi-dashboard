@@ -358,9 +358,9 @@ Plans:
   4. All migrated FastAPI routers, schemas, and tests are deleted; `main.py` registrations removed; `/api/*` smoke test confirms the expected surface shrinks; no orphaned imports.
   5. Rollback verification: checking out the commit before Phase 68 from a clean tree and running `docker compose down -v && up -d` reproduces v1.21 signage admin behavior end-to-end (manual test checklist in `docs/operator-runbook.md`).
   6. CI guards green: `/api/me` grep in `frontend/src/`, `GET /api/data/sales` + `/api/data/employees` greps in backend code, `DB_EXCLUDE_TABLES` superset check, SSE `--workers 1` invariant comment preserved; README + `docs/architecture.md` updated to reflect the new Directus/FastAPI boundary decision.
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 Plans:
-- [ ] 71-01-toApiError-adapter-PLAN.md — toApiError helper + wrap signageApi.ts call sites (FE-01, FE-04)
+- [x] 71-01-toApiError-adapter-PLAN.md — toApiError helper + wrap signageApi.ts call sites (FE-01, FE-04)
 - [x] 71-02-cache-purge-bootstrap-PLAN.md — Versioned localStorage-gated one-shot ['signage'] cache purge (FE-02, FE-03)
 - [x] 71-03-contract-snapshot-tests-PLAN.md — 10 vitest snapshot fixtures locking adapter wire shape (FE-05)
 - [x] 71-04-openapi-snapshot-and-pytest-guards-PLAN.md — OpenAPI paths snapshot + DB_EXCLUDE_TABLES absent-from pytest (CLEAN-02, CLEAN-04)
@@ -394,4 +394,4 @@ Plans:
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
 | 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete    | 2026-04-25 |
 | 70. MIG-SIGN — Devices | v1.22 | 6/6 | Complete    | 2026-04-25 |
-| 71. FE polish + CLEAN | v1.22 | 4/7 | In Progress|  |
+| 71. FE polish + CLEAN | v1.22 | 5/7 | In Progress|  |
