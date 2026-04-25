@@ -1,8 +1,4 @@
-"""Signage playlist-items bulk replace (D-17 atomic replace).
-
-Module is separate per D-01 resource split; prefix reuses `/playlists` since
-routes live under /playlists/{id}/items.
-"""
+"""Phase 69 MIG-SIGN-03: surviving bulk PUT /{id}/items only (atomic DELETE+INSERT). GET moved to Directus collection `signage_playlist_items`."""
 from __future__ import annotations
 
 import uuid
@@ -49,24 +45,6 @@ async def _notify_playlist_changed(db: AsyncSession, playlist_id) -> None:
 
 class BulkReplaceItemsRequest(BaseModel):
     items: list[SignagePlaylistItemCreate]
-
-
-@router.get("/{playlist_id}/items", response_model=list[SignagePlaylistItemRead])
-async def list_playlist_items(
-    playlist_id: uuid.UUID,
-    db: AsyncSession = Depends(get_async_db_session),
-) -> list[SignagePlaylistItem]:
-    exists = (
-        await db.execute(select(SignagePlaylist.id).where(SignagePlaylist.id == playlist_id))
-    ).scalar_one_or_none()
-    if exists is None:
-        raise HTTPException(404, "playlist not found")
-    result = await db.execute(
-        select(SignagePlaylistItem)
-        .where(SignagePlaylistItem.playlist_id == playlist_id)
-        .order_by(SignagePlaylistItem.position.asc())
-    )
-    return list(result.scalars().all())
 
 
 @router.put("/{playlist_id}/items", response_model=list[SignagePlaylistItemRead])
