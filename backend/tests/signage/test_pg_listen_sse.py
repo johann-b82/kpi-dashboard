@@ -630,3 +630,425 @@ async def test_directus_signage_device_tags_fires_no_sse(
         # Within a 1 s window, NO SSE frame must arrive — tag table has no trigger.
         with pytest.raises(asyncio.TimeoutError):
             await asyncio.wait_for(stream.next_frame(), timeout=1.0)
+
+
+# ---------------------------------------------------------------------------
+# Phase 69 D-05: Directus-originated playlist lifecycle regression.
+# Proves Plan 69-01 deletion of POST/GET/PATCH playlist routes did not break
+# `playlist-changed` SSE fan-out. CREATE / UPDATE via Directus REST must each
+# fire `playlist-changed` within the 500 ms ceiling (D-17). Cleanup deletes
+# also fire — we accept those during teardown.
+# ---------------------------------------------------------------------------
+
+
+async def _drain_events(stream: SSEStream, settle_ms: int = 200) -> None:
+    """Consume any queued SSE frames until the stream is quiet for `settle_ms`."""
+    while True:
+        try:
+            await asyncio.wait_for(stream.next_frame(), timeout=settle_ms / 1000)
+        except asyncio.TimeoutError:
+            return
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_playlist_lifecycle_fires_sse_each_step(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 69 D-05: Directus playlist CREATE + UPDATE each fire
+    `playlist-changed` SSE within 500 ms.
+
+    Regression: confirms the Phase 65 LISTEN/NOTIFY bridge still delivers
+    `playlist-changed` after Plan 69-01 deleted the FastAPI POST/GET/PATCH
+    playlist routes. The transient playlist must be tagged with the paired
+    device's tag so the resolver routes the event to this stream — without
+    the tag link, the resolver finds zero affected devices and no SSE fires.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    playlist_id: str | None = None
+
+    # Setup: bind paired_device.tag_id to the device so any playlist tagged
+    # with it routes back to this stream (idempotent — created in fixture if
+    # missing; ignore 4xx duplicates).
+    async with httpx.AsyncClient(headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10) as c:
+        try:
+            await c.post(
+                "/items/signage_device_tag_map",
+                json={"device_id": paired_device.id, "tag_id": paired_device.tag_id},
+            )
+        except Exception:
+            pass
+
+    async with open_sse_stream(paired_device.id) as stream:
+        async with httpx.AsyncClient(headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10) as c:
+            # ---- 1. CREATE ----
+            t0 = time.monotonic()
+            r = await c.post(
+                "/items/signage_playlists",
+                json={
+                    "name": f"phase69-sse-{int(time.time() * 1000)}",
+                    "priority": 0,
+                    "enabled": True,
+                },
+            )
+            assert r.status_code in (200, 201), f"create failed: {r.status_code} {r.text}"
+            playlist_id = r.json()["data"]["id"]
+
+            # Bind the new playlist to the paired device's tag so the resolver
+            # routes events to this stream.
+            r2 = await c.post(
+                "/items/signage_playlist_tag_map",
+                json={"playlist_id": playlist_id, "tag_id": paired_device.tag_id},
+            )
+            assert r2.status_code in (200, 201), (
+                f"playlist_tag_map create failed: {r2.status_code} {r2.text}"
+            )
+
+            # The CREATE itself fires playlist-changed (resolver may return
+            # zero affected devices on first insert — wait for the tag-map
+            # row's playlist-changed event instead). At-least-once delivery
+            # within 500 ms is sufficient.
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            create_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"CREATE: expected playlist-changed, got {frame['event']!r}"
+            )
+            assert create_ms < SSE_TIMEOUT_MS, (
+                f"CREATE latency {create_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+
+            # Drain any follow-up events from the tag-map insert before the
+            # next measurement.
+            await _drain_events(stream, settle_ms=200)
+
+            # ---- 2. UPDATE (rename) ----
+            t0 = time.monotonic()
+            r = await c.patch(
+                f"/items/signage_playlists/{playlist_id}",
+                json={"name": f"phase69-sse-renamed-{int(time.time() * 1000)}"},
+            )
+            assert r.status_code == 200, f"update failed: {r.status_code} {r.text}"
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            update_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"UPDATE: expected playlist-changed, got {frame['event']!r}"
+            )
+            assert update_ms < SSE_TIMEOUT_MS, (
+                f"UPDATE latency {update_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+
+            logger.info(
+                "playlist lifecycle SSE latencies: create=%.0fms update=%.0fms",
+                create_ms, update_ms,
+            )
+
+    # Cleanup (best-effort).
+    if playlist_id is not None:
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            try:
+                await c.delete(
+                    "/items/signage_playlist_tag_map",
+                    params={
+                        "filter[playlist_id][_eq]": playlist_id,
+                    },
+                )
+            except Exception:
+                pass
+            try:
+                await c.delete(f"/items/signage_playlists/{playlist_id}")
+            except Exception:
+                pass
+
+
+# ---------------------------------------------------------------------------
+# Phase 69 D-02b / D-05: tag-map diff (delete + create) must fire AT LEAST
+# ONE `playlist-changed` SSE within 1 s. Multi-event tolerated per D-02b —
+# do NOT assert exactly-once.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_directus_playlist_tag_map_diff_fires_sse_at_least_once(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 69 D-02b/D-05: a tag-map diff replace (delete + create per row)
+    fires >= 1 `playlist-changed` SSE within 1 s. Multi-event tolerated.
+
+    Mirrors the FE Plan 69-03 `replacePlaylistTags` diff strategy: existing
+    map row deleted via `deleteItems` (FE uses filter form), new map row
+    created via `createItems`. From the SSE bridge's perspective each row
+    insert/delete fires its own trigger — we only assert at-least-once.
+    """
+    headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    playlist_id: str | None = None
+    tag_id: str | None = None
+
+    async with httpx.AsyncClient(headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10) as c:
+        # Setup: transient playlist + transient tag + paired device bound to tag.
+        r = await c.post(
+            "/items/signage_playlists",
+            json={"name": f"phase69-tagdiff-{int(time.time()*1000)}", "priority": 0, "enabled": True},
+        )
+        assert r.status_code in (200, 201), r.text
+        playlist_id = r.json()["data"]["id"]
+
+        r = await c.post(
+            "/items/signage_device_tags",
+            json={"name": f"phase69-tag-{int(time.time()*1000)}"},
+        )
+        assert r.status_code in (200, 201), r.text
+        tag_id = r.json()["data"]["id"]
+
+        # Bind paired device to this tag so the resolver routes events here.
+        await c.post(
+            "/items/signage_device_tag_map",
+            json={"device_id": paired_device.id, "tag_id": tag_id},
+        )
+        # Insert initial map row so the diff has something to delete.
+        r = await c.post(
+            "/items/signage_playlist_tag_map",
+            json={"playlist_id": playlist_id, "tag_id": tag_id},
+        )
+        assert r.status_code in (200, 201), r.text
+
+    try:
+        async with open_sse_stream(paired_device.id) as stream:
+            # Drain any pending events from setup before measuring the diff.
+            await _drain_events(stream, settle_ms=300)
+
+            t0 = time.monotonic()
+            # Diff: delete existing map row (filter form, mirrors FE pattern)
+            # + create a fresh map row referencing the same tag.
+            async with httpx.AsyncClient(
+                headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                await asyncio.gather(
+                    c.delete(
+                        "/items/signage_playlist_tag_map",
+                        params={
+                            "filter[playlist_id][_eq]": playlist_id,
+                            "filter[tag_id][_eq]": tag_id,
+                        },
+                    ),
+                    c.post(
+                        "/items/signage_playlist_tag_map",
+                        json={"playlist_id": playlist_id, "tag_id": tag_id},
+                    ),
+                )
+
+            # At-least-once: first frame must be playlist-changed within 1 s.
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=1.0)
+            diff_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"tag-map diff: expected playlist-changed, got {frame['event']!r}"
+            )
+            assert diff_ms < 1000, (
+                f"tag-map diff first-event latency {diff_ms:.0f} ms > 1000 ms"
+            )
+            logger.info("playlist tag-map diff first-event latency: %.0fms", diff_ms)
+
+    finally:
+        # Cleanup: remaining map rows + tag + playlist (best-effort).
+        async with httpx.AsyncClient(
+            headers=headers, base_url=DIRECTUS_BASE_URL, timeout=10
+        ) as c:
+            if playlist_id:
+                try:
+                    await c.delete(
+                        "/items/signage_playlist_tag_map",
+                        params={"filter[playlist_id][_eq]": playlist_id},
+                    )
+                except Exception:
+                    pass
+            if tag_id:
+                try:
+                    await c.delete(
+                        "/items/signage_device_tag_map",
+                        params={
+                            "filter[device_id][_eq]": paired_device.id,
+                            "filter[tag_id][_eq]": tag_id,
+                        },
+                    )
+                except Exception:
+                    pass
+                try:
+                    await c.delete(f"/items/signage_device_tags/{tag_id}")
+                except Exception:
+                    pass
+            if playlist_id:
+                try:
+                    await c.delete(f"/items/signage_playlists/{playlist_id}")
+                except Exception:
+                    pass
+
+
+# ---------------------------------------------------------------------------
+# Phase 69 D-04b/D-05a: surviving FastAPI DELETE + bulk-PUT items routes
+# still fire `playlist-changed` SSE — proves `_notify_playlist_changed`
+# helper retention from Plans 69-01 / 69-02.
+#
+# Both tests use `directus_admin_token` directly as the Authorization
+# bearer. FastAPI validates Directus-issued HS256 JWTs via the shared
+# secret (Phase 65 AUTHZ-01), so a Directus admin login token is accepted
+# as an Admin-role JWT by the FastAPI signage_admin gate.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fastapi_playlist_delete_still_fires_sse(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 69 D-04b: surviving `DELETE /api/signage/playlists/{id}` still
+    fires `playlist-changed` SSE within 500 ms. Proves `_notify_playlist_changed`
+    helper retention after Plan 69-01 trim.
+    """
+    directus_headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    fastapi_headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    playlist_id: str | None = None
+
+    # Setup: transient playlist + bind paired_device's tag so DELETE routes
+    # `playlist-changed` to this stream.
+    async with httpx.AsyncClient(
+        headers=directus_headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        r = await c.post(
+            "/items/signage_playlists",
+            json={
+                "name": f"phase69-fastapi-del-{int(time.time()*1000)}",
+                "priority": 0,
+                "enabled": True,
+            },
+        )
+        assert r.status_code in (200, 201), r.text
+        playlist_id = r.json()["data"]["id"]
+        await c.post(
+            "/items/signage_playlist_tag_map",
+            json={"playlist_id": playlist_id, "tag_id": paired_device.tag_id},
+        )
+
+    try:
+        async with open_sse_stream(paired_device.id) as stream:
+            await _drain_events(stream, settle_ms=300)
+
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(
+                base_url=API_BASE_URL, timeout=10, headers=fastapi_headers
+            ) as api:
+                r = await api.delete(f"/api/signage/playlists/{playlist_id}")
+                assert r.status_code == 204, (
+                    f"FastAPI DELETE failed: {r.status_code} {r.text}"
+                )
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"FastAPI DELETE: expected playlist-changed, got {frame['event']!r}"
+            )
+            assert elapsed_ms < SSE_TIMEOUT_MS, (
+                f"FastAPI DELETE latency {elapsed_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+            logger.info("fastapi playlist DELETE SSE latency: %.0fms", elapsed_ms)
+            playlist_id = None  # already deleted; skip teardown.
+    finally:
+        if playlist_id is not None:
+            async with httpx.AsyncClient(
+                headers=directus_headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                try:
+                    await c.delete(
+                        "/items/signage_playlist_tag_map",
+                        params={"filter[playlist_id][_eq]": playlist_id},
+                    )
+                except Exception:
+                    pass
+                try:
+                    await c.delete(f"/items/signage_playlists/{playlist_id}")
+                except Exception:
+                    pass
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fastapi_bulk_replace_items_still_fires_sse(
+    directus_admin_token: str,
+    paired_device: Device,
+) -> None:
+    """Phase 69 D-05a: surviving `PUT /api/signage/playlists/{id}/items`
+    still fires `playlist-changed` SSE within 500 ms. Proves
+    `_notify_playlist_changed` helper retention after Plan 69-02 trim.
+
+    Empty-replace `{"items": []}` is a valid atomic operation — exercises
+    the DELETE+INSERT bulk path with zero inserts.
+    """
+    directus_headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    fastapi_headers = {"Authorization": f"Bearer {directus_admin_token}"}
+    playlist_id: str | None = None
+
+    # Setup: transient playlist tagged for paired device.
+    async with httpx.AsyncClient(
+        headers=directus_headers, base_url=DIRECTUS_BASE_URL, timeout=10
+    ) as c:
+        r = await c.post(
+            "/items/signage_playlists",
+            json={
+                "name": f"phase69-fastapi-put-{int(time.time()*1000)}",
+                "priority": 0,
+                "enabled": True,
+            },
+        )
+        assert r.status_code in (200, 201), r.text
+        playlist_id = r.json()["data"]["id"]
+        await c.post(
+            "/items/signage_playlist_tag_map",
+            json={"playlist_id": playlist_id, "tag_id": paired_device.tag_id},
+        )
+
+    try:
+        async with open_sse_stream(paired_device.id) as stream:
+            await _drain_events(stream, settle_ms=300)
+
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(
+                base_url=API_BASE_URL, timeout=10, headers=fastapi_headers
+            ) as api:
+                r = await api.put(
+                    f"/api/signage/playlists/{playlist_id}/items",
+                    json={"items": []},
+                )
+                assert r.status_code in (200, 204), (
+                    f"FastAPI bulk PUT items failed: {r.status_code} {r.text}"
+                )
+
+            frame = await asyncio.wait_for(stream.next_frame(), timeout=SSE_TIMEOUT_S)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            assert frame["event"] == "playlist-changed", (
+                f"FastAPI bulk PUT: expected playlist-changed, got {frame['event']!r}"
+            )
+            assert elapsed_ms < SSE_TIMEOUT_MS, (
+                f"FastAPI bulk PUT latency {elapsed_ms:.0f} ms > {SSE_TIMEOUT_MS} ms (D-17)"
+            )
+            logger.info("fastapi bulk PUT items SSE latency: %.0fms", elapsed_ms)
+    finally:
+        if playlist_id is not None:
+            async with httpx.AsyncClient(
+                headers=directus_headers, base_url=DIRECTUS_BASE_URL, timeout=10
+            ) as c:
+                try:
+                    await c.delete(
+                        "/items/signage_playlist_tag_map",
+                        params={"filter[playlist_id][_eq]": playlist_id},
+                    )
+                except Exception:
+                    pass
+                try:
+                    await c.delete(f"/items/signage_playlists/{playlist_id}")
+                except Exception:
+                    pass
