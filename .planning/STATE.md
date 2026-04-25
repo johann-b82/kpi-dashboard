@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 71-01-PLAN.md
-last_updated: "2026-04-25T08:57:58.575Z"
+stopped_at: Completed 71-06-PLAN.md
+last_updated: "2026-04-25T09:01:18.752Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 39
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State: KPI Dashboard
@@ -38,7 +38,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 71 (fe-polish-clean) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-04-25
 
@@ -220,6 +220,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 71-fe-polish-clean P02 | 164s | 1 tasks | 2 files |
 | Phase 71 P04 | 154s | 2 tasks | 3 files |
 | Phase 71-fe-polish-clean P01 | 244s | 2 tasks | 3 files |
+| Phase 71-fe-polish-clean P06 | 164s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -268,6 +269,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 71]: Plan 71-04: OpenAPI baseline locked at 44 paths; DB_EXCLUDE_TABLES absent-from semantics enforced verbatim per D-08 (NOT superset)
 - [Phase 71-fe-polish-clean]: Plan 71-01: Wrapped apiClient calls (not just Directus SDK calls) with toApiError because the helper passes ApiErrorWithBody through unchanged — single contract end-to-end with no double-wrap risk.
 - [Phase 71-fe-polish-clean]: Plan 71-01: Renamed local interface DirectusErrorShape → DirectusThrownShape so toApiError.ts contains zero 'DirectusError' string occurrences (acceptance criterion + future grep audit hygiene).
+- [Phase 71-fe-polish-clean]: Plan 71-06: Phase 71 CI guards appended in same shape as Phases 66-70 (D-09a no-consolidation honored); --workers 1 comment regex broadened to asyncpg|listen|invariant|single|SSE|scheduler|APScheduler|hazard so all 3 existing flag sites pass without source edits; rollback target locked at pre-Phase-68 (D-04b).
 
 ### Cross-cutting hazards (hard gates)
 
@@ -313,6 +315,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T08:57:52.413Z
-**Stopped at:** Completed 71-01-PLAN.md
+**Last session:** 2026-04-25T09:01:18.749Z
+**Stopped at:** Completed 71-06-PLAN.md
 **Resume file:** None
