@@ -377,6 +377,6 @@ Plans:
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
 | 68. MIG-SIGN — Tags + Schedules | v1.22 | 8/8 | Complete   | 2026-04-25 |
-| 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete   | 2026-04-25 |
+| 69. MIG-SIGN — Playlists | v1.22 | 6/6 | Complete    | 2026-04-25 |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
 | 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |
