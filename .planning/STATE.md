@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
 status: executing
-stopped_at: Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
-last_updated: "2026-04-25T05:23:27.771Z"
+stopped_at: Completed 68-02 alembic-check + Directus validation Flow
+last_updated: "2026-04-25T06:02:45.612Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 20
+  completed_plans: 13
 ---
 
 # Project State: KPI Dashboard
@@ -196,6 +196,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 67 P02 | 6m | 1 tasks | 1 files |
 | Phase 67 P01 | 3m | 2 tasks | 3 files |
 | Phase 67 P03 | 4m | 2 tasks | 2 files |
+| Phase 68 P02 | 169s | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,8 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 67]: Phase 67-02: fetchSalesRecords migrated to directus.request(readItems('sales_records', ...)) with filter/sort/limit/fields; multi-field search uses _or with _icontains (top-level search param avoided); SalesTable.tsx untouched (D-01); query-key unification deferred to Phase 71.
 - [Phase 67]: [Phase 67-01]: Inverted-range guard returns 422 (FastAPI semantic) instead of data.py legacy 400 — D-07. Compute endpoint returns flat dict array (not Pydantic model); frontend zero-fills missing employees.
 - [Phase 67]: Plan 67-03: fetchEmployees migrated to Directus readItems('personio_employees') with 9-field allowlist; date_from/date_to dropped from signature (D-15). useEmployeesWithOvertime composite hook merges Directus rows + FastAPI overtime via useMemo + Map; rows cache key namespaced ['directus', 'personio_employees', { search }] (Pitfall 4); overtime key ['employeesOvertime', date_from, date_to] — search edits don't refetch overtime.
+- [Phase 68]: Plan 68-02: Renamed existing v1.18 CHECK 'ck_signage_schedules_no_midnight_span' to canonical 'ck_signage_schedules_start_before_end' instead of adding duplicate (Rule 1 deviation)
+- [Phase 68]: Plan 68-02: Directus validation Flow deployed via bootstrap-roles.sh section 6 REST POST (fixed UUIDs 68aaaaaa-...0001/0002), not snapshot YAML — mirrors Phase 65 D-02 imperative pattern
 
 ### Cross-cutting hazards (hard gates)
 
@@ -264,6 +267,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-24T19:25:51.051Z
-**Stopped at:** Completed 67-03-PLAN.md (fetchEmployees Directus + useEmployeesWithOvertime hook)
+**Last session:** 2026-04-25T06:02:42.091Z
+**Stopped at:** Completed 68-02 alembic-check + Directus validation Flow
 **Resume file:** None

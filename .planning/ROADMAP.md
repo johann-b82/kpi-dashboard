@@ -298,10 +298,10 @@ Plans:
   1. Admin can create, rename, and delete signage tags from the `/signage/tags` admin surface; writes go to Directus via the SDK; `DELETE /api/signage/tags/{id}` and related FastAPI tag routes are removed.
   2. Admin can create, edit, and delete schedules from `/signage/schedules`; `start_hhmm < end_hhmm` is enforced (Alembic CHECK + Directus validation hook for friendly error message); FastAPI schedules router is removed.
   3. Directus-originated mutations on `signage_tags` / `signage_playlist_tag_map` / `signage_device_tag_map` / `signage_schedules` fan out the correct SSE events (`playlist-changed` on tag-map changes, `schedule-changed` on schedule changes) to affected Pi players within 500 ms (SSE regression test per table).
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 Plans:
 - [ ] 68-01-backend-tags-removal-PLAN.md — Delete FastAPI tags.py + registration; refresh test refs (Wave 1)
-- [ ] 68-02-alembic-check-and-directus-validation-hook-PLAN.md — Alembic CHECK (start_hhmm < end_hhmm) + Directus Flow returning code schedule_end_before_start (Wave 1)
+- [x] 68-02-alembic-check-and-directus-validation-hook-PLAN.md — Alembic CHECK (start_hhmm < end_hhmm) + Directus Flow returning code schedule_end_before_start (Wave 1)
 - [ ] 68-03-backend-schedules-removal-PLAN.md — Delete schedules.py + _fanout_schedule_changed helper + port/delete schedule router tests (Wave 2)
 - [ ] 68-04-frontend-signageapi-swap-PLAN.md — Inline-swap listTags/createTag/updateTag/deleteTag + listSchedules/createSchedule/updateSchedule/deleteSchedule to Directus SDK (Wave 1)
 - [ ] 68-05-frontend-schedule-validation-ux-PLAN.md — Map Directus schedule_end_before_start error to existing i18n key + tests (Wave 2)
@@ -369,7 +369,7 @@ Plans:
 | 65. Foundation — Schema + AuthZ + SSE Bridge | v1.22 | 5/5 | Complete    | 2026-04-24 |
 | 66. Kill `me.py` | v1.22 | 3/3 | Complete    | 2026-04-24 |
 | 67. Migrate `data.py` — Sales + Employees split | v1.22 | 4/4 | Complete    | 2026-04-25 |
-| 68. MIG-SIGN — Tags + Schedules | v1.22 | 0/8 | Not started | - |
+| 68. MIG-SIGN — Tags + Schedules | v1.22 | 1/8 | In Progress|  |
 | 69. MIG-SIGN — Playlists | v1.22 | 0/TBD | Not started | - |
 | 70. MIG-SIGN — Devices | v1.22 | 0/TBD | Not started | - |
 | 71. FE polish + CLEAN | v1.22 | 0/TBD | Not started | - |
