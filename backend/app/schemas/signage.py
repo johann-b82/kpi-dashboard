@@ -14,9 +14,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-
-from app.services._hhmm import hhmm_to_time
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --------------------------------------------------------------------------
@@ -63,10 +61,6 @@ class SignagePlaylistBase(BaseModel):
     tag_ids: list[int] | None = None
 
 
-class SignagePlaylistCreate(SignagePlaylistBase):
-    pass
-
-
 class SignagePlaylistRead(SignagePlaylistBase):
     id: uuid.UUID
     created_at: datetime
@@ -104,12 +98,13 @@ class SignagePlaylistItemRead(SignagePlaylistItemBase):
 
 
 class SignageDeviceBase(BaseModel):
+    """Parent of `SignageDeviceRead`. Retained because `SignageDeviceRead`
+    inherits it; deletion would break the Phase 70 calibration PATCH
+    response_model. (Phase 71-05 catch-all sweep — Plan flagged orphan but
+    retained per Pitfall 7 inheritance guard.)
+    """
+
     name: str = Field(..., max_length=128)
-    tag_ids: list[int] | None = None
-
-
-class SignageDeviceUpdate(BaseModel):
-    name: str | None = Field(default=None, max_length=128)
     tag_ids: list[int] | None = None
 
 
@@ -163,26 +158,6 @@ class SignageCalibrationUpdate(BaseModel):
     rotation: Literal[0, 90, 180, 270] | None = None
     hdmi_mode: str | None = Field(default=None, max_length=64)
     audio_enabled: bool | None = None
-
-
-# --------------------------------------------------------------------------
-# SignageDeviceTag
-# --------------------------------------------------------------------------
-
-
-class SignageDeviceTagBase(BaseModel):
-    name: str = Field(..., max_length=64)
-
-
-class SignageDeviceTagCreate(SignageDeviceTagBase):
-    pass
-
-
-class SignageDeviceTagRead(SignageDeviceTagBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    model_config = {"from_attributes": True}
 
 
 # --------------------------------------------------------------------------
@@ -261,72 +236,6 @@ class PlaylistEnvelope(BaseModel):
     name: str | None = None
     items: list[PlaylistEnvelopeItem] = Field(default_factory=list)
     resolved_at: datetime
-
-
-# --------------------------------------------------------------------------
-# SignageSchedule — v1.18 Phase 51 SGN-TIME-01
-# --------------------------------------------------------------------------
-
-
-class ScheduleBase(BaseModel):
-    """Shared shape for create/read. Weekday_mask: bit0=Mo..bit6=So (D-05)."""
-
-    playlist_id: uuid.UUID
-    weekday_mask: int = Field(..., ge=0, le=127)
-    start_hhmm: int = Field(..., ge=0, le=2359)
-    end_hhmm: int = Field(..., ge=0, le=2359)
-    priority: int = 0
-    enabled: bool = True
-
-    @field_validator("start_hhmm", "end_hhmm")
-    @classmethod
-    def _validate_hhmm_structure(cls, v: int) -> int:
-        """Catch in-range-but-invalid HHMM values like 1299 (minute > 59) —
-        the DB CHECK only enforces the numeric range 0..2359, not the HHMM
-        structure. Pitfall 3.
-        """
-        hhmm_to_time(v)  # raises ValueError on minute > 59
-        return v
-
-    @model_validator(mode="after")
-    def _start_lt_end(self) -> "ScheduleBase":
-        if self.start_hhmm >= self.end_hhmm:
-            raise ValueError(
-                "start_hhmm must be less than end_hhmm "
-                "(no midnight-spanning rows in v1.18 — split into two rows)"
-            )
-        return self
-
-
-class ScheduleCreate(ScheduleBase):
-    pass
-
-
-class ScheduleUpdate(BaseModel):
-    """PATCH-style update. Cross-field start<end check lives in the router,
-    applied only after merging with existing row.
-    """
-
-    playlist_id: uuid.UUID | None = None
-    weekday_mask: int | None = Field(default=None, ge=0, le=127)
-    start_hhmm: int | None = Field(default=None, ge=0, le=2359)
-    end_hhmm: int | None = Field(default=None, ge=0, le=2359)
-    priority: int | None = None
-    enabled: bool | None = None
-
-    @field_validator("start_hhmm", "end_hhmm")
-    @classmethod
-    def _validate_hhmm_structure(cls, v: int | None) -> int | None:
-        if v is not None:
-            hhmm_to_time(v)
-        return v
-
-
-class ScheduleRead(ScheduleBase):
-    id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
-    model_config = ConfigDict(from_attributes=True)
 
 
 class DeviceAnalyticsRead(BaseModel):

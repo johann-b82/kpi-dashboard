@@ -1,10 +1,17 @@
 """Integration tests for /api/signage admin CRUD router — SGN-BE-01.
 
-Covers:
-  - Admin gate matrix (admin 201 / viewer 403 / no-jwt 401)
-  - Media DELETE 404 / 409-with-playlist_ids / 204
-  - Bulk-replace playlist items atomic (D-17)
-  - Bulk-replace device tags + playlist tags atomic (D-18)
+Post-v1.22 surface (Phase 71 catch-all sweep):
+  - Media DELETE 404 / 409-with-playlist_ids / 204 (FastAPI-owned)
+  - Bulk-replace playlist items atomic (D-17, FastAPI-owned)
+
+Removed (migrated to Directus in v1.22):
+  - POST /playlists admin-gate matrix (Phase 69 — all CRUD via Directus)
+  - PUT /devices/{id}/tags bulk-replace (Phase 70 — Directus tag map)
+  - PUT /playlists/{id}/tags bulk-replace (Phase 69 — Directus tag map)
+
+Admin-gate enforcement is now covered by `test_signage_router_deps.py` which
+walks the entire `/api/signage` route tree and asserts `require_admin` is
+present in every dependant tree (router-level gate, D-01).
 
 Seeds via asyncpg; drives via the project's async `client` fixture.
 Skips cleanly when POSTGRES_* is unset so `pytest --collect-only` passes
@@ -20,7 +27,7 @@ import asyncpg
 import pytest
 import pytest_asyncio
 
-from tests.test_directus_auth import _mint, ADMIN_UUID, VIEWER_UUID
+from tests.test_directus_auth import _mint, ADMIN_UUID
 
 
 def _pg_dsn() -> str | None:
@@ -118,43 +125,6 @@ async def _insert_playlist_item(
     return iid
 
 
-async def _insert_device(dsn: str, *, name: str = "d") -> uuid.UUID:
-    did = uuid.uuid4()
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        await conn.execute(
-            "INSERT INTO signage_devices (id, name, status) VALUES ($1, $2, 'offline')",
-            did,
-            name,
-        )
-    finally:
-        await conn.close()
-    return did
-
-
-async def _insert_tag(dsn: str, *, name: str) -> int:
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        return await conn.fetchval(
-            "INSERT INTO signage_device_tags (name) VALUES ($1) RETURNING id",
-            name,
-        )
-    finally:
-        await conn.close()
-
-
-async def _insert_device_tag_map(dsn: str, *, device_id: uuid.UUID, tag_id: int) -> None:
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        await conn.execute(
-            "INSERT INTO signage_device_tag_map (device_id, tag_id) VALUES ($1, $2)",
-            device_id,
-            tag_id,
-        )
-    finally:
-        await conn.close()
-
-
 async def _count_items(dsn: str, playlist_id: uuid.UUID) -> int:
     conn = await asyncpg.connect(dsn=dsn)
     try:
@@ -164,70 +134,6 @@ async def _count_items(dsn: str, playlist_id: uuid.UUID) -> int:
         )
     finally:
         await conn.close()
-
-
-async def _device_tag_ids(dsn: str, device_id: uuid.UUID) -> list[int]:
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        rows = await conn.fetch(
-            "SELECT tag_id FROM signage_device_tag_map WHERE device_id = $1 ORDER BY tag_id",
-            device_id,
-        )
-    finally:
-        await conn.close()
-    return [r["tag_id"] for r in rows]
-
-
-async def _playlist_tag_ids(dsn: str, playlist_id: uuid.UUID) -> list[int]:
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        rows = await conn.fetch(
-            "SELECT tag_id FROM signage_playlist_tag_map WHERE playlist_id = $1 ORDER BY tag_id",
-            playlist_id,
-        )
-    finally:
-        await conn.close()
-    return [r["tag_id"] for r in rows]
-
-
-# ---------------------------------------------------------------------------
-# Admin gate matrix (POST /playlists)
-# ---------------------------------------------------------------------------
-
-
-async def test_admin_can_create_playlist(client):
-    dsn = await _require_db()
-    try:
-        token = _mint(ADMIN_UUID)
-        r = await client.post(
-            "/api/signage/playlists",
-            json={"name": "lobby loop", "priority": 1, "enabled": True},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert r.status_code == 201, r.text
-        body = r.json()
-        assert body["name"] == "lobby loop"
-        assert uuid.UUID(body["id"])
-    finally:
-        await _cleanup(dsn)
-
-
-async def test_viewer_cannot_create_playlist(client):
-    await _require_db()
-    token = _mint(VIEWER_UUID)
-    r = await client.post(
-        "/api/signage/playlists",
-        json={"name": "nope"},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert r.status_code == 403, r.text
-    assert "admin" in r.json().get("detail", "").lower()
-
-
-async def test_no_jwt_cannot_create_playlist(client):
-    await _require_db()
-    r = await client.post("/api/signage/playlists", json={"name": "nope"})
-    assert r.status_code == 401, r.text
 
 
 # ---------------------------------------------------------------------------
@@ -334,83 +240,9 @@ async def test_put_playlist_items_bulk_replaces_atomically(client):
         returned_media_ids = {it["media_id"] for it in body}
         assert returned_media_ids == {str(new_m1), str(new_m2)}
 
-        # Follow-up GET confirms the new state.
-        g = await client.get(
-            f"/api/signage/playlists/{playlist_id}/items",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert g.status_code == 200, g.text
-        items = g.json()
-        assert len(items) == 2
-        assert [it["position"] for it in items] == [5, 6]
-
-        # DB-side commit: count in DB is exactly 2 (DELETE half of tx ran).
+        # DB-side commit: count in DB is exactly 2 (DELETE+INSERT atomic).
+        # GET /playlists/{id}/items was migrated to Directus in Phase 69-02
+        # (only PUT bulk-replace remains in FastAPI), so confirm via SQL.
         assert await _count_items(dsn, playlist_id) == 2
-    finally:
-        await _cleanup(dsn)
-
-
-# ---------------------------------------------------------------------------
-# Bulk-replace device tags (D-18)
-# ---------------------------------------------------------------------------
-
-
-async def test_put_device_tags_bulk_replaces(client):
-    dsn = await _require_db()
-    try:
-        token = _mint(ADMIN_UUID)
-        device_id = await _insert_device(dsn, name="dev-a")
-        t_a = await _insert_tag(dsn, name="tag-A")
-        t_b = await _insert_tag(dsn, name="tag-B")
-        t_c = await _insert_tag(dsn, name="tag-C")
-        await _insert_device_tag_map(dsn, device_id=device_id, tag_id=t_a)
-        await _insert_device_tag_map(dsn, device_id=device_id, tag_id=t_b)
-
-        r = await client.put(
-            f"/api/signage/devices/{device_id}/tags",
-            json={"tag_ids": [t_c]},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert r.status_code == 200, r.text
-        body = r.json()
-        assert body["tag_ids"] == [t_c]
-
-        assert await _device_tag_ids(dsn, device_id) == [t_c]
-    finally:
-        await _cleanup(dsn)
-
-
-# ---------------------------------------------------------------------------
-# Bulk-replace playlist tags (D-18)
-# ---------------------------------------------------------------------------
-
-
-async def test_put_playlist_tags_bulk_replaces(client):
-    dsn = await _require_db()
-    try:
-        token = _mint(ADMIN_UUID)
-        playlist_id = await _insert_playlist(dsn, name="pl-tags")
-        t_a = await _insert_tag(dsn, name="ptag-A")
-        t_b = await _insert_tag(dsn, name="ptag-B")
-        t_c = await _insert_tag(dsn, name="ptag-C")
-
-        # Seed existing [A, B] via API to exercise the endpoint as well.
-        r0 = await client.put(
-            f"/api/signage/playlists/{playlist_id}/tags",
-            json={"tag_ids": [t_a, t_b]},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert r0.status_code == 200, r0.text
-
-        r = await client.put(
-            f"/api/signage/playlists/{playlist_id}/tags",
-            json={"tag_ids": [t_c]},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert r.status_code == 200, r.text
-        body = r.json()
-        assert body["tag_ids"] == [t_c]
-
-        assert await _playlist_tag_ids(dsn, playlist_id) == [t_c]
     finally:
         await _cleanup(dsn)

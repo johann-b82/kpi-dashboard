@@ -7,10 +7,6 @@ from app.schemas._base import *  # noqa: F401,F403 — re-export legacy classes
 from app.schemas.signage import (  # noqa: F401
     SignageDeviceBase,
     SignageDeviceRead,
-    SignageDeviceTagBase,
-    SignageDeviceTagCreate,
-    SignageDeviceTagRead,
-    SignageDeviceUpdate,
     SignageMediaBase,
     SignageMediaCreate,
     SignageMediaRead,
@@ -19,7 +15,6 @@ from app.schemas.signage import (  # noqa: F401
     SignagePairingSessionRead,
     SignagePairingStatusResponse,
     SignagePlaylistBase,
-    SignagePlaylistCreate,
     SignagePlaylistItemBase,
     SignagePlaylistItemCreate,
     SignagePlaylistItemRead,
