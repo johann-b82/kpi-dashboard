@@ -1,10 +1,11 @@
 ---
 phase: 70
 slug: mig-sign-devices
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova
 created: 2026-04-25
+reviewed_at: 2026-04-25
 ---
 
 # Phase 70 — UI Design Contract
