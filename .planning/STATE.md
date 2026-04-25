@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: executing
-stopped_at: Completed 69-04-sse-regression-tests-PLAN.md
-last_updated: "2026-04-25T06:56:01.906Z"
+status: verifying
+stopped_at: Completed 69-06-admin-permission-smoke-and-test-triage-PLAN.md
+last_updated: "2026-04-25T06:59:46.512Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State: KPI Dashboard
@@ -39,7 +39,7 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
 Phase: 69 (mig-sign-playlists) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-25
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
@@ -208,6 +208,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 69 P03 | 216s | 2 tasks | 1 files |
 | Phase 69-mig-sign-playlists P05 | 78s | 1 tasks | 1 files |
 | Phase 69-mig-sign-playlists P04 | 93s | 1 tasks | 1 files |
+| Phase 69-mig-sign-playlists P06 | 288s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -242,6 +243,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 69]: Plan 69-03: tag_ids hydration via Option A parallel readItems(signage_playlist_tag_map) merge — preserves PlaylistEditorPage consumer contract; replacePlaylistTags uses deleteItems query/filter form because signage_playlist_tag_map has composite PK (playlist_id, tag_id) with no surrogate id column.
 - [Phase 69-mig-sign-playlists]: Plan 69-05: Third grep scoped to playlists.py + playlist_items.py (NOT signage_admin/ directory) to avoid false-positive on surviving devices.py PUT /{device_id}/tags (Phase 70 surface) — Rule 1 deviation from plan-as-written.
 - [Phase 69-mig-sign-playlists]: Plan 69-04: Adopted existing open_sse_stream/next_frame helper API (plan's wait_for_event/sse_subscription fixtures don't exist); transient-playlist tests must bind paired_device.tag_id via signage_playlist_tag_map for resolver routing; TDD split skipped per Phase 68 P06 precedent.
+- [Phase 69-mig-sign-playlists]: Plan 69-06: D-08 fallback gap discovered — signage_playlist_tag_map (composite-PK, schema:null in v1.22 snapshot) returns 403 on /items even with admin_access:true; permission rows in bootstrap-roles.sh §6 do NOT fix this (admin bypasses permissions). Test marked xfail(strict=False); meta-registration deferred to Phase 71 CLEAN. Same root cause blocks preexisting Phase 68-06 SSE tag_map test.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -287,6 +289,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T06:56:01.902Z
-**Stopped at:** Completed 69-04-sse-regression-tests-PLAN.md
+**Last session:** 2026-04-25T06:59:46.510Z
+**Stopped at:** Completed 69-06-admin-permission-smoke-and-test-triage-PLAN.md
 **Resume file:** None
