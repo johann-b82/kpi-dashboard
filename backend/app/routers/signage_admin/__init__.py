@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 
 from app.security.directus_auth import get_current_user, require_admin
 
-from . import analytics, devices, media, playlist_items, playlists
+from . import analytics, devices, media, playlist_items, playlists, resolved
 
 router = APIRouter(
     prefix="/api/signage",
@@ -20,3 +20,4 @@ router.include_router(media.router)
 router.include_router(playlists.router)
 router.include_router(playlist_items.router)
 router.include_router(devices.router)
+router.include_router(resolved.router)
