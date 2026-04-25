@@ -95,6 +95,24 @@ jobs:
           echo "OK: no /api/data/sales or /api/data/employees references in backend/app/ (overtime endpoint permitted)"
 
       # -----------------------------------------------------------------------
+      # Phase 68 MIG-SIGN-01 + MIG-SIGN-02: CI guard — fail on any literal
+      # `/api/signage/tags` or `/api/signage/schedules` reappearing under
+      # backend/app/. Both routers were deleted in Phase 68; tags + schedules
+      # CRUD now go through the Directus collections `signage_device_tags`
+      # and `signage_schedules`. Tag-map writes for playlists / devices use
+      # `/api/signage/playlists/{id}/tags` and `/api/signage/devices/{id}/tags`
+      # (different prefix); they remain in FastAPI per Phase 69 / 70 scope.
+      # Pre-stack grep — fails in <1s on regression.
+      # -----------------------------------------------------------------------
+      - name: "Guard — no /api/signage/tags or /api/signage/schedules in backend (MIG-SIGN-01/02)"
+        run: |
+          if grep -rnE '"/api/signage/tags"|"/api/signage/tags/|"/api/signage/schedules"|"/api/signage/schedules/' backend/app/; then
+            echo "ERROR: /api/signage/tags or /api/signage/schedules reference found in backend/app/ (Phase 68 — these routers were deleted; CRUD goes through Directus collections signage_device_tags + signage_schedules)."
+            exit 1
+          fi
+          echo "OK: no /api/signage/tags or /api/signage/schedules references in backend/app/"
+
+      # -----------------------------------------------------------------------
       # Step 5: Bring up full stack and wait for healthchecks
       # --wait blocks until all services report healthy (or timeout).
       # -----------------------------------------------------------------------
