@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Backend Consolidation — Directus-First CRUD
-status: verifying
-stopped_at: Phase 70 context gathered
-last_updated: "2026-04-25T07:17:20.201Z"
+status: executing
+stopped_at: Completed 70-01-backend-resolved-router-PLAN.md
+last_updated: "2026-04-25T07:45:08.274Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 32
+  completed_plans: 27
 ---
 
 # Project State: KPI Dashboard
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-24 — Current Milestone set to v1.
 
 **Core value:** Upload a data file and immediately see sales/revenue KPIs visualized on a dashboard — zero friction from raw data to insight.
 
-**Current focus:** Phase 69 — mig-sign-playlists
+**Current focus:** Phase 70 — mig-sign-devices
 
 Previous milestone v1.21 Signage Calibration + Build Hygiene + Reverse Proxy shipped 2026-04-24 (tag `v1.21`, CAL-PI-07 waived).
 Previous milestone v1.20 HR Date-Range Filter + TS Cleanup shipped 2026-04-22 (tag `v1.20`).
@@ -37,9 +37,9 @@ Previous milestone v1.19 UI Consistency Pass 2 shipped 2026-04-22 (tag `v1.19`).
 ## Current Position
 
 Milestone: v1.22 Backend Consolidation — Directus-First CRUD
-Phase: 70
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 70 (mig-sign-devices) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 Last activity: 2026-04-25
 
 Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
@@ -209,6 +209,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 | Phase 69-mig-sign-playlists P05 | 78s | 1 tasks | 1 files |
 | Phase 69-mig-sign-playlists P04 | 93s | 1 tasks | 1 files |
 | Phase 69-mig-sign-playlists P06 | 288s | 2 tasks | 1 files |
+| Phase 70-mig-sign-devices P01 | 53s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -244,6 +245,7 @@ Next action: `/gsd:discuss-phase 65` or `/gsd:plan-phase 65`.
 - [Phase 69-mig-sign-playlists]: Plan 69-05: Third grep scoped to playlists.py + playlist_items.py (NOT signage_admin/ directory) to avoid false-positive on surviving devices.py PUT /{device_id}/tags (Phase 70 surface) — Rule 1 deviation from plan-as-written.
 - [Phase 69-mig-sign-playlists]: Plan 69-04: Adopted existing open_sse_stream/next_frame helper API (plan's wait_for_event/sse_subscription fixtures don't exist); transient-playlist tests must bind paired_device.tag_id via signage_playlist_tag_map for resolver routing; TDD split skipped per Phase 68 P06 precedent.
 - [Phase 69-mig-sign-playlists]: Plan 69-06: D-08 fallback gap discovered — signage_playlist_tag_map (composite-PK, schema:null in v1.22 snapshot) returns 403 on /items even with admin_access:true; permission rows in bootstrap-roles.sh §6 do NOT fix this (admin bypasses permissions). Test marked xfail(strict=False); meta-registration deferred to Phase 71 CLEAN. Same root cause blocks preexisting Phase 68-06 SSE tag_map test.
+- [Phase 70-mig-sign-devices]: Plan 70-01: ResolvedDeviceResponse field names mirror SignageDeviceRead extras exactly so FE merge {...directusRow, ...resolvedResponse} needs no rename layer; tag_ids returns None (not []) when device has zero tag-map rows.
 
 ### Cross-cutting hazards (hard gates)
 
@@ -289,6 +291,6 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-25T07:17:20.197Z
-**Stopped at:** Phase 70 context gathered
-**Resume file:** .planning/phases/70-mig-sign-devices/70-CONTEXT.md
+**Last session:** 2026-04-25T07:45:01.849Z
+**Stopped at:** Completed 70-01-backend-resolved-router-PLAN.md
+**Resume file:** None

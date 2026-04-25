@@ -136,7 +136,7 @@
 | MIG-SIGN-01 | Phase 68 | Complete |
 | MIG-SIGN-02 | Phase 68 | Complete |
 | MIG-SIGN-03 | Phase 69 | Complete |
-| MIG-SIGN-04 | Phase 70 | Pending |
+| MIG-SIGN-04 | Phase 70 | Complete |
 | FE-01 | Phase 71 | Pending |
 | FE-02 | Phase 71 | Pending |
 | FE-03 | Phase 71 | Pending |
