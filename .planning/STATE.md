@@ -50,6 +50,7 @@ Next action: `/gsd:new-milestone` to scope the next milestone, or run pending HU
 | 260422-hxt | Remove Digital Signage h1 heading and hoist 4-tab pill into SubHeader | 2026-04-22 | b0525e0 | [260422-hxt-remove-digital-signage-h1-heading-from-s](./quick/260422-hxt-remove-digital-signage-h1-heading-from-s/) |
 | 260422-i41 | Relocate signage primary-action CTAs below lists (media, playlists, devices, schedules) | 2026-04-22 | bdc84fa | [260422-i41-move-primary-action-buttons-below-tables](./quick/260422-i41-move-primary-action-buttons-below-tables/) |
 | 260422-j9o | Nav cluster polish: drop toggle blue, size-8 circles, normal-weight initials, title-case dashboard toggle, dynamic pill indicator | 2026-04-22 | 25082ff | [260422-j9o-nav-cluster-polish-drop-toggle-blue-size](./quick/260422-j9o-nav-cluster-polish-drop-toggle-blue-size/) |
+| 260427-gwf | Add surrogate `id SERIAL PRIMARY KEY` to signage_*_tag_map (Alembic v1_24) so Directus 11 introspects both junction tables | 2026-04-27 | 6055369 | [260427-gwf-add-surrogate-id-serial-primary-key-to-s](./quick/260427-gwf-add-surrogate-id-serial-primary-key-to-s/) |
 
 ---
 
