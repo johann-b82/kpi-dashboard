@@ -257,6 +257,8 @@ kpi-light/
 
 **Migrated to Directus (v1.22):** `signage_tags`, `signage_schedules`, `signage_playlists` (list/create/rename/re-tag), `signage_playlist_items` (GET), `signage_devices` (list/get/rename/tags/delete), `sales_records`, `personio_employees`, current-user `readMe`. Frontend reaches these via the Directus SDK (same-origin at `/directus/*` through Caddy); the surviving FastAPI surface above is compute-only.
 
+**Junction-table PKs (v1.24):** `signage_playlist_tag_map` and `signage_device_tag_map` carry a surrogate `id SERIAL PRIMARY KEY` with a `UNIQUE` constraint on the original `(playlist_id, tag_id)` / `(device_id, tag_id)` pair. Composite primary keys are not exposable by Directus, so the junction tables are now first-class collections while the no-duplicate-pairs invariant is preserved.
+
 ---
 
 ## Database Migrations
